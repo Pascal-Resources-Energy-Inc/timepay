@@ -31,9 +31,9 @@
                         <option value="">--Select--</option>
                         @foreach($leave_types as $leave_type)
                         {{-- <option value="{{$leave_type->id}}">{{$leave_type->leave_type}}</option> --}}
-                          @if($leave_type->code == 'LWOP')
+                          {{-- @if($leave_type->code == 'LWOP')
                           <option value="{{$leave_type->id}}">{{$leave_type->leave_type}}</option>
-                          @endif
+                          @endif --}}
                           @if($leave_type->code == 'VL')
                             <option value="{{$leave_type->id}}">{{$leave_type->leave_type}}</option>
                           @elseif($leave_type->code == 'SL')
@@ -41,7 +41,7 @@
                           @elseif($is_allowed_to_file_sil && $leave_type->code == 'SIL' && $employee_status->classifcation == 'Project Based')
                             <option value="{{$leave_type->id}}">{{$leave_type->leave_type}}</option>
                         
-                          @elseif($leave_type->code == 'ML')
+                          @elseif($is_allowed_to_file_ml && $leave_type->code == 'ML')
                             <option value="{{$leave_type->id}}">{{$leave_type->leave_type}}</option>
                           @elseif($is_allowed_to_file_pl && $leave_type->code == 'PL')
                             <option value="{{$leave_type->id}}">{{$leave_type->leave_type}}</option>
@@ -67,7 +67,7 @@
                           <input type="hidden" v-model="leave_balances" name="leave_balances" :value="leave_balances">
                           <div>
                             <label class="form-check-label ">
-                              <input type="checkbox" hidden name="withpay" class="form-check-input" :disabled="isAllowedWithPay" id='checkboxwithpay' onclick="return false;" v-model="with_pay">
+                              <input type="checkbox"  name="withpay" class="form-check-input" :disabled="isAllowedWithPay" id='checkboxwithpay' onclick="return false;" v-model="with_pay">With Pay <br>
                               Leave Credit : <span id='leave_credit_total'></span>
                           </label>
                           </div>

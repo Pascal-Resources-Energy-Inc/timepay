@@ -56,8 +56,8 @@ return [
     */
 
     'from' => [
-        'address' => 'adminportal@premiummegastructures.com',
-        'name' => 'HRIS'
+        'address' => 'noreply@pascalresources.com.ph',
+        'name' => 'TimePay - PREI'
     ],
     /*
     |--------------------------------------------------------------------------

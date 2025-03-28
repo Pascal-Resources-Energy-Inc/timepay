@@ -38,9 +38,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('command:leave_approval')->everyMinute();
         $schedule->command('command:official_business_approval')->everyMinute();
         $schedule->command('command:overtime_approval')->everyMinute();
-        $schedule->command('command:work_from_home_approval')->everyMinute();
-        $schedule->command('command:dtr_approval')->everyMinute();
-        $schedule->command('command:email_attendance')->dailyAt('8:00');
+        // $schedule->command('command:work_from_home_approval')->everyMinute();
+        // $schedule->command('command:dtr_approval')->everyMinute();
+        $schedule->command('command:email_attendance')->dailyAt('10:00');
         // $schedule->command('command:auto_earned_leave')->dailyAt('8:00');
     }
 

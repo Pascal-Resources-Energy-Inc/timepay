@@ -57,9 +57,18 @@ class EmailAttendance extends Command
         foreach($user_list as $user_data)
         {
             $attendances_cut_off = AttendanceDetailedReport::where('employee_no',$user_data->employee->employee_code)->orderBy('log_date','desc')->first();
-            $date_ranges = dateRange(date('Y-m-d', strtotime($attendances_cut_off->log_date . ' +1 day')),date('Y-m-d'));
+            if($attendances_cut_off != null)
+            {
+                    $att = $attendances_cut_off->log_date;
+            }   
+            else
+            {
+                $att = "2025-03-28";
+            }
+            
+            $date_ranges = dateRange(date('Y-m-d', strtotime($att . ' +1 day')),date('Y-m-d'));
 
-            $from_date = date('Y-m-d', strtotime($attendances_cut_off->log_date . ' +1 day'));
+            $from_date = date('Y-m-d', strtotime($att . ' +1 day'));
             $to_date = date('Y-m-d');
             // dd($to_date);
           

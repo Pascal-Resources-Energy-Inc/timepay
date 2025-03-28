@@ -47,7 +47,7 @@ class LeaveApproval extends Command
     }
 
     public function getLeaveApproval(){
-
+        $this->info('START Leave Approval');
         $for_approval = EmployeeLeave::with('user','leave','approver.approver_info')
                                         ->where(function($q){
                                             $q->whereNull('mail_1')
@@ -100,7 +100,8 @@ class LeaveApproval extends Command
                 }
             }   
         }
-
+        $this->info('END Leave Approval');
         return $count;
+        
     }
 }

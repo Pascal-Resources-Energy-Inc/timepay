@@ -20,6 +20,9 @@ Route::post('/upload-pay-reg', 'PayslipController@postuploadpayreg');
 Route::get('get-devices','AttendanceController@devices');
 Route::group(['middleware' => 'auth'], function () {
 
+    Route::post('timein-capture','AttendanceController@storeTimeIn');
+    Route::post('timeout-capture','AttendanceController@storeTimeOut');
+
     Route::get('salary-history','EmployeeController@showsalary');
     //Users
     Route::get('account-setting', 'UserController@accountSetting');

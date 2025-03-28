@@ -34,6 +34,85 @@ class AttendanceController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function storeTimeIn(Request $request)
+    {
+        // dd($request->all());
+        
+     
+        $newAttendance = new AttendanceLog;
+        $newAttendance->emp_code = auth()->user()->employee->employee_code;
+        $newAttendance->date = date('Y-m-d H:i:s');
+        $newAttendance->datetime =date('Y-m-d H:i:s');
+        $newAttendance->type = 0;
+        $newAttendance->location = "System";
+        if($request->file('image')){
+            $logo = $request->file('image');
+            $original_name = $logo->getClientOriginalName();
+            $name = time() . '_' . $logo->getClientOriginalName();
+            $logo->move(public_path() . '/images/', $name);
+            $file_name = '/images/' . $name;
+            $newAttendance->image = $file_name;
+        }
+        
+        $newAttendance->location_maps = $request->location;
+        $newAttendance->long = $request->location_long;
+        $newAttendance->lat = $request->location_lat;
+        $newAttendance->save();
+
+        $attendance = new Attendance;
+        $attendance->employee_code  = auth()->user()->employee->employee_code;   
+        $attendance->time_in = date('Y-m-d H:i:s');
+        $attendance->device_in = $request->location;
+        $attendance->save();
+        Alert::success("Successfully Store")->persistent('Dismiss');
+        return back();
+    }
+    public function storeTimeOut(Request $request)
+    {
+        // dd($request->all());
+        
+     
+        $newAttendance = new AttendanceLog;
+        $newAttendance->emp_code = auth()->user()->employee->employee_code;
+        $newAttendance->date = date('Y-m-d H:i:s');
+        $newAttendance->datetime =date('Y-m-d H:i:s');
+        $newAttendance->type = 1;
+        $newAttendance->location = "System";
+        if($request->file('image')){
+            $logo = $request->file('image');
+            $original_name = $logo->getClientOriginalName();
+            $name = time() . '_' . $logo->getClientOriginalName();
+            $logo->move(public_path() . '/images/', $name);
+            $file_name = '/images/' . $name;
+            $newAttendance->image = $file_name;
+        }
+        
+        $newAttendance->location_maps = $request->location;
+        $newAttendance->long = $request->location_long;
+        $newAttendance->lat = $request->location_lat;
+        $newAttendance->save();
+    
+        $time_in_after = date('Y-m-d H:i:s');
+        $time_in_before = date('Y-m-d H:i:s', strtotime ( '-16 hour' , strtotime ( date('Y-m-d H:i:s') ) )) ;
+        $update = [
+            'time_out' =>  date('Y-m-d H:i:s'),
+            'device_out' => $request->location,
+        ];
+
+        $attendance_in = Attendance::where('employee_code',auth()->user()->employee->employee_code)
+        ->whereBetween('time_in',[$time_in_before,$time_in_after])->first();
+        
+        Attendance::where('employee_code',auth()->user()->employee->employee_code)
+        ->whereBetween('time_in',[$time_in_before,$time_in_after])
+        ->where(function ($query) use ($time_in_after) {
+            $query->where('time_out', '<=', $time_in_after)
+                    ->orWhereNull('time_out');
+        })
+        ->update($update);
+
+        Alert::success("Successfully Store")->persistent('Dismiss');
+        return back();
+    }
     public function index(Request $request)
     {
 

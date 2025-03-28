@@ -367,7 +367,7 @@
                         </a>
                         <div class="collapse @if ($header == 'forms') show @endif" id="forms">
                             <ul class="nav flex-column sub-menu @if ($header == 'forms') show @endif">
-                                <li class="nav-item "> <a class="nav-link active" href="{{ url('/file-leave') }}">Leave</a></li>
+                                {{-- <li class="nav-item "> <a class="nav-link active" href="{{ url('/file-leave') }}">Leave</a></li> --}}
                                 @php
                                     $user_allowed_overtime = auth()->user()->allowed_overtime ? auth()->user()->allowed_overtime->allowed_overtime : "";
                                 @endphp
@@ -377,11 +377,11 @@
                                 {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/work-from-home') }}">Work from home</a></li> --}}
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/official-business') }}">Official Business</a>
                                 </li>
-                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li> --}}
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
                             </ul>
                         </div>
                     </li>
-                    <li class="nav-item  @if ($header == 'hrReport') active @endif">
+                    {{-- <li class="nav-item  @if ($header == 'hrReport') active @endif">
                         <a class="nav-link" data-toggle="collapse" href="#hrReport" aria-expanded="false" aria-controls="ui-basic">
                             <i class="icon-paper menu-icon"></i>
                             <span class="menu-title">Employee</span>
@@ -394,16 +394,15 @@
                             <li class="nav-item"> <a class="nav-link" href="{{url('employee-training-reports')}}">Training</a></li>
                             <li class="nav-item"> <a class="nav-link" href="{{url('loans')}}">Loans</a></li>
                             <li class="nav-item"> <a class="nav-link" href="{{url('payslips')}}">Payslips</a></li>
-                            {{-- <li class="nav-item"> <a class="nav-link" href="https://docs.google.com/forms/d/e/1FAIpQLScC5Xl_2IgYLHeZNd5EwwEX3-pO9p6u1-WO7CMLomS-FZ5tZQ/viewform" target="_blank">Proof of Availment</a></li> --}}
                             </ul>
                         </div>
-                    </li>
-                    <li class="nav-item @if ($header == 'leave_calendar') active @endif">
+                    </li> --}}
+                    {{-- <li class="nav-item @if ($header == 'leave_calendar') active @endif">
                         <a class="nav-link" href="{{ url('/leave_calendar') }}" onclick='show()'>
                             <i class="ti-calendar menu-icon"></i>
                             <span class="menu-title">Leave Calendar</span>
                         </a>
-                    </li>
+                    </li> --}}
                   @if(count(auth()->user()->employee->as_resign) > 0)
                     <li class="nav-item">
                         <hr>

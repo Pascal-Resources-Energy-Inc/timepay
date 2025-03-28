@@ -56,7 +56,7 @@
             background: url("{{ asset('login_css/images/loader.gif') }}") 50% 50% no-repeat white;
             opacity: .8;
             background-size: 120px 120px;
-        }
+        }   
 
         .redbox1 {
             background-color: lightgrey;
@@ -375,7 +375,7 @@
                                     <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li>
                                 @endif
                                 {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/work-from-home') }}">Work from home</a></li> --}}
-                                <li class="nav-item "> <a class="nav-link " href="{{ url('/official-business') }}">Official Business</a>
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/official-business') }}">Travel Order</a>
                                 </li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
                             </ul>

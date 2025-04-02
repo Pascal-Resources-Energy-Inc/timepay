@@ -921,7 +921,7 @@ class AttendanceController extends Controller
                             $attendance->employee_code  = $att->emp_code;   
                             $attendance->time_in = date('Y-m-d H:i:s',strtotime($att->datetime));
                             $attendance->device_in = $att->location ." - ".$att->ip_address;
-                            $attendance->last_id = $att->id;
+                            // $attendance->last_id = $att->id;
                             $attendance->save();
                         }
                     }
@@ -950,7 +950,7 @@ class AttendanceController extends Controller
                             $attendance->employee_code  = $att->emp_code;   
                             $attendance->time_out = date('Y-m-d H:i:s', strtotime($att->datetime));
                             $attendance->device_out = $att->location ." - ".$att->ip_address;
-                            $attendance->last_id = $att->id;
+                            // $attendance->last_id = $att->id;
                             $attendance->save(); 
                         }
                     }

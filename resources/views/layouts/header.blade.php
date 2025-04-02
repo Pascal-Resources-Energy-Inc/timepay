@@ -378,6 +378,10 @@
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/official-business') }}">Travel Order</a>
                                 </li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
+                                <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/231380935515052">Authority to deduct </a></li>
+                                <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li>
+                                <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242770633900050">Number Enrollment </a></li>
+                                <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/232350967124051">COE Request</a></li>
                             </ul>
                         </div>
                     </li>

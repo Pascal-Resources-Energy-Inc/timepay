@@ -3,11 +3,13 @@
 <link rel="stylesheet" href="{{asset('./body_css/vendors/fullcalendar/fullcalendar.min.css')}}">
 @endsection
 @section('content')
-{{-- @if($attendance_now != null)
+@if(auth()->user()->login)
+@if($attendance_now != null)
 @include('employees.timeout')
 @else
 @include('employees.timein')
-@endif --}}
+@endif
+@endif
 <div class="main-panel">
   @if(auth()->user()->employee->status != "Inactive")
     <div class="content-wrapper">
@@ -27,15 +29,17 @@
                         <div class="card">
                           <div class="card-body">
                             <h3 class="card-title">{{date('M d, Y')}} 
-                              {{-- @if($attendance_now != null)
-                              <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
-                                <i class="ti-control-pause" ></i>
-                              </button>
-                              @else
-                              <button onclick="getLocation()" type="button" Title='Time In' class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#timeIn">
-                              <i class="ti-control-play" ></i>
-                            </button>
-                            @endif --}}
+                              @if(auth()->user()->login)
+                                @if($attendance_now != null)
+                                  <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
+                                    <i class="ti-control-pause" ></i>
+                                  </button>
+                                  @else
+                                  <button onclick="getLocation()" type="button" Title='Time In' class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#timeIn">
+                                  <i class="ti-control-play" ></i>
+                                </button>
+                              @endif
+                            @endif
                           </h3>
                             <div class="media">
                                 <i class="ti-time icon-md text-info d-flex align-self-center mr-3"></i>

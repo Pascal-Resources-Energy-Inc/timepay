@@ -36,7 +36,9 @@ class AttendanceController extends Controller
      */
     public function getLocation (Request $request)
     {
-        $ip = $request->ip();  // Fallback to the IP in the request
+        $ip = $request->header('X-Forwarded-For') 
+        ? explode(',', $request->header('X-Forwarded-For'))[0] 
+        : $request->ip();  // Fallback to the IP in the request
 
     // // Get location data based on the public IP address
     // dd(Location::get('27.110.245.162'));

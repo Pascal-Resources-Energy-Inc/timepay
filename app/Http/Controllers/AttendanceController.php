@@ -45,7 +45,7 @@ class AttendanceController extends Controller
     $location = Location::get($ip);
 
     if ($location) {
-        dd($location);
+        dd($location->latitude);
         // Example: You can now access the location data
         $city = $location['city'];
         $region = $location->regionName;

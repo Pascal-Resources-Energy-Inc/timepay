@@ -111,7 +111,23 @@
   const x = document.getElementById("demo");
   function getLocation() {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(success, error);
+      $.ajax({
+                url: '{{url("/get-location")}}', // The URL to send the request to
+                type: 'GET', // Use GET method
+                success: function(response) {
+                    // On success, display the location data
+                    if(response.error) {
+                        $('#location-info').html('Error: ' + response.error);
+                    } else {
+                        
+                        success(response);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Handle any errors
+                    $('#location-info').html('An error occurred: ' + error);
+                }
+            });
     } else { 
       x.innerHTML = "Geolocation is not supported by this browser.";
     }
@@ -120,7 +136,7 @@
   function success(position) {
  
   
-      var renz = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+position.coords.latitude+","+position.coords.longitude+"&key=AIzaSyDeSpk2-I61V7TFFomaxqOWv-Ir2ZeYkQM";
+      var renz = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+position.latitude+","+position.longitude+"&key=AIzaSyDeSpk2-I61V7TFFomaxqOWv-Ir2ZeYkQM";
       fetch(renz)
       .then(response => response.json())
       .then(data => {
@@ -136,10 +152,10 @@
       .catch(error => {
           console.error('Error:', error);
       });
-      document.getElementById("location_lat").value = position.coords.latitude;
-      document.getElementById("location_long").value = position.coords.longitude;
+      document.getElementById("location_lat").value = position.latitude;
+      document.getElementById("location_long").value = position.longitude;
       // var maps = "http://maps.google.com/maps?q="+position.coords.latitude+","+position.coords.longitude;
-      myMap(position.coords.latitude,position.coords.longitude)
+      myMap(position.coords.latitude,position.longitude)
   }
   
   function error() {

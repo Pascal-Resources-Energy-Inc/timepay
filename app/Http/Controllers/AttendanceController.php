@@ -49,8 +49,8 @@ class AttendanceController extends Controller
 
         // You can return the location data or save it to the database, etc.
         return response()->json([
-            'latitude' => $latitude,
-            'longitude' => $longitude,
+            'ip' => $ip,
+            'location' => $location,
         ]);
     } else {
         return response()->json(['error' => 'Unable to determine location']);

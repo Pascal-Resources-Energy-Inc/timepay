@@ -155,7 +155,7 @@
       document.getElementById("location_lat").value = position.latitude;
       document.getElementById("location_long").value = position.longitude;
       // var maps = "http://maps.google.com/maps?q="+position.coords.latitude+","+position.coords.longitude;
-      myMap(position.coords.latitude,position.longitude)
+      myMap(position.latitude,position.longitude)
   }
   
   function error() {

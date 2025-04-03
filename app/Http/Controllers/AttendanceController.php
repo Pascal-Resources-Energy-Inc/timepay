@@ -17,7 +17,7 @@ use App\AttendanceLog;
 use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Facades\DB;
 use App\Exports\AttedancePerCompanyExport;;
-
+use Stevebauman\Location\Facades\Location;
 use App\Exports\AttendanceSeabasedExport;
 use App\Imports\EmployeeSeabasedAttendanceImport;
 use App\Imports\HikAttLogAttendanceImport;
@@ -34,6 +34,37 @@ class AttendanceController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function getLocation (Request $request)
+    {
+        $ip = $request->header('X-Forwarded-For') 
+        ? explode(',', $request->header('X-Forwarded-For'))[0] 
+        : $request->ip();  // Fallback to the IP in the request
+    //     dd($ip);
+    // // Get location data based on the public IP address
+    // dd(Location::get('27.110.245.162'));
+    $location = Location::get($ip);
+
+    if ($location) {
+        // Example: You can now access the location data
+        $city = $location->city;
+        $region = $location->regionName;
+        $country = $location->countryName;
+        $latitude = $location->latitude;
+        $longitude = $location->longitude;
+
+        // You can return the location data or save it to the database, etc.
+        return response()->json([
+            'ip' => $ip,
+            'city' => $city,
+            'region' => $region,
+            'country' => $country,
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+        ]);
+    } else {
+        return response()->json(['error' => 'Unable to determine location']);
+    }
+    }
     public function storeTimeIn(Request $request)
     {
         // dd($request->all());

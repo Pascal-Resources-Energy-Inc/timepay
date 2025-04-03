@@ -12,7 +12,7 @@
 |
 */
 use App\HikAttLog2;
-
+Route::get('get-location','AttendanceController@getLocation');
 Auth::routes();
 Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 Route::get('/upload-pay-reg', 'PayslipController@uploadpayreg');

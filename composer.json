@@ -21,7 +21,8 @@
         "realrashid/sweet-alert": "^5.1",
         "shuchkin/simplexlsx": "^1.1",
         "silviolleite/laravelpwa": "^2.0",
-        "simplesoftwareio/simple-qrcode": "^4.2"
+        "simplesoftwareio/simple-qrcode": "^4.2",
+        "stevebauman/location": "^6.6"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",

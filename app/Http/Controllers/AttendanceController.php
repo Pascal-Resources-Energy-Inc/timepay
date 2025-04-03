@@ -39,14 +39,15 @@ class AttendanceController extends Controller
         $ip = $request->header('X-Forwarded-For') 
         ? explode(',', $request->header('X-Forwarded-For'))[0] 
         : $request->ip();  // Fallback to the IP in the request
-        dd($ip);
+
     // // Get location data based on the public IP address
     // dd(Location::get('27.110.245.162'));
     $location = Location::get($ip);
 
     if ($location) {
+        dd($location);
         // Example: You can now access the location data
-        $city = $location->city;
+        $city = $location['city'];
         $region = $location->regionName;
         $country = $location->countryName;
         $latitude = $location->latitude;

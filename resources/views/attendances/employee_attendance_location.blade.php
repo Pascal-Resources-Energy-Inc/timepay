@@ -1,6 +1,11 @@
 @extends('layouts.header')
 
 @section('content')
+<style>
+.thumbnail:hover {
+      transform: scale(4);
+    }
+</style>
 <div class="main-panel">
     <div class="content-wrapper">
         <div class='row'>
@@ -59,7 +64,16 @@
                         <th>Date</th>
                         <th>Time</th>
                         <th>Type</th>
+                        {{-- {{dd($loc)}} --}}
+                        @if($loc === "System")
+                        
+                        <th>Image</th>
                         <th>Location</th>
+                        @else
+                        
+                        <th>Location</th>
+                        @endif
+                        
                       </tr>
                     </thead>
                     <tbody>
@@ -70,7 +84,19 @@
                               <td>{{date('Y-m-d',strtotime($attendance->datetime))}}</td>
                               <td>{{date('h:i A',strtotime($attendance->datetime))}}</td>
                               <td>{{($attendance->type == 0) ? "Time In" : "Time Out"}}</td>
+                              {{-- <td>{{$attendance->ip_address}}</td> --}}
+                              @if($loc == "System")
+                        
+                              <td>
+                                {{-- <div class=""> --}}
+                                  <a href='{{url($attendance->image)}}' target="_blank"><img src="{{asset($attendance->image)}}" alt="Image" class="square-img img-fluid float-left thumbnail"></a>
+                                {{-- </div> --}}
+                              </td>
+                              <td><a href='https://maps.google.com/?q={{$attendance->lat}},{{$attendance->long}}' target="_blank">{{$attendance->location_maps}}</a></td>
+                              @else
+                              
                               <td>{{$attendance->ip_address}}</td>
+                              @endif
                           </tr>
                         @endforeach
                     </tbody>

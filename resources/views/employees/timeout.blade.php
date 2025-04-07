@@ -79,7 +79,7 @@
                     <i class="ti-reload"></i> Retake Photo
                 </button>
                 
-                <button id="submitButton" type="submit" id='submit' class="btn btn-success btn-fill">
+                <button id="submitButton" type="submit"  class="btn btn-success btn-fill">
                     <i class="ti-check"></i> Submit TimeOut
                 </button>
                 
@@ -143,9 +143,11 @@
   }
   
   function error() {
-    document.getElementById('submit').disabled;
-    location.reload();
-      alert("Sorry, no position available.Please refresh!");
+    // document.getElementById("submit_out").disabled = true;
+    document.getElementById("captureButton").disabled = true;;
+      alert("Sorry, no position available.Please open location and refresh.");
+      
+    // location.reload();
  
     }
   </script>

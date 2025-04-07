@@ -143,8 +143,9 @@
     }
     
     function error() {
-      alert("Sorry, no position available.");
-      document.getElementById('submit_out').disabled;
+      alert("Sorry, no position available.Please refresh!");
+      document.getElementById('submit').disabled;
+      location.reload();
     }
     </script>
     <script>

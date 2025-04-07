@@ -79,8 +79,8 @@
                     <i class="ti-reload"></i> Retake Photo
                 </button>
                 
-                <button id="submitButton" type="submit" class="btn btn-success btn-fill">
-                    <i class="ti-check"></i> Submit TimeIn
+                <button id="submitButton" type="submit" id='submit' class="btn btn-success btn-fill">
+                    <i class="ti-check"></i> Submit TimeOut
                 </button>
                 
 
@@ -143,7 +143,9 @@
   }
   
   function error() {
-    alert("Sorry, no position available.");
+    alert("Sorry, no position available. Please refresh");
+    document.getElementById('submit_out').disabled;
+
   }
   </script>
   <script>

@@ -89,7 +89,7 @@
                         
                               <td>
                                 {{-- <div class=""> --}}
-                                  <a href='{{url($attendance->image)}}' target="_blank"><img src="{{asset($attendance->image)}}" alt="Image" class="square-img img-fluid float-left thumbnail"></a>
+                                  <a href='{{url($attendance->image)}}' target="_blank"><img style='border-radius: 0% !important;' src="{{asset($attendance->image)}}" alt="Image" class="square-img img-fluid float-left thumbnail"></a>
                                 {{-- </div> --}}
                               </td>
                               <td><a href='https://maps.google.com/?q={{$attendance->lat}},{{$attendance->long}}' target="_blank">{{$attendance->location_maps}}</a></td>

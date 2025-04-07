@@ -57,7 +57,7 @@ return [
 
     'from' => [
         'address' => 'noreply@pascalresources.com.ph',
-        'name' => 'TimePay - PREI'
+        'name' => 'HERA - Human Employee Resources Access'
     ],
     /*
     |--------------------------------------------------------------------------

@@ -139,7 +139,13 @@
         });
         document.getElementById("location_lat").value = position.coords.latitude;
         document.getElementById("location_long").value = position.coords.longitude;
-        document.getElementById("captureButton").disabled = false;
+        const locationLatElement = document.getElementById("location_lat");
+
+        if (locationLatElement && locationLatElement.value.trim() !== "") {
+            document.getElementById("captureButton").disabled = false;
+        } else {
+            document.getElementById("captureButton").disabled = true;
+        }
         // var maps = "http://maps.google.com/maps?q="+position.coords.latitude+","+position.coords.longitude;
         myMap(position.coords.latitude,position.coords.longitude)
     }

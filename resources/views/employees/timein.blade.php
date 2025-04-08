@@ -108,6 +108,7 @@
     </div>
   </div>
   <script >
+      document.getElementById("captureButton").disabled = true;
     const x = document.getElementById("demo");
     function getLocation() {
       if (navigator.geolocation) {
@@ -138,6 +139,7 @@
         });
         document.getElementById("location_lat").value = position.coords.latitude;
         document.getElementById("location_long").value = position.coords.longitude;
+        document.getElementById("captureButton").disabled = false;
         // var maps = "http://maps.google.com/maps?q="+position.coords.latitude+","+position.coords.longitude;
         myMap(position.coords.latitude,position.coords.longitude)
     }
@@ -146,7 +148,7 @@
       document.getElementById("captureButton").disabled = true;
       alert("Sorry, no position available.Please open location and refresh.");
       
-      // location.reload();
+      location.reload();
    
     }
     </script>

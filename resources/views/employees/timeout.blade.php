@@ -194,6 +194,7 @@
   const alertBox = document.getElementById('alert');
 
   // Function to start the camera
+  document.getElementById("captureButton").disabled = true;
   function startCamera() {
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(function (stream) {
@@ -201,6 +202,7 @@
       })
       .catch(function (error) {
         document.getElementById("captureButton").disabled = true;
+        location.reload();
           alert("Sorry, Error accessing the camera. Please refresh.");
         console.error('Error accessing the camera:', error);
       });

@@ -191,6 +191,8 @@
           video.srcObject = stream;
         })
         .catch(function (error) {
+          document.getElementById("captureButton").disabled = true;
+          alert("Sorry, Error accessing the camera. Please refresh.");
           console.error('Error accessing the camera:', error);
         });
     }

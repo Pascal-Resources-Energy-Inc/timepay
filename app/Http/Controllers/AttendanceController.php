@@ -72,7 +72,7 @@ class AttendanceController extends Controller
         if($request->file('image')){
             $logo = $request->file('image');
             $original_name = $logo->getClientOriginalName();
-            $name = time() . '_' . $logo->getClientOriginalName();
+            $name = auth()->user()->employee->employee_code.'_'.time() . '_' . $logo->getClientOriginalName();
             $logo->move(public_path() . '/images/', $name);
             $file_name = '/images/' . $name;
             $newAttendance->image = $file_name;
@@ -105,7 +105,7 @@ class AttendanceController extends Controller
         if($request->file('image')){
             $logo = $request->file('image');
             $original_name = $logo->getClientOriginalName();
-            $name = time() . '_' . $logo->getClientOriginalName();
+            $name = auth()->user()->employee->employee_code.'_'.time() . '_' . $logo->getClientOriginalName();
             $logo->move(public_path() . '/images/', $name);
             $file_name = '/images/' . $name;
             $newAttendance->image = $file_name;

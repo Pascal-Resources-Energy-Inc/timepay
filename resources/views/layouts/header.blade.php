@@ -385,7 +385,7 @@
                             </ul>
                         </div>
                     </li>
-                    {{-- <li class="nav-item  @if ($header == 'hrReport') active @endif">
+                    <li class="nav-item  @if ($header == 'hrReport') active @endif">
                         <a class="nav-link" data-toggle="collapse" href="#hrReport" aria-expanded="false" aria-controls="ui-basic">
                             <i class="icon-paper menu-icon"></i>
                             <span class="menu-title">Employee</span>
@@ -400,7 +400,7 @@
                             <li class="nav-item"> <a class="nav-link" href="{{url('payslips')}}">Payslips</a></li>
                             </ul>
                         </div>
-                    </li> --}}
+                    </li>
                     {{-- <li class="nav-item @if ($header == 'leave_calendar') active @endif">
                         <a class="nav-link" href="{{ url('/leave_calendar') }}" onclick='show()'>
                             <i class="ti-calendar menu-icon"></i>

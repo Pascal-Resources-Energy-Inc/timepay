@@ -957,7 +957,7 @@ class AttendanceController extends Controller
                         $update = [
                             'time_out' =>  date('Y-m-d H:i:s', strtotime($att->datetime)),
                             'device_out' => $att->location ." - ".$att->ip_address,
-                            'last_id' =>$att->id,
+                            // 'last_id' =>$att->id,
                         ];
                     
                         $attendance_in = Attendance::where('employee_code',$att->emp_code)

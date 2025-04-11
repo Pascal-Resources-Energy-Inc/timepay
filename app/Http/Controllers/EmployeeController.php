@@ -2098,12 +2098,11 @@ class EmployeeController extends Controller
     public function syncBio(Request $request) {
         $from = $request->from;
         $to = $request->to;
-        
         $attendanceLogs = AttendanceLog::whereBetween('date', [$from, $to])
-            ->where('emp_code', $request->employees)
-            ->orderBy('datetime','asc')
-            ->get();
-
+        ->when($request->employees, fn($query) => $query->where('emp_code', $request->employees))
+        ->orderBy('datetime', 'asc')
+        ->get();
+    
         if ($attendanceLogs != null) 
         {
             foreach($attendanceLogs as $att)

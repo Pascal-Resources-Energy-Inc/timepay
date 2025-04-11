@@ -22,7 +22,7 @@
 								</div> --}}
 								<div class='col-md-2'>
                                     Employee
-                                    <select name="employees" class="form-control form-control-sm required js-example-basic-single" required>
+                                    <select name="employees" class="form-control form-control-sm required js-example-basic-single" >
                                         <option value="">- Employees -</option>
                                         @foreach ($employees as $e)
                                         <option value="{{$e->employee_number}}">{{$e->employee_code}} - {{$e->first_name}} {{$e->last_name}}</option>

@@ -210,6 +210,7 @@
   
     // Function to capture a photo from the video stream
     function capturePhoto() {
+      var datetime = {!! json_encode(date('M d, Y H:i a')) !!};
       var   lat_po = document.getElementById("location_lat").value;
       var   long_po = document.getElementById("location_long").value;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -240,9 +241,11 @@
       ctx.fillText("Lat: "+ lat_po, 5, 35);
       ctx.strokeText("Long: "+ long_po, 5, 45);
       ctx.fillText("Long: "+ long_po, 5, 45);
+      ctx.strokeText(datetime, 5, 55);
+      ctx.fillText(datetime, 5, 55);
       // const lines = wrapText(ctx, "Addressasd asd asd asd as dasd as das dasd as da: "+address, 5, 75, canvas.width - 40, 24);
-      ctx.strokeText("Address: "+ address, 5, 55);
-      ctx.fillText("Address: "+ address, 5, 55);
+      ctx.strokeText("Address: "+ address, 5, 65);
+      ctx.fillText("Address: "+ address, 5, 65);
       canvas.toBlob((blob) => {
             const file = new File([blob], 'captured-image.png', { type: 'image/png' });
             

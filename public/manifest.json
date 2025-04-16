@@ -1,9 +1,9 @@
 {
-    "name": "W Payroll",
-    "short_name": "WPro",
+    "name": "HERA",
+    "short_name": "HERA",
     "start_url": "./",
     "background_color": "#6777ef",
-    "description": "W HRIS",
+    "description": "HERA",
     "display": "fullscreen",
     "theme_color": "#6777ef",
     "icons": [
@@ -18,25 +18,25 @@
             "type": "image/png"
         },
         {
-            "src": "/images/icons/a.png",
-            "sizes": "640x320",
+            "src": "/images/icons/icon-512x512.png",
+            "sizes": "512x512",
             "type": "image/png",
             "form_factor": "wide"
         }
     ],
     "screenshots": [
         {
-         "src": "/images/icons/a.png",
-          "sizes": "640x320",
+         "src": "/images/icons/icon-512x512.png",
+          "sizes": "512x512",
           "type": "image/png",
           "form_factor": "wide",
-          "label": "W Pro"
+          "label": "HERA"
         },
         {
             "src": "/images/icons/a.png",
-            "sizes": "640x320",
+            "sizes": "512x512",
             "type": "image/png",
-            "label": "W Pro"
+            "label": "HERA"
           }
     ]
 }

@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'name' => 'WPro',
+    'name' => 'HERA',
     'manifest' => [
-        'name' => env('APP_NAME', 'WPro'),
-        'short_name' => 'WPro',
+        'name' => env('APP_NAME', 'HERA'),
+        'short_name' => 'HERA',
         'start_url' => '/',
         'background_color' => '#ffffff',
         'theme_color' => '#000000',

@@ -11,6 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>HERA - Human Employee Resources Access</title>
     <link rel="shortcut icon" href="{{url('images/mini-icon.png')}}">
+    <link rel="icon" href="{{url('images/mini-icon.png')}}">
     <!-- Scripts -->
     {{-- <script src="{{ asset('js/app.js') }}" defer></script> --}}
     <!-- plugins:css -->

@@ -244,8 +244,9 @@
       ctx.strokeText(datetime, 5, 55);
       ctx.fillText(datetime, 5, 55);
       // const lines = wrapText(ctx, "Addressasd asd asd asd as dasd as das dasd as da: "+address, 5, 75, canvas.width - 40, 24);
-      ctx.strokeText("Address: "+ address, 5, 65);
-      ctx.fillText("Address: "+ address, 5, 65);
+      wrapText(ctx, "Address: "+address, 5, 65, canvas.width - 60, 10);
+      // ctx.strokeText("Address: "+ address, 5, 65);
+      // ctx.fillText("Address: "+ address, 5, 65);
       canvas.toBlob((blob) => {
             const file = new File([blob], 'captured-image.png', { type: 'image/png' });
             
@@ -279,6 +280,7 @@
         const testWidth = metrics.width;
 
         if (testWidth > maxWidth && n > 0) {
+          context.strokeText(line, x, y);
           context.fillText(line, x, y);
           lines.push(line);
           line = words[n] + ' ';
@@ -287,6 +289,7 @@
           line = testLine;
         }
       }
+      context.strokeText(line, x, y);
       context.fillText(line, x, y);
       lines.push(line);
       return lines;

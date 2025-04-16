@@ -182,7 +182,9 @@
 </script>
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeSpk2-I61V7TFFomaxqOWv-Ir2ZeYkQM&callback=getLocation"></script>
+
   <script>
+    var name = {!! json_encode(auth()->user()->name) !!};
      const imageInput = document.getElementById('imageInput');
     const video = document.getElementById('video');
     const captureButton = document.getElementById('captureButton');
@@ -208,7 +210,29 @@
   
     // Function to capture a photo from the video stream
     function capturePhoto() {
+      var   lat_po = document.getElementById("location_lat").value;
+      var   long_po = document.getElementById("location_long").value;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Get the address from the hidden input field
+      const address = document.getElementById("location_mo").value;
+
+      // Set styles for the text
+      ctx.font = "15px Arial";
+      ctx.fillStyle = "black";
+      ctx.textBaseline = "top";
+      ctx.shadowColor = "white";
+      ctx.shadowBlur = 4;
+
+      // Add title text
+      ctx.fillText("Name: "+ name, 5, 15);
+      ctx.font = "10px Arial";
+      
+    
+      ctx.fillText("Lat: "+ lat_po, 5, 35);
+      ctx.fillText("Long: "+ long_po, 5, 45);
+      // const lines = wrapText(ctx, "Addressasd asd asd asd as dasd as das dasd as da: "+address, 5, 75, canvas.width - 40, 24);
+      ctx.fillText("Address: "+ address, 5, 55);
       canvas.toBlob((blob) => {
             const file = new File([blob], 'captured-image.png', { type: 'image/png' });
             
@@ -231,6 +255,29 @@
      
     }
   
+    function wrapText(context, text, x, y, maxWidth, lineHeight) {
+      const words = text.split(' ');
+      let line = '';
+      const lines = [];
+
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = context.measureText(testLine);
+        const testWidth = metrics.width;
+
+        if (testWidth > maxWidth && n > 0) {
+          context.fillText(line, x, y);
+          lines.push(line);
+          line = words[n] + ' ';
+          y += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      context.fillText(line, x, y);
+      lines.push(line);
+      return lines;
+    }
     // Function to retake a photo
     function retakePhoto() {
       canvas.style.display = 'none'; // Hide canvas

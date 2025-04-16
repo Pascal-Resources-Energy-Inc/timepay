@@ -184,54 +184,100 @@
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeSpk2-I61V7TFFomaxqOWv-Ir2ZeYkQM&callback=getLocation"></script>
 <script>
-   const imageInput = document.getElementById('imageInput');
-  const video = document.getElementById('video');
-  const captureButton = document.getElementById('captureButton');
-  const retakeButton = document.getElementById('retakeButton');
-  const submitButton = document.getElementById('submitButton');
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
-  const alertBox = document.getElementById('alert');
-
-  // Function to start the camera
-  document.getElementById("captureButton").disabled = true;
-  function startCamera() {
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(function (stream) {
-        video.srcObject = stream;
-      })
-      .catch(function (error) {
-        document.getElementById("captureButton").disabled = true;
-        location.reload();
+    var name = {!! json_encode(auth()->user()->name) !!};
+     const imageInput = document.getElementById('imageInput');
+    const video = document.getElementById('video');
+    const captureButton = document.getElementById('captureButton');
+    const retakeButton = document.getElementById('retakeButton');
+    const submitButton = document.getElementById('submitButton');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const alertBox = document.getElementById('alert');
+  
+    // Function to start the camera
+    function startCamera() {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function (stream) {
+          video.srcObject = stream;
+        })
+        .catch(function (error) {
+          document.getElementById("captureButton").disabled = true;
           alert("Sorry, Error accessing the camera. Please refresh.");
-        console.error('Error accessing the camera:', error);
-      });
-  }
+          console.error('Error accessing the camera:', error);
+          location.reload();
+        });
+    }
+  
+    // Function to capture a photo from the video stream
+    function capturePhoto() {
+      var   lat_po = document.getElementById("location_lat").value;
+      var   long_po = document.getElementById("location_long").value;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  // Function to capture a photo from the video stream
-  function capturePhoto() {
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    canvas.toBlob((blob) => {
-          const file = new File([blob], 'captured-image.png', { type: 'image/png' });
-          
-          // Create a FileList and set it as the value of the file input
-          const dataTransfer = new DataTransfer();
-          dataTransfer.items.add(file);
-          console.log(dataTransfer.files);
-          imageInput.files = dataTransfer.files; // Set the file in the file input
+      // Get the address from the hidden input field
+      const address = document.getElementById("location_mo").value;
 
-          // Optionally, you can trigger the form submission automatically
-          document.getElementById('imageForm').submit(); // Automatically submit the form
-      });
-    canvas.style.display = 'block'; // Show canvas
-    video.style.display = 'none'; // Hide video
-    captureButton.style.display = 'none'; // Hide capture button
-    retakeButton.style.display = 'inline-block'; // Show retake button
-    submitButton.style.display = 'inline-block'; // Show retake button
-    alertBox.style.display = 'block'; // Show success message
+      // Set styles for the text
+      ctx.font = "15px Arial";
+      ctx.fillStyle = "black";
+      ctx.textBaseline = "top";
+      ctx.shadowColor = "white";
+      ctx.shadowBlur = 4;
 
-   
-  }
+      // Add title text
+      ctx.fillText("Name: "+ name, 5, 15);
+      ctx.font = "10px Arial";
+      
+    
+      ctx.fillText("Lat: "+ lat_po, 5, 35);
+      ctx.fillText("Long: "+ long_po, 5, 45);
+      // const lines = wrapText(ctx, "Addressasd asd asd asd as dasd as das dasd as da: "+address, 5, 75, canvas.width - 40, 24);
+      ctx.fillText("Address: "+ address, 5, 55);
+      canvas.toBlob((blob) => {
+            const file = new File([blob], 'captured-image.png', { type: 'image/png' });
+            
+            // Create a FileList and set it as the value of the file input
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            console.log(dataTransfer.files);
+            imageInput.files = dataTransfer.files; // Set the file in the file input
+
+            // Optionally, you can trigger the form submission automatically
+            document.getElementById('imageForm').submit(); // Automatically submit the form
+        });
+      canvas.style.display = 'block'; // Show canvas
+      video.style.display = 'none'; // Hide video
+      captureButton.style.display = 'none'; // Hide capture button
+      retakeButton.style.display = 'inline-block'; // Show retake button
+      submitButton.style.display = 'inline-block'; // Show retake button
+      alertBox.style.display = 'block'; // Show success message
+
+     
+    }
+  
+    function wrapText(context, text, x, y, maxWidth, lineHeight) {
+      const words = text.split(' ');
+      let line = '';
+      const lines = [];
+
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = context.measureText(testLine);
+        const testWidth = metrics.width;
+
+        if (testWidth > maxWidth && n > 0) {
+          context.fillText(line, x, y);
+          lines.push(line);
+          line = words[n] + ' ';
+          y += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      context.fillText(line, x, y);
+      lines.push(line);
+      return lines;
+    }
 
   // Function to retake a photo
   function retakePhoto() {

@@ -272,6 +272,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('location', 'LocationController@index');
     Route::get('edit-location/{id}', 'LocationController@edit');
     Route::post('update-location/{id}', 'LocationController@update');
+    
+    Route::post('store-location-time','LocationController@storeTime');
 
     // Project
     Route::post('store-project', 'ProjectController@store');

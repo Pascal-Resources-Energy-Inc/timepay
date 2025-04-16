@@ -10,7 +10,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>HERA - Human Employee Resources Access</title>
-    <link rel="shortcut icon" href="{{ URL::asset(config('logo.logos')::first()->icon) }}">
+    <link rel="shortcut icon" href="{{url('images/mini-icon.png')}}">
     <!-- Scripts -->
     {{-- <script src="{{ asset('js/app.js') }}" defer></script> --}}
     <!-- plugins:css -->
@@ -274,8 +274,8 @@
         <!-- partial:partials/_navbar.html -->
         <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
             <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-                <a class="navbar-brand brand-logo mr-5" href="{{ url('/') }}"><img src="{{ auth()->user()->employee->company ? URL::asset(auth()->user()->employee->company->logo)  : ""}}" onerror="this.src='{{ URL::asset('/images/no_image.png') }}';" style="height:auto;max-height:60px" class="mr-2 ml-2" alt="logo" /></a>
-                <a class="navbar-brand brand-logo-mini" href="{{ url('/') }}"><img src="{{ auth()->user()->employee->company ? URL::asset(auth()->user()->employee->company->logo)  : ""}}" onerror="this.src='{{ URL::asset('/images/no_image.png') }}';" style="height:auto" alt="logo" /></a>
+                <a class="navbar-brand brand-logo mr-5" href="{{ url('/') }}"><img src="{{asset('images/header.png')}}" onerror="this.src='{{ URL::asset('/images/no_image.png') }}';" style="height:auto;max-height:60px" class="mr-2 ml-2" alt="logo" /></a>
+                <a class="navbar-brand brand-logo-mini" href="{{ url('/') }}"><img src="{{asset('images/mini-icon.png')}}" onerror="this.src='{{ URL::asset('/images/no_image.png') }}';" style="height:auto" alt="logo" /></a>
             </div>
 
             <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">

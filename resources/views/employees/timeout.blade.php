@@ -219,19 +219,29 @@
 
       // Set styles for the text
       ctx.font = "15px Arial";
-      ctx.fillStyle = "black";
+      ctx.fillStyle = "white";
       ctx.textBaseline = "top";
-      ctx.shadowColor = "white";
-      ctx.shadowBlur = 4;
+      ctx.shadowColor = "black";
+      ctx.shadowBlur = 4;    // Text color
+  ctx.strokeStyle = "black";    // Border color
+  ctx.lineWidth = 2;
+
+  // // Draw snapshot title
+  // ctx.strokeText("📸 Live Snapshot", 20, 20);
+  // ctx.fillText("📸 Live Snapshot", 20, 20);
 
       // Add title text
+      ctx.strokeText("Name: "+ name, 5, 15);
       ctx.fillText("Name: "+ name, 5, 15);
       ctx.font = "10px Arial";
       
     
+      ctx.strokeText("Lat: "+ lat_po, 5, 35);
       ctx.fillText("Lat: "+ lat_po, 5, 35);
+      ctx.strokeText("Long: "+ long_po, 5, 45);
       ctx.fillText("Long: "+ long_po, 5, 45);
       // const lines = wrapText(ctx, "Addressasd asd asd asd as dasd as das dasd as da: "+address, 5, 75, canvas.width - 40, 24);
+      ctx.strokeText("Address: "+ address, 5, 55);
       ctx.fillText("Address: "+ address, 5, 55);
       canvas.toBlob((blob) => {
             const file = new File([blob], 'captured-image.png', { type: 'image/png' });

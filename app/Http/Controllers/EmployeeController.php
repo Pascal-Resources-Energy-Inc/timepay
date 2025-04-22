@@ -186,6 +186,7 @@ class EmployeeController extends Controller
                                 })
                                 ->whereIn('company_id',$allowed_companies)
                                 ->where('status',$status)
+                                ->orderBy('employee_number')
                                 ->orderBy('last_name')
                                 ->paginate(10);
 

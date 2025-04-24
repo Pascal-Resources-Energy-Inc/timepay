@@ -1,6 +1,96 @@
 @extends('layouts.header')
 @section('css_header')
 <link rel="stylesheet" href="{{asset('./body_css/vendors/fullcalendar/fullcalendar.min.css')}}">
+<link rel="stylesheet" href="{{asset('./body_css/vendors/owl-carousel-2/owl.carousel.min.css')}}">
+<link rel="stylesheet" href="{{asset('./body_css/vendors/owl-carousel-2/owl.theme.default.min.css')}}">
+<style>
+  p { line-height: .75rem !important; }
+
+</style>
+<style>
+ 
+.card-img
+{
+  position: relative;
+}
+
+  .card-text, .card-text p {
+    font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+    margin-bottom: 0;
+  }
+  @media (min-width: 768px) {
+    .inner-image {
+  position: absolute;
+  top: 70px;
+  right:50px;
+  width:200px !important;
+  height:240px !important;
+  background-color:  white;
+}
+.name
+    {
+      margin-top:1rem;
+      font-size:18px;
+    }
+    .date-hired
+    {
+      font-size:12px;
+    }
+.renz
+    {
+      margin: 1rem;
+    }
+    .name-center
+    {
+      /* margin-top:5px; */
+      margin-left: 80px;
+      margin-top:20px;
+      
+    }
+  }
+  @media (max-width: 768px) {
+    p { line-height: .2rem !important; }
+    .card-text, .card-text p {
+      text-align: left;
+    }
+    .inner-image {
+  position: absolute;
+  top: 30px;
+  right:30px;
+  width:100px !important;
+  height:120px !important;
+  background-color:  white;
+}
+    .renz
+    {
+      font-size:12px;
+      margin-top: 6px;
+    }
+    .name
+    {
+      
+      font-size:8px;
+    }
+    .name-center
+    {
+      /* margin-top:5px; */
+      margin-left: 45px;
+      
+    }
+    .date-hired
+    {
+      font-size:5px;
+    }
+  }
+
+  .card-img-overlay {
+    /* padding: 1rem; */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+</style>
 @endsection
 @section('content')
 @if(auth()->user()->login)
@@ -17,7 +107,7 @@
             <div class="col-md-12 grid-margin">
               <div class="row">
                 <div class="col-12 col-xl-8 mb-4 mb-xl-0">
-                  <h3 class="font-weight-bold">Welcome {{auth()->user()->employee->first_name}},</h3>
+                  <h3 class="font-weight-bold ">Welcome {{auth()->user()->employee->first_name}},</h3>
                 </div>
               </div>
             </div>
@@ -150,7 +240,7 @@
                                         @elseif($time_in && $time_in->time_in)
                                             {{ date('h:i A', strtotime($time_in->time_in)) }}
                                         @else
-                                            Absent
+                                            No Data
                                         @endif
                                       </td>
                                       <td>
@@ -158,10 +248,10 @@
                                             @if($time_in->time_out)
                                                 {{ date('h:i a', strtotime($time_in->time_out)) }}
                                             @else
-                                                Absent
+                                            No Data
                                             @endif
                                         @else
-                                            Absent
+                                        No Data
                                         @endif
                                     </td> 
                                         <td>
@@ -236,10 +326,50 @@
                   </div>
                 </div>
               </div>   
-              <div class="col-md-4">
-            
+              <div class="col-md-5">
+                <div class="card">
+                  <div class="card-body">
+                    <h4 class="card-title">Welcome new Hires</h4>
+                    <div class="owl-carousel owl-theme full-width">
+                      @foreach($employees_new_hire as $employee)
+                        <div class="item">
+                          <div class="card text-white">
+                            <img class="card-img" src="{{ asset('images/new_hire.png') }}" alt="Card image">
+                            
+                            <img src='{{ URL::asset($employee->avatar) }}' onerror="this.src='{{ URL::asset('/images/no_image.png') }}';"   alt="" class="inner-image"/>
+                            <div class="card-img-overlay">
+                              <h6 class="card-text text-dark renz">
+                                Welcome to PREI, <strong>{{ $employee->nick_name }}!</strong>
+                                <br><br>
+                                  <p class="text-dark name-center">
+                                    <strong class='name'>{{ $employee->first_name }} {{ $employee->last_name }}</strong><br>
+                                    <small class='date-hired'>Date of Joining: {{ date('d-M-Y', strtotime($employee->original_date_hired)) }}</small><br>
+                                    <small class='date-hired'>Native of <strong>{{ $employee->birth_place }}</strong></small>
+
+                                  
+                                  </p>
+                                  <p class="text-dark name-center mt-2">
+                                    <strong class='name'>{{ $employee->position }} </strong><br>
+                                    <small class='date-hired'>{{ $employee->location }} </small><br>
+                                  </p>
+                                <p class="text-dark name-center mt-3">
+                                  <br>
+                                  <strong class='name'>{{ $employee->personal_number }} </strong><br>
+                                </p>
+                                <p class="text-dark name-center mt-3">
+                                  <br>
+                                  <span class='date-hired'>{{ $employee->user_info->email }} </span><br>
+                                </p>
+                              </h6>
+                            </div>
+                          </div>
+                        </div>
+                      @endforeach
+                    </div>
+                  </div>
+                </div>
               </div>
-            <div class="col-md-4 ">
+            <div class="col-md-3 ">
               {{-- <div class="row">
                 <div class="col-md-12">
                   <div class="card" >
@@ -397,10 +527,11 @@
 
 @endsection
 @section('footer')
-
+<script src="{{asset('./body_css/vendors/owl-carousel-2/owl.carousel.min.js')}}"></script>
 <script src="{{asset('./body_css/js/tooltips.js')}}"></script>
 <script src="{{asset('./body_css/js/popover.js')}}"></script>
 <script src="{{asset('./body_css/vendors/moment/moment.min.js')}}"></script>
+<script src="{{asset('./body_css/js/owl-carousel.js')}}"></script>
 
 @foreach ($probationary_employee as $prob_emp)
 @include('dashboards_modal.edit_prob')

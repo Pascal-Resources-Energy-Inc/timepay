@@ -89,8 +89,10 @@
                         
                               <td>
                                 {{-- <div class=""> --}}
+                                  @if($attendance->image)
                                   <a href='{{url($attendance->image)}}' target="_blank"><img style='border-radius: 0% !important;' src="{{asset($attendance->image)}}" alt="Image" class="square-img img-fluid float-left thumbnail"></a>
-                                {{-- </div> --}}
+                                  @endif
+                                  {{-- </div> --}}
                               </td>
                               <td><a href='https://maps.google.com/?q={{$attendance->lat}},{{$attendance->long}}' target="_blank">{{$attendance->location_maps}}</a></td>
                               @else

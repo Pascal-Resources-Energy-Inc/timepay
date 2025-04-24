@@ -327,7 +327,7 @@
                 </div>
               </div>   
               <div class="col-md-5">
-                <div class="card">
+                {{-- <div class="card">
                   <div class="card-body">
                     <h4 class="card-title">Welcome new Hires</h4>
                     <div class="owl-carousel owl-theme full-width">
@@ -367,7 +367,7 @@
                       @endforeach
                     </div>
                   </div>
-                </div>
+                </div> --}}
               </div>
             <div class="col-md-3 ">
               {{-- <div class="row">

@@ -4,10 +4,10 @@
 <link rel="stylesheet" href="{{asset('./body_css/vendors/owl-carousel-2/owl.carousel.min.css')}}">
 <link rel="stylesheet" href="{{asset('./body_css/vendors/owl-carousel-2/owl.theme.default.min.css')}}">
 <style>
-  p { line-height: .75rem !important; }
+  /* p { line-height: .75rem !important; } */
 
 </style>
-<style>
+{{-- <style>
  
 .card-img
 {
@@ -90,7 +90,7 @@
     justify-content: flex-start;
     align-items: flex-start;
   }
-</style>
+</style> --}}
 @endsection
 @section('content')
 @if(auth()->user()->login)

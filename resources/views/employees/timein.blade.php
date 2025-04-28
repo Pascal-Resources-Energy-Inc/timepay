@@ -209,7 +209,10 @@
   
     // Function to capture a photo from the video stream
     function capturePhoto() {
-      var datetime = {!! json_encode(date('M d, Y H:i a')) !!};
+      const now = new Date();
+
+      var dateTimeString = now.toLocaleString();
+      var datetime = dateTimeString;
       var   lat_po = document.getElementById("location_lat").value;
       var   long_po = document.getElementById("location_long").value;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);

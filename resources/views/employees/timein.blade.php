@@ -59,7 +59,7 @@
   <div class="modal fade" id="timeIn" tabindex="-1" role="dialog" aria-labelledby="timeInData" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
-        <div class="modal-header">Time In
+        <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -68,28 +68,9 @@
             @csrf   
         <div id="app" class=' '>
           <div class="row mb-2 ">
-            <div class="col-md-12 col-sm-12">
-                <div class=" text-center">
-                    <br>
-                    <button id="captureButton" onclick="return false;" class="btn btn-primary btn-fill ">
-                      <i class="ti-camera"></i> Capture Photo
-                  </button>
-                  
-                  <button id="retakeButton" onclick="return false;" class="btn btn-danger btn-fill">
-                      <i class="ti-reload"></i> Retake Photo
-                  </button>
-                  
-                  <button id="submitButton" type="submit" id='submit_in' class="btn btn-success btn-fill">
-                      <i class="ti-check"></i> Submit TimeIn
-                  </button>
-                  
-
-                <br>
-                </div>
-            </div>
+           
             <div class="col-md-12 col-sm-12 mt-1">
               <div class=" text-center">
-                <span id='map_reference' target="_blank" href=""></span>
                     <video id="video" class="img-fluid " width="100%" height="100%" autoplay></video>
                     <div id="googleMap" style="position: absolute; bottom: 30px; left: 15px; width: 100px; height: 100px; border: 3px solid #28a745; border-radius: 5px; box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);"></div>
     
@@ -99,8 +80,26 @@
                 <input  type='hidden' id='location_long' name='location_long' value='' required>
                 <input type="file" id="imageInput" name="image" accept="image/*"  hidden >
          
+                <small style='font-size:10px;'><span id='map_reference' target="_blank" href=""></span></small>
               </div>
             </div>
+            <div class="col-md-12 col-sm-12">
+              <div class=" text-center">
+                <button id="captureButton" 
+                class="btn btn-primary btn-sm btn-fill rounded-circle p-3" 
+                onclick="return false;">
+            <i class="ti-camera"></i>
+        </button>
+                
+                <button id="retakeButton" onclick="return false;"  style='font-size:10px;' class=" btn-smbtn btn-danger btn-fill ">
+                    <i class="ti-reload"></i> <small>Retake Photo</small>
+                </button>
+                
+                <button id="submitButton" type="submit" style='font-size:10px;'  class="btn-sm btn btn-success btn-fill">
+                    <i class="ti-check"></i><small> Submit TimeOut</small>
+                </button>
+              </div>
+          </div>
           </div>
         </div>
         </form>

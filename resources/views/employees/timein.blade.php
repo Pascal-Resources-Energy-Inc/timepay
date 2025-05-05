@@ -96,7 +96,7 @@
                 </button>
                 
                 <button id="submitButton" type="submit" style='font-size:10px;'  class="btn-sm btn btn-success btn-fill">
-                    <i class="ti-check"></i><small> Submit TimeOut</small>
+                    <i class="ti-check"></i><small> Submit</small>
                 </button>
               </div>
           </div>

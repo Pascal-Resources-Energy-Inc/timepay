@@ -368,7 +368,7 @@
                         </a>
                         <div class="collapse @if ($header == 'forms') show @endif" id="forms">
                             <ul class="nav flex-column sub-menu @if ($header == 'forms') show @endif">
-                                {{-- <li class="nav-item "> <a class="nav-link active" href="{{ url('/file-leave') }}">Leave</a></li> --}}
+                                <li class="nav-item "> <a class="nav-link active" href="{{ url('/file-leave') }}">Leave</a></li>
                                 @php
                                     $user_allowed_overtime = auth()->user()->allowed_overtime ? auth()->user()->allowed_overtime->allowed_overtime : "";
                                 @endphp
@@ -402,12 +402,12 @@
                             </ul>
                         </div>
                     </li>
-                    {{-- <li class="nav-item @if ($header == 'leave_calendar') active @endif">
+                    <li class="nav-item @if ($header == 'leave_calendar') active @endif">
                         <a class="nav-link" href="{{ url('/leave_calendar') }}" onclick='show()'>
                             <i class="ti-calendar menu-icon"></i>
                             <span class="menu-title">Leave Calendar</span>
                         </a>
-                    </li> --}}
+                    </li>
                   @if(count(auth()->user()->employee->as_resign) > 0)
                     <li class="nav-item">
                         <hr>

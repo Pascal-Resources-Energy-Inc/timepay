@@ -1133,8 +1133,8 @@
                                                 $subtotal_rd_nd_ge += 0;
                                                
                                                 @endphp
-                                                <td>@if($break_out) {{date('h:i A',strtotime($break_out))}} @endif</td>
-                                                <td>@if($break_in) {{date('h:i A',strtotime($break_in))}} @endif</td>
+                                                <td>@if($break_out) {{date('h:i A',strtotime($break_out->datetime))}} @endif</td>
+                                                <td>@if($break_in) {{date('h:i A',strtotime($break_in->datetime))}} @endif</td>
                                                 <td @if($abs-$leave_count>0) class='bg-danger'@endif ><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][abs]" value="{{$abs}}">{{number_format($abs,2)}}</td>
                                                 <td ><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][lv_w_pay]" value="{{$leave_count}}">{{$leave_count}}</td>
                                                 <td><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][reg_hrs]" value="{{$work}}">{{$work}}</td>

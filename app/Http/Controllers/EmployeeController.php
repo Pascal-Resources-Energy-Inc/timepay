@@ -1680,11 +1680,12 @@ class EmployeeController extends Controller
                                                     ->orderBy('id','asc');
                                     }])
                                     ->with(['attendance_logs' => function ($query) use ($from_date, $to_date) {
-                                        $query->whereBetween('datetime', [$from_date." 00:00:01", $to_date." 23:59:59"])
-                                        ->orWhereBetween('datetime', [$from_date." 00:00:01", $to_date." 23:59:59"])
-                                        ->whereBetween('type',[4,5])
-                                        ->orderBy('datetime','asc')
-                                        ->orderBy('id','asc');
+                                        $query->where(function ($q) use ($from_date, $to_date) {
+                                                $q->whereBetween('datetime', [$from_date . " 00:00:01", $to_date . " 23:59:59"])
+                                                  ->orWhereBetween('datetime', [$from_date . " 00:00:01", $to_date . " 23:59:59"]);
+                                            })
+                                            ->whereIn('type', [4, 5])
+                                            ->orderBy('datetime', 'asc');
                                     }])
                                     ->whereIn('company_id', $allowed_companies)
                                     ->when($emp_code,function($q) use($emp_code){
@@ -1866,12 +1867,13 @@ class EmployeeController extends Controller
                                     ->orderby('time_out','desc')
                                     ->orderBy('id','asc');
                                 }])
-                                ->with(['attendance_logs' => function ($query) use ($date_from, $to_date) {
-                                    $query->whereBetween('datetime', [$date_from." 00:00:01", $to_date." 23:59:59"])
-                                    ->orWhereBetween('datetime', [$date_from." 00:00:01", $to_date." 23:59:59"])
-                                    ->whereBetween('type',[4,5])
-                                    ->orderBy('datetime','asc')
-                                    ->orderBy('id','asc');
+                                ->with(['attendance_logs' => function ($query) use ($from_date, $to_date) {
+                                    $query->where(function ($q) use ($from_date, $to_date) {
+                                            $q->whereBetween('datetime', [$from_date . " 00:00:01", $to_date . " 23:59:59"])
+                                              ->orWhereBetween('datetime', [$from_date . " 00:00:01", $to_date . " 23:59:59"]);
+                                        })
+                                        ->whereIn('type', [4, 5])
+                                        ->orderBy('datetime', 'asc');
                                 }])
                                 ->with(['approved_leaves' => function ($query) use ($date_from, $to_date) {
                                     $query->where(function ($q) use ($date_from, $to_date) {

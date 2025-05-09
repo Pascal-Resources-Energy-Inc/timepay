@@ -88,6 +88,8 @@
                                             <th>Shift</th>
                                             <th>IN</th>
                                             <th>OUT</th>
+                                            <th>BO</th>
+                                            <th>BI</th>
                                             <th>ABS</th>
                                             <th>LV W/ PAY</th>
                                             <th>REG HRS</th>
@@ -151,6 +153,8 @@
                                             @foreach($date_range as $date_r)
                                             
                                             @php
+                                                $break_out = ($emp->attendance_logs)->whereBetween('datetime',[$date_r." 00:00:00",$date_r." 23:59:59"])->sortBy('datetime')->first();
+                                                $break_in = ($emp->attendance_logs)->whereBetween('datetime',[$date_r." 00:00:00",$date_r." 23:59:59"])->sortByDesc('datetime')->first();
                                                 $final_time_in = "";
                                                 $time_in = ($emp->attendances)->whereBetween('time_in',[$date_r." 00:00:00",$date_r." 23:59:59"])->sortBy('time_in')->first();
                                                 if($time_in == null)
@@ -1129,6 +1133,8 @@
                                                 $subtotal_rd_nd_ge += 0;
                                                
                                                 @endphp
+                                                <td>@if($break_out) {{datetime('h:i A',strtotime($break_out))}} @endif</td>
+                                                <td>@if($break_in) {{datetime('h:i A',strtotime($break_in))}} @endif</td>
                                                 <td @if($abs-$leave_count>0) class='bg-danger'@endif ><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][abs]" value="{{$abs}}">{{number_format($abs,2)}}</td>
                                                 <td ><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][lv_w_pay]" value="{{$leave_count}}">{{$leave_count}}</td>
                                                 <td><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][reg_hrs]" value="{{$work}}">{{$work}}</td>

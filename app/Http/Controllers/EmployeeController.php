@@ -1679,6 +1679,13 @@ class EmployeeController extends Controller
                                                     ->orderby('time_out','desc')
                                                     ->orderBy('id','asc');
                                     }])
+                                    ->with(['attendance_logs' => function ($query) use ($from_date, $to_date) {
+                                        $query->whereBetween('datetime', [$from_date." 00:00:01", $to_date." 23:59:59"])
+                                        ->orWhereBetween('datetime', [$from_date." 00:00:01", $to_date." 23:59:59"])
+                                        ->whereBetween('type',[4,5])
+                                        ->orderBy('datetime','asc')
+                                        ->orderBy('id','asc');
+                                    }])
                                     ->whereIn('company_id', $allowed_companies)
                                     ->when($emp_code,function($q) use($emp_code){
                                         $q->whereIn('employee_number', $emp_code);
@@ -1857,6 +1864,13 @@ class EmployeeController extends Controller
                                     ->orWhereBetween('time_out', [$date_from." 00:00:01", $to_date." 23:59:59"])
                                     ->orderBy('time_in','asc')
                                     ->orderby('time_out','desc')
+                                    ->orderBy('id','asc');
+                                }])
+                                ->with(['attendance_logs' => function ($query) use ($date_from, $to_date) {
+                                    $query->whereBetween('datetime', [$date_from." 00:00:01", $to_date." 23:59:59"])
+                                    ->orWhereBetween('datetime', [$date_from." 00:00:01", $to_date." 23:59:59"])
+                                    ->whereBetween('type',[4,5])
+                                    ->orderBy('datetime','asc')
                                     ->orderBy('id','asc');
                                 }])
                                 ->with(['approved_leaves' => function ($query) use ($date_from, $to_date) {

@@ -2189,7 +2189,7 @@ class EmployeeController extends Controller
         $count = 0;
         foreach($attendances as $att)
         {
-            if($att->punch_state == 0)
+            if($att->punch_state != 1)
             {
                     $attend = Attendance::where('employee_code',$att->emp_code)->whereDate('time_in',date('Y-m-d', strtotime($att->punch_time)))->first();
                     if($attend == null)

@@ -2124,7 +2124,7 @@ class EmployeeController extends Controller
         {
             foreach($attendanceLogs as $att)
             {
-                if ($att->type != 1)
+                if (($att->type != 6))
                 {
                     $attend = Attendance::where('employee_code', $att->emp_code)->where('time_in', date('Y-m-d H:i:s', strtotime($att->datetime)))->first();
                     
@@ -2138,7 +2138,7 @@ class EmployeeController extends Controller
                         $attendance->save();
                     }
                 }
-                else 
+                if($att->type != 6) 
                 {
                     $time_in_after = date('Y-m-d H:i:s',strtotime($att->datetime));
                     $time_in_before = date('Y-m-d H:i:s', strtotime ( '-23 hour' , strtotime ( $time_in_after ) )) ;

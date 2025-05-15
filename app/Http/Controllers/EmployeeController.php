@@ -2124,7 +2124,7 @@ class EmployeeController extends Controller
         {
             foreach($attendanceLogs as $att)
             {
-                if ($att->type == 0)
+                if ($att->type != 1)
                 {
                     $attend = Attendance::where('employee_code', $att->emp_code)->where('time_in', date('Y-m-d H:i:s', strtotime($att->datetime)))->first();
                     

@@ -183,7 +183,7 @@
       }
 </script>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeSpk2-I61V7TFFomaxqOWv-Ir2ZeYkQM&callback=getLocation"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZw51f1ZyJIjCbkNH2rU0Ze5nOiOBsIuE&callback=getLocation"></script>
 <script>
     var name = {!! json_encode(auth()->user()->name) !!};
      const imageInput = document.getElementById('imageInput');

@@ -88,8 +88,8 @@
                 <button id="captureButton" 
                 class="btn btn-primary btn-sm btn-fill rounded-circle p-3" 
                 onclick="return false;">
-            <i class="ti-camera"></i>
-        </button>
+                <i class="ti-camera"></i>
+                </button>
                 
                 <button id="retakeButton" onclick="return false;"  style='font-size:10px;' class=" btn-smbtn btn-danger btn-fill ">
                     <i class="ti-reload"></i> <small>Retake Photo</small>
@@ -180,7 +180,7 @@
         }
 </script>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeSpk2-I61V7TFFomaxqOWv-Ir2ZeYkQM&callback=getLocation"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZw51f1ZyJIjCbkNH2rU0Ze5nOiOBsIuE&callback=getLocation"></script>
 
   <script>
      var name = {!! json_encode(auth()->user()->name) !!};
@@ -340,5 +340,5 @@
     }
   </script>
   
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeSpk2-I61V7TFFomaxqOWv-Ir2ZeYkQM&callback=getLocation"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZw51f1ZyJIjCbkNH2rU0Ze5nOiOBsIuE&callback=getLocation"></script>
   

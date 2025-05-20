@@ -122,7 +122,7 @@
   function success(position) {
  
   
-      var renz = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+position.coords.latitude+","+position.coords.longitude+"&key=AIzaSyDeSpk2-I61V7TFFomaxqOWv-Ir2ZeYkQM";
+      var renz = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+position.coords.latitude+","+position.coords.longitude+"&key=AIzaSyBZw51f1ZyJIjCbkNH2rU0Ze5nOiOBsIuE";
       fetch(renz)
       .then(response => response.json())
       .then(data => {
@@ -324,4 +324,4 @@
 <!-- Google Map Initialization -->
 
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeSpk2-I61V7TFFomaxqOWv-Ir2ZeYkQM&callback=getLocation"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZw51f1ZyJIjCbkNH2rU0Ze5nOiOBsIuE&callback=getLocation"></script>

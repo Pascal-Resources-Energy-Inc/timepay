@@ -83,7 +83,19 @@
                               <td>{{$attendance->emp_code}}</td>
                               <td>{{date('Y-m-d',strtotime($attendance->datetime))}}</td>
                               <td>{{date('h:i A',strtotime($attendance->datetime))}}</td>
-                              <td>{{($attendance->type == 0) ? "Time In" : "Time Out"}}</td>
+                              <td>
+                                {{-- {{($attendance->type == 0) ? "Time In" : "Time Out"}} --}}
+
+                                @if($attendance->type == 0)
+                                Time In
+                                @elseif($attendance->type == 1)
+                                Time Out
+                                @elseif($attendance->type == 4)
+                                Break Out
+                                @elseif($attendance->type == 5)
+                                Break In
+                                @endif
+                              </td>
                               {{-- <td>{{$attendance->ip_address}}</td> --}}
                               @if($loc == "System")
                         

@@ -2124,7 +2124,7 @@ class EmployeeController extends Controller
         {
             foreach($attendanceLogs as $att)
             {
-                if ($att->type == 0)
+                if (($att->type != 1))
                 {
                     $attend = Attendance::where('employee_code', $att->emp_code)->where('time_in', date('Y-m-d H:i:s', strtotime($att->datetime)))->first();
                     
@@ -2138,7 +2138,7 @@ class EmployeeController extends Controller
                         $attendance->save();
                     }
                 }
-                else 
+                else
                 {
                     $time_in_after = date('Y-m-d H:i:s',strtotime($att->datetime));
                     $time_in_before = date('Y-m-d H:i:s', strtotime ( '-23 hour' , strtotime ( $time_in_after ) )) ;
@@ -2189,7 +2189,7 @@ class EmployeeController extends Controller
         $count = 0;
         foreach($attendances as $att)
         {
-            if($att->punch_state == 0)
+            if($att->punch_state != 1)
             {
                     $attend = Attendance::where('employee_code',$att->emp_code)->whereDate('time_in',date('Y-m-d', strtotime($att->punch_time)))->first();
                     if($attend == null)

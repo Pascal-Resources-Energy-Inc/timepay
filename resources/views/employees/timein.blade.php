@@ -71,7 +71,7 @@
            
             <div class="col-md-12 col-sm-12 mt-1">
               <div class=" text-center">
-                    <video id="video" class="img-fluid " width="100%" height="100%" autoplay></video>
+                    <video id="video" class="img-fluid " width="100%" height="100%" autoplay playsinline muted></video>
                     <div id="googleMap" style="position: absolute; bottom: 30px; left: 15px; width: 100px; height: 100px; border: 3px solid #28a745; border-radius: 5px; box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);"></div>
     
                 <canvas id="canvas" class='mb-4' height="330px" style="width: 100%;"></canvas> 
@@ -118,20 +118,18 @@
     }
     
     function success(position) {
-   
+    
     
         var renz = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+position.coords.latitude+","+position.coords.longitude+"&key=AIzaSyBZw51f1ZyJIjCbkNH2rU0Ze5nOiOBsIuE";
         fetch(renz)
         .then(response => response.json())
         .then(data => {
+                  console.log(data);
             if (data.results && data.results.length > 0) {
+        
                 document.getElementById("location_mo").value = data.results[0].formatted_address;
                 document.getElementById("map_reference").innerHTML = data.results[0].formatted_address;
             }
-            // console.log(data.results[0].formatted_address);
-            // document.getElementById("map_reference").href=data.results[0].formatted_address; 
-           
-            // Process the data as needed
         })
         .catch(error => {
             console.error('Error:', error);

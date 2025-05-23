@@ -154,10 +154,10 @@
   
   function error() {
     // document.getElementById("submit_out").disabled = true;
-    document.getElementById("captureButton").disabled = true;;
-      alert("Sorry, no position available.Please open location and refresh.");
+    document.getElementById("captureButton").disabled = true;
+      // alert("Sorry, no position available.Please open location and refresh.");
       
-    location.reload();
+    // location.reload();
  
     }
   </script>

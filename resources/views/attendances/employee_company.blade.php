@@ -1180,6 +1180,9 @@
                                                 <td></td>
                                                 <td></td>
                                                 <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
                                                 <td><strong>{{ number_format($subtotal_abs,2) }}</strong></td>
                                                 <td><strong>{{ number_format($subtotal_leave_w_pay,2) }}</strong></td>
                                                 <td><strong>{{ number_format($subtotal_reg_hrs,2) }}</strong></td>
@@ -1208,7 +1211,6 @@
                                                 <td><strong>0.00</strong></td>
                                                 <td><strong>0.00</strong></td>
                                                 <td><strong>0.00</strong></td>
-                                               <td></td>
                                             </tr>
                                         @endforeach
                                     </tbody>

@@ -745,7 +745,7 @@ class FormApprovalController extends Controller
     public function form_dtr_approval(Request $request)
     { 
         $today = date('Y-m-d');
-        $from_date = isset($request->from) ? $request->from : date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
+        $from_date = isset($request->from) ? $request->from : date('Y-m-d',(strtotime ( '-3 month' , strtotime ( $today) ) ));
         $to_date = isset($request->to) ? $request->to : date('Y-m-d');
 
         $filter_status = isset($request->status) ? $request->status : 'Pending';

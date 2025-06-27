@@ -428,7 +428,7 @@
                     <li class="nav-item @if ($header == 'for-approval') active @endif">
                         <a class="nav-link" data-toggle="collapse" href="#for-approval" aria-expanded="false" aria-controls="ui-basic">
                             <i class="icon-check menu-icon"></i>
-                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id)+pending_overtime_count(auth()->user()->id)+pending_ob_count(auth()->user()->id)}}</span></span>
+                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id)+pending_overtime_count(auth()->user()->id)+pending_ob_count(auth()->user()->id)+pending_dtr_correction(auth()->user()->id)}}</span></span>
                             <i class="menu-arrow"></i>
                         </a>
                         <div class="collapse @if ($header == 'for-approval') show @endif" id="for-approval">

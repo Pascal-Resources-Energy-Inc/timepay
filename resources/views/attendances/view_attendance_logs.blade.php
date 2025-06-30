@@ -23,39 +23,45 @@
                       </tr>
                     </thead>
                     <tbody>
-                        @foreach(($emp->attendance_logs)->where('date',date('Y-m-d',strtotime($date_r))) as $attendance)
-                          <tr>
-                              <td>@if($attendance->employee){{$attendance->employee->first_name}} {{$attendance->employee->last_name}}@endif</td>
-                              <td>{{$attendance->emp_code}}</td>
-                              <td>{{date('Y-m-d',strtotime($attendance->datetime))}}</td>
-                              <td>{{date('h:i A',strtotime($attendance->datetime))}}</td>
-                              <td>
-                                {{-- {{($attendance->type == 0) ? "Time In" : "Time Out"}} --}}
+                        @php
+  $logs = $emp->attendance_logs
+      ->where('date', date('Y-m-d', strtotime($date_r)))
+      ->unique(function($item) {
+          return $item->datetime . '-' . $item->type;
+      });
+@endphp
 
-                                @if($attendance->type == 0)
-                                Time In
-                                @elseif($attendance->type == 1)
-                                Time Out
-                                @elseif($attendance->type == 4)
-                                Break Out
-                                @elseif($attendance->type == 5)
-                                Break In
-                                @endif
-                              </td>
-                              <td>
-                                {{-- <div class=""> --}}
-                                  @if($attendance->image)
-                                  <a href='{{url($attendance->image)}}' target="_blank"><img style='border-radius: 0% !important;' src="{{asset($attendance->image)}}" alt="Image" class="square-img img-fluid float-left thumbnail"></a>
-                                  @endif
-                                  {{-- </div> --}}
-                              </td>
-                              @if($attendance->location == "System")
-                              <td><a href='https://maps.google.com/?q={{$attendance->lat}},{{$attendance->long}}' target="_blank">{{$attendance->location_maps}}</a></td>
-                              @else
-                              <td>{{$attendance->ip_address}}</td>
-                              @endif
-                          </tr>
-                        @endforeach
+@foreach($logs as $attendance)
+<tr>
+    <td>@if($attendance->employee) {{$attendance->employee->first_name}} {{$attendance->employee->last_name}} @endif</td>
+    <td>{{$attendance->emp_code}}</td>
+    <td>{{date('Y-m-d', strtotime($attendance->datetime))}}</td>
+    <td>{{date('h:i A', strtotime($attendance->datetime))}}</td>
+    <td>
+        @if($attendance->type == 0)
+        Time In
+        @elseif($attendance->type == 1)
+        Time Out
+        @elseif($attendance->type == 4)
+        Break Out
+        @elseif($attendance->type == 5)
+        Break In
+        @endif
+    </td>
+    <td>
+        @if($attendance->image)
+        <a href='{{ url($attendance->image) }}' target="_blank">
+            <img style='border-radius: 0% !important;' src="{{ asset($attendance->image) }}" alt="Image" class="square-img img-fluid float-left thumbnail">
+        </a>
+        @endif
+    </td>
+    @if($attendance->location == "System")
+    <td><a href='https://maps.google.com/?q={{$attendance->lat}},{{$attendance->long}}' target="_blank">{{$attendance->location_maps}}</a></td>
+    @else
+    <td>{{$attendance->ip_address}}</td>
+    @endif
+</tr>
+@endforeach
                     </tbody>
                   </table>
                 </div>

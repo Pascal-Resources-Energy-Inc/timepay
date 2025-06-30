@@ -6,6 +6,8 @@ use App\EmployeeWfh;
 use App\EmployeeOvertime;
 use App\EmployeeOb;
 use App\EmployeeDtr;
+use App\AttendanceLog;
+use App\Attendance;
 use App\EmployeeApprover;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -802,12 +804,43 @@ class FormApprovalController extends Controller
             if($employee_dtr->level == 0){
                 $employee_approver = EmployeeApprover::where('user_id', $employee_dtr->user_id)->where('approver_id', auth()->user()->id)->first();
                 if($employee_approver->as_final == 'on'){
+
+                    
                     EmployeeDtr::Where('id', $id)->update([
                         'approved_date' => date('Y-m-d'),
                         'status' => 'Approved',
                         'approval_remarks' => $request->approval_remarks,
                         'level' => 1,
                     ]);
+
+                     $employee_data = EmployeeDtr::with('employee')->findOrfail($id);
+                     
+                    // dd($employee_data->time_in);
+                    if($employee_data->time_in)
+                    {
+                         $attendance = new AttendanceLog;
+                    $attendance->emp_code = $employee_data->employee->employee_code;
+                    $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
+                    $attendance->location = "DTR Correction";
+                    $attendance->ip_address ="DTR Correction";
+                        $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
+                        $attendance->datetime = $employee_data->time_in;
+                        $attendance->type = "0";
+                        $attendance->save();
+                    }
+                    if($employee_data->time_out)
+                    {
+                         $attendance = new AttendanceLog;
+                        $attendance->emp_code = $employee_data->employee->employee_code;
+                        $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
+                        $attendance->location = "DTR Correction";
+                        $attendance->ip_address ="DTR Correction";
+                        $attendance->datetime = $employee_data->time_out;
+                        $attendance->type = "1";
+                        $attendance->save();
+                    }
+                    $this->syncAttendance($employee_data->dtr_date,$employee_data->employee->employee_code);
+                    
                 }else{
                     EmployeeDtr::Where('id', $id)->update([
                         'approval_remarks' => $request->approval_remarks,
@@ -858,6 +891,26 @@ class FormApprovalController extends Controller
                                 'level' => 1,
                             ]);
                             $count++;
+                            $employee_data = EmployeeDtr::with('employee')->findOrfail($id);
+                            $attendance = new AttendanceLog;
+                            $attendance->emp_code = $employee_data->employee->employee_code;
+                            $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
+                            $attendance->location = "DTR Correction";
+                            $attendance->ip_address ="DTR Correction";
+                            if($employee_data->time_in)
+                            {
+                                $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
+                                $attendance->datetime = $employee_data->time_in;
+                                $attendance->type = "0";
+                                $attendance->save();
+                            }
+                            if($employee_data->time_out)
+                            {
+                                $attendance->datetime = $employee_data->time_out;
+                                $attendance->type = "1";
+                                $attendance->save();
+                            }
+                            $this->syncAttendance($employee_data->dtr_date,$employee_data->employee->employee_code);
                         }else{
                             EmployeeDtr::Where('id', $id)->update([
                                 'approval_remarks' => 'Approved',
@@ -908,5 +961,67 @@ class FormApprovalController extends Controller
         }else{
             return 'error';
         }
+    }
+
+     public function syncAttendance($date,$emp_code)
+    {
+        // dd($request->all());
+        
+        $attendanceLogs = AttendanceLog::where('date', $date)
+            ->where('emp_code', $emp_code)
+            ->orderBy('datetime','asc')
+            ->get();
+
+            if ($attendanceLogs != null) 
+            {
+                foreach($attendanceLogs as $att)
+                {
+                    if ($att->type == 0)
+                    {
+                        $attend = Attendance::where('employee_code', $att->emp_code)->where('time_in', date('Y-m-d H:i:s', strtotime($att->datetime)))->first();
+                        
+                        if($attend == null)
+                        {
+                            $attendance = new Attendance;
+                            $attendance->employee_code  = $att->emp_code;   
+                            $attendance->time_in = date('Y-m-d H:i:s',strtotime($att->datetime));
+                            $attendance->device_in = $att->location ." - ".$att->ip_address;
+                            // $attendance->last_id = $att->id;
+                            $attendance->save();
+                        }
+                    }
+                    else 
+                    {
+                        $time_in_after = date('Y-m-d H:i:s',strtotime($att->datetime));
+                        $time_in_before = date('Y-m-d H:i:s', strtotime ( '-23 hour' , strtotime ( $time_in_after ) )) ;
+                        
+                        $update = [
+                            'time_out' =>  date('Y-m-d H:i:s', strtotime($att->datetime)),
+                            'device_out' => $att->location ." - ".$att->ip_address,
+                            // 'last_id' =>$att->id,
+                        ];
+                    
+                        $attendance_in = Attendance::where('employee_code',$att->emp_code)
+                            ->whereBetween('time_in',[$time_in_before,$time_in_after])
+                            ->first();
+                        
+                        Attendance::where('employee_code',(string)$att->emp_code)
+                        ->whereBetween('time_in',[$time_in_before,$time_in_after])
+                        ->update($update);
+                        
+                        if($attendance_in == null)
+                        {
+                            $attendance = new Attendance;
+                            $attendance->employee_code  = $att->emp_code;   
+                            $attendance->time_out = date('Y-m-d H:i:s', strtotime($att->datetime));
+                            $attendance->device_out = $att->location ." - ".$att->ip_address;
+                            // $attendance->last_id = $att->id;
+                            $attendance->save(); 
+                        }
+                    }
+                }
+
+            }
+            return 'success';
     }
 }

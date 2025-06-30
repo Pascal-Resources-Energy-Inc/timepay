@@ -49,8 +49,11 @@
                                   @endif
                                   {{-- </div> --}}
                               </td>
-                              
+                              @if($attendance->location == "System")
+                              <td><a href='https://maps.google.com/?q={{$attendance->lat}},{{$attendance->long}}' target="_blank">{{$attendance->location_maps}}</a></td>
+                              @else
                               <td>{{$attendance->ip_address}}</td>
+                              @endif
                           </tr>
                         @endforeach
                     </tbody>

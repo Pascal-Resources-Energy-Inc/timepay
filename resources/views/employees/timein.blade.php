@@ -71,7 +71,7 @@
            
             <div class="col-md-12 col-sm-12 mt-1">
               <div class=" text-center">
-                    <video id="video" class="img-fluid " width="100%" height="100%" autoplay></video>
+                    <video id="video" class="img-fluid " width="100%" height="100%" autoplay playsinline muted></video>
                     <div id="googleMap" style="position: absolute; bottom: 30px; left: 15px; width: 100px; height: 100px; border: 3px solid #28a745; border-radius: 5px; box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);"></div>
     
                 <canvas id="canvas" class='mb-4' height="330px" style="width: 100%;"></canvas> 
@@ -88,8 +88,8 @@
                 <button id="captureButton" 
                 class="btn btn-primary btn-sm btn-fill rounded-circle p-3" 
                 onclick="return false;">
-            <i class="ti-camera"></i>
-        </button>
+                <i class="ti-camera"></i>
+                </button>
                 
                 <button id="retakeButton" onclick="return false;"  style='font-size:10px;' class=" btn-smbtn btn-danger btn-fill ">
                     <i class="ti-reload"></i> <small>Retake Photo</small>
@@ -118,20 +118,18 @@
     }
     
     function success(position) {
-   
     
-        var renz = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+position.coords.latitude+","+position.coords.longitude+"&key=AIzaSyDeSpk2-I61V7TFFomaxqOWv-Ir2ZeYkQM";
+    
+        var renz = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+position.coords.latitude+","+position.coords.longitude+"&key=AIzaSyBZw51f1ZyJIjCbkNH2rU0Ze5nOiOBsIuE";
         fetch(renz)
         .then(response => response.json())
         .then(data => {
+                  console.log(data);
             if (data.results && data.results.length > 0) {
+        
                 document.getElementById("location_mo").value = data.results[0].formatted_address;
                 document.getElementById("map_reference").innerHTML = data.results[0].formatted_address;
             }
-            // console.log(data.results[0].formatted_address);
-            // document.getElementById("map_reference").href=data.results[0].formatted_address; 
-           
-            // Process the data as needed
         })
         .catch(error => {
             console.error('Error:', error);
@@ -150,10 +148,10 @@
     }
     
     function error() {
-      document.getElementById("captureButton").disabled = true;
-      alert("Sorry, no position available.Please open location and refresh.");
+      // document.getElementById("captureButton").disabled = true;
+      // alert("Sorry, no position available.Please open location and refresh.");
       
-      location.reload();
+      // location.reload();
    
     }
     </script>
@@ -180,7 +178,7 @@
         }
 </script>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeSpk2-I61V7TFFomaxqOWv-Ir2ZeYkQM&callback=getLocation"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZw51f1ZyJIjCbkNH2rU0Ze5nOiOBsIuE&callback=getLocation"></script>
 
   <script>
      var name = {!! json_encode(auth()->user()->name) !!};
@@ -340,5 +338,5 @@
     }
   </script>
   
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeSpk2-I61V7TFFomaxqOWv-Ir2ZeYkQM&callback=getLocation"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZw51f1ZyJIjCbkNH2rU0Ze5nOiOBsIuE&callback=getLocation"></script>
   

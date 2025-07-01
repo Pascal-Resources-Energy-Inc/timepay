@@ -1140,6 +1140,21 @@ function pending_leave_count($approver_id){
                                 // ->whereDate('created_at','<=',$to_date)
                                 ->count();
 }
+function pending_dtr_correction($approver_id){
+
+    $today = date('Y-m-d');
+    $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
+    $to_date = date('Y-m-d');
+
+    return EmployeeDtr::select('user_id')->with('approver.approver_info')
+                                ->whereHas('approver',function($q) use($approver_id) {
+                                    $q->where('approver_id',$approver_id);
+                                })
+                                ->where('status','Pending')
+                                // ->whereDate('created_at','>=',$from_date)
+                                // ->whereDate('created_at','<=',$to_date)
+                                ->count();
+}
 
 
 function pending_to_count($approver_id){

@@ -81,7 +81,9 @@
                                             <small>Employee Code: {{$item->employee->employee_code}}</small><br>
                                             <small>{{$item->user->employee->company->company_name}}</small>
                                             
+
                                             @if(isset($getLastCutOffDate) && $item->date_from >= $getLastCutOffDate->cut_off_date)
+
                                             <div class="buttons">
                                                 @if ($item->status == 'Pending')
                                                 <button type="button" class="btn btn-success btn-sm" id="{{ $item->id }}" data-target="#leave-approved-remarks-{{ $item->id }}" data-toggle="modal" title="Approve">
@@ -174,6 +176,70 @@
                               </thead>
                               <tbody> 
                                         
+
+                                        @if(date('Y-m-d', strtotime($item->date_from)) >= $cut_date)
+                                        <div class="buttons">
+                                            @if ($item->status == 'Pending')
+                                                <button type="button" class="btn btn-success btn-sm" id="{{ $item->id }}" data-target="#ob-approved-remarks-{{ $item->id }}" data-toggle="modal" title="Approve">
+                                                <i class="ti-check btn-icon-prepend"></i>                                                    
+                                                </button>
+                                                <button type="button" class="btn btn-danger btn-sm" id="{{ $item->id }}" data-target="#ob-declined-remarks-{{ $item->id }}" data-toggle="modal" title="Decline">
+                                                    <i class="ti-close btn-icon-prepend"></i>                                                    
+                                                </button>
+                                            @elseif ($item->status == 'Approved')
+                                                <button type="button" class="btn btn-danger btn-sm" id="{{ $item->id }}" data-target="#ob-declined-remarks-{{ $item->id }}" data-toggle="modal" title="Decline">
+                                                <i class="ti-close btn-icon-prepend"></i>                                                    
+                                                </button>
+                                                <button type="button" id="edit{{ $item->id }}" class="btn btn-info btn-sm" data-target="#edit_ob-{{ $item->id }}" data-toggle="modal" title='Edit'>
+                                                    <i class="ti-pencil-alt"></i>
+                                                </button>
+                                            @endif
+                                        </div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        Date: {{date('M d, Y', strtotime($item->applied_date))}} <br>
+                                        Time:  {{ date('H:i', strtotime($item->date_from)) }} - {{ date('H:i', strtotime($item->date_to)) }}<br>
+                                        @if ($item->status == 'Pending')
+                                            <label class="badge badge-warning">{{ $item->status }}</label>
+                                        @elseif($item->status == 'Approved')
+                                            <label class="badge badge-success">{{ $item->status }}</label>
+                                        @elseif($item->status == 'Rejected' || $item->status == 'Cancelled')
+                                            <label class="badge badge-danger">{{ $item->status }}</label>
+                                        @endif  
+                                    </td>
+                                    <td id="tdStatus{{ $item->id }}">
+                                        @if(count($item->approver) > 0)
+                                            @foreach($item->approver as $approver)
+                                                @if($item->status == 'Approved')
+                                                    {{$approver->approver_info->name}} -  <label class="badge badge-success mt-1">Approved</label>
+                                                @else
+                                                    @if($item->level >= $approver->level)
+                                                    @if ($item->level == 0 && $item->status == 'Declined')
+                                                    {{$approver->approver_info->name}} -  <label class="badge badge-danger mt-1">Declined</label>
+                                                    @else
+                                                        {{$approver->approver_info->name}} -  <label class="badge badge-success mt-1">Approved</label>
+                                                    @endif
+                                                    @else
+                                                    @if ($item->status == 'Declined')
+                                                        {{$approver->approver_info->name}} -  <label class="badge badge-danger mt-1">Declined</label>
+                                                    @else
+                                                        {{$approver->approver_info->name}} -  <label class="badge badge-warning mt-1">Pending</label>
+                                                    @endif
+                                                    @endif<br>
+                                                @endif
+                                            @endforeach
+
+                                            @if($item->status == 'Pending' && $item->level == '1')
+                                                <br>
+                                                <button onclick="reset({{ $item->id }},'ob')" class="btn btn-sm btn-primary mt-1">Reset Approval</button>
+                                            @endif
+                                        @else
+                                        <label class="badge badge-danger mt-1">No Approver</label>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach             
                               </tbody>
                             </table>
                         </div>
@@ -270,7 +336,9 @@
                                         {{-- <small>User ID : {{$item->user->id}}</small> <br> --}}
                                         <small>Employee Code: {{$item->employee->employee_code}}</small><br>
                                         <small>{{$item->user->employee->company->company_name}}</small>
+
                                         @if(isset($getLastCutOffDate) && $item->date_from >= $getLastCutOffDate->cut_off_date)
+
                                         <div class="buttons">
                                             @if ($item->status == 'Pending')
                                                 <button type="button" class="btn btn-success btn-sm" id="{{ $item->id }}" data-target="#approve-ot-hrs-{{ $item->id }}" data-toggle="modal" title="Approve">

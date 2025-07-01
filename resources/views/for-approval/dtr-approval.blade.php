@@ -349,7 +349,7 @@
   @include('for-approval.remarks.dtr_declined_remarks')
 @endforeach
 
-@php
+{{-- @php
 function get_count_days($data,$date_from,$date_to)
  {
     $data = ($data->pluck('name'))->toArray();
@@ -366,7 +366,7 @@ function get_count_days($data,$date_from,$date_to)
 
     return($count);
  } 
-@endphp  
+@endphp   --}}
 
 @endsection
 

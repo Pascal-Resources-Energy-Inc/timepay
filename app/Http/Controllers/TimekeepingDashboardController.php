@@ -191,9 +191,19 @@ class TimekeepingDashboardController extends Controller
                             ->get();
         
         $getLastCutOffDate = AttendanceDetailedReport::where('company_id', $request->company)->orderBy('id', 'desc')->first();
-       
+
         $get_approvers = new EmployeeApproverController;
         $all_approvers = $get_approvers->get_approvers(auth()->user()->id);
+
+        if($getLastCutOffDate)
+        {
+            $cut_date = $getLastCutOffDate->cut_off_date;
+        }
+        else
+        {
+            $cut_date = "2025-01-01";
+        }
+
         return view('dashboards.timekeeping_dashboard', 
                     array(
                         'header' => 'Timekeeping',
@@ -210,7 +220,7 @@ class TimekeepingDashboardController extends Controller
                         'company' => $company,
                         'dtrs' => $dtrs,
                         'emp_data' => $emp_data,
-                        'getLastCutOffDate' => $getLastCutOffDate
+                        'cut_date' => $cut_date
                     )
         );
     }

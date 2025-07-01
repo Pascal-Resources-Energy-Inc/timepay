@@ -148,7 +148,10 @@
                                     </td>
                                     <td>{{ $emp->employee_code }}</td>
                                     <td>{{$emp->first_name . ' ' . $emp->last_name}}</td>
-                                    <td>{{date('d/m/Y',strtotime($date_r))}}</td>
+                                    <td><a href='#' data-toggle="modal" data-target="#view_attandance{{$date_r}}{{ $emp->employee_code }}">{{date('d/m/Y',strtotime($date_r))}}</a>
+                                    
+                                     
+                                    </td>
                                     <td>
                                         @if($employee_schedule != null)
                                             @if($employee_schedule->time_in_from != '00:00')
@@ -1184,6 +1187,12 @@
         </div>
     </div>
 </div>
+
+@foreach($emp_data as $emp)
+    @foreach($date_range as $date_r)
+        @include('attendances.view_attendance_logs')
+    @endforeach
+@endforeach
 @php
 function night_difference($start_work,$end_work)
 {

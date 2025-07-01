@@ -1,3 +1,7 @@
+<head>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
 <!-- Modal -->
 <div class="modal fade" id="newEmployee" tabindex="-1" role="dialog" aria-labelledby="newEmployeeData" aria-hidden="true">
   <div class="modal-dialog modal-xl" role="document">
@@ -12,7 +16,7 @@
         <div class="card">
             <div class="row">
                 <div class="col-md-12 mx-0">
-                  <form id="msform" class='text-center' method='post' onsubmit='show()' action='{{url('/new-employee')}}' enctype="multipart/form-data">
+                  <form id="msform" class='text-center' method='post' action='{{url('/new-employee')}}' enctype="multipart/form-data">
                     {{ csrf_field() }}
                       <!-- progressbar -->
                       <ul id="progressbar">
@@ -29,13 +33,9 @@
                                   First Name 
                                   <input type="text" name="first_name" class='form-control form-control-sm required' placeholder="First Name" required/>
                                 </div>
-                                <div class='col-md-3'>
-                                  Middle Name
-                                  <input type="text" name="middle_name" class='form-control form-control-sm ' placeholder="Middle Name"/>
-                                </div>
                                 <div class='col-md-2'>
-                                  Middle Initial
-                                  <input type="text" name="middile_initial" class='form-control form-control-sm ' placeholder="Middle Initial"/>
+                                  Middle Name
+                                  <input type="text" name="middle_name" class='form-control form-control-sm ' placeholder="Middle Initial"/>
                                 </div>
                                 <div class='col-md-4'>
                                   Last Name
@@ -93,12 +93,14 @@
                             <div class='row mb-2'>
                               <div class='col-md-4'>
                                 Personal Email
-                                  <input type="email" name="personal_email" class='form-control form-control-sm' placeholder="Personal Email"/>
+                                  <input type="email" name="personal_email" class='form-control required form-control-sm' placeholder="Example@gmail.com"/>
                                 </div>
-                              <div class='col-md-4'>
+                              <div class="col-md-4">
                                 Personal Contact Number
-                                  <input type="number" name="personal_number" class='form-control form-control-sm required' placeholder="Personal Contact Number"/>
-                                </div>
+                                <input type="text" name="personal_number" class="form-control form-control-sm required"
+                                      placeholder="Personal Contact Number" maxlength="11" pattern="\d{11}" required
+                                      oninput="this.value = this.value.replace(/\D/g,'').slice(0,11);">
+                              </div>
                             </div>
                             <div class='row mb-2'>
                               <div class='col-md-6'>
@@ -131,15 +133,15 @@
                                 Position
                                 <input type="text" name="position" class='form-control form-control-sm required' placeholder="POSITION"/>
                               </div>
-                              <div class='col-md-4'>
-                                Department
-                                <select data-placeholder="Department" class="form-control form-control-sm js-example-basic-single " style='width:100%;' name='department' required>
-                                    <option value="">--Select Department--</option>
-                                    <option value="0">N/A</option>
-                                    @foreach($departments as $department)
-                                      <option value="{{$department->id}}">{{$department->code}} - {{$department->name}}</option>
-                                    @endforeach
-                                </select>
+                              <div class="col-md-4">
+                                  Department
+                                  <select data-placeholder="Department" class="form-control form-control-sm required js-example-basic-single" style="width:100%;" name="department" required>
+                                      <option value="">--Select Department--</option>
+                                      <option value="0">N/A</option>
+                                      @foreach($departments as $department)
+                                          <option value="{{ $department->id }}">{{ $department->code }} - {{ $department->name }}</option>
+                                      @endforeach
+                                  </select>
                               </div>
                               <div class='col-md-4'>
                                 Location
@@ -152,7 +154,7 @@
                               </div>
                               <div class='col-md-4'>
                                 Project
-                                <select data-placeholder="Project" class="form-control form-control-sm js-example-basic-single " style='width:100%;' name='project'>
+                                <select data-placeholder="Project" class="form-control form-control-sm required js-example-basic-single " style='width:100%;' name='project' required>
                                     <option value="">--Select Project--</option>
                                     <option value="N/A">N/A</option>
                                     @foreach($projects as $project)
@@ -359,93 +361,134 @@
       </div> --}}
     </div>
   </div>
-<script>
-  function same_as_current(value)
-  {
-     var checkbox = document.querySelector('#same_as');
-     if(checkbox.checked == true)
-     {
-      document.getElementById("permanent_address").readOnly = true;
-      document.getElementById("permanent_address").required = false;
-      document.getElementById("permanent_address").value = "";
-      document.getElementById("permanent_address").classList.remove("required");
-      document.getElementById("permanent_address").style.border = '1px solid #CED4DA';    
-      
 
-     }
-     else
-     {
-      document.getElementById("permanent_address").readOnly = false;
-      document.getElementById("permanent_address").required = true;
-      document.getElementById("permanent_address").value = "";
-      document.getElementById("permanent_address").classList.add("required");
-     }
-   
     
- }
+  <script>
+    function same_as_current(value)
+    {
+      var checkbox = document.querySelector('#same_as');
+      if(checkbox.checked == true)
+      {
+        document.getElementById("permanent_address").readOnly = true;
+        document.getElementById("permanent_address").required = false;
+        document.getElementById("permanent_address").value = "";
+        document.getElementById("permanent_address").classList.remove("required");
+        document.getElementById("permanent_address").style.border = '1px solid #CED4DA';    
+        
 
-  function add_approver()
-  {
-    var lastItemID = $('.approvers-data').children().last().attr('id');
-    if(lastItemID){
-        var last_id = lastItemID.split("_");
-        finalLastId = parseInt(last_id[1]) + 1;
-        level = finalLastId + 1;
-    }else{
-        finalLastId = 0;
-        level = finalLastId + 1;
-    }
-                                 
-        var item = "<div class='row mb-2  mt-2 ' id='approver_"+finalLastId+"'>";
-            item+= "<div class='col-md-1  align-self-center'>";
-            item+= "<small class='align-items-center'>"+level+"</small>";
-            item+= "</div>";
-            item+= " <div class='col-md-11'>";
-            item+= " <select data-placeholder='Approver' class='form-control form-control-sm required js-example-basic-single' style='width:100%;' name='approver["+finalLastId+"][approver_id]' required>";
-            item+= "<option value=''>-- Approver --</option>";
-            item+= " @foreach($users as $user)";
-            item+= "<option value='{{$user->id}}'>{{$user->name}}</option>";
-            item+= "@endforeach";
-            item+= "</select>";
-            item+= "<input type='checkbox' name='approver["+finalLastId+"][as_final]'> Tag as Final";
-            item+= "</div>";
-            item+= "</div>";
-          
-            $(".approvers-data").append(item);
-            $(".js-example-basic-single").select2();
-
+      }
+      else
+      {
+        document.getElementById("permanent_address").readOnly = false;
+        document.getElementById("permanent_address").required = true;
+        document.getElementById("permanent_address").value = "";
+        document.getElementById("permanent_address").classList.add("required");
+      }
+    
+      
   }
-  function remove_approver()
-  {
-    if($('div.approvers-data div.row').length > 1)
-    {
-    var lastItemID = $('.approvers-data').children().last().attr('id');
-    $('#'+lastItemID).remove();
-    }
 
-  }
-  function uploadimage(input)
+    function add_approver()
     {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
+      var lastItemID = $('.approvers-data').children().last().attr('id');
+      if(lastItemID){
+          var last_id = lastItemID.split("_");
+          finalLastId = parseInt(last_id[1]) + 1;
+          level = finalLastId + 1;
+      }else{
+          finalLastId = 0;
+          level = finalLastId + 1;
+      }
+                                  
+          var item = "<div class='row mb-2  mt-2 ' id='approver_"+finalLastId+"'>";
+              item+= "<div class='col-md-1  align-self-center'>";
+              item+= "<small class='align-items-center'>"+level+"</small>";
+              item+= "</div>";
+              item+= " <div class='col-md-11'>";
+              item+= " <select data-placeholder='Approver' class='form-control form-control-sm required js-example-basic-single' style='width:100%;' name='approver["+finalLastId+"][approver_id]' required>";
+              item+= "<option value=''>-- Approver --</option>";
+              item+= " @foreach($users as $user)";
+              item+= "<option value='{{$user->id}}'>{{$user->name}}</option>";
+              item+= "@endforeach";
+              item+= "</select>";
+              item+= "<input type='checkbox' name='approver["+finalLastId+"][as_final]'> Tag as Final";
+              item+= "</div>";
+              item+= "</div>";
             
-            reader.onload = function(e) {
-                $('#avatar').attr('src', e.target.result);
-            }
-            
-            reader.readAsDataURL(input.files[0]);
-        }
+              $(".approvers-data").append(item);
+              $(".js-example-basic-single").select2();
+
     }
-  function uploadsignature(input)
+    function remove_approver()
     {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            
-            reader.onload = function(e) {
-                $('#signature').attr('src', e.target.result);
-            }
-            
-            reader.readAsDataURL(input.files[0]);
-        }
+      if($('div.approvers-data div.row').length > 1)
+      {
+      var lastItemID = $('.approvers-data').children().last().attr('id');
+      $('#'+lastItemID).remove();
+      }
+
     }
-</script>
+    function uploadimage(input)
+      {
+          if (input.files && input.files[0]) {
+              var reader = new FileReader();
+              
+              reader.onload = function(e) {
+                  $('#avatar').attr('src', e.target.result);
+              }
+              
+              reader.readAsDataURL(input.files[0]);
+          }
+      }
+    function uploadsignature(input)
+      {
+          if (input.files && input.files[0]) {
+              var reader = new FileReader();
+              
+              reader.onload = function(e) {
+                  $('#signature').attr('src', e.target.result);
+              }
+              
+              reader.readAsDataURL(input.files[0]);
+          }
+      }
+
+      document.querySelectorAll('.next').forEach(button => {
+      button.addEventListener('click', function (e) {
+        const currentFieldset = this.closest('fieldset');
+        const personalEmailInput = document.querySelector('input[name="personal_email"]');
+        const workEmailInput = document.querySelector('input[name="work_email"]');
+
+        if (currentFieldset.id === 'personal_information') {
+          const email = personalEmailInput.value.trim();
+          if (email !== '' && !email.endsWith('.com')) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Invalid Email',
+              text: 'Please use a valid Gmail address (e.g., yourname@gmail.com)',
+            });
+            personalEmailInput.focus();
+            return;
+          }
+        }
+
+        if (currentFieldset.id === 'employment_information') {
+          const email = workEmailInput.value.trim();
+          if (email !== '' && !email.endsWith('.com')) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Invalid Work Email',
+              text: 'Please use a valid Gmail address for your work email (e.g., name@gmail.com)',
+            });
+            workEmailInput.focus();
+            return;
+          }
+        }
+
+      });
+    });
+
+  </script>
+
+
+

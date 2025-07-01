@@ -16,6 +16,7 @@ use App\Project;
 use App\Schedule;
 use App\Attendance;
 use App\iclockterminal_mysql;
+use App\ApprovalByAmount;
 use App\iclocktransactions_mysql;
 use App\Level;
 use App\EmployeeCompany;
@@ -144,7 +145,7 @@ class EmployeeController extends Controller
                                                 ->get();
 
 
-        $employees = Employee::select('id','user_id','employee_number','first_name','last_name','department_id','company_id','immediate_sup','classification','status', 'employee_code','avatar')
+        $employees = Employee::select('id','user_id','employee_number','first_name','last_name','department_id','company_id','immediate_sup','classification','status', 'employee_code','avatar', 'location')
                                 ->with('department', 'immediate_sup_data', 'user_info', 'company','classification_info')
                                 ->when($search,function($q) use($search){
                                     $q->where(function($w) use($search){
@@ -233,7 +234,7 @@ class EmployeeController extends Controller
                                     ->orderBy('company_name','ASC')
                                     ->get();
 
-       
+        $departments = Department::all();
         return view(
             'employees.view_employees',
             array(
@@ -1134,6 +1135,15 @@ class EmployeeController extends Controller
         $employeeNte = NteFile::where('employee_id', $user->employee->id)->get();
         $employeeDocument = EmployeeDocument::with('employee')->where('employee_id', $user->employee->id)->get();
         // dd($users);
+
+        $approval_amounts = DB::table('approval_by_amount')
+                            ->select('higher_than', 'less_than')
+                            ->get();
+        
+        $higher_amounts = $approval_amounts->pluck('higher_than')->unique()->filter()->sort()->values();
+        $less_amounts = $approval_amounts->pluck('less_than')->unique()->filter()->sort()->values();
+
+
         return view('employees.employee_settings_hr',
         array(
             'header' => 'employees',
@@ -1155,6 +1165,8 @@ class EmployeeController extends Controller
             'employeeTraining' => $employeeTraining,
             'employeeNte' => $employeeNte,
             'employeeDocuments' => $employeeDocument,
+            'higher_amounts' => $higher_amounts,
+            'less_amounts' => $less_amounts,
             // 'hierarchy' => $hierarchy,
         ));
     
@@ -1227,28 +1239,46 @@ class EmployeeController extends Controller
             $count_approver = count($request->approver);
             $level = 1;
             if(count($request->approver) > 0){
-                foreach($request->approver as $k =>  $approver_item)
-                {
-                    $new_approver = new EmployeeApprover;
-                    
-                    if($count_approver == 1 && $k == 0){
-                        $new_approver->as_final = "on";
-                    }
+                $level = 1;
 
-                    if($count_approver == 2 && $k == 1){
-                        $new_approver->as_final = "on";
-                    }
-
+                foreach ($request->approver as $k => $approver_item) {
+                    $new_approver = new EmployeeApprover();
                     $new_approver->user_id = $employee->user_id;
                     $new_approver->approver_id = $approver_item['approver_id'];
                     $new_approver->level = $level;
-                    
+
+                    // Set second approver
+                    if ($k == 1) {
+                        $new_approver->as_final = "on";
+                    } else {
+                        $new_approver->as_final = "";
+                    }
+
                     $new_approver->save();
-                    $level = $level+1;
+                    $level++;
                 }
             }
         }
 
+        if ($request->higher && $request->less) {
+            $targetUserId = auth()->user()->id;
+            $editorUserId = auth()->user()->id;
+
+            ApprovalByAmount::where('created_by', $targetUserId)
+                            ->where('type_of_form', 'Travel Order')
+                            ->delete();
+
+            $approval_by_amount = new ApprovalByAmount();
+            $approval_by_amount->type_of_form = 'Travel Order';
+            $approval_by_amount->higher_than = $request->higher;
+            $approval_by_amount->less_than = $request->less;
+            $approval_by_amount->created_by = $targetUserId;
+            $approval_by_amount->updated_by = $editorUserId;
+            $approval_by_amount->save();
+        }
+
+
+        
         //Employee Vessel
         if($request->classification == 4 && $request->vessel_name){
             $employee_vessel = EmployeeVessel::where('user_id', $employee->user_id)->first();
@@ -1888,7 +1918,8 @@ class EmployeeController extends Controller
                                     ->where('status','Approved')
                                     ->orderBy('id','asc');
                                 }])
-                                ->with(['approved_obs' => function ($query) use ($date_from, $to_date) {
+                                ->with(['approved_
+                                s' => function ($query) use ($date_from, $to_date) {
                                     $query->whereBetween('applied_date', [$date_from, $to_date])
                                     ->where('status','Approved')
                                     ->orderBy('id','asc');

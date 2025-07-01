@@ -11,6 +11,7 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
+   use App\Http\Controllers\EmployeeObController;
 use App\HikAttLog2;
 Route::get('get-location','AttendanceController@getLocation');
 Auth::routes();
@@ -33,17 +34,21 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('updateEmpInfo/{id}', 'UserController@updateEmpInfo');
     Route::post('updateEmpContactInfo/{id}', 'UserController@updateEmpContactInfo');
     
-    
-
     //employees
     Route::get('/dashboard', 'HomeController@index')->name('home');
     Route::post('/edit-prob/{id}','HomeController@edit_prob');
     Route::get('', 'HomeController@index');
     Route::get('/', 'HomeController@index');
     Route::get('/home', 'HomeController@index')->name('home');
+    
     //approvers
     Route::get('/dashboard-manager', 'HomeController@managerDashboard');
     //admin
+    Route::get('/dashboard/filter-by-location', [\App\Http\Controllers\HomeController::class, 'filterByLocation']);
+    Route::get('/dashboard/absentees-pie', [\App\Http\Controllers\HomeController::class, 'absenteesPie']);
+    Route::get('/dashboard/absentees-monthly-pie', [\App\Http\Controllers\HomeController::class, 'absenteesMonthlyPie']);
+    Route::get('/dashboard/late-pie', [\App\Http\Controllers\HomeController::class, 'latePie']);
+
 
     Route::get('attendances', 'AttendanceController@index');
     Route::get('attendance-report', 'AttendanceController@reports')->name('reports');
@@ -78,6 +83,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('approve-leave-all','FormApprovalController@approveLeaveAll');
     Route::post('disapprove-leave-all','FormApprovalController@disapproveLeaveAll');
 
+    Route::get('show','EmployeeObController@ob');
+
+
+
+
+
+    Route::get('overtime','EmployeeOvertimeController@overtime');
     //Overtime
     Route::get('overtime','EmployeeOvertimeController@overtime');
     Route::post('new-overtime','EmployeeOvertimeController@new');
@@ -94,17 +106,37 @@ Route::group(['middleware' => 'auth'], function () {
     // Route::post('approve-wfh-all','FormApprovalController@approveWfhAll');
     // Route::post('disapprove-wfh-all','FormApprovalController@disapproveWfhAll');
 
-    //official-business
-    Route::get('official-business', 'EmployeeObController@ob');
-    Route::post('new-ob','EmployeeObController@new');
-    Route::post('edit-ob/{id}', 'EmployeeObController@edit_ob');
-    Route::post('hr-edit-ob/{id}', 'EmployeeObController@hr_edit_ob');
-    Route::post('upload-ob-file/{id}', 'EmployeeObController@upload_obFile');
-    Route::get('disable-ob/{id}', 'EmployeeObController@disable_ob');  
-    
-    Route::post('approve-ob-all','FormApprovalController@approveObAll');
-    Route::post('disapprove-ob-all','FormApprovalController@disapproveObAll');
+    //travel-order
+    Route::get('travel-order', 'EmployeeTravelOrderController@to');
+    Route::post('new-to','EmployeeTravelOrderController@new');
+    Route::post('edit-to/{id}', 'EmployeeTravelOrderController@edit_to')->name('edit-to');
+    Route::post('hr-edit-to/{id}', 'EmployeeTravelOrderController@hr_edit_to');
+    Route::post('upload-to-file/{id}', 'EmployeeTravelOrderController@upload_obFile');
+    Route::get('disable-to/{id}', 'EmployeeTravelOrderController@disable_to');  
 
+    //authority-deduct
+    Route::get('authority-deduct', 'EmployeeAuthorityDeductionController@ad');
+    Route::post('new-ad', 'EmployeeAuthorityDeductionController@new');
+    Route::put('edit-ad/{id}', 'EmployeeAuthorityDeductionController@edit_ad')->name('edit-ad');
+    Route::get('disable-ad/{id}', 'EmployeeAuthorityDeductionController@disable_ad');  
+
+    //payroll-disbursement
+    Route::get('payroll-disbursement', 'EmployeePayrollDisbursementController@pd');
+    Route::post('new-pd', 'EmployeePayrollDisbursementController@new');
+    Route::post('edit-pd/{id}', 'EmployeePayrollDisbursementController@edit_pd')->name('edit-pd');
+    Route::get('disable-pd/{id}', 'EmployeePayrollDisbursementController@disable_pd');  
+
+
+    //number-enrollment
+    Route::get('number-enrollment', 'EmployeeNumberEnrollmentController@ne');
+    Route::post('new-ne', 'EmployeeNumberEnrollmentController@new');
+
+    //coe-request
+    Route::get('coe-request', 'EmployeeCoeController@coe');
+    Route::post('new-coe', 'EmployeeCoeController@new');
+    Route::post('edit-coe/{id}', 'EmployeeCoeController@edit_coe')->name('edit-coe');
+    Route::get('disable-coe/{id}', 'EmployeeCoeController@disable_coe');  
+   
     //DTR Correction
     Route::get('dtr-correction', 'EmployeeDtrController@dtr');
     Route::post('new-dtr','EmployeeDtrController@new');
@@ -126,9 +158,36 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('decline-wfh/{id}','FormApprovalController@declineWfh');
     Route::post('approve-wfh-percentage/{id}','FormApprovalController@approveWfh');
     
-    Route::get('for-official-business','FormApprovalController@form_ob_approval');
-    Route::post('approve-ob/{id}','FormApprovalController@approveOb');
-    Route::post('decline-ob/{id}','FormApprovalController@declineOb');
+    //travel order Manager
+    Route::get('travel-orderManager','FormApprovalController@form_to_approval');
+    Route::post('approve-to/{id}','FormApprovalController@approveto');
+    Route::post('decline-to/{id}','FormApprovalController@declineto');
+    Route::post('approve-to-all','FormApprovalController@approveToAll');
+    Route::post('disapprove-to-all','FormApprovalController@disapproveToAll');  
+
+    //authority to deduct payroll handler
+    Route::get('authority-deduction','FormApprovalController@form_ad_approval');
+    Route::post('approve-ad/{id}','FormApprovalController@approvead');
+    Route::post('decline-ad/{id}','FormApprovalController@declinead');
+    Route::post('approve-ad-all', 'FormApprovalController@approveadAll');
+    Route::post('disapprove-ad-all','FormApprovalController@disapproveadAll');
+
+    //authority to deduct view on payroll
+    Route::get('pds-approval','FormApprovalController@form_pd_approval');
+    Route::post('approve-pd/{id}','FormApprovalController@approvepd');
+    Route::post('decline-pd/{id}','FormApprovalController@declinepd');
+    Route::post('approve-pd-all', 'FormApprovalController@approvepdAll');
+    Route::post('disapprove-pd-all','FormApprovalController@disapprovepdAll');
+
+    //ne request approval
+    Route::get('nes-approval','FormApprovalController@form_ne_approval');
+
+    //coe request approval
+    Route::get('coe-approval','FormApprovalController@form_coe_approval');
+    Route::post('approve-coe/{id}','FormApprovalController@approvecoe');
+    Route::post('decline-coe/{id}','FormApprovalController@declinecoe');
+    Route::post('approve-coe-all', 'FormApprovalController@approvecoeAll');
+    Route::post('disapprove-coe-all','FormApprovalController@disapprovecoeAll');
 
     Route::get('for-dtr-correction','FormApprovalController@form_dtr_approval');
     Route::post('approve-dtr/{id}','FormApprovalController@approveDtr');

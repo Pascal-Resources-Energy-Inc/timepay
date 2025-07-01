@@ -9,7 +9,7 @@
             <div class="col-md-12 mb-4  stretch-card transparent">
                 <div class="card">
                     <div class="card-body">
-                        <h3 class="card-title">Timekeeping Dashboard</h3>  
+                        <h3 class="card-title">Form</h3>  
                         <form method='get' onsubmit='show();' enctype="multipart/form-data">
                             <div class="row">
                                 <div class="col-md-3">
@@ -81,7 +81,9 @@
                                             <small>Employee Code: {{$item->employee->employee_code}}</small><br>
                                             <small>{{$item->user->employee->company->company_name}}</small>
                                             
-                                            @if($item->date_from >= $cut_date)
+
+                                            @if(isset($getLastCutOffDate) && $item->date_from >= $getLastCutOffDate->cut_off_date)
+
                                             <div class="buttons">
                                                 @if ($item->status == 'Pending')
                                                 <button type="button" class="btn btn-success btn-sm" id="{{ $item->id }}" data-target="#leave-approved-remarks-{{ $item->id }}" data-toggle="modal" title="Approve">
@@ -173,14 +175,8 @@
                                 </tr>
                               </thead>
                               <tbody> 
-                                @foreach ($obs as $item)
-                                <tr>
-                                    <td>
-                                        <strong>{{$item->user->name}}</strong> <br>
-                                        {{-- <small>User ID : {{$item->user->id}}</small> <br> --}}
-                                        <small>Employee Code: {{$item->employee->employee_code}}</small><br>
-                                        <small>{{$item->user->employee->company->company_name}}</small>
                                         
+
                                         @if(date('Y-m-d', strtotime($item->date_from)) >= $cut_date)
                                         <div class="buttons">
                                             @if ($item->status == 'Pending')
@@ -340,7 +336,9 @@
                                         {{-- <small>User ID : {{$item->user->id}}</small> <br> --}}
                                         <small>Employee Code: {{$item->employee->employee_code}}</small><br>
                                         <small>{{$item->user->employee->company->company_name}}</small>
-                                        @if($item->ot_date >= $cut_date)
+
+                                        @if(isset($getLastCutOffDate) && $item->date_from >= $getLastCutOffDate->cut_off_date)
+
                                         <div class="buttons">
                                             @if ($item->status == 'Pending')
                                                 <button type="button" class="btn btn-success btn-sm" id="{{ $item->id }}" data-target="#approve-ot-hrs-{{ $item->id }}" data-toggle="modal" title="Approve">
@@ -412,6 +410,95 @@
                     </div>
                 </div>
             </div>
+        <div class="col-md-6 mb-4  stretch-card transparent">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">Travel Order</h3>
+                    <div class="table-responsive">
+                       
+                        <table class="table table-hover table-bordered tablewithSearch">
+                            <thead>
+                            <tr>
+                                <th>Action </th> 
+                                <th>Employee Name</th>
+                                <th>Date Filed</th>
+                                <th>Date</th>
+                                <th>Time In</th>
+                                <th>Time Out</th>
+                                <th>Destination</th>
+                                <th>Purpose</th>
+                                <th>Approvers</th> 
+                                <th>Status</th>
+                                <th>Attachment</th>
+                            </tr>
+                            </thead>
+                            
+                            <tbody> 
+                            @foreach ($tos as $form_approval)
+                                <tr>
+                               <td align="center" id="tdActionId{{ $form_approval->id }}">
+                                    @if($form_approval->status == 'Approved')
+                                        <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#to-view-approved-{{ $form_approval->id }}" title="View">
+                                            <i class="ti-eye btn-icon-prepend"></i> View
+                                        </button>
+                                    @elseif($form_approval->status == 'Pending')
+                                        <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#to-view-modal-{{ $form_approval->id }}" title="View">
+                                            <i class="ti-eye btn-icon-prepend"></i> View
+                                        </button>
+                                    @elseif($form_approval->status == 'Declined')
+                                        <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#to-view-declined-{{ $form_approval->id }}" title="View">
+                                            <i class="ti-eye btn-icon-prepend"></i> View
+                                        </button>
+                                    @endif
+                                </td>
+                                
+                                <td>
+                                    <strong>{{ $form_approval->user->name }}</strong><br>
+                                    <small>Position: {{ $form_approval->user->employee->position }}</small><br>
+                                    <small>Location: {{ $form_approval->user->employee->location }}</small><br>
+                                    <small>Department: {{ $form_approval->user->employee->department->name ?? '' }}</small>
+                                </td>
+
+                                <td>{{ date('M. d, Y', strtotime($form_approval->created_at)) }} - {{ date('h:i A', strtotime($form_approval->created_at)) }}</td>
+                                <td>{{ date('M. d, Y', strtotime($form_approval->date_from)) }} - {{ date('M. d, Y', strtotime($form_approval->date_to)) }}</td>
+                                <td>{{ date('h:i A', strtotime($form_approval->date_from)) }}</td>
+                                <td>{{ date('h:i A', strtotime($form_approval->date_to)) }}</td>
+                                <td>{{ $form_approval->destination }}</td>
+                                <td>{{ $form_approval->purpose }}</td>
+
+                                <td>
+                                    @foreach($form_approval->approver as $approver)
+                                    {{ $approver->approver_info->name }}<br>
+                                    @endforeach
+                                </td>
+
+                                <td>
+                                    @if ($form_approval->status == 'Pending')
+                                    <label class="badge badge-warning">{{ $form_approval->status }}</label>
+                                    @elseif ($form_approval->status == 'Approved')
+                                    <label class="badge badge-success" title="{{ $form_approval->approval_remarks }}">{{ $form_approval->status }}</label>
+                                    @elseif ($form_approval->status == 'Declined' || $form_approval->status == 'Cancelled')
+                                    <label class="badge badge-danger" title="{{ $form_approval->approval_remarks }}">{{ $form_approval->status }}</label>
+                                    @endif
+                                </td>
+
+                                <td>
+                                    <button type="button" class="btn btn-primary btn-sm" title="Attachment" data-toggle="modal" data-target="#view-modal-{{ $form_approval->id }}">
+                                    <i class="ti-folder"></i>
+                                    </button>
+                                </td>
+                                </tr>
+                                @endforeach
+
+                            
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
             {{-- <div class="col-md-6 mb-4  stretch-card transparent">
                 <div class="card">
                     <div class="card-body">
@@ -601,14 +688,17 @@
   @include('for-approval.remarks.leave_approved_edit')
 @endforeach
 
-@foreach ($obs as $ob)
-  @include('for-approval.remarks.ob_approved_remarks')
-  @include('for-approval.remarks.ob_declined_remarks')
-  @include('for-approval.remarks.edit_ob')
-@endforeach
-
 @foreach ($overtimes as $overtime)
   @include('for-approval.remarks.overtime_approved_remarks')
   @include('for-approval.remarks.overtime_declined_remarks')
   @include('for-approval.remarks.overtime_edit_time')
 @endforeach 
+
+@foreach ($tos as $to)
+  @include('for-approval.remarks.view-toapproved')
+  @include('for-approval.remarks.view-todeclined')
+@endforeach
+
+
+@include('for-approval.view-toManager') 
+@include('for-approval.view-form') 

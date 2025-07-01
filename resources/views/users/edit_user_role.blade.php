@@ -193,6 +193,30 @@
                                         <br>
                                         <br>
                                         @if($user->user_privilege)
+                                            @if($user->user_privilege->reports_ne == 'on')
+                                                <input type="checkbox" name="reports_ne" id="reports_ne{{$user->id}}" value="{{ $user->user_privilege->reports_ne }}" checked>
+                                            @else
+                                                <input type="checkbox" name="reports_ne" id="reports_ne{{$user->id}}">
+                                            @endif
+                                        @else
+                                            <input type="checkbox" name="reports_ne" id="reports_ne{{$user->id}}">
+                                        @endif
+                                        Number Enrollment
+                                        <br>
+                                        <br>
+                                        @if($user->user_privilege)
+                                            @if($user->user_privilege->reports_coe == 'on')
+                                                <input type="checkbox" name="reports_coe" id="reports_coe{{$user->id}}" value="{{ $user->user_privilege->reports_coe }}" checked>
+                                            @else
+                                                <input type="checkbox" name="reports_coe" id="reports_coe{{$user->id}}">
+                                            @endif
+                                        @else
+                                            <input type="checkbox" name="reports_coe" id="reports_coe{{$user->id}}">
+                                        @endif
+                                        COE Request
+                                        <br>
+                                        <br>
+                                        @if($user->user_privilege)
                                             @if($user->user_privilege->reports_dtr == 'on')
                                                 <input type="checkbox" name="reports_dtr" id="reports_dtr{{$user->id}}" value="{{ $user->user_privilege->reports_dtr }}" checked>
                                             @else

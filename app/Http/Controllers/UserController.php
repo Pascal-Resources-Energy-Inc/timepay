@@ -7,7 +7,6 @@ use App\UserPrivilege;
 use App\UserAllowedCompany;
 use App\UserAllowedProject;
 use App\UserAllowedLocation;
-
 use App\Level;
 use App\Company;
 use App\Employee;
@@ -171,6 +170,8 @@ class UserController extends Controller
                 $user_privilege->reports_wfh = $request->reports_wfh;
                 $user_privilege->reports_ob = $request->reports_ob;
                 $user_privilege->reports_dtr = $request->reports_dtr;
+                $user_privilege->reports_ne = $request->reports_ne;
+                $user_privilege->reports_coe = $request->reports_coe;
                 $user_privilege->reports_loan = $request->reports_loan;
 
                 $user_privilege->biometrics_per_employee = $request->biometrics_per_employee;
@@ -216,6 +217,8 @@ class UserController extends Controller
                 $new_user_privilege->reports_overtime = $request->reports_overtime;
                 $new_user_privilege->reports_wfh = $request->reports_wfh;
                 $new_user_privilege->reports_ob = $request->reports_ob;
+                $new_user_privilege->reports_coe = $request->reports_coe;
+                $new_user_privilege->reports_ne = $request->reports_ne;
                 $new_user_privilege->reports_dtr = $request->reports_dtr;
 
                 $new_user_privilege->biometrics_per_employee = $request->biometrics_per_employee;

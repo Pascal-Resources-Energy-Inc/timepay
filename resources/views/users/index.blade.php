@@ -54,7 +54,7 @@
                                         <td>{{$user->email}}</td>
                                         <td>{{$user->role}}</td>
                                         <td>
-                                            <a href="/edit-user-role/{{$user->id}}" target="_blank" class="btn btn-outline-info btn-icon-text btn-sm">
+                                            <a href="edit-user-role/{{$user->id}}" target="_blank" class="btn btn-outline-info btn-icon-text btn-sm">
                                                 Edit
                                                 <i class="ti-file btn-icon-append"></i>
                                             </a>

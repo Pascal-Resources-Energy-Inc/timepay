@@ -187,6 +187,7 @@
                                         <th>Employee</th>
                                         <th>Company</th>
                                         <th>Department</th>
+                                        <th>Location</th>
                                         <th>Classification</th>
                                         <th>Immediate Supervisor</th>
                                         <th>Status </th>
@@ -213,6 +214,7 @@
                                             @if($employee->company){{$employee->company->company_code}}@endif
                                         </td>
                                         <td>@if($employee->department){{$employee->department->name}}@endif</td>
+                                        <td>{{$employee->location}}</td>
                                         <td>{{$employee->classification_info ? $employee->classification_info->name : ""}}</td>
                                         <td>@if($employee->immediate_sup_data)
                                             <small><img class="rounded-circle" style='width:34px;height:34px;' src='{{URL::asset($employee->immediate_sup_data->employee->avatar)}}' onerror="this.src='{{URL::asset('/images/no_image.png')}}';"></small>

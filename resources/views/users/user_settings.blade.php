@@ -285,6 +285,14 @@
                             </div>
                             <div class='row  m-2 border-bottom'>
                                 <div class='col-md-3'>
+                                    <small> Location </small>
+                                </div>
+                                <div class='col-md-9'>
+                                    {{auth()->user()->employee->location}}
+                                </div>
+                            </div>
+                            <div class='row  m-2 border-bottom'>
+                                <div class='col-md-3'>
                                     <small> Date Hired </small>
                                 </div>
                                 <div class='col-md-3'>

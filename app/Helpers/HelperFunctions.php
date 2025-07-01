@@ -6,6 +6,7 @@ use App\UserAllowedProject;
 use App\UserPrivilege;
 use App\Employee;
 use App\EmployeeLeave;
+use App\EmployeeAd;
 use App\EmployeeEarnedLeave;
 use App\EmployeeLeaveCredit;
 use App\Holiday;
@@ -14,6 +15,10 @@ use App\DailySchedule;
 use App\EmployeeOvertime;
 use App\EmployeeWfh;
 use App\EmployeeOb;
+use App\EmployeeTo;
+use App\EmployeePd;
+use App\EmployeeNe;
+use App\EmployeeCoe;
 use App\EmployeeDtr;
 use App\ScheduleData;
 use App\Tax;
@@ -1136,6 +1141,89 @@ function pending_leave_count($approver_id){
                                 ->count();
 }
 
+
+function pending_to_count($approver_id){
+
+    $today = date('Y-m-d');
+    $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
+    $to_date = date('Y-m-d');
+
+    return EmployeeTo::select('user_id')->with('approver.approver_info')
+                                ->whereHas('approver',function($q) use($approver_id) {
+                                    $q->where('approver_id',$approver_id);
+                                })
+                                ->where('status','Pending')
+                                // ->whereDate('created_at','>=',$from_date)
+                                // ->whereDate('created_at','<=',$to_date)
+                                ->count();
+}
+
+function pending_ad_count($approver_id){
+
+    $today = date('Y-m-d');
+    $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
+    $ad_date = date('Y-m-d');
+
+    return EmployeeAd::select('user_id')->with('approver.approver_info')
+                                ->whereHas('approver',function($q) use($approver_id) {
+                                    $q->where('approver_id',$approver_id);
+                                })
+                                ->where('status','Pending')
+                                // ->whereDate('created_at','>=',$from_date)
+                                // ->whereDate('created_at','<=',$to_date)
+                                ->count();
+}
+
+
+function pending_pd_count($approver_id){
+
+    $today = date('Y-m-d');
+    $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
+    $ad_date = date('Y-m-d');
+
+    return EmployeePd::select('user_id')->with('approver.approver_info')
+                                ->whereHas('approver',function($q) use($approver_id) {
+                                    $q->where('approver_id',$approver_id);
+                                })
+                                ->where('status','Pending')
+                                // ->whereDate('created_at','>=',$from_date)
+                                // ->whereDate('created_at','<=',$to_date)
+                                ->count();
+}
+
+function pending_coe_count($approver_id){
+
+    $today = date('Y-m-d');
+    $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
+    $ad_date = date('Y-m-d');
+
+    return EmployeeCoe::select('user_id')->with('approver.approver_info')
+                                ->whereHas('approver',function($q) use($approver_id) {
+                                    $q->where('approver_id',$approver_id);
+                                })
+                                ->where('status','Pending')
+                                // ->whereDate('created_at','>=',$from_date)
+                                // ->whereDate('created_at','<=',$to_date)
+                                ->count();
+}
+
+
+function pending_ne_count($approver_id){
+
+    $today = date('Y-m-d');
+    $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
+    $ad_date = date('Y-m-d');
+
+    return EmployeeNe::select('user_id')->with('approver.approver_info')
+                                ->whereHas('approver',function($q) use($approver_id) {
+                                    $q->where('approver_id',$approver_id);
+                                })
+                                ->where('status','Pending')
+                                // ->whereDate('created_at','>=',$from_date)
+                                // ->whereDate('created_at','<=',$to_date)
+                                ->count();
+}
+
 function pending_overtime_count($approver_id){
     
     $today = date('Y-m-d');
@@ -1165,6 +1253,7 @@ function pending_ob_count($approver_id){
                                 // ->whereDate('created_at','<=',$to_date)
                                 ->count();
 }
+
 
 
 

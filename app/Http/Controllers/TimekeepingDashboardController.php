@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Employee;
 use App\EmployeeLeave;
 use App\EmployeeOb;
+use App\EmployeeTo;
 use App\EmployeeWfh;
 use App\EmployeeOvertime;
 use App\EmployeeDtr;
@@ -61,39 +62,29 @@ class TimekeepingDashboardController extends Controller
                                 ->whereDate('date_from','<=',$to)
                                 ->orderBy('created_at','DESC')
                                 ->get();
-        $obs = EmployeeOb::with('approver.approver_info','user')
-                                // ->whereHas('employee',function($q) use($allowed_companies){
-                                //     $q->whereIn('company_id',$allowed_companies);
-                                // })
-                                ->whereHas('employee', function ($q) use ($company) {
-                                    if ($company) {
-                                        $q->where('company_id', $company);
-                                    }
-                                })
-                                ->when($allowed_locations,function($w) use($allowed_locations){
-                                    $w->whereHas('employee',function($q) use($allowed_locations){
-                                        $q->whereIn('location',$allowed_locations);
-                                    });
-                                })
-                                ->when($allowed_projects,function($w) use($allowed_projects){
-                                    $w->whereHas('employee',function($q) use($allowed_projects){
-                                        $q->whereIn('project',$allowed_projects);
-                                    });
-                                })
-                                ->where(function ($query) use ($status) {
-                                    if ($status == 'All') {
-                                        $query->whereIn('status', ['Approved', 'Pending']);
-                                    } else {
-                                        $query->where('status', $status);
-                                    }
-                                })
-                                // ->where('status','Pending')
-                                // ->where('status',$status)
-                                ->whereDate('applied_date','>=',$from)
-                                ->whereDate('applied_date','<=',$to)
-                                ->orderBy('created_at','DESC')
-                                ->get();
-        
+        $tos = collect();
+
+            if ($request->has('company') && $request->company &&
+                $request->has('from') && $request->from &&
+                $request->has('to') && $request->to) {
+
+                $query = EmployeeTo::with(['user.employee', 'approver.approver_info'])
+                    ->whereHas('user.employee', function ($q) use ($request) {
+                        $q->where('company_id', $request->company);
+                    })
+                    ->whereDate('date_from', '>=', $request->from)
+                    ->whereDate('date_to', '<=', $request->to);
+
+                if ($request->status && $request->status !== 'All') {
+                    $query->where('status', $request->status);
+                } elseif ($request->status === 'All') {
+                    $query->whereIn('status', ['Pending', 'Approved', 'Declined']);
+                }
+                $tos = $query->get();
+            }
+
+
+                    
         $wfhs = EmployeeWfh::with('approver.approver_info','user')
                                 ->whereHas('employee',function($q) use($allowed_companies){
                                     $q->whereIn('company_id',$allowed_companies);
@@ -200,16 +191,19 @@ class TimekeepingDashboardController extends Controller
                             ->get();
         
         $getLastCutOffDate = AttendanceDetailedReport::where('company_id', $request->company)->orderBy('id', 'desc')->first();
-
+       
+        $get_approvers = new EmployeeApproverController;
+        $all_approvers = $get_approvers->get_approvers(auth()->user()->id);
         return view('dashboards.timekeeping_dashboard', 
                     array(
                         'header' => 'Timekeeping',
                         'from' => $from,
                         'to' => $to,
+                        'all_approvers' => $all_approvers,
                         'status' => $status,
                         'leaves' => $leaves,
-                        'leave_types' => $leave_types,
-                        'obs' => $obs,
+                        'leave_types' => $leave_types,  
+                        'tos' => $tos,
                         'wfhs' => $wfhs,
                         'overtimes' => $overtimes,
                         'companies' => $companies,

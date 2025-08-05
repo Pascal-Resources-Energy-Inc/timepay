@@ -154,8 +154,8 @@
                                             @foreach($date_range as $date_r)
                                             
                                             @php
-                                                $break_out = ($emp->attendance_logs)->whereBetween('datetime',[$date_r." 00:00:00",$date_r." 23:59:59"])->sortBy('datetime')->first();
-                                                $break_in = ($emp->attendance_logs)->whereBetween('datetime',[$date_r." 00:00:00",$date_r." 23:59:59"])->sortByDesc('datetime')->first();
+                                                $break_out = ($emp->attendance_logs)->whereIn('type', [4, 5])->whereBetween('datetime',[$date_r." 00:00:00",$date_r." 23:59:59"])->sortBy('datetime')->first();
+                                                $break_in = ($emp->attendance_logs)->whereIn('type', [4, 5])->whereBetween('datetime',[$date_r." 00:00:00",$date_r." 23:59:59"])->sortByDesc('datetime')->first();
                                                 $final_time_in = "";
                                                 $time_in = ($emp->attendances)->whereBetween('time_in',[$date_r." 00:00:00",$date_r." 23:59:59"])->sortBy('time_in')->first();
                                                 if($time_in == null)

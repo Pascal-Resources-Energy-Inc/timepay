@@ -347,17 +347,17 @@
                 <div class="card-body">
                   <h3 class="card-title">{{date('M d, Y')}} 
                    
-                      {{auth()->user()->login}}
+
                       @if(($user_travel_orders_today) || (auth()->user()->login == 1))
-                        {{-- @if($attendance_now != null) --}}
+                        @if($attendance_now != null)
                             <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
                               <i class="ti-control-pause" ></i>
                             </button>
-                            {{-- @else --}}
+                            @else
                             <button onclick="getLocation()" type="button" Title='Time In' class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#timeIn">
                             <i class="ti-control-play" ></i>
                           </button>
-                        {{-- @endif --}}
+                        @endif
                       @endif
                   </h3>
                   <div class="media">
@@ -527,8 +527,7 @@
                           ->exists();
                       @endphp
 
-                    @if($user_travel_orders_today)
-                    @if(auth()->user()->login)
+                    @if(($user_travel_orders_today) || (auth()->user()->login == 1))
                       @if($attendance_now != null)
                         <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
                           <i class="ti-control-pause" ></i>
@@ -537,8 +536,7 @@
                         <button onclick="getLocation()" type="button" Title='Time In' class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#timeIn">
                         <i class="ti-control-play" ></i>
                       </button>
-                    @endif
-                    @endif
+                     @endif
                     @endif
                   </h3>
                   <div class="media">

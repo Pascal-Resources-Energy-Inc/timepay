@@ -119,6 +119,7 @@
                         </td>
                         <td>{{date('d/m/Y', strtotime($form_approval->created_at))}}</td>
                         <td>
+                          OT Type: {{ ucfirst($form_approval->time_compensation_type) }} <br>
                           Date : {{date('d/m/Y', strtotime($form_approval->ot_date))}} <br>
                           Time : {{date('d/m/Y h:i A', strtotime($form_approval->start_time))}} - {{date('d/m/Y h:i A', strtotime($form_approval->end_time))}}
                         </td>

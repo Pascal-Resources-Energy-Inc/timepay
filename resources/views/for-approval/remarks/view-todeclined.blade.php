@@ -16,10 +16,17 @@
                             <h4 class="badge badge-danger mt-1">Declined</h4>
                         </div>
                         <input type="hidden" name="status" value="Declined">
-                        <div class='col-md-12 form-group'>
-                            Remarks:
-                            <textarea class="form-control" name="approval_remarks" id="" cols="30" rows="5" placeholder="Input Approval Remarks">{{ $form_approval->approval_remarks }}</textarea>
+                        <div class="col-md-12 form-group">
+                            <label for="approval_remarks"><strong>Remarks by Immediate Supervisor:</strong></label>
+                            <textarea class="form-control" name="approval_remarks" id="approval_remarks" rows="4" readonly>{{ $form_approval->approval_remarks }}</textarea>
                         </div>
+
+                        @if(!empty($form_approval->approval_remarks2))
+                            <div class="col-md-12 form-group">
+                                <label for="approval_remarks2"><strong>Remarks by Head Division:</strong></label>
+                                <textarea class="form-control" name="approval_remarks2" id="approval_remarks2" rows="4" readonly>{{ $form_approval->approval_remarks2 }}</textarea>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 <div class="modal-footer">

@@ -9,29 +9,23 @@ use App\ScheduleData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
-
+use Illuminate\Support\Facades\DB;
 use DateTime;
 use DateInterval;
 class EmployeeOvertimeController extends Controller
 {
     public function overtime(Request $request)
-    { 
+        { 
+            $today = date('Y-m-d');
+            $from = isset($request->from) ? $request->from : date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
+            $to = isset($request->to) ? $request->to : date('Y-m-d');
+            $status = isset($request->status) ? $request->status : 'Pending';
 
-        $today = date('Y-m-d');
-        $from = isset($request->from) ? $request->from : date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
-        $to = isset($request->to) ? $request->to : date('Y-m-d');
-        $status = isset($request->status) ? $request->status : 'Pending';
-
-        $user_allowed_overtime = auth()->user()->allowed_overtime ? auth()->user()->allowed_overtime->allowed_overtime : "";
-
-        if(checkUserAllowedOvertime(auth()->user()->id) == 'yes' || $user_allowed_overtime == 'on'){
+            // Remove the permission check - allow everyone to access
             $get_approvers = new EmployeeApproverController;
 
             $overtimes = EmployeeOvertime::where('user_id',auth()->user()->id)
                                             ->where('status',$status)
-                                            // ->whereDate('created_at','>=',$from)
-                                            // ->whereDate('created_at','<=',$to)
-                                            // ->whereBetweenDate('start_time', [$from, $to])
                                             ->whereDate('start_time', '>=', $from)
                                             ->whereDate('end_time', '<=', $to)
                                             ->orderBy('created_at','DESC')
@@ -40,22 +34,19 @@ class EmployeeOvertimeController extends Controller
             $overtimes_all = EmployeeOvertime::where('user_id',auth()->user()->id)->get();
             
             $all_approvers = $get_approvers->get_approvers(auth()->user()->id);
+            
             return view('forms.overtime.overtime',
-            array(
-                'header' => 'forms',
-                'all_approvers' => $all_approvers,
-                'overtimes' => $overtimes,
-                'overtimes_all' => $overtimes_all,
-                'from' => $from,
-                'to' => $to,
-                'status' => $status,
-            ));
-        }else{
-            Alert::warning('Warning: Not Allowed to Access')->persistent('Dismiss');
-            return back();
+                array(
+                    'header' => 'forms',
+                    'all_approvers' => $all_approvers,
+                    'overtimes' => $overtimes,
+                    'overtimes_all' => $overtimes_all,
+                    'from' => $from,
+                    'to' => $to,
+                    'status' => $status,
+                )
+            );
         }
-
-    }
 
 
     public function new(Request $request)
@@ -72,7 +63,8 @@ class EmployeeOvertimeController extends Controller
             $new_overtime->ot_date = $request->ot_date;
             $new_overtime->start_time =  date('Y-m-d H:i:s',strtotime($request->start_time));
             $new_overtime->end_time = date('Y-m-d H:i:s',strtotime($request->end_time));     
-            $new_overtime->break_hrs = $request->break_hrs;     
+            $new_overtime->break_hrs = $request->break_hrs;  
+            $new_overtime->time_compensation_type = $request->time_compensation_type;   
 
             $new_overtime->remarks = $request->remarks;
 
@@ -96,8 +88,95 @@ class EmployeeOvertimeController extends Controller
         //     Alert::warning('Overtime Application is already exist.')->persistent('Dismiss');
         //     return back();
         // }
+    }
 
-       
+    public function newOffSet(Request $request)
+    {
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'designation' => 'required|string|max:255',
+            'employee_email' => 'required|email|max:255',
+            'department' => 'required|string',
+            'ot_date' => 'required|date',
+            'total_hours' => 'required|numeric|min:1',
+            'time_compensation_type' => 'required|string|max:255',
+            'proof_otar' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:2048',
+            'detailed_description' => 'required|string',
+        ]);
+
+        $validate = EmployeeOvertime::where('user_id',auth()->user()->id)
+                                        ->where('ot_date',date('Y-m-d',strtotime($request->ot_date)))
+                                        ->whereIn('status',['Pending','Approved'])
+                                        ->first();
+        
+        if(empty($validate)){
+            $new_overtime = new EmployeeOvertime;
+            $new_overtime->user_id = Auth::user()->id;
+
+            $emp = Employee::where('user_id', auth()->user()->id)->first();
+            $schedule_end_time = '17:00:00'; // Default fallback if the schedule_id is null
+
+            if($emp) {
+                $new_overtime->schedule_id = $emp->schedule_id;
+
+                if ($emp->schedule_id) {
+                    $schedule = DB::table('schedule_datas')
+                        ->where('schedule_id', $emp->schedule_id)
+                        ->first();
+                    
+                    if ($schedule && $schedule->time_out_to) {
+                        $schedule_end_time = strlen(trim($schedule->time_out_to)) == 5 
+                            ? trim($schedule->time_out_to) . ':00' 
+                            : trim($schedule->time_out_to);
+                    }
+                }
+            }
+
+            $new_overtime->first_name = $request->first_name;
+            $new_overtime->last_name = $request->last_name;
+            $new_overtime->designation = $request->designation;
+            $new_overtime->employee_email = $request->employee_email;
+            $new_overtime->department = $request->department;
+            $new_overtime->ot_authorization_ref = $request->ot_authorization_ref;
+            $new_overtime->ot_date = $request->ot_date;
+            $new_overtime->total_hours = $request->total_hours;
+            $new_overtime->time_compensation_type = $request->time_compensation_type;
+            
+            $new_overtime->remarks = $request->detailed_description;
+             
+            $ot_date = date('Y-m-d', strtotime($request->ot_date));
+            $start_time = $ot_date . ' ' . $schedule_end_time;
+            $end_time = date('Y-m-d H:i:s', strtotime($start_time . ' + ' . $request->total_hours . ' hours'));
+            
+            $new_overtime->start_time = $start_time;
+            $new_overtime->end_time = $end_time;
+            
+            if($request->hasFile('proof_otar')){
+                $file = $request->file('proof_otar');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+
+                $uploadPath = public_path() . '/images/';
+                if (!file_exists($uploadPath)) {
+                    mkdir($uploadPath, 0777, true);
+                }
+                
+                $file->move($uploadPath, $fileName);
+                
+                $new_overtime->attachment = '/images/' . $fileName;
+            }
+
+            $new_overtime->status = 'Pending';
+            $new_overtime->level = 0;
+            $new_overtime->created_by = Auth::user()->id;
+            $new_overtime->save();
+
+            Alert::success('Overtime application submitted successfully')->persistent('Dismiss');
+            return back();
+        } else {
+            Alert::warning('Overtime Application already exists for this date.')->persistent('Dismiss');
+            return back();
+        }
     }
 
     public function edit_overtime(Request $request, $id)

@@ -1,5 +1,6 @@
 @extends('layouts.header')
 @section('content')
+
 <div class="main-panel">
     <div class="content-wrapper">
         <div class='row grid-margin'>
@@ -44,13 +45,15 @@
           <div class="col-lg-12 grid-margin stretch-card">
             <div class="card">
               <div class="card-body">
-                <h4 class="card-title">Official Business</h4>
+                <h4 class="card-title">Travel Order</h4>
                 <p class="card-description">
                   <button type="button" class="btn btn-outline-success btn-icon-text" data-toggle="modal" data-target="#ob">
                     <i class="ti-plus btn-icon-prepend"></i>                                                    
-                    Apply Official Business
+                    Apply Travel Order
                   </button>
                 </p>
+
+                
 
                 <form method='get' onsubmit='show();' enctype="multipart/form-data">
                   <div class=row>
@@ -85,6 +88,7 @@
                   </div>
                 </form>
                 
+                
                 <div class="table-responsive">
                   <table class="table table-hover table-bordered tablewithSearch">
                     <thead>
@@ -92,13 +96,12 @@
                         <th>Action </th>
                         <th>Date Filed</th>
                         <th>Date</th>
-                        <th>Time In-Out</th>
+                        <th>Time In</th>
+                        <th>Time Out</th>
                         <th>Destination</th>
-                        <th>Person/Company to see</th>
                         <th>Purpose</th>
-                        <th>Status </th>
-                        <th>Approvers </th>
-                        <th>View Filled Form </th>                        
+                        <th>Approvers </th> 
+                        <th>Status </th>           
                       </tr>
                     </thead>
                     <tbody>
@@ -114,34 +117,23 @@
                               data-target="#edit_ob{{ $ob->id }}" data-toggle="modal" title='Edit'>
                               <i class="ti-pencil-alt"></i>
                             </button>
-                            <button title='Cancel' id="{{ $ob->id }}" onclick="cancel({{ $ob->id }})"
-                              class="btn btn-rounded btn-danger btn-icon">
-                              <i class="fa fa-ban"></i>
-                            </button>
+                           
                           @elseif ($ob->status == 'Pending' and $ob->level > 0)
                             <button type="button" id="view{{ $ob->id }}" class="btn btn-primary btn-rounded btn-icon"
                               data-target="#view_ob{{ $ob->id }}" data-toggle="modal" title='View'>
                               <i class="ti-eye"></i>
                             </button>            
-                              <button title='Cancel' id="{{ $ob->id }}" onclick="cancel({{ $ob->id }})"
-                                class="btn btn-rounded btn-danger btn-icon">
-                                <i class="fa fa-ban"></i>
-                              </button>
+                             
                           @elseif ($ob->status == 'Approved')   
                           <button type="button" id="view{{ $ob->id }}" class="btn btn-primary btn-rounded btn-icon"
                             data-target="#view_ob{{ $ob->id }}" data-toggle="modal" title='View'>
                             <i class="ti-eye"></i>
                           </button> 
-                          <button type="button" id="uploadFile{{ $ob->id }}" class="btn btn-info btn-rounded btn-icon"
+                          <!-- <button type="button" id="uploadFile{{ $ob->id }}" class="btn btn-info btn-rounded btn-icon"
                             data-target="#upload_obForm{{ $ob->id }}" data-toggle="modal" title='Upload'>
                             <i class="ti-upload"></i>
-                          </button>                 
-                            @if($ob->applied_date >= date('Y-m-d') )                   
-                            <button title='Cancel' id="{{ $ob->id }}" onclick="cancel({{ $ob->id }})"
-                              class="btn btn-rounded btn-danger btn-icon">
-                              <i class="fa fa-ban"></i>
-                            </button>  
-                            @endif
+                          </button>                  -->
+                         
                           @else
                             <button type="button" id="view{{ $ob->id }}" class="btn btn-primary btn-rounded btn-icon"
                               data-target="#view_ob{{ $ob->id }}" data-toggle="modal" title='View'>
@@ -150,15 +142,51 @@
                           @endif
                         </td> 
                         <td> {{ date('M. d, Y', strtotime($ob->created_at)) }} </td>
-                        <td> {{ date('M. d, Y', strtotime($ob->applied_date)) }} </td>
-                        <td> {{ date('M. d, Y h:i A', strtotime($ob->date_from)) }} - {{ date('M. d, Y h:i A', strtotime($ob->date_to)) }}  </td>
+                        <td> {{ date('M. d, Y', strtotime($ob->date_from)) }} - {{ date('M. d, Y', strtotime($ob->date_to)) }} </td>
+                        <td> {{ date('h:i A', strtotime($ob->date_from)) }} </td>
+                        <td>{{ date('h:i A', strtotime($ob->date_to)) }} </td>
                         <td> {{$ob->destination}}</td>
-                        <td> {{$ob->persontosee}}</td>
-                        <td> 
+                        <td> {{$ob->purpose}}</td>
+                        <!-- <td> 
                           <p title="{{ $ob->remarks }}" style="width: 250px;white-space: nowrap; overflow: hidden;text-overflow: ellipsis;">
                             {{$ob->remarks}}
                           </p>
-                        </td>
+                        </td> -->
+                        <td id="tdStatus{{ $ob->id }}">
+                            @if($ob->approved_by != null)
+                                @if($ob->status == 'Declined')
+                                    {{$ob->approvedBy->name}}
+                                @elseif($ob->status == 'Approved')
+                                    {{$ob->approvedBy->name}}
+                                @else
+                                    {{$ob->approvedBy->name}}
+                                @endif
+                            @else
+                                @if(count($ob->approver) > 0)
+                                    @foreach($ob->approver as $approver)
+                                    @if($ob->level >= $approver->level)
+                                        @if ($ob->level == 0 && $ob->status == 'Declined')
+                                        {{$approver->approver_info->name}}
+                                        @elseif ($ob->level == 1 && $ob->status == 'Declined')
+                                        {{$approver->approver_info->name}}
+                                        @else
+                                        {{$approver->approver_info->name}}
+                                        @endif
+                                    @else
+                                        @if ($ob->status == 'Declined')
+                                        {{$approver->approver_info->name}}
+                                        @elseif ($ob->status == 'Approved')
+                                        {{$approver->approver_info->name}}
+                                        @else
+                                        {{$approver->approver_info->name}}
+                                        @endif
+                                    @endif<br>
+                                    @endforeach
+                                @else
+                                    <label class="badge badge-danger mt-1">No Approver</label>
+                                @endif
+                            @endif
+                      </td>
                         <td id="tdStatus{{ $ob->id }}">
                           @if ($ob->status == 'Pending')
                             <label class="badge badge-warning">{{ $ob->status }}</label>
@@ -168,46 +196,6 @@
                             <label class="badge badge-danger">{{ $ob->status }}</label>
                           @endif                        
                         </td>
-                        <td id="tdStatus{{ $ob->id }}">
-                            @if($ob->approved_by != null)
-                                @if($ob->status == 'Declined')
-                                    {{$ob->approvedBy->name}} - <label class="badge badge-danger mt-1">Declined</label>
-                                @elseif($ob->status == 'Approved')
-                                    {{$ob->approvedBy->name}} - <label class="badge badge-success mt-1">Approved</label>
-                                @else
-                                    {{$ob->approvedBy->name}} - <label class="badge badge-warning mt-1">Pending</label>
-                                @endif
-                            @else
-                                @if(count($ob->approver) > 0)
-                                    @foreach($ob->approver as $approver)
-                                    @if($ob->level >= $approver->level)
-                                        @if ($ob->level == 0 && $ob->status == 'Declined')
-                                        {{$approver->approver_info->name}} -  <label class="badge badge-danger mt-1">Declined</label>
-                                        @elseif ($ob->level == 1 && $ob->status == 'Declined')
-                                        {{$approver->approver_info->name}} -  <label class="badge badge-danger mt-1">Declined</label>
-                                        @else
-                                        {{$approver->approver_info->name}} -  <label class="badge badge-success mt-1">Approved</label>
-                                        @endif
-                                    @else
-                                        @if ($ob->status == 'Declined')
-                                        {{$approver->approver_info->name}} -  <label class="badge badge-danger mt-1">Declined</label>
-                                        @elseif ($ob->status == 'Approved')
-                                        {{$approver->approver_info->name}} -  <label class="badge badge-success mt-1">Approved</label>
-                                        @else
-                                        {{$approver->approver_info->name}} -  <label class="badge badge-warning mt-1">Pending</label>
-                                        @endif
-                                    @endif<br>
-                                    @endforeach
-                                @else
-                                    <label class="badge badge-danger mt-1">No Approver</label>
-                                @endif
-                            @endif
-                      </td>
-                      <td>
-                      @if ($ob->ob_file)
-                      <a href="{{ url($ob->ob_file) }}" target="_blank">View Filled Form</a>
-                      @endif
-                      </td>
                       </tr>
                     @endforeach
                     </tbody>

@@ -1,5 +1,5 @@
 @foreach($tos as $form_approval)
-<div class="modal fade" id="to-view-approved-{{ $form_approval->id }}" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+<div class="modal fade" id="to-view-approved{{ $form_approval->id }}" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -16,10 +16,18 @@
                             <h4 class="badge badge-success mt-1">Approved</h4>
                         </div>
                         <input type="hidden" name="status" value="Approved">
-                        <div class='col-md-12 form-group'>
-                            Remarks:
-                            <textarea class="form-control" name="approval_remarks" id="" cols="30" rows="5" placeholder="Input Approval Remarks" readonly>{{ $form_approval->approval_remarks }}</textarea>
+
+                        <div class="col-md-12 form-group">
+                            <label for="approval_remarks"><strong>Remarks by Immediate Supervisor:</strong></label>
+                            <textarea class="form-control" name="approval_remarks" id="approval_remarks" rows="4" readonly>{{ $form_approval->approval_remarks }}</textarea>
                         </div>
+
+                            @if(!empty($form_approval->approval_remarks2))
+                            <div class="col-md-12 form-group">
+                                <label for="approval_remarks2"><strong>Remarks by Head Division:</strong></label>
+                                <textarea class="form-control" name="approval_remarks2" id="approval_remarks2" rows="4" readonly>{{ $form_approval->approval_remarks2 }}</textarea>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 <div class="modal-footer">

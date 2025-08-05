@@ -161,7 +161,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 mb-4  stretch-card transparent">
+            {{-- <div class="col-md-6 mb-4  stretch-card transparent">
                 <div class="card">
                     <div class="card-body">
                         <h3 class="card-title">Official Business</h3>  
@@ -245,7 +245,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -- }}
             {{-- <div class="col-md-6 mb-4  stretch-card transparent">
                 <div class="card">
                     <div class="card-body">

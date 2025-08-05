@@ -348,7 +348,7 @@
                   <h3 class="card-title">{{date('M d, Y')}} 
                    
 
-                      @if(($user_travel_orders_today) || (auth()->user()->login))
+                      @if(($user_travel_orders_today) || (auth()->user()->login == 1))
                       @if($attendance_now != null)
                           <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
                             <i class="ti-control-pause" ></i>

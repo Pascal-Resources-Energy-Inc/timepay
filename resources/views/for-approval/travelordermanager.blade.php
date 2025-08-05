@@ -50,7 +50,7 @@
           <div class="col-lg-12 grid-margin stretch-card">
             <div class="card">
               <div class="card-body">
-                <h4 class="card-title">For Approval TO</h4>
+                <h4 class="card-title">For Approval Travel Order</h4>
 
                 <form method='get' onsubmit='show();' enctype="multipart/form-data">
                   <div class=row>
@@ -115,7 +115,7 @@
                         @if(empty($status) || $status == 'Pending')
                           <th>
                             Select
-                          </th>
+                          </th> 
                         @endif
                         <th>Action </th> 
                         <th>Employee Name</th>
@@ -146,7 +146,7 @@
                         @endif
                        <td align="center" id="tdActionId{{ $form_approval->id }}" data-id="{{ $form_approval->id }}">
                         @if($form_approval->status == 'Approved')
-                          <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#to-view-approved-{{ $form_approval->id }}" title="View Approved">
+                          <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#to-view-approved{{ $form_approval->id }}" title="View Approved">
                             <i class="ti-eye btn-icon-prepend"></i> View
                           </button>
                         @elseif($form_approval->status == 'Declined')

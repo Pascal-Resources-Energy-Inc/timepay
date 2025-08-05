@@ -7,45 +7,45 @@
             <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <form method='POST' action='new-to' onsubmit="btnOB.disabled = true; return true;" enctype="multipart/form-data">
-        @csrf
-       <div class="modal-body">
-        <!-- Form Content -->
-        <div class="container mt-2">
-          <div class="row mb-2">
-            <div class="col-md-8 col-sm-12">
-              <h3 class="fw-bold">PASCAL RESOURCES ENERGY, INC.</h3>
-            </div>
-            <div class="col-md-4 col-sm-12 text-md-end">
-              <h4 class="fw-bold">TRAVEL ORDER</h4>
-              <div class="border border-dark p-1">
-                <div class="row">
-                  <div class="col-6 border-end border-dark p-0 text-center">
-                    <div class="d-flex align-items-center justify-content-center">
-                      <label for="applied_date" class="me-2">Date:&nbsp;</label>
-                      <input type="date" id="applied_date" name="applied_date"
-                          class="form-control"
-                          style="width: 100px; height: 40px; font-size: 0.7rem; padding: 0.25rem 0.5rem;"
-                          value="{{ old('applied_date', date('Y-m-d')) }}" readonly>
-                    </div>
+        <form method='POST' action='new-to' onsubmit="btnOB.disabled = true; return true;" enctype="multipart/form-data">
+          @csrf
+          <div class="modal-body">
+            <!-- Form Content -->
+              <div class="container mt-2">
+                <div class="row mb-2">
+                  <div class="col-md-8 col-sm-12">
+                    <h3 class="fw-bold">PASCAL RESOURCES ENERGY, INC.</h3>
                   </div>
-                  <div class="col-2 p-0 text-center">
-                      T.O. No
+                  <div class="col-md-4 col-sm-12 text-md-end">
+                    <h4 class="fw-bold">TRAVEL ORDER</h4>
+                        <div class="border border-dark p-1">
+                            <div class="row">
+                              <div class="col-6 border-end border-dark p-0 text-center">
+                                <div class="d-flex align-items-center justify-content-center">
+                                  <label for="applied_date" class="me-2">Date:&nbsp;</label>
+                                  <input type="date" id="applied_date" name="applied_date"
+                                      class="form-control"
+                                      style="width: 100px; height: 40px; font-size: 0.7rem; padding: 0.25rem 0.5rem;"
+                                      value="{{ old('applied_date', date('Y-m-d')) }}" readonly>
+                                </div>
+                              </div>
+                                <div class="col-2 p-0 text-center">
+                                  T.O. No
+                                </div>
+                                <input type="text" id="to_number" name="to_number"
+                                        class="form-control text-center"
+                                        style="width: 100px; height: 40px; font-size: 0.9rem; padding: 0.25rem 0.5rem;"
+                                        value=" {{ $toNumber ?? 'TO-000' }}" readonly>             
+                        </div>
                   </div>
-                  <input type="text" id="to_number" name="to_number"
-                          class="form-control text-center"
-                          style="width: 100px; height: 40px; font-size: 0.9rem; padding: 0.25rem 0.5rem;"
-                          value=" {{ $toNumber ?? 'TO-000' }}" readonly>             
                 </div>
               </div>
-            </div>
-          </div>
-            
+                
             <div class="form-sections">
-            <!-- Itinerary Section -->
-            <div class="itinerary-section">
+              <!-- Itinerary Section -->
+              <div class="itinerary-section">
                 <!-- Desktop Itinerary Table -->
-                <div class="desktop-itinerary">
+                  <div class="desktop-itinerary">
                     <table class="itinerary-table">
                         <tr>
                             <td colspan="5" class="itinerary-header">ITINERARY</td>
@@ -69,7 +69,7 @@
                             <td><input type="date" class="form-control form-control-sm" name="date_to1" value="{{ old('date_to1') }}" min="{{ \Carbon\Carbon::tomorrow()->format('Y-m-d') }}" required></td>
                             <td><input type="time" class="form-control form-control-sm" name="arrival_time1" value="{{ old('arrival_time1') }}" required></td>
                         </tr>
-                       <tr class="itinerary-row">
+                      <tr class="itinerary-row">
                             <td><input type="text" class="form-control form-control-sm destination" placeholder="Destination" name="destination2" value="{{ old('destination2') }}"></td>
                             <td><input type="date" class="form-control form-control-sm" name="date_from2" value="{{ old('date_from2') }}" min="{{ \Carbon\Carbon::tomorrow()->format('Y-m-d') }}"></td>
                             <td><input type="time" class="form-control form-control-sm" name="departure_time2" value="{{ old('departure_time2') }}"></td>
@@ -98,330 +98,328 @@
                             <td><input type="time" class="form-control form-control-sm" name="arrival_time_5" value="{{ old('arrival_time_5') }}"></td>
                         </tr>
                     </table>
-                </div>
+                  </div>
 
-                <!-- Mobile Itinerary Cards -->
-                <div class="mobile-itinerary">
-                    <h5 class="text-center mb-3" style="background-color: #3490dc; color: white; padding: 10px; border-radius: 4px;">ITINERARY</h5>
-                    
-                    <div id="destination-cards-container">
-                        <div class="destination-card">
-                          <h6>Destination 1</h6>
-                          <div class="form-group">
-                              <label for="destination1">Destination</label>
-                              <input type="text" id="destination1" name="destination" class="form-control" placeholder="Enter destination" value="{{ old('destination') }}">
-                          </div>
-                          
-                          <div class="date-time-group">
-                              <div class="form-group">
-                                  <label>Departure Date</label>
-                                  <input type="date" name="date_from" class="form-control" value="{{ old('date_from') }}" min="{{ date('Y-m-d') }}">
-                              </div>
-                              <div class="form-group">
-                                  <label>Departure Time</label>
-                                  <input type="time" name="departure_time" class="form-control" value="{{ old('departure_time') }}">
-                              </div>
-                          </div>
+                  <!-- Mobile Itinerary Cards -->
+                  <div class="mobile-itinerary">
+                      <h5 class="text-center mb-3" style="background-color: #3490dc; color: white; padding: 10px; border-radius: 4px;">ITINERARY</h5>
+                          <div id="destination-cards-container">
+                            <div class="destination-card">
+                                <h6>Destination 1</h6>
+                                <div class="form-group">
+                                    <label for="destination1">Destination</label>
+                                    <input type="text" id="destination1" name="destination" class="form-control" placeholder="Enter destination" value="{{ old('destination') }}" required>
+                                </div>
+                              
+                                <div class="date-time-group">
+                                    <div class="form-group">
+                                        <label>Departure Date</label>
+                                        <input type="date" name="date_from" class="form-control" value="{{ old('date_from') }}" min="{{ date('Y-m-d') }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Departure Time</label>
+                                        <input type="time" name="departure_time" class="form-control" value="{{ old('departure_time') }}" required>
+                                    </div>
+                                </div>
 
-                          <div class="date-time-group">
-                              <div class="form-group">
-                                  <label>Exp. Arrival Date</label>
-                                  <input type="date" name="date_to" class="form-control" value="{{ old('date_to') }}" min="{{ date('Y-m-d') }}">
-                              </div>
-                              <div class="form-group">
-                                  <label>Exp. Arrival Time</label>
-                                  <input type="time" name="arrival_time" class="form-control" value="{{ old('arrival_time') }}">
-                              </div>
-                          </div>
-                      </div>
+                                <div class="date-time-group">
+                                    <div class="form-group">
+                                        <label>Exp. Arrival Date</label>
+                                        <input type="date" name="date_to" class="form-control" value="{{ old('date_to') }}" min="{{ date('Y-m-d') }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Exp. Arrival Time</label>
+                                        <input type="time" name="arrival_time" class="form-control" value="{{ old('arrival_time') }}" required>
+                                    </div>
+                                </div>
+                            </div>
 
-                      <!-- Destination 2 Card -->
-                      <div class="destination-card">
-                          <button type="button" class="remove-destination-btn" onclick="removeDestination(this)">Remove</button>
-                          <h6>Destination 2</h6>
-                          <div class="form-group">
-                              <label>Destination</label>
-                              <input type="text" name="destination_2" class="form-control" placeholder="Enter destination" value="{{ old('destination_2') }}">
-                          </div>
-                          
-                          <div class="date-time-group">
-                              <div class="form-group">
-                                  <label>Departure Date</label>
-                                  <input type="date" name="date_from_2" class="form-control" value="{{ old('date_from_2') }}" min="{{ date('Y-m-d') }}">
-                              </div>
-                              <div class="form-group">
-                                  <label>Departure Time</label>
-                                  <input type="time" name="departure_time_2" class="form-control" value="{{ old('departure_time_2') }}">
-                              </div>
-                          </div>
+                            <!-- Destination 2 Card -->
+                              <div class="destination-card">
+                                  <button type="button" class="remove-destination-btn" onclick="removeDestination(this)">Remove</button>
+                                    <h6>Destination 2</h6>
+                                    <div class="form-group">
+                                        <label>Destination</label>
+                                        <input type="text" name="destination_2" class="form-control" placeholder="Enter destination" value="{{ old('destination_2') }}">
+                                    </div>
+                                    
+                                    <div class="date-time-group">
+                                        <div class="form-group">
+                                            <label>Departure Date</label>
+                                            <input type="date" name="date_from_2" class="form-control" value="{{ old('date_from_2') }}" min="{{ date('Y-m-d') }}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Departure Time</label>
+                                            <input type="time" name="departure_time_2" class="form-control" value="{{ old('departure_time_2') }}">
+                                        </div>
+                                    </div>
 
-                          <div class="date-time-group">
-                              <div class="form-group">
-                                  <label>Exp. Arrival Date</label>
-                                  <input type="date" name="date_to_2" class="form-control" value="{{ old('date_to_2') }}" min="{{ date('Y-m-d') }}">
-                              </div>
-                              <div class="form-group">
-                                  <label>Exp. Arrival Time</label>
-                                  <input type="time" name="arrival_time_2" class="form-control" value="{{ old('arrival_time_2') }}">
+                                    <div class="date-time-group">
+                                        <div class="form-group">
+                                            <label>Exp. Arrival Date</label>
+                                            <input type="date" name="date_to_2" class="form-control" value="{{ old('date_to_2') }}" min="{{ date('Y-m-d') }}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Exp. Arrival Time</label>
+                                            <input type="time" name="arrival_time_2" class="form-control" value="{{ old('arrival_time_2') }}">
+                                        </div>
+                                    </div>
                               </div>
                           </div>
-                      </div>
+                        <button type="button" class="add-destination-btn" onclick="addDestination()">+ Add Another Destination</button>
                     </div>
-                    
-                    <button type="button" class="add-destination-btn" onclick="addDestination()">+ Add Another Destination</button>
-                </div>
-            </div>
-              
-              <div class="cash-advance">
-                    <table class="expense-table">
-                        <tr>
-                            <td colspan="4" class="table-header">
-                                TRAVEL EXPENSE COMPUTATION
-                            </td>
-                        </tr>
-                        <tr class="column-headers">
-                            <td style="width: 30%;">PARTICULARS<br>(ALLOWANCES)</td>
-                            <td style="width: 20%;">AMOUNT /<br>LIMIT</td>
-                            <td style="width: 20%;">NUMBER<br>OF DAYS</td>
-                            <td style="width: 30%;">TOTAL</td>
-                        </tr>
+               </div>
+                
+                  <div class="cash-advance">
+                      <table class="expense-table">
+                          <tr>
+                              <td colspan="4" class="table-header">
+                                  TRAVEL EXPENSE COMPUTATION
+                              </td>
+                          </tr>
+                          <tr class="column-headers">
+                              <td style="width: 30%;">PARTICULARS<br>(ALLOWANCES)</td>
+                              <td style="width: 20%;">AMOUNT /<br>LIMIT</td>
+                              <td style="width: 20%;">NUMBER<br>OF DAYS</td>
+                              <td style="width: 30%;">TOTAL</td>
+                          </tr>
 
-                        <tr class="data-row">
-                            <td class="particulars-cell">PER DIEM/FIXED</td>
-                            <td>
-                                <input type="number" class="form-control amount-input" name="perdiem_amount" data-row="1">
-                            </td>
-                            <td>
-                                <input type="number" class="form-control days-input" name="perdiem_numofday" data-row="1">
-                            </td>
-                            <td>
-                                <input type="number" class="form-control total-field" name="perdiem_total" data-row="1" readonly>
-                            </td>
-                        </tr>
+                          <tr class="data-row">
+                              <td class="particulars-cell">PER DIEM/FIXED</td>
+                              <td>
+                                  <input type="number" class="form-control amount-input" name="perdiem_amount" data-row="1" required>
+                              </td>
+                              <td>
+                                  <input type="number" class="form-control days-input" name="perdiem_numofday" data-row="1">
+                              </td>
+                              <td>
+                                  <input type="number" class="form-control total-field" name="perdiem_total" data-row="1" readonly>
+                              </td>
+                          </tr>
 
-                        <tr class="data-row">
-                            <td class="particulars-cell">HOTEL/LODGING</td>
-                            <td>
-                                <input type="number" class="form-control amount-input" name="hotellodging_amount" data-row="2">
-                            </td>
-                            <td>
-                                <input type="number" class="form-control days-input" name="hotellodging_numofday" data-row="2">
-                            </td>
-                            <td>
-                                <input type="number" class="form-control total-field" name="hotellodging_total" data-row="2" readonly>
-                            </td>
-                        </tr>
+                          <tr class="data-row">
+                              <td class="particulars-cell">HOTEL/LODGING</td>
+                              <td>
+                                  <input type="number" class="form-control amount-input" name="hotellodging_amount" data-row="2">
+                              </td>
+                              <td>
+                                  <input type="number" class="form-control days-input" name="hotellodging_numofday" data-row="2">
+                              </td>
+                              <td>
+                                  <input type="number" class="form-control total-field" name="hotellodging_total" data-row="2" readonly>
+                              </td>
+                          </tr>
 
-                        <tr class="data-row">
-                            <td class="particulars-cell">TRANSPORTATION /<br>GASOLINE</td>
-                            <td>
-                                <input type="number" class="form-control amount-input" name="transpo_amount" data-row="3">
-                            </td>
-                            <td>
-                                <input type="number" class="form-control days-input" name="transpo_numofday" data-row="3">
-                            </td>
-                            <td>
-                                <input type="number" class="form-control total-field no-calc" name="transpo_total" data-row="3" readonly>
-                            </td>
-                        </tr>
+                          <tr class="data-row">
+                              <td class="particulars-cell">TRANSPORTATION /<br>GASOLINE</td>
+                              <td>
+                                  <input type="number" class="form-control amount-input" name="transpo_amount" data-row="3" required>
+                              </td>
+                              <td>
+                                  <input type="number" class="form-control days-input" name="transpo_numofday" data-row="3">
+                              </td>
+                              <td>
+                                  <input type="number" class="form-control total-field no-calc" name="transpo_total" data-row="3" readonly>
+                              </td>
+                          </tr>
 
-                        <tr class="data-row">
-                            <td class="particulars-cell">TOTAL FEES</td>
-                            <td>
-                                <input type="number" class="form-control amount-input" name="totalfees_amount" data-row="4">
-                            </td>
-                            <td>
-                                <input type="number" class="form-control days-input" name="totalfees_numofday" data-row="4">
-                            </td>
-                            <td>
-                                <input type="number" class="form-control total-field" name="totalfees_total" data-row="4" readonly>
-                            </td>
-                        </tr>
+                          <tr class="data-row">
+                              <td class="particulars-cell">TOTAL FEES</td>
+                              <td>
+                                  <input type="number" class="form-control amount-input" name="totalfees_amount" data-row="4">
+                              </td>
+                              <td>
+                                  <input type="number" class="form-control days-input" name="totalfees_numofday" data-row="4">
+                              </td>
+                              <td>
+                                  <input type="number" class="form-control total-field" name="totalfees_total" data-row="4" readonly>
+                              </td>
+                          </tr>
 
-                        <tr class="data-row total-amount-row">
-                            <td class="particulars-cell">TOTAL AMOUNT</td>
-                            <td>
-                                <input type="number" class="form-control" readonly>
-                            </td>
-                            <td>
-                                <input type="number" class="form-control" readonly>
-                            </td>
-                            <td>
-                                <input type="number" class="form-control total-field" name="totalamount_total" readonly>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
+                          <tr class="data-row total-amount-row">
+                              <td class="particulars-cell">TOTAL AMOUNT</td>
+                              <td>
+                                  <input type="number" class="form-control" readonly>
+                              </td>
+                              <td>
+                                  <input type="number" class="form-control" readonly>
+                              </td>
+                              <td>
+                                  <input type="number" class="form-control total-field" name="totalamount_total" readonly>
+                              </td>
+                          </tr>
+                      </table>
+                  </div>
             </div>
 
-            @php
-                $to_id = isset($to) && is_object($to) ? $to->id : 'default';
-            @endphp
+                @php
+                    $to_id = isset($to) && is_object($to) ? $to->id : 'default';
+                @endphp
 
-            <div class="row m-0 border-bottom border-left border-right border-dark mt-0">
-                <div class="col-lg-7 col-md-12 border-right border-dark p-2" style="text-align: left;">
-                    &nbsp;&nbsp;PURPOSE
-                    <textarea class="form-control purpose" name="purpose" rows="10" placeholder="Enter purpose here..."></textarea>
-                </div>
-                <div class="col-lg-5 p-0 text-left">
-                    <div class="row m-0 border-bottom border-dark payment" style="height: 40px;">
-                        <div class="col-6 p-2 d-flex align-items-center justify-content-center">
-                            <input type="radio" name="payment_type" id="ca_checkbox_123" class="me-2 ca-radio"
-                                  value="cash advance"
-                                  style="width: 17px; height: 17px; margin-right: 20px; margin-bottom: 5px;" 
-                                  data-modal-id="123" required>
-                            <label for="ca_checkbox_123" class="payment-label">CASH ADVANCE</label>
-                        </div>
-                        <div class="col-6 p-2 d-flex align-items-center justify-content-center">
-                            <input type="radio" name="payment_type" id="pa_checkbox_123" class="me-2 pa-radio"
-                                  value="reimbursement"
-                                  style="width: 17px; height: 17px; margin-right: 20px; margin-bottom: 5px;" 
-                                  data-modal-id="123">
-                            <label for="pa_checkbox_123" class="payment-label">REIMBURSEMENT</label>
-                        </div>
+                <div class="row m-0 border-bottom border-left border-right border-dark mt-0">
+                    <div class="col-lg-7 col-md-12 border-right border-dark p-2" style="text-align: left;">
+                        &nbsp;&nbsp;PURPOSE
+                        <textarea class="form-control purpose" name="purpose" rows="10" placeholder="Enter purpose here..."></textarea>
                     </div>
-
-                    <!-- Mode of Payment Section -->
-                    <div id="modeOfPaymentSection_123" class="mode-of-payment-section" style="display: none;">
-                        <div class="col-md-12 p-0">
-                            <div class="form-check d-flex align-items-center px-5 py-0">
-                                <input class="form-check-input me-1" type="radio" name="mode_payment" id="cash_123" value="cash">
-                                <label class="form-check-label mb-0" for="cash_123">CASH</label>
+                    <div class="col-lg-5 p-0 text-left">
+                        <div class="row m-0 border-bottom border-dark payment" style="height: 40px;">
+                            <div class="col-6 p-2 d-flex align-items-center justify-content-center">
+                                <input type="radio" name="payment_type" id="ca_checkbox_123" class="me-2 ca-radio"
+                                      value="cash advance"
+                                      style="width: 17px; height: 17px; margin-right: 20px; margin-bottom: 5px;" 
+                                      data-modal-id="123" required>
+                                <label for="ca_checkbox_123" class="payment-label">CASH ADVANCE</label>
+                            </div>
+                            <div class="col-6 p-2 d-flex align-items-center justify-content-center">
+                                <input type="radio" name="payment_type" id="pa_checkbox_123" class="me-2 pa-radio"
+                                      value="reimbursement"
+                                      style="width: 17px; height: 17px; margin-right: 20px; margin-bottom: 5px;" 
+                                      data-modal-id="123">
+                                <label for="pa_checkbox_123" class="payment-label">REIMBURSEMENT</label>
                             </div>
                         </div>
-                        <div class="border-top border-dark p-0">
-                             <div class="form-check d-flex align-items-center px-5 py-0">
-                                <input class="form-check-input me-1" type="radio" name="mode_payment" id="check_123" value="check">
-                                <label class="form-check-label mb-0" for="check_123">CHECK</label>
-                            </div>
-                        </div>
-                        <div class="border-top border-bottom border-dark p-0">
-                             <div class="form-check d-flex align-items-center px-5 py-0">
-                                <input class="form-check-input me-1" type="radio" name="mode_payment" id="payroll_123" value="payroll">
-                                <label class="form-check-label mb-0" for="payroll_123">CREDIT TO EMPLOYEE'S PAYROLL ACCOUNT</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-3">
-                        <label>OTHER INSTRUCTIONS</label>
-                        <input type="text" class="form-control form-control-sm ins" name="other_instruct" id="other_instruct" placeholder="Enter other instructions...">
-                    </div>
-                </div>
-            </div>
 
-            <!-- Authorization Text -->
-            <div class="border border-dark border-top-0 p-3">
-              <p class="small">I hereby authorize PASCAL RESOURCES ENERGY, INC. to deduct from my salary all Unliquidation Travel Expense without further notice if I fail to comply with my liquidation date, set seven (7) working days after my expected arrival date.</p>
-            </div>
-            
-            <div class="row m-0 border border-dark border-top-0">
-              <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
-                <div class="border-dark p-1 text-center">REQUESTING DIVISION/DEPARTMENT</div>
-                <div class="p-1 text-center"> 
-                  <input type="text"
-                    style="background: transparent; font-size: 11px; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding: 5px 0; line-height: 20px; text-align: center; width: 100%;"
-                    value="{{ auth()->user()->employee->department->name }}"
-                    name="department"
-                    readonly> 
+                        <!-- Mode of Payment Section -->
+                        <div id="modeOfPaymentSection_123" class="mode-of-payment-section" style="display: none;">
+                            <div class="col-md-12 p-0">
+                                <div class="form-check d-flex align-items-center px-5 py-0">
+                                    <input class="form-check-input me-1" type="radio" name="mode_payment" id="cash_123" value="cash">
+                                    <label class="form-check-label mb-0" for="cash_123">CASH</label>
+                                </div>
+                            </div>
+                            <div class="border-top border-dark p-0">
+                                <div class="form-check d-flex align-items-center px-5 py-0">
+                                    <input class="form-check-input me-1" type="radio" name="mode_payment" id="check_123" value="check">
+                                    <label class="form-check-label mb-0" for="check_123">CHECK</label>
+                                </div>
+                            </div>
+                            <div class="border-top border-bottom border-dark p-0">
+                                <div class="form-check d-flex align-items-center px-5 py-0">
+                                    <input class="form-check-input me-1" type="radio" name="mode_payment" id="payroll_123" value="payroll">
+                                    <label class="form-check-label mb-0" for="payroll_123">CREDIT TO EMPLOYEE'S PAYROLL ACCOUNT</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <label>OTHER INSTRUCTIONS</label>
+                            <input type="text" class="form-control form-control-sm ins" name="other_instruct" id="other_instruct" placeholder="Enter other instructions...">
+                        </div>
+                    </div>
                 </div>
-              </div>
-              <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
-                <div class="border-dark p-3 text-center">RC CODE</div>
-                <div class="p-1 text-center"> 
-                  <input type="text"
-                    style="height: 30px;" 
-                    class="form-control form-control-sm text-center"
-                    value="{{auth()->user()->employee->cost_center ?? ''}}"
-                    name="rc_code"
-                    > 
+
+                <!-- Authorization Text -->
+                <div class="border border-dark border-top-0 p-3">
+                  <p class="small">I hereby authorize PASCAL RESOURCES ENERGY, INC. to deduct from my salary all Unliquidation Travel Expense without further notice if I fail to comply with my liquidation date, set seven (7) working days after my expected arrival date.</p>
                 </div>
-              </div>
-            <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
-                <div class="border-dark p-3 text-center">
-                  REQUESTED
-                </div>
-                <div class="p-1 text-center">
-                 <button type="button" id="openSignature" 
-                      style="background-color: transparent; position: absolute; top: 40px; right: 55px; border: 2px solid red;" 
-                      required>
-                      <img src="images/sign.png" alt="Open Signature" style="height: 27px;">
-                  </button>
-                  <img id="sig_image" name="sig_image" src="" alt="Your Signature" 
-                      style="height: 55px; position: absolute; right: 35px; top: 32px; border: none; cursor: pointer; display: none;" />
-                  <input type="hidden" name="sig_image_data" id="sig_image_data" required>
+                
+                <div class="row m-0 border border-dark border-top-0">
+                  <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
+                    <div class="border-dark p-1 text-center">REQUESTING DIVISION/DEPARTMENT</div>
+                    <div class="p-1 text-center"> 
                       <input type="text"
-                      class="text-center"
-                      style="background: transparent; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
-                      value="{{ auth()->user()->employee->first_name }} @if(auth()->user()->employee->middle_initial){{ auth()->user()->employee->middle_initial }}.@endif{{ auth()->user()->employee->last_name }}"
-                      name="requestor_name"
-                      readonly>
-                    <small class="text-center d-block">(Requestor's Signature Over Printed Name)</small>
+                        style="background: transparent; font-size: 11px; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding: 5px 0; line-height: 20px; text-align: center; width: 100%;"
+                        value="{{ auth()->user()->employee->department->name }}"
+                        name="department"
+                        readonly> 
+                    </div>
+                  </div>
+                  <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
+                    <div class="border-dark p-3 text-center">RC CODE</div>
+                    <div class="p-1 text-center"> 
+                      <input type="text"
+                        style="height: 30px;" 
+                        class="form-control form-control-sm text-center"
+                        value="{{auth()->user()->employee->cost_center ?? ''}}"
+                        name="rc_code"
+                        > 
+                    </div>
+                  </div>
+                <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
+                    <div class="border-dark p-3 text-center">
+                      REQUESTED
+                    </div>
+                    <div class="p-1 text-center">
+                    <button type="button" id="openSignature" 
+                          style="background-color: transparent; position: absolute; top: 40px; right: 55px; border: 2px solid red;" 
+                          required>
+                          <img src="images/sign.png" alt="Open Signature" style="height: 27px;">
+                      </button>
+                      <img id="sig_image" name="sig_image" src="" alt="Your Signature" 
+                          style="height: 55px; position: absolute; right: 35px; top: 32px; border: none; cursor: pointer; display: none;" />
+                      <input type="hidden" name="sig_image_data" id="sig_image_data" required>
+                          <input type="text"
+                          class="text-center"
+                          style="background: transparent; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
+                          value="{{ auth()->user()->employee->first_name }} @if(auth()->user()->employee->middle_initial){{ auth()->user()->employee->middle_initial }}.@endif{{ auth()->user()->employee->last_name }}"
+                          name="requestor_name"
+                          readonly>
+                        <small class="text-center d-block">(Requestor's Signature Over Printed Name)</small>
+                    </div>
                 </div>
-            </div>
-              @php
-                  $supervisor = auth()->user()->employee->immediateSupervisor;
+                    @php
+                        $supervisor = auth()->user()->employee->immediateSupervisor;
 
-                  $supervisorName = null;
+                        $supervisorName = null;
 
-                  if ($supervisor) {
-                      $supervisorName = $supervisor->first_name . ' ' .
-                                        ($supervisor->middle_initial ? $supervisor->middle_initial . '. ' : '') .
-                                        $supervisor->last_name;
-                  }
-              @endphp
-              <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
-                <div class="border-dark p-3 text-center">
-                  CHECKED BY
-                </div>        
-                <div class="p-1">
-                  <input type="text" 
-                    style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
-                    name="approved_by" 
-                    value="{{ $supervisorName }}" 
-                    readonly
-                  >
-                  <small class="text-center d-block">Immediate Supervisor</small>
+                        if ($supervisor) {
+                            $supervisorName = $supervisor->first_name . ' ' .
+                                              ($supervisor->middle_initial ? $supervisor->middle_initial . '. ' : '') .
+                                              $supervisor->last_name;
+                        }
+                    @endphp
+                    <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
+                      <div class="border-dark p-3 text-center">
+                        CHECKED BY
+                      </div>        
+                      <div class="p-1">
+                        <input type="text" 
+                          style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
+                          name="approved_by" 
+                          value="{{ $supervisorName }}" 
+                          readonly
+                        >
+                        <small class="text-center d-block">Immediate Supervisor</small>
+                      </div>
+                    </div>
+                    
+                    <script>
+                      window.approvalThreshold = {{ $approvalThreshold ?? 0 }};
+                      window.allApprovers = @json($approversForJs ?? []);
+                    </script>
+
+                  <div class="col-lg col-md-12 col-sm-12 p-1">
+                      <div class="border-dark p-3 text-center">APPROVED BY</div>
+                      <div class="p-1">
+                          <input type="text"
+                              style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
+                              name="approved_by_head"
+                              value=""
+                              readonly>
+                          <small class="text-center d-block">Division/Cluster Head</small>
+                      </div>
+                  </div>
                 </div>
-              </div>
-              
-              <div class="col-lg col-md-12 col-sm-12 p-1">
-                <div class="border-dark p-3 text-center">APPROVED BY</div>
-                <div class="p-1">
-                    @if (isset($approver) && $approver->approver_info)
-                        <input type="text"
-                            style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
-                            name="approved_by_head"
-                            value=""
-                            readonly>
-                    @else
-                        <p>No approver found.</p>
-                    @endif
-                  <small class="text-center d-block">Division/Cluster Head</small>
+                <div class="row m-0 border border-dark border-top-0">
+                  <div class="col-12 border-bottom border-dark p-1 text-center fw-bold" style="color: white; background-color: #3490dc; border-color: #3490dc;">REMARKS AND LIQUIDATION DETAILS</div>
+                  <div class="col-md-7 col-sm-13 border-right border-dark p-1">
+                    <div class="border-dark p-1">REMARKS</div>
+                    <div class="p-1"></div>
+                  </div>
+                  <div class="col-md-3 col-sm-6 border-end border-dark p-1">
+                    <div class="border-dark p-1">LIQUIDATION DUE ON:</div>
+                    <div class="p-1">
+                      <input type="date" class="form-control form-control-sm" style="height: 30px;" name="liquidation_date" readonly>
+                    </div>
+                  </div>            
                 </div>
-              </div>
+              <small>Distribution: 1 Copy attached to RFP upon liquidation.</small>
             </div>
-            <div class="row m-0 border border-dark border-top-0">
-              <div class="col-12 border-bottom border-dark p-1 text-center fw-bold" style="color: white; background-color: #3490dc; border-color: #3490dc;">REMARKS AND LIQUIDATION DETAILS</div>
-              <div class="col-md-7 col-sm-13 border-right border-dark p-1">
-                <div class="border-dark p-1">REMARKS</div>
-                <div class="p-1"></div>
-              </div>
-              <div class="col-md-3 col-sm-6 border-end border-dark p-1">
-                <div class="border-dark p-1">LIQUIDATION DUE ON:</div>
-                <div class="p-1">
-                  <input type="date" class="form-control form-control-sm" style="height: 30px;" name="liquidation_date" readonly>
-                </div>
-              </div>            
-            </div>
-           <small>Distribution: 1 Copy attached to RFP upon liquidation.</small>
-        </div>
-      </div>
-        <div class="modal-footer">
-          
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary" id="btnOb">Submit Travel Order</button>
-        </div>
-      </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" id="btnOb">Submit Travel Order</button>
+          </div>
+        </form>
     </div>
   </div>
 </div>
@@ -436,7 +434,6 @@
     display: block;
 }
 
-  
 #sig-canvas {
       border: 2px dotted #CCCCCC;
       border-radius: 15px;
@@ -448,7 +445,7 @@
     .swal2-popup canvas {
       max-width: 100%;
     }
-/* Default desktop layout */
+
 .form-sections {
   display: flex;
 }
@@ -461,7 +458,6 @@
   order: 2;
 }
 
-/* Desktop itinerary table styles */
 .desktop-itinerary {
     display: block;
 }
@@ -470,7 +466,6 @@
     display: none;
 }
 
-/* Expense table styles */
 .expense-table {
     width: 100%;
     border-collapse: collapse;
@@ -543,7 +538,6 @@
     background-color: #e3f2fd;
 }
 
-/* Desktop itinerary styles */
 .itinerary-table {
     border-left: 1px solid #333;
     border-top: 1px solid #333;
@@ -551,12 +545,12 @@
 }
 
 .itinerary-table .form-control {
-  width: 108px !important;  /* Change to your desired width */
-  height: 32px !important;  /* Change to your desired height */
+  width: 108px !important;
+  height: 32px !important;
 }
 
 .itinerary-table .destination {
-  width: 200px !important;  /* Change to your desired height */
+  width: 200px !important;
 }
 
 .itinerary-header {
@@ -601,7 +595,6 @@
     border-right: none;
 }
 
-/* Mobile card styles */
 .destination-card {
     border: 2px solid #dee2e6;
     border-radius: 8px;
@@ -636,7 +629,6 @@
     flex: 1;
 }
 
-/* Responsive breakpoints */
 @media (max-width: 992px) {
     .form-sections {
         flex-direction: column;
@@ -649,7 +641,6 @@
 }
 
 @media (max-width: 768px) {
-    /* Hide desktop itinerary, show mobile cards */
     .desktop-itinerary {
         display: none;
     }
@@ -658,7 +649,6 @@
         display: block;
     }
 
-    /* Adjust expense table for mobile */
     .expense-table {
         font-size: 12px;
     }
@@ -1066,6 +1056,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+   const amountInputs = document.querySelectorAll('.amount-input');
+
+   amountInputs.forEach((amountInput, index) => {
+       amountInput.addEventListener('input', function () {
+           const value = amountInput.value.trim();
+           const row = amountInput.getAttribute('data-row');
+           
+           if (!row) return;
+           const daysInput = document.querySelector(`.days-input[data-row="${row}"]`);
+
+           // Set 'required' if amount is filled
+           const required = value !== '' && value > 0;
+           if (daysInput) daysInput.required = required;
+       });
+   });
+});
+</script>
+
+<script>
 let destinationCount = 2;
 const maxDestinations = 5;
 
@@ -1114,6 +1124,46 @@ function addDestination() {
 
     container.appendChild(newCard);
 }
+
+function removeDestination(button) {
+    const card = button.closest('.destination-card');
+    card.remove();
+    destinationCount--;
+    updateDestinationNumbers();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    function updateRequiredFieldsForViewport() {
+        const isMobile = window.innerWidth <= 768;
+        
+        const desktopFields = document.querySelectorAll('.desktop-itinerary input, .desktop-itinerary select');
+        desktopFields.forEach(field => {
+            if (isMobile) {
+                field.removeAttribute('required');
+            } else {
+                if (field.dataset.originalRequired === 'true') {
+                    field.setAttribute('required', 'required');
+                }
+            }
+        });
+        
+        const mobileFields = document.querySelectorAll('.mobile-itinerary input, .mobile-itinerary select');
+        mobileFields.forEach(field => {
+            if (!isMobile) {
+                field.removeAttribute('required');
+            } else {
+                if (field.dataset.originalRequired === 'true') {
+                    field.setAttribute('required', 'required');
+                }
+            }
+        });
+    }
+    
+    window.addEventListener('resize', updateRequiredFieldsForViewport);
+    document.querySelector('form').addEventListener('submit', updateRequiredFieldsForViewport);
+    
+    updateRequiredFieldsForViewport();
+});
 </script>
 
 <script>
@@ -1177,8 +1227,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
-
-
 <script>
 function calculateTotals($container) {
   let totalAmount = 0;
@@ -1190,7 +1238,6 @@ function calculateTotals($container) {
     const amount = parseFloat($(this).val()) || 0;
 
     if (row == 3) {
-      // TRANSPORTATION / GASOLINE: total = amount only
       $container.find(`.total-field[data-row="${row}"]`).val(amount.toFixed(2));
       totalAmount += amount;
       grandTotal += amount;
@@ -1205,24 +1252,60 @@ function calculateTotals($container) {
     }
   });
 
-  // Update TOTAL AMOUNT row inside this container
   $container.find('input[name="totalamount_amount"]').val(totalAmount.toFixed(2));
   $container.find('input[name="totalamount_numofday"]').val(totalDays.toFixed(2));
   $container.find('input[name="totalamount_total"]').val(grandTotal.toFixed(2));
+
+  updateApproverDisplay(grandTotal);
+}
+
+function updateApproverDisplay(totalAmount) {
+  const approvalThreshold = window.approvalThreshold || 0;
+  const allApprovers = window.allApprovers || [];
+  
+  const approverInput = $('input[name="approved_by_head"]');
+  
+  if (!approverInput.length) return;
+  
+  const firstApprover = allApprovers.find(approver => approver.position === 'division_head') || allApprovers[0];
+  const finalApprover = allApprovers.find(approver => approver.as_final === 'on');
+  
+  if (totalAmount > approvalThreshold) {
+    if (finalApprover && finalApprover.approver_info) {
+      approverInput.val(finalApprover.approver_info.name || finalApprover.approver_info.full_name);
+    }
+  } else {
+    if (firstApprover && firstApprover.approver_info) {
+      approverInput.val(firstApprover.approver_info.name || firstApprover.approver_info.full_name);
+      
+      approverInput.siblings('small').text('Division/Cluster Head');
+      
+      approverInput.css('background-color', 'transparent');
+      approverInput.siblings('small').css('color', '');
+    }
+  }
 }
 
 $(document).ready(function () {
-  // Attach listeners for each cash-advance section
   $('.cash-advance').each(function () {
     const $this = $(this);
     $this.find('.amount-input, .days-input').on('input', function () {
       calculateTotals($this);
     });
 
-    // Run once on page load
     calculateTotals($this);
   });
+  
+  $('input[name="totalamount_total"]').on('input', function() {
+    const totalAmount = parseFloat($(this).val()) || 0;
+    updateApproverDisplay(totalAmount);
+  });
 });
+
+function triggerApproverUpdate() {
+  const totalAmount = parseFloat($('input[name="totalamount_total"]').val()) || 0;
+  updateApproverDisplay(totalAmount);
+}
 </script>
 
 <script>

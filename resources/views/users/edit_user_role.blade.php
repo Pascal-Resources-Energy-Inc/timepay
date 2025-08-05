@@ -141,6 +141,95 @@
                                         <br>
                                         <br>
                                     </div>
+                                    {{-- Forms --}}
+                                    <div class="col-md-6 form-group">
+                                        <h5>Forms to Approve</h5>
+                                        @if($user->user_privilege)
+                                            @if($user->user_privilege->leaves == 'on')
+                                                <input type="checkbox" name="leaves" id="leaves{{$user->id}}" value="{{ $user->user_privilege->leaves }}" checked>
+                                            @else
+                                                <input type="checkbox" name="leaves" id="leaves{{$user->id}}">
+                                            @endif
+                                        @else
+                                            <input type="checkbox" name="leaves" id="leaves{{$user->id}}">
+                                        @endif
+                                        Leave
+                                        <br>
+                                        <br>
+                                        @if($user->user_privilege)
+                                            @if($user->user_privilege->overtime == 'on')
+                                                <input type="checkbox" name="overtime" id="overtime{{$user->id}}" value="{{ $user->user_privilege->overtime }}" checked>
+                                            @else
+                                                <input type="checkbox" name="overtime" id="overtime{{$user->id}}">
+                                            @endif
+                                        @else
+                                            <input type="checkbox" name="overtime" id="overtime{{$user->id}}">
+                                        @endif
+                                        Overtime
+                                        <br>
+                                        <br>
+                                        @if($user->user_privilege)
+                                            @if($user->user_privilege->daily_time_record == 'on')
+                                                <input type="checkbox" name="daily_time_record" id="daily_time_record{{$user->id}}" value="{{ $user->user_privilege->daily_time_record }}" checked>
+                                            @else
+                                                <input type="checkbox" name="daily_time_record" id="daily_time_record{{$user->id}}">
+                                            @endif
+                                        @else
+                                            <input type="checkbox" name="daily_time_record" id="daily_time_record{{$user->id}}">
+                                        @endif
+                                        Daily Time Record
+                                        <br>
+                                        <br>
+                                        @if($user->user_privilege)
+                                            @if($user->user_privilege->payroll_disbursement == 'on')
+                                                <input type="checkbox" name="payroll_disbursement" id="payroll_disbursement{{$user->id}}" value="{{ $user->user_privilege->payroll_disbursement }}" checked>
+                                            @else
+                                                <input type="checkbox" name="payroll_disbursement" id="payroll_disbursement{{$user->id}}">
+                                            @endif
+                                        @else
+                                            <input type="checkbox" name="payroll_disbursement" id="payroll_disbursement{{$user->id}}">
+                                        @endif
+                                        Payroll Disbursement
+                                        <br>
+                                        <br>
+                                        @if($user->user_privilege)
+                                            @if($user->user_privilege->authority_deduct == 'on')
+                                                <input type="checkbox" name="authority_deduct" id="authority_deduct{{$user->id}}" value="{{ $user->user_privilege->authority_deduct }}" checked>
+                                            @else
+                                                <input type="checkbox" name="authority_deduct" id="authority_deduct{{$user->id}}">
+                                            @endif
+                                        @else
+                                            <input type="checkbox" name="authority_deduct" id="authority_deduct{{$user->id}}">
+                                        @endif
+                                        Authority to Deduct
+                                        <br>
+                                        <br>
+                                        @if($user->user_privilege)
+                                            @if($user->user_privilege->number_enrollment == 'on')
+                                                <input type="checkbox" name="number_enrollment" id="number_enrollment{{$user->id}}" value="{{ $user->user_privilege->number_enrollment }}" checked>
+                                            @else
+                                                <input type="checkbox" name="number_enrollment" id="number_enrollment{{$user->id}}">
+                                            @endif
+                                        @else
+                                            <input type="checkbox" name="number_enrollment" id="number_enrollment{{$user->id}}">
+                                        @endif
+                                        Number Enrollment
+                                        <br>
+                                        <br>
+                                        @if($user->user_privilege)
+                                            @if($user->user_privilege->coe_request == 'on')
+                                                <input type="checkbox" name="coe_request" id="coe_request{{$user->id}}" value="{{ $user->user_privilege->coe_request }}" checked>
+                                            @else
+                                                <input type="checkbox" name="coe_request" id="coe_request{{$user->id}}">
+                                            @endif
+                                        @else
+                                            <input type="checkbox" name="coe_request" id="coe_request{{$user->id}}">
+                                        @endif
+                                        COE Request
+                                        
+                                        <br>
+                                        <br>
+                                    </div>
                                     {{-- Reports --}}
                                     <div class="col-md-6 form-group">
                                         <h5>Reports</h5>

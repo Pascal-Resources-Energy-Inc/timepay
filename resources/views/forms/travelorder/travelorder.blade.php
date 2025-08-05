@@ -96,7 +96,10 @@
                     </div>
 
                     <div class='col-md-2'>
-                      <button type="submit" class="form-control form-control-sm btn btn-primary mb-2 btn-sm">Filter</button>
+                      <div class="form-group">
+                        <label class="invisible">Filter</label>
+                        <button type="submit" class="form-control form-control-sm btn btn-primary btn-sm">Filter</button>
+                      </div>
                     </div>
                   </div>
                 </form>
@@ -138,17 +141,15 @@
                             <button type="button" id="view{{ $to->id }}" class="btn btn-primary btn-rounded btn-icon"
                               data-target="#to-view-approved-{{ $to->id }}" data-toggle="modal" title='View'>
                               <i class="ti-eye"></i>
-                            </button>            
-                             
+                            </button>       
                           @elseif ($to->status == 'Approved')   
-                          <button type="button" id="view{{ $to->id }}" class="btn btn-info btn-rounded btn-icon"
-                            data-target="#view_to{{ $to->id }}" data-toggle="modal" title='View'>
-                            <i class="ti-eye"></i>
-                          </button> 
+                          <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#to-view-approved{{ $to->id }}" title="View Approved">
+                            <i class="ti-eye btn-icon-prepend"></i> View
+                          </button>
                           @else
-                            <button type="button" class="btn btn-info btn-rounded btn-icon" data-toggle="modal" data-target="#to-view-approved-{{ $to->id }}" title="View Approved">
-                              <i class="ti-eye btn-icon-prepend"></i>
-                            </button>                                                                                    
+                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#to-view-declined-{{ $to->id }}" title="View Declined Remarks">
+                            <i class="ti-eye btn-icon-prepend"></i> View
+                          </button>                                                                                  
                           @endif
                         </td> 
                         <td> {{ date('M. d, Y', strtotime($to->created_at)) }} - {{ date('h:i A', strtotime($to->created_at)) }} </td>
@@ -157,14 +158,84 @@
                         <td>{{ date('h:i A', strtotime($to->date_to)) }} </td>
                         <td> {{$to->destination}}</td>
                         <td> {{$to->purpose}}</td>
+                        @if ($to->status == 'Approved' || $to->status == 'Declined')
+                                <td>
+                                    {{-- Display first approver with status badge --}}
+                                    @if($to->approvedBy)
+                                        @php
+                                            $firstName = $to->approvedBy->name ?? $to->approvedBy->full_name ?? 'Unknown';
+                                            $firstStatusLabel = '';
+                                            $firstBadgeClass = '';
+
+                                            if ($to->level >= 1) {
+                                                if ($to->level == 0 && $to->status == 'Declined') {
+                                                    $firstStatusLabel = 'Declined';
+                                                    $firstBadgeClass = 'danger';
+                                                } else {
+                                                    $firstStatusLabel = 'Approved';
+                                                    $firstBadgeClass = 'success';
+                                                }
+                                            } else {
+                                                if ($to->status == 'Approved') {
+                                                    $firstStatusLabel = 'Approved';
+                                                    $firstBadgeClass = 'success';
+                                                } elseif ($to->status == 'Declined') {
+                                                    $firstStatusLabel = 'Declined';
+                                                    $firstBadgeClass = 'danger';
+                                                } else {
+                                                    $firstStatusLabel = 'Pending';
+                                                    $firstBadgeClass = 'warning';
+                                                }
+                                            }
+                                        @endphp
+                                        <div>{{ $firstName }} - <label class="badge badge-{{ $firstBadgeClass }} mt-1">{{ $firstStatusLabel }}</label></div>
+                                    @endif
+                                    
+                                    {{-- Display last approver with status badge --}}
+                                    @if($to->last_approver)
+                                        @php
+                                            $lastName = $to->last_approver->name ?? $to->last_approver->full_name ?? 'Unknown';
+                                            $lastStatusLabel = '';
+                                            $lastBadgeClass = '';
+
+                                            // Assuming last approver is level 2 or higher
+                                            if ($to->level >= 2) {
+                                                if ($to->level == 0 && $to->status == 'Declined') {
+                                                    $lastStatusLabel = 'Declined';
+                                                    $lastBadgeClass = 'danger';
+                                                } else {
+                                                    $lastStatusLabel = 'Approved';
+                                                    $lastBadgeClass = 'success';
+                                                }
+                                            } else {
+                                                if ($to->status == 'Approved') {
+                                                    $lastStatusLabel = 'Approved';
+                                                    $lastBadgeClass = 'success';
+                                                } elseif ($to->status == 'Declined') {
+                                                    $lastStatusLabel = 'Declined';
+                                                    $lastBadgeClass = 'danger';
+                                                } else {
+                                                    $lastStatusLabel = 'Pending';
+                                                    $lastBadgeClass = 'warning';
+                                                }
+                                            }
+                                        @endphp
+                                        <div>{{ $lastName }} - <label class="badge badge-{{ $lastBadgeClass }} mt-1">{{ $lastStatusLabel }}</label></div>
+                                    @endif
+                                </td>
+                        @endif
+                         @if ($to->status == 'Pending' || $to->status == 'Cancelled')
                         <td id="tdStatus{{ $to->id }}">
-                          @foreach($to->approver as $approver)
+                            @foreach($to->approver as $approver)
                                 @php
                                     $name = $approver->approver_info->name;
                                     $statusLabel = '';
                                     $badgeClass = '';
 
-                                    if ($to->level >= $approver->level) {
+                                    if ($to->status === 'Cancelled') {
+                                        $statusLabel = 'Cancelled';
+                                        $badgeClass = 'danger';
+                                    } elseif ($to->level >= $approver->level) {
                                         if ($to->level == 0 && $to->status == 'Declined') {
                                             $statusLabel = 'Declined';
                                             $badgeClass = 'danger';
@@ -189,6 +260,7 @@
                                 <div>{{ $name }} - <label class="badge badge-{{ $badgeClass }} mt-1">{{ $statusLabel }}</label></div>
                             @endforeach
                         </td>
+                        @endif
                         <td id="tdStatus{{ $to->id }}">
                           @if ($to->status == 'Pending')
                             <label class="badge badge-warning">{{ $to->status }}</label>
@@ -304,8 +376,9 @@
 
   
 @foreach ($tos as $to)
+  @include('for-approval.remarks.view-toapproved')
+  @include('for-approval.remarks.view-todeclined')
   @include('for-approval.view-toManager') 
-  @include('for-approval.view-form') 
 @endforeach
 
 @endsection

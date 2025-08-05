@@ -181,8 +181,8 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZw51f1ZyJIjCbkNH2rU0Ze5nOiOBsIuE&callback=getLocation"></script>
 
   <script>
-     var name = {!! json_encode(auth()->user()->name) !!};
-     const imageInput = document.getElementById('imageInput');
+    var name = {!! json_encode(auth()->user()->name) !!};
+    const imageInput = document.getElementById('imageInput');
     const video = document.getElementById('video');
     const captureButton = document.getElementById('captureButton');
     const retakeButton = document.getElementById('retakeButton');

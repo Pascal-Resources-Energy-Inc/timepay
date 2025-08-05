@@ -242,47 +242,6 @@
                 </div>
                 <div class='col-md-1'>
                 </div>
-                <div class='col-md-7'>
-                  <h2 class="fs-title">Approval by Amount for Travel Order</h2>
-                  <div class="row"> 
-                    <div class="col-md-6">
-                      Head Supervisor
-                      @php
-                        $placeholderHigher = count($higher_amounts) > 0 ? number_format($higher_amounts[0]) : '-- Amount --';
-                      @endphp
-                      <select 
-                        data-placeholder="{{ $placeholderHigher }}" 
-                        class="form-control form-control-sm required js-example-basic-single" 
-                        style="width:100%;" 
-                        id="higher" 
-                        name="higher" 
-                        required>
-                        <option value="">-- Amount --</option>
-                        <option value="5000">5000</option>
-                        <option value="7000">7000</option>
-                        <option value="10000">10000</option>
-                      </select>
-                    </div>
-
-                    <div class="col-md-6">
-                      Immediate Supervisor
-                      @php
-                        $placeholderLess = count($less_amounts) > 0 ? number_format($less_amounts[0]) : '-- Payment Period --';
-                      @endphp
-                      <select 
-                        data-placeholder="{{ $placeholderLess }}" 
-                        class="form-control form-control-sm required js-example-basic-single" 
-                        style="width:100%;" 
-                        id="less" 
-                        name="less" 
-                        required>
-                        <option value="">-- Payment Period --</option>
-                        <option value="2000">2000</option>
-                        <option value="3000">3000</option>
-                        <option value="4000">4000</option>
-                      </select>
-                    </div>
-                  </div>
                 {{-- <div class='col-md-7'>
                   <h2 class="fs-title">Payment Information</h2>
                   <div class='row'> 

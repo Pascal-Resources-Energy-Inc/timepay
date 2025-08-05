@@ -1694,7 +1694,7 @@ class EmployeeController extends Controller
                                                 $q->whereBetween('datetime', [$from_date . " 00:00:01", $to_date . " 23:59:59"])
                                                   ->orWhereBetween('datetime', [$from_date . " 00:00:01", $to_date . " 23:59:59"]);
                                             })
-                                            // ->whereIn('type', [4, 5])
+                                            ->whereIn('type', [4, 5])
                                             ->orderBy('datetime', 'asc');
                                     }])
                                     ->whereIn('company_id', $allowed_companies)
@@ -1881,7 +1881,7 @@ class EmployeeController extends Controller
                                             $q->whereBetween('datetime', [$from_date . " 00:00:01", $to_date . " 23:59:59"])
                                               ->orWhereBetween('datetime', [$from_date . " 00:00:01", $to_date . " 23:59:59"]);
                                         })
-                                        ->whereIn('type', [4, 5])
+                                        // ->whereIn('type', [4, 5])
                                         ->orderBy('datetime', 'asc');
                                 }])
                                 ->with(['approved_leaves' => function ($query) use ($date_from, $to_date) {

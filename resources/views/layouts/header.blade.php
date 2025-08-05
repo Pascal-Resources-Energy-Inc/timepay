@@ -421,10 +421,7 @@
                         </a>
                     </li>
                     @endif
-                    @if ( auth()->user()->employee_under->count() != 0 
-                    && (!auth()->user()->user_privilege || auth()->user()->user_privilege->payroll_view != 'on')
-                    && (!auth()->user()->user_privilege || auth()->user()->user_privilege->reports_coe != 'on')
-                    && (!auth()->user()->user_privilege || auth()->user()->user_privilege->reports_ne != 'on') )
+                    @if ( auth()->user()->employee_under->count())
                     <li class="nav-item">
                         <hr>
                         <h5>Manager</h5>

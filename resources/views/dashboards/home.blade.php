@@ -307,10 +307,12 @@
 @endsection
 
 @section('content')
+@if(($user_travel_orders_today) || (auth()->user()->login))
 @if($attendance_now != null)
 @include('employees.timeout')
 @else
 @include('employees.timein')
+@endif
 @endif
 
 <div class="main-panel">
@@ -345,17 +347,17 @@
                           ->exists();
                       @endphp
 
-                      @if($user_travel_orders_today)
+                      @if(($user_travel_orders_today) || (auth()->user()->login))
                       @if($attendance_now != null)
-                        <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
-                          <i class="ti-control-pause" ></i>
+                          <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
+                            <i class="ti-control-pause" ></i>
+                          </button>
+                          @else
+                          <button onclick="getLocation()" type="button" Title='Time In' class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#timeIn">
+                          <i class="ti-control-play" ></i>
                         </button>
-                        @else
-                        <button onclick="getLocation()" type="button" Title='Time In' class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#timeIn">
-                        <i class="ti-control-play" ></i>
-                      </button>
-                    @endif
-                    @endif
+                      @endif
+                      @endif
                   </h3>
                   <div class="media">
                       <i class="ti-time icon-md text-info d-flex align-self-center mr-3"></i>

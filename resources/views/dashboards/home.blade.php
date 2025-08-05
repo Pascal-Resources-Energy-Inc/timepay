@@ -307,6 +307,17 @@
 @endsection
 
 @section('content')
+ @php
+                        // Check if user has an approved travel order for today
+  $today = date('Y-m-d');
+  $user_travel_orders_today = \App\EmployeeTo::where('user_id', auth()->user()->id)
+    ->whereIn('status', ['Approved', 'Partially Approved'])
+    ->where(function($query) use ($today) {
+      $query->whereDate('date_from', '<=', $today)
+            ->whereDate('date_to', '>=', $today);
+    })
+    ->exists();
+@endphp
 @if(($user_travel_orders_today) || (auth()->user()->login))
 @if($attendance_now != null)
 @include('employees.timeout')
@@ -335,17 +346,7 @@
               <div class="card">
                 <div class="card-body">
                   <h3 class="card-title">{{date('M d, Y')}} 
-                    @php
-                        // Check if user has an approved travel order for today
-                        $today = date('Y-m-d');
-                        $user_travel_orders_today = \App\EmployeeTo::where('user_id', auth()->user()->id)
-                          ->whereIn('status', ['Approved', 'Partially Approved'])
-                          ->where(function($query) use ($today) {
-                            $query->whereDate('date_from', '<=', $today)
-                                  ->whereDate('date_to', '>=', $today);
-                          })
-                          ->exists();
-                      @endphp
+                   
 
                       @if(($user_travel_orders_today) || (auth()->user()->login))
                       @if($attendance_now != null)

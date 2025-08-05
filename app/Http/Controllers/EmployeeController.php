@@ -1853,7 +1853,6 @@ class EmployeeController extends Controller
 
 
         $attendance_controller = new AttendanceController;
-        
         $company = isset($request->company) ? $request->company : "";
         $department = isset($request->department) ? $request->department : "";
         $location = isset($request->location) ? $request->location : "";
@@ -1898,8 +1897,7 @@ class EmployeeController extends Controller
                                     ->where('status','Approved')
                                     ->orderBy('id','asc');
                                 }])
-                                ->with(['approved_
-                                s' => function ($query) use ($date_from, $to_date) {
+                                ->with(['approved_obs' => function ($query) use ($date_from, $to_date) {
                                     $query->whereBetween('applied_date', [$date_from, $to_date])
                                     ->where('status','Approved')
                                     ->orderBy('id','asc');

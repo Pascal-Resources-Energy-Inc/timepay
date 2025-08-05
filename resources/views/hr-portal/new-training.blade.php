@@ -24,11 +24,11 @@
             </div>
             <div class="col-md-6 mb-2">
               Bond Start Date:
-              <input type="date" name="bond_start_date" class="form-control"required>
+              <input type="date" name="bond_start_date" class="form-control">
             </div>
             <div class="col-md-6 mb-2">
               Bond End Date:
-              <input type="date" name="bond_end_date" class="form-control" required>
+              <input type="date" name="bond_end_date" class="form-control" >
             </div>
             <div class="col-md-12 mb-2">
               Amount:

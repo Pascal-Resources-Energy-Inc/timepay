@@ -327,6 +327,7 @@
         </div>
         
         @if (auth()->user()->role != 'Admin')
+
         <div class="row">
           <div class="col-md-3 mb-4 transparent">
               <div class="card">
@@ -1182,47 +1183,7 @@
                 </div>
               </div>
                 
-              @if (checkUserPrivilege('allow_prob',auth()->user()->id) == 'yes')
-                  <div class="row">
-                    <div class="col-md-12">
-                      <div class="card mt-2">
-                        <div class="card-body">
-                          <div class="card-title">Probationary Employee</div>
-                          <ul class="icon-data-list w-100"  style="overflow-y: scroll; height:300px;">
-                            @foreach($probationary_employee as $prob_emp)
-                            <li>
-                              <div class="d-flex">
-                                <img src="{{URL::asset($prob_emp->avatar)}}"  onerror="this.src='{{URL::asset('/images/no_image.png')}}';" alt="user">
-                                <div>
-                                  <div>
-                                    <p class="text-info mb-1"><small>{{$prob_emp->first_name}} {{$prob_emp->last_name}}</small><a id="edit{{ $prob_emp->id }}" 
-                                      data-target="#edit_prob{{ $prob_emp->id }}" data-toggle="modal" title='Edit'>
-                                      <i class="ti-pencil-alt"></i>
-                                    </a></p>
-                                  </div>
-                                  <p class="mb-0"><small>{{$prob_emp->company->company_name}}</small></p>
-                                  <p class="mb-0"><small>{{$prob_emp->position}}</small></p>
-                                  <p class="mb-0"><small>{{date('M d, Y',strtotime($prob_emp->original_date_hired))}}</small></p>
-                                  <p class="mb-0"><small>
-                                    @php
-                                      $date_from = new DateTime($prob_emp->original_date_hired);
-                                      $date_diff = $date_from->diff(new DateTime(date('Y-m-d')));
-                                      $y_s = $date_diff->format('%y') > 1 ? 's' : '';
-                                      $m_s = $date_diff->format('%m') > 1 ? 's' : '';
-                                      $d_s = $date_diff->format('%d') > 1 ? 's' : '';
-                                    @endphp
-                                    {{$date_diff->format('%y Year'.$y_s.' %m month'.$m_s.' %d day'.$d_s.'')}}</small>
-                                  </p>
-                                </div>
-                              </div>
-                            </li>
-                            @endforeach
-                          </ul>
-                        </div>
-                      </div>
-                  </div>
-                </div>
-              @endif
+            
             </div>
           </div>    
        </div>

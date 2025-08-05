@@ -134,7 +134,6 @@
               </div>
             </div>
         </div>
-        @if (auth()->user()->role != 'Admin')
         <div class="row">
           <div class="col-md-3 mb-4 transparent">
                         <div class="card">
@@ -299,7 +298,6 @@
                 </div>
             </div>
         </div>
-        @endif
         @if (auth()->user()->role == 'Admin')
           <div class="row">
             <div class="col-md-3 mb-2">

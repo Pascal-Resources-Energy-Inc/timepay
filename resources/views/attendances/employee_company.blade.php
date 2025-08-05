@@ -181,7 +181,7 @@
                                                 <td><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][company_id]" value="{{$emp->company->id}}">{{$emp->company->company_code}}</td>
                                                 <td><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][employee_no]" value="{{$emp->employee_code}}">{{$emp->employee_code}}</td>
                                                 <td><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][name]" value="{{$emp->last_name .', '. $emp->first_name . ' ' . $emp->middle_name}}">{{$emp->last_name . ', ' . $emp->first_name}}</td>
-                                                <td><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][log_date]" value="{{date('Y-m-d',strtotime($date_r))}}">{{date('d/m/Y',strtotime($date_r))}}</td>
+                                                <td><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][log_date]" value="{{date('Y-m-d',strtotime($date_r))}}"><a href='#' data-toggle="modal" data-target="#view_attandance{{$date_r}}{{ $emp->employee_code }}">{{date('d/m/Y',strtotime($date_r))}}</a></td>
                                                 <td><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][shift]" value="{{$employee_schedule && $employee_schedule->time_in_to != '00:00' ? date('h:i A', strtotime($employee_schedule->time_in_to)) . '-' . date('h:i A', strtotime($employee_schedule->time_out_to)) : 'RESTDAY'}}">
                                                     @if($employee_schedule != null)
                                                         @if($employee_schedule->time_in_from != '00:00')
@@ -1223,7 +1223,11 @@
         </div>
     </div>
 </div>
-
+@foreach($emp_data as $emp)
+    @foreach($date_range as $date_r)
+        @include('attendances.view_attendance_logs')
+    @endforeach
+@endforeach
 @php
     function night_difference($start_work,$end_work) {
         $start_night = mktime('22','00','00',date('m',$start_work),date('d',$start_work),date('Y',$start_work));

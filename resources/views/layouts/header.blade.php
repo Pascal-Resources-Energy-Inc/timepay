@@ -377,7 +377,7 @@
                                 @endif
                                 {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/work-from-home') }}">Work from home</a></li> --}}
                                 {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/official-business') }}">Official Business</a> --}}
-                                <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a>
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}"> Travel Order</a>
                                 </li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/231380935515052">Authority to deduct </a></li>

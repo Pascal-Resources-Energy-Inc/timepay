@@ -821,7 +821,7 @@
                                     <tr>
                                         <td>{{$et->training}}</td>
                                         <td>{{date('M. d, Y', strtotime($et->start_date))}} - {{date('M. d, Y', strtotime($et->end_date))}}</td>
-                                        <td>{{date('M. d, Y', strtotime($et->bond_start_date))}} - {{date('M. d, Y', strtotime($et->bond_end_date))}}</td>
+                                        <td>@if($et->bond_start_date){{date('M. d, Y', strtotime($et->bond_start_date))}} - {{date('M. d, Y', strtotime($et->bond_end_date))}}@endif</td>
                                         <td> @if ($et->attachment)
                                             <a href="{{ url($et->attachment) }}" target="_blank">Attachment</a>
                                             @endif

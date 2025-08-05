@@ -13,30 +13,38 @@ use Illuminate\Support\Facades\Crypt;
 
 class EmployeeTravelOrderController extends Controller
 {
-    public function to(Request $request)
-        {
-            $today = date('Y-m-d');
-            $from = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
-            $to = $request->to ?? '';
-            $status = $request->status ?? '';
-            $limit = $request->limit ?? 10;
+   public function to(Request $request)
+    {
+        $today = date('Y-m-d');
+        $from = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
+        $to = $request->to ?? date('Y-m-d');
+        $status = $request->status ?? '';
+        $limit = $request->limit ?? 10;
 
-            $get_approvers = new EmployeeApproverController;
+        $get_approvers = new EmployeeApproverController;
 
-            $filter_status = $request->status ?? 'Select Status';
+        $filter_status = $request->status ?? 'Select Status';
 
-            $tos = EmployeeTo::with(['user', 'destination_dates', 'approver.approver_info'])
+        $approvalThreshold = ApprovalByAmount::orderBy('higher_than', 'desc')->first();
+        $tos = collect(); // default to empty
+
+        if ($filter_status !== 'Select Status' && $filter_status !== '') {
+            $tos = EmployeeTo::with([
+                'user', 
+                'approver.approver_info',
+                'approvedBy', 
+                'approvedByHeadDivision',  
+                'last_approver'
+            ])
                 ->where('user_id', auth()->user()->id)
                 ->whereDate('date_from', '>=', $from)
                 ->whereDate('date_to', '<=', $to);
 
-            if ($filter_status !== 'All' && $filter_status !== 'Select Status') {
+            if ($filter_status !== 'All') {
                 $tos->where('status', $filter_status);
             }
 
             $tos = $tos->orderBy('created_at', 'DESC')->paginate($limit);
-
-           $approvalThreshold = ApprovalByAmount::orderBy('higher_than', 'desc')->first();
 
             $tos->getCollection()->transform(function ($to) use ($approvalThreshold) {
                 $totalAmount = $to->totalamount_total;
@@ -57,34 +65,52 @@ class EmployeeTravelOrderController extends Controller
                 } else {
                     $to->approver = collect([$first])->filter()->unique('id');
                 }
+
                 return $to;
             });
-
-            $tos_all = EmployeeTo::with('user', 'destination_dates')
-                ->where('user_id', auth()->user()->id)
-                ->get();
-
-            $all_approvers = $get_approvers->get_approvers(auth()->user()->id);
-            $approver = $all_approvers->filter(fn($a) => $a->approver_info !== null)->last();
-
-            $latest_to = EmployeeTo::latest('id')->first();
-            $next_id = $latest_to ? $latest_to->id + 1 : 1;
-            $toNumber = 'TO-' . str_pad($next_id, 5, '0', STR_PAD_LEFT);
-
-            return view('forms.travelorder.travelorder', [
-                'header' => 'forms',
-                'all_approvers' => $all_approvers,
-                'approver' => $approver,
-                'tos' => $tos,
-                'tos_all' => $tos_all,
-                'from' => $from,
-                'to' => $to,
-                'status' => $status,
-                'limit' => $limit,
-                'toNumber' => $toNumber,
-            ]);
         }
 
+
+        $tos_all = EmployeeTo::with('user')
+            ->where('user_id', auth()->user()->id)
+            ->get();
+
+        $all_approvers = $get_approvers->get_approvers(auth()->user()->id);
+        $approver = $all_approvers->filter(fn($a) => $a->approver_info !== null)->last();
+
+        $latest_to = EmployeeTo::latest('id')->first();
+        $next_id = $latest_to ? $latest_to->id + 1 : 1;
+        $toNumber = 'TO-' . str_pad($next_id, 5, '0', STR_PAD_LEFT);
+
+        $approvalThresholdValue = $approvalThreshold ? $approvalThreshold->higher_than : 0;
+        $approversForJs = $all_approvers->map(function ($approver) {
+            return [
+                'id' => $approver->id,
+                'as_final' => $approver->as_final ?? '',
+                'position' => $approver->position ?? '',
+                'approver_info' => $approver->approver_info ? [
+                'name' => $approver->approver_info->name ?? '',
+                'full_name' => $approver->approver_info->full_name ?? '',
+                'position' => $approver->approver_info->position ?? ''
+                ] : null
+            ];
+        });
+
+        return view('forms.travelorder.travelorder', [
+            'header' => 'forms',
+            'all_approvers' => $all_approvers,
+            'approver' => $approver,
+            'tos' => $tos,
+            'tos_all' => $tos_all,
+            'from' => $from,
+            'to' => $to,
+            'status' => $status,
+            'limit' => $limit,
+            'toNumber' => $toNumber,
+            'approvalThreshold' => $approvalThresholdValue,
+            'approversForJs' => $approversForJs
+        ]);
+    }
 
    public function new(Request $request)
     {
@@ -149,7 +175,6 @@ class EmployeeTravelOrderController extends Controller
             $new_to->date_to_5 = ($request->date_to_5 && $request->arrival_time_5) ? $request->date_to_5 . ' ' . $request->arrival_time_5 . ':00' : null;
 
             $new_to->purpose = $request->purpose;
-            $new_to->approved_by_head = $request->approved_by_head;
             $new_to->rc_code = $request->rc_code;
 
             $new_to->perdiem_amount = $request->perdiem_amount;
@@ -278,7 +303,6 @@ class EmployeeTravelOrderController extends Controller
 
                 $to->purpose = $request->purpose;
                 $to->rc_code = $request->cost_center ?? $request->rc_code;
-                $to->approved_by_head = $request->approved_by;
                 $to->approval_remarks = $request->approval_remarks;
 
                 $to->perdiem_amount = $request->perdiem_amount;

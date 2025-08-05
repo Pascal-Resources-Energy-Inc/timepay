@@ -40,7 +40,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('', 'HomeController@index');
     Route::get('/', 'HomeController@index');
     Route::get('/home', 'HomeController@index')->name('home');
-    
+
+    Route::get('/dashboard/get-employees', 'HomeController@getEmployees')->name('dashboard.getEmployees');
+    Route::get('/dashboard/get-present-employees', 'HomeController@getPresentEmployees')->name('dashboard.get-present-employees');
+    Route::get('/dashboard/get-absent-employees', 'HomeController@getAbsentEmployees')->name('dashboard.get-absent-employees');
+    Route::get('/dashboard/get-late-employees', 'HomeController@getLateEmployees')->name('dashboard.get-late-employees');
+   
     //approvers
     Route::get('/dashboard-manager', 'HomeController@managerDashboard');
     //admin
@@ -92,7 +97,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('overtime','EmployeeOvertimeController@overtime');
     //Overtime
     Route::get('overtime','EmployeeOvertimeController@overtime');
-    Route::post('new-overtime','EmployeeOvertimeController@new');
+    Route::post('new-ot','EmployeeOvertimeController@new');
+    Route::post('new-offset','EmployeeOvertimeController@newOffSet');
     Route::post('edit-overtime/{id}', 'EmployeeOvertimeController@edit_overtime');
     Route::get('disable-overtime/{id}', 'EmployeeOvertimeController@disable_overtime');    
     Route::get('check-valid-overtime', 'EmployeeOvertimeController@checkValidOvertime');
@@ -113,10 +119,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('hr-edit-to/{id}', 'EmployeeTravelOrderController@hr_edit_to');
     Route::post('upload-to-file/{id}', 'EmployeeTravelOrderController@upload_obFile');
     Route::get('disable-to/{id}', 'EmployeeTravelOrderController@disable_to');  
+ 
+    // Route::post('/sync-actual-arrival-time/{toId}', 'EmployeeTravelOrderController@syncActualArrivalTime')->name('sync.actual.arrival.time');
 
     //authority-deduct
     Route::get('authority-deduct', 'EmployeeAuthorityDeductionController@ad');
     Route::post('new-ad', 'EmployeeAuthorityDeductionController@new');
+    Route::post('new-ad-per-employee', 'EmployeeAuthorityDeductionController@newperEmployee');
     Route::put('edit-ad/{id}', 'EmployeeAuthorityDeductionController@edit_ad')->name('edit-ad');
     Route::get('disable-ad/{id}', 'EmployeeAuthorityDeductionController@disable_ad');  
 
@@ -130,6 +139,8 @@ Route::group(['middleware' => 'auth'], function () {
     //number-enrollment
     Route::get('number-enrollment', 'EmployeeNumberEnrollmentController@ne');
     Route::post('new-ne', 'EmployeeNumberEnrollmentController@new');
+    Route::post('edit-ne/{id}', 'EmployeeNumberEnrollmentController@edit_ne')->name('edit-ne');
+    Route::get('disable-ne/{id}', 'EmployeeNumberEnrollmentController@disable_ne');  
 
     //coe-request
     Route::get('coe-request', 'EmployeeCoeController@coe');
@@ -157,7 +168,7 @@ Route::group(['middleware' => 'auth'], function () {
     // Route::get('approve-wfh/{id}','FormApprovalController@approveWfh');
     Route::post('decline-wfh/{id}','FormApprovalController@declineWfh');
     Route::post('approve-wfh-percentage/{id}','FormApprovalController@approveWfh');
-    
+
     //travel order Manager
     Route::get('travel-orderManager','FormApprovalController@form_to_approval');
     Route::post('approve-to/{id}','FormApprovalController@approveto');
@@ -181,6 +192,10 @@ Route::group(['middleware' => 'auth'], function () {
 
     //ne request approval
     Route::get('nes-approval','FormApprovalController@form_ne_approval');
+    Route::post('approve-ne/{id}', 'FormApprovalController@approveNe');
+    Route::post('decline-ne/{id}', 'FormApprovalController@declineNe');
+    Route::post('approve-ne-all', 'FormApprovalController@approveNeAll');
+    Route::post('disapprove-ne-all', 'FormApprovalController@disapproveNeAll');
 
     //coe request approval
     Route::get('coe-approval','FormApprovalController@form_coe_approval');
@@ -263,6 +278,10 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('disable-incentive/{id}', 'IncentiveController@disable_incentive');
     Route::get('activate-incentive/{id}', 'IncentiveController@activate_incentive');
     Route::post('edit-incentive/{id}', 'IncentiveController@update');
+
+    // Approval by Amount
+    Route::get('approval-amount', 'ApprovalAmountController@index');
+    Route::post('updateApprovalAmount', 'ApprovalAmountController@updateApprovalAmount');
 
     //Biometrics
     Route::get('get-biometrics', 'EmployeeController@employees_biotime');
@@ -380,6 +399,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('employee-report', 'EmployeeController@employee_report');
     Route::get('leave-report', 'LeaveController@leave_report');
     Route::get('leave-report-export', 'LeaveController@export');
+    Route::get('/ne-report', 'NeController@ne_report');
     Route::get('totalExpense-report', 'PayrollController@totalExpense_report');
     Route::get('loan-report', 'LoanController@loan_report');
     Route::get('company-loan-report','LoanController@companyLoan');
@@ -429,6 +449,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/hr-approver-setting','HrApproverSettingController@index');
     Route::post('/save-hr-approver-setting','HrApproverSettingController@store');
     Route::get('/remove-hr-approver/{id}','HrApproverSettingController@remove'); 
+    
+    //Forms Approver Setting
+    Route::get('/approver-setting','ApproverSettingController@index');
+    Route::post('/save-approver-setting','ApproverSettingController@store');
+    Route::get('/remove-approver/{id}','ApproverSettingController@removeApprover'); 
 
     //Timekeeping Dashboard
     
@@ -446,6 +471,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/export-schedule', 'DailyScheduleController@export');
     Route::post('/upload-schedule', 'DailyScheduleController@upload');
     Route::post('/update-schedule/{id}', 'DailyScheduleController@update');
+
 
     // HR Portal
     // NTE Files
@@ -515,6 +541,10 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Perfect Attendance
     Route::get('perfect_attendance', 'PerfectAttendanceController@index');
+
+   Route::get('hub_per_location', 'HubPerLocationController@index');
+   Route::get('hub_per_location/data', 'HubPerLocationController@getData');
+   Route::get('hub_per_location/export', 'HubPerLocationController@export');
 
     // Leave Calendar
     Route::get('leave_calendar', 'LeaveCalendarController@index');

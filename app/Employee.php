@@ -78,6 +78,10 @@ class Employee extends Model implements Auditable
         return $this->hasMany(EmployeeOb::class,'user_id','user_id');
     }
 
+    public function ads() {
+        return $this->hasMany(EmployeeAD::class,'user_id','user_id');
+    }
+
     public function dtrs() {
         return $this->hasMany(EmployeeDtr::class,'user_id','user_id');
     }
@@ -96,6 +100,10 @@ class Employee extends Model implements Auditable
 
     public function approved_obs() {
         return $this->hasMany(EmployeeOb::class,'user_id','user_id')->where('status','Approved');
+    }
+
+    public function approved_ads() {
+        return $this->hasMany(EmployeeAD::class,'user_id','user_id')->where('status','Approved');
     }
 
     public function approved_wfhs() {
@@ -204,6 +212,20 @@ class Employee extends Model implements Auditable
     {
         return $this->hasMany(EmployeeEarnedLeave::class,'user_id','user_id');
     }
+
+        public function approval_by_amounts()
+    {
+        return $this->hasMany(ApprovalByAmount::class, 'created_by', 'user_id');
+    }
+
+    public function travel_order_approvals() 
+    {
+        return $this->hasMany(ApprovalByAmount::class, 'created_by', 'user_id')
+                    ->where('type_of_form', 'Travel Order');
+    }
+
+    
+
     protected $fillable = [
         'department_id', 
         'project',
@@ -212,5 +234,6 @@ class Employee extends Model implements Auditable
         'classification',
         'immediate_sup',
         'avatar',
+        'personal_email',
     ];
 }

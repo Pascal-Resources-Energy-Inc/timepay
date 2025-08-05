@@ -8,7 +8,7 @@
         </button>
       </div>
       
-        <form method='POST' action='new-overtime' onsubmit="btnOT.disabled = true; return true;"  enctype="multipart/form-data">
+        <form method='POST' action='new-ot' onsubmit="btnOT.disabled = true; return true;"  enctype="multipart/form-data">
           @csrf      
           <div class="modal-body">
             {{-- <i class="text-danger">*Note: To file Overtime please check if you have attendance detected.</i> <br><br> --}}
@@ -56,6 +56,8 @@
                   <input id="end_time" v-model="end_time" type="datetime-local" name='end_time' class="form-control" :min="start_time" :max="max_date" @change="validateDates" required>
                 </div>
               </div>
+
+              <input type="hidden" name="time_compensation_type" value="overtime">
               
               <div class="form-group row">
                 <div class='col-md-2'>
@@ -68,7 +70,7 @@
 
               <div class="form-group row">
                 <div class='col-md-2'>
-                  Remarks
+                  Detailed Description for Request
                 </div>
                 <div class='col-md-10'>
                   <textarea  name='remarks' class="form-control" rows='4' required></textarea>
@@ -77,7 +79,7 @@
               </div>
               <div class="form-group row">
                 <div class='col-md-2'>
-                  Attachment
+                  Proof of OTAR
                 </div>
                 <div class='col-md-10'>
                   <input type="file" name="attachment" class="form-control"  placeholder="Upload Supporting Documents">
@@ -94,77 +96,3 @@
     </div>
   </div>
 </div>
-
-<script>
-  var app = new Vue({
-      el: '#appOT',
-      data() {
-        return {
-          btnDisable: false,
-          isDisabled: true,
-          allowed_overtime_hrs: '',
-          start_time: '',
-          end_time: '',
-          ot_date: '',
-          ot_max_date: '',
-          min_date: '',
-          max_date: '',
-          // employee_number: '21000849',
-          employee_number: '<?php echo auth()->user()->employee->employee_number; ?>',
-
-          error : ''
-        };
-      },
-      methods: {
-        validateOvertimeDate() {
-          this.btnDisable = true;
-          var startTime = document.getElementById('startTime');
-          var endTime = document.getElementById('endTime');
-          var allowedOvertime = document.getElementById('allowedOvertime');
-          var errorMessage = document.getElementById('errorMessage');
-
-          var start_time = document.getElementById('start_time');
-          var end_time = document.getElementById('end_time');
-
-          axios.get('/check-valid-overtime?employee_number='+this.employee_number+'&date='+this.ot_date)
-          .then(function(response) {
-            if(response.data.allowed_overtime_hrs > 0){
-              startTime.textContent = response.data.start_time;
-              endTime.textContent = response.data.end_time;
-              allowedOvertime.textContent = response.data.allowed_overtime_hrs;
-
-              
-              start_time.value = response.data.start_time;
-              end_time.value = response.data.end_time;
-
-              errorMessage.textContent = "";
-
-              document.getElementById("btnOT").disabled = false;
-            }else{
-              startTime.textContent = 'No Time in';
-              endTime.textContent = 'No Time out';
-              allowedOvertime.textContent = '0';
-              errorMessage.textContent = 'Not allowed to file OT due to no Attendance detected.';
-
-              document.getElementById("btnOT").disabled = true;
-            }
-          })
-          .catch(function(error) {
-            this.btnDisable = false;
-          })
-          .finally(() => {
-            this.btnDisable = false; // Enable the button after the request
-          });;
-        },
-        validateDates() {
-          if (this.ot_date) {
-            const otDate = new Date(this.ot_date);
-            otDate.setDate(otDate.getDate() + 1);
-            this.min_date = this.ot_date + ' 00:00:00';
-            this.ot_max_date = this.ot_date + ' 23:00:00';
-            this.max_date = otDate.toISOString().split('T')[0] + ' 23:00:00';
-          }
-        }
-      },
-  });
-</script>

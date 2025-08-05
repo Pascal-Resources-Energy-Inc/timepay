@@ -369,15 +369,20 @@
                         <div class="collapse @if ($header == 'forms') show @endif" id="forms">
                             <ul class="nav flex-column sub-menu @if ($header == 'forms') show @endif">
                                 <li class="nav-item "> <a class="nav-link active" href="{{ url('/file-leave') }}">Leave</a></li>
-                                
+                               {{-- @php
+                                    $user_allowed_overtime = auth()->user()->allowed_overtime ? auth()->user()->allowed_overtime->allowed_overtime : "";
+                                @endphp
+                                @if(checkUserAllowedOvertime(auth()->user()->id) == 'yes' || $user_allowed_overtime == 'on')
                                     <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li>
-                             
+                                @endif --}}
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li>
+                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/work-from-home') }}">Work from home</a></li> --}}
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
-                                <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li>
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/authority-deduct') }}">Authority to Deduct</a></li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/number-enrollment') }}">Number Enrollment </a></li>
-                                <li class="nav-item "> <a class="nav-link " href="{{ url('/coe-request') }}">COE Request</a></li> -->
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/coe-request') }}">COE Request</a></li>
                             </ul>
                         </div>
                     </li>
@@ -417,7 +422,8 @@
                     @endif
                     @if ( auth()->user()->employee_under->count() != 0 
                     && (!auth()->user()->user_privilege || auth()->user()->user_privilege->payroll_view != 'on')
-                    && (!auth()->user()->user_privilege || auth()->user()->user_privilege->reports_coe != 'on') )
+                    && (!auth()->user()->user_privilege || auth()->user()->user_privilege->reports_coe != 'on')
+                    && (!auth()->user()->user_privilege || auth()->user()->user_privilege->reports_ne != 'on') )
                     <li class="nav-item">
                         <hr>
                         <h5>Manager</h5>
@@ -445,42 +451,62 @@
                         </a>
                     </li>
                     @endif
-                    @if (auth()->user()->user_privilege && auth()->user()->user_privilege->payroll_view == 'on')
-                    <li class="nav-item">
-                        <hr>
-                        <h5>Payroll</h5>
-                    </li>
-                    <li class="nav-item @if ($header == 'for-approval') active @endif">
-                        <a class="nav-link" data-toggle="collapse" href="#for-approval" aria-expanded="false" aria-controls="ui-basic">
-                            <i class="icon-check menu-icon"></i>
-                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_ad_count(auth()->user()->id) + pending_pd_count(auth()->user()->id) }}</span></span>
-                            <i class="menu-arrow"></i>
-                        </a>
-                        <div class="collapse @if ($header == 'for-approval') show @endif" id="for-approval">
-                            <ul class="nav flex-column sub-menu">
-                                <li class="nav-item "><a class="nav-link active" href="{{ url('/authority-deduction') }}" >Authority to Deduct <span class="badge badge-warning">{{ pending_ad_count(auth()->user()->id) }}</span></a></li>
-                                <li class="nav-item "><a class="nav-link " href="{{ url('/pds-approval') }}">Payroll Disbursement <span class="badge badge-warning">{{ pending_pd_count(auth()->user()->id) }}</span></a></li>
-                            </ul>
-                    </li>
+                    @php
+                        $is_pd_approver = \App\ApproverSetting::where('user_id', auth()->user()->id)
+                                        ->whereIn('type_of_form', ['pd', 'ad'])
+                                        ->where('status', 'Active')
+                                        ->exists();
+                    @endphp
+                    @if ($is_pd_approver)
+                        <li class="nav-item">
+                            <hr>
+                            <h5>Payroll</h5>
+                        </li>
+                        <li class="nav-item @if ($header == 'for-approval') active @endif">
+                            <a class="nav-link" data-toggle="collapse" href="#for-approval" aria-expanded="false" aria-controls="ui-basic">
+                                <i class="icon-check menu-icon"></i>
+                                <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_ad_count(auth()->user()->id) + pending_pd_count(auth()->user()->id) }}</span></span>
+                                <i class="menu-arrow"></i>
+                            </a>
+
+                            <div class="collapse @if ($header == 'for-approval') show @endif" id="for-approval">
+                                <ul class="nav flex-column sub-menu">
+                                    <li class="nav-item "><a class="nav-link active" href="{{ url('/authority-deduction') }}" >Authority to Deduct <span class="badge badge-warning">{{ pending_ad_count(auth()->user()->id) }}</span></a></li>
+                                    <li class="nav-item "><a class="nav-link " href="{{ url('/pds-approval') }}">Payroll Disbursement <span class="badge badge-warning">{{ pending_pd_count(auth()->user()->id) }}</span></a></li>
+                                </ul>
+                            </div>
+                        </li>
                     @endif
-                    @if (auth()->user()->user_privilege && auth()->user()->user_privilege->reports_coe == 'on')
+                    @php
+                        $is_coe_approver = \App\ApproverSetting::where('user_id', auth()->user()->id)
+                                        ->whereIn('type_of_form', ['coe'])
+                                        ->where('status', 'Active')
+                                        ->exists();
+                    @endphp
+                    @if ($is_coe_approver)
                     <li class="nav-item">
                         <hr>
                         <h5>COE Request</h5>
                     </li>
-                    <li class="nav-item @if ($header == 'for-approval') active @endif">
-                        <a class="nav-link" data-toggle="collapse" href="#for-approval" aria-expanded="false" aria-controls="ui-basic">
+                    <li class="nav-item @if ($header == 'for-approval_coe') active @endif">
+                        <a class="nav-link" data-toggle="collapse" href="#for-approval_coe" aria-expanded="@if ($header == 'for_approval_coe') true @else false @endif" aria-controls="ui-basic">
                             <i class="icon-check menu-icon"></i>
                             <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id)}}</span></span>
                             <i class="menu-arrow"></i>
                         </a>
-                        <div class="collapse @if ($header == 'for-approval') show @endif" id="for-approval">
+                        <div class="collapse @if ($header == 'for-approval_coe') show @endif" id="for-approval_coe">
                             <ul class="nav flex-column sub-menu">
                                 <li class="nav-item "><a class="nav-link active" href="{{ url('/coe-approval') }}" >COE Request<span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) }}</span></a></li>
                             </ul>
                     </li>
                     @endif
-                    @if (auth()->user()->user_privilege && auth()->user()->user_privilege->reports_ne == 'on')
+                    @php
+                        $is_ne_approver = \App\ApproverSetting::where('user_id', auth()->user()->id)
+                                        ->whereIn('type_of_form', ['ne'])
+                                        ->where('status', 'Active')
+                                        ->exists();
+                    @endphp
+                    @if ($is_ne_approver)
                     <li class="nav-item">
                         <hr>
                         <h5>Number Enrollment</h5>
@@ -586,8 +612,10 @@
                                 <li class="nav-item"> <a class="nav-link" href="{{ url('/incentives') }}">Incentives</a></li>
                                 <li class="nav-item"> <a class="nav-link" href="{{ url('/leavee-settings') }}">Leave Type</a></li>
                                 <li class="nav-item"> <a class="nav-link" href="{{ url('/announcements') }}">Announcements</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{{ url('/approval-amount') }}">Approval by Amount</a></li>
                                 <li class="nav-item"> <a class="nav-link" href="{{ url('/logos') }}">Logos</a></li>
-                                <li class="nav-item"> <a class="nav-link" href="{{ url('/hr-approver-setting') }}">HR Approver Setting</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="{{ url('/approver-setting') }}">Approver Setting</a></li>
+                                <!-- <li class="nav-item"> <a class="nav-link" href="{{ url('/hr-approver-setting') }}">HR Approver Setting</a></li> -->
                                 <li class="nav-item"> <a class="nav-link" href="{{ url('/tax') }}">Tax</a></li>
 
                             </ul>
@@ -714,9 +742,9 @@
                 <ul class="nav flex-column sub-menu">
                     {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/employee-report') }}">Employees</a></li> --}}
                     @if (checkUserPrivilege('reports_leave',auth()->user()->id) == 'yes')
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/leave-report') }}">Leave Reports</a></li>
-                    @endif
                     <li class="nav-item"> <a class="nav-link" href="{{ url('/leave-report-per-employee') }}">Leave Reports Per Employee</a></li>
+                    @endif
+                    <li class="nav-item"> <a class="nav-link" href="{{ url('/ne-report') }}">Number Enrollment Reports</a></li>
                     @if (checkUserPrivilege('reports_overtime',auth()->user()->id) == 'yes')
                     <li class="nav-item"> <a class="nav-link" href="{{ url('/overtime-report') }}">Overtime Reports</a></li>
                     @endif
@@ -782,6 +810,12 @@
             <a href="{{url('perfect_attendance')}}" class="nav-link">
                 <i class="ti-calendar menu-icon"></i>
                 Perfect Attendance
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ url('hub_per_location') }}" class="nav-link">
+                <i class="ti-location-pin menu-icon"></i>
+                Hub Per Location
             </a>
         </li>
         @endif

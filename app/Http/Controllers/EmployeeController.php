@@ -16,7 +16,6 @@ use App\Project;
 use App\Schedule;
 use App\Attendance;
 use App\iclockterminal_mysql;
-use App\ApprovalByAmount;
 use App\iclocktransactions_mysql;
 use App\Level;
 use App\EmployeeCompany;
@@ -1260,25 +1259,6 @@ class EmployeeController extends Controller
             }
         }
 
-        if ($request->higher && $request->less) {
-            $targetUserId = auth()->user()->id;
-            $editorUserId = auth()->user()->id;
-
-            ApprovalByAmount::where('created_by', $targetUserId)
-                            ->where('type_of_form', 'Travel Order')
-                            ->delete();
-
-            $approval_by_amount = new ApprovalByAmount();
-            $approval_by_amount->type_of_form = 'Travel Order';
-            $approval_by_amount->higher_than = $request->higher;
-            $approval_by_amount->less_than = $request->less;
-            $approval_by_amount->created_by = $targetUserId;
-            $approval_by_amount->updated_by = $editorUserId;
-            $approval_by_amount->save();
-        }
-
-
-        
         //Employee Vessel
         if($request->classification == 4 && $request->vessel_name){
             $employee_vessel = EmployeeVessel::where('user_id', $employee->user_id)->first();
@@ -2155,7 +2135,7 @@ class EmployeeController extends Controller
         {
             foreach($attendanceLogs as $att)
             {
-                if (($att->type != 1))
+                if (($att->type == 0))
                 {
                     $attend = Attendance::where('employee_code', $att->emp_code)->where('time_in', date('Y-m-d H:i:s', strtotime($att->datetime)))->first();
                     

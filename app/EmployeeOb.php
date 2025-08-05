@@ -8,7 +8,7 @@ use OwenIt\Auditing\Contracts\Auditable;
 class EmployeeOb extends Model implements Auditable
 {
     use \OwenIt\Auditing\Auditable;
-    
+
     public function user()
     {
         return $this->belongsTo(User::class,'user_id','id');
@@ -32,8 +32,22 @@ class EmployeeOb extends Model implements Auditable
     {
         return $this->hasMany(EmployeeApprover::class,'user_id','user_id');
     } 
+
     public function approvedBy()
     {
         return $this->belongsTo(User::class,'approved_by','id');
     }
+
+    public function immediateSupervisor()
+    {
+        return $this->belongsTo(User::class, 'immediate_sup');
+    }
+
+    public function destination_dates()
+    {
+        return $this->hasMany(EmployeeToDate::class);
+    }
+
+
+
 }

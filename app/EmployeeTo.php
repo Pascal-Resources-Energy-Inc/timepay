@@ -14,7 +14,10 @@ class EmployeeTo extends Model implements Auditable
         'status',
         'approved_by',
         'approved_date',
+        'approved_head_division',
+        'approved_by_head_division',
         'approval_remarks',
+        'approval_remarks2',
         'totalamount_total',
     ];
 
@@ -47,14 +50,24 @@ class EmployeeTo extends Model implements Auditable
         return $this->belongsTo(User::class,'approved_by','id');
     }
 
+    public function approvedByHeadDivision()
+    {
+        return $this->belongsTo(User::class,'approved_by_head_division','id');
+    }
+
     public function immediateSupervisor()
     {
         return $this->belongsTo(User::class, 'immediate_sup');
     }
 
-    public function destination_dates()
+    public function first_approver()
+        {
+            return $this->belongsTo(Employee::class, 'approved_by');
+        }
+
+        public function last_approver()
     {
-        return $this->hasMany(EmployeeToDate::class, 'employee_to_id', 'id  ');
+        return $this->belongsTo(User::class, 'approved_by_head_division', 'id');
     }
 
     

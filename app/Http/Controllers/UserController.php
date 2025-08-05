@@ -165,6 +165,14 @@ class UserController extends Controller
                 $user_privilege->employees_export_hr = $request->employees_export_hr;
                 $user_privilege->employees_rate = $request->employees_rate;
 
+                $user_privilege->leaves = $request->leaves;
+                $user_privilege->overtime = $request->overtime;
+                $user_privilege->daily_time_record = $request->daily_time_record;
+                $user_privilege->payroll_disbursement = $request->payroll_disbursement;
+                $user_privilege->authority_deduct = $request->authority_deduct;
+                $user_privilege->number_enrollment = $request->number_enrollment;
+                $user_privilege->coe_request = $request->coe_request;
+
                 $user_privilege->reports_leave = $request->reports_leave;
                 $user_privilege->reports_overtime = $request->reports_overtime;
                 $user_privilege->reports_wfh = $request->reports_wfh;
@@ -212,6 +220,14 @@ class UserController extends Controller
                 $new_user_privilege->employees_export = $request->employees_export;
                 $new_user_privilege->employees_export_hr = $request->employees_export_hr;
                 $new_user_privilege->employees_rate = $request->employees_rate;
+
+                $new_user_privilege->leaves = $request->leaves;
+                $new_user_privilege->overtime = $request->overtime;
+                $new_user_privilege->daily_time_record = $request->daily_time_record;
+                $new_user_privilege->payroll_disbursement = $request->payroll_disbursement;
+                $new_user_privilege->authority_deduct = $request->authority_deduct;
+                $new_user_privilege->number_enrollment = $request->number_enrollment;
+                $new_user_privilege->coe_request = $request->coe_request;
 
                 $new_user_privilege->reports_leave = $request->reports_leave;
                 $new_user_privilege->reports_overtime = $request->reports_overtime;

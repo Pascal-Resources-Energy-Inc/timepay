@@ -50,6 +50,10 @@
                     <i class="ti-plus btn-icon-prepend"></i>                                                    
                     Apply Overtime
                   </button>
+                   <button type="button" class="btn btn-outline-success btn-icon-text" data-toggle="modal" data-target="#applyoffset">
+                    <i class="ti-plus btn-icon-prepend"></i>                                                    
+                    Apply Offset
+                </button>
                 </p>
 
                 <form method='get' onsubmit='show();' enctype="multipart/form-data">
@@ -80,7 +84,10 @@
                       </div>
                     </div>
                     <div class='col-md-2'>
-                      <button type="submit" class="form-control form-control-sm btn btn-primary mb-2 btn-sm">Filter</button>
+                      <div class="form-group">
+                        <label class="invisible">Filter</label>
+                        <button type="submit" class="form-control form-control-sm btn btn-primary btn-sm">Filter</button>
+                      </div>
                     </div>
                   </div>
                 </form>
@@ -97,7 +104,6 @@
                         <th>Break (Hrs)</th>
                         <th>OT Approved (Hrs)</th>
                         <th>Total OT Approved (Hrs)</th>
-                        <th>Remarks </th>
                         <th>Status </th>
                         <th>Approvers </th>
                         <th>View Attachments</th>
@@ -166,7 +172,6 @@
                         <td> {{$overtime->break_hrs}}</td>
                         <td> {{$overtime->ot_approved_hrs}}</td>
                         <td>{{$overtime->ot_approved_hrs - $overtime->break_hrs}}</td>
-                        <td>{{ $overtime->remarks }}</td>
                         <td id="tdStatus{{ $overtime->id }}">
                           @if ($overtime->status == 'Pending')
                             <label class="badge badge-warning">{{ $overtime->status }}</label>
@@ -232,14 +237,20 @@
         </div>
     </div>
 </div>
+
 @foreach ($overtimes as $overtime)
   @include('forms.overtime.edit_overtime')
   @include('forms.overtime.view_overtime')
   @include('forms.overtime.upload_overtime_attachments')
 @endforeach  
+  @include('forms.overtime.apply_OffSet')
   @include('forms.overtime.apply_overtime') 
+
 @endsection
 @section('OvertimeScript')
+
+<script>
+</script>
 	<script>
 		function cancel(id) {
 			var element = document.getElementById('tdActionId'+id);
@@ -286,4 +297,3 @@
 
 	</script>
 @endsection
-

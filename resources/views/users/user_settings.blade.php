@@ -88,7 +88,7 @@
                                 <div class='col-md-12 text-center'>
                                     <strong>
                                         <h3><i class="fa fa-user" aria-hidden="true"></i> Personal Information
-                                            <button class="btn btn-icon btn-info btn-xs" title="Edit Information" data-toggle="modal" data-target="#editInfo"><i class="fa fa-pencil"></i></button></h3>
+                                             <!-- <button class="btn btn-icon btn-info btn-xs" title="Edit Information" data-toggle="modal" data-target="#editInfo"><i class="fa fa-pencil"></i></button></h3> -->
                                     </strong>
                                 </div>
                             </div>
@@ -179,7 +179,7 @@
                                 <div class='col-md-12 text-center'>
                                     <strong>
                                         <h3><i class="fa fa-user-plus" aria-hidden="true"></i> Contact Person (In case of Emergency)
-                                            <button class="btn btn-icon btn-info btn-xs" title="Edit Contact Person" data-toggle="modal" data-target="#editEmpContactInfo"><i class="fa fa-pencil"></i></button>
+                                            <!-- <button class="btn btn-icon btn-info btn-xs" title="Edit Contact Person" data-toggle="modal" data-target="#editEmpContactInfo"><i class="fa fa-pencil"></i></button> -->
                                         </h3>
                                     </strong>
                                 </div>
@@ -219,7 +219,7 @@
                                 <div class='col-md-12 text-center'>
                                     <strong>
                                         <h3><i class="fa fa-user-plus" aria-hidden="true"></i> Beneficiaries
-                                            <button class="btn btn-icon btn-info btn-xs" title="Edit Beneficiaries" data-toggle="modal" data-target="#editEmpBeneficiaries"><i class="fa fa-pencil"></i></button>
+                                            <!-- <button class="btn btn-icon btn-info btn-xs" title="Edit Beneficiaries" data-toggle="modal" data-target="#editEmpBeneficiaries"><i class="fa fa-pencil"></i></button> -->
                                         </h3>
                                     </strong>
                                 </div>

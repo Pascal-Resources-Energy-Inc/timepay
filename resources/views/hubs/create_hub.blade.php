@@ -144,7 +144,7 @@
                                name="google_map_location_link" 
                                id="modal_google_map_location_link" 
                                class="form-control" 
-                               placeholder="https://maps.google.com/...">
+                               placeholder="https://maps.app.goo.gl/....">
                         <small class="form-text text-muted">Optional: Paste the Google Maps URL for location reference</small>
                     </div>
                 </div>

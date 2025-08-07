@@ -99,8 +99,8 @@
                         <th>Employment Status</th>
                         <th>Purpose</th>
                         <th>Receive Method</th>
-                        <th>Status </th>    
-                        <th>Approvers </th>       
+                        <th>Approvers </th>
+                        <th>Status </th>                                   
                       </tr>
                     </thead>
                     <tbody>
@@ -138,15 +138,6 @@
                         <td>{{ $coe->purpose ?? 'N/A' }}</td>
                         <td>{{ $coe->receive_method ?? 'N/A' }}</td>
                         <td>
-                          @if ($coe->status == 'Pending')
-                            <label class="badge badge-warning">{{ $coe->status }}</label>
-                          @elseif ($coe->status == 'Approved')
-                            <label class="badge badge-success">{{ $coe->status }}</label>
-                          @elseif (in_array($coe->status, ['Declined', 'Cancelled']))
-                            <label class="badge badge-danger">{{ $coe->status }}</label>
-                          @endif
-                        </td>
-                        <td>
                             @if($coe->approver && $coe->approver->count() > 0)
                                 @foreach ($coe->approver as $approver)
                                     @if ($approver->approver_info && 
@@ -160,6 +151,15 @@
                             @else
                                 <span class="text-muted">No approvers assigned</span>
                             @endif
+                        </td>
+                        <td>
+                          @if ($coe->status == 'Pending')
+                            <label class="badge badge-warning">{{ $coe->status }}</label>
+                          @elseif ($coe->status == 'Approved')
+                            <label class="badge badge-success">{{ $coe->status }}</label>
+                          @elseif (in_array($coe->status, ['Declined', 'Cancelled']))
+                            <label class="badge badge-danger">{{ $coe->status }}</label>
+                          @endif
                         </td>
                       </tr>
                       @endforeach

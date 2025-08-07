@@ -303,6 +303,8 @@
     background: #5dade2;
 }
 
+
+
 </style>
 @endsection
 
@@ -510,232 +512,438 @@
         @endif
         
         @if (auth()->user()->role == 'Admin')
-         <div class="row g-3">
-            <div class="col-md-3 mb-2 transparent">
-              <div class="card">
-                <div class="card-body">
-                  <h3 class="card-title">{{date('M d, Y')}} 
-                    @php
-                        // Check if user has an approved travel order for today
-                        $today = date('Y-m-d');
-                        $user_travel_orders_today = \App\EmployeeTo::where('user_id', auth()->user()->id)
-                          ->whereIn('status', ['Approved', 'Partially Approved'])
-                          ->where(function($query) use ($today) {
-                            $query->whereDate('date_from', '<=', $today)
-                                  ->whereDate('date_to', '>=', $today);
-                          })
-                          ->exists();
-                      @endphp
+        <!-- Tabs Navigation -->
+        <div class="admin-tabs">
+            <nav class="nav nav-tabs" id="adminTabs">
+                <a class="nav-link active" data-bs-toggle="tab" href="#dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Admin Side
+                </a>
+                <a class="nav-link" data-bs-toggle="tab" href="#employees">
+                    <i class="fas fa-users"></i> Employee Side
+                </a>
+            </nav>
+        </div>
 
-                    @if(($user_travel_orders_today) || (auth()->user()->login == 1))
-                      @if($attendance_now != null)
-                        <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
-                          <i class="ti-control-pause" ></i>
-                        </button>
-                        @else
-                        <button onclick="getLocation()" type="button" Title='Time In' class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#timeIn">
-                        <i class="ti-control-play" ></i>
-                      </button>
-                     @endif
-                    @endif
-                  </h3>
-                  <div class="media">
-                      <i class="ti-time icon-md text-info d-flex align-self-center mr-3"></i>
-                      <div class="media-body">
-                        <p class="card-text">Time In : 
-                          @if($attendance_now != null){{date('h:i A',strtotime($attendance_now->time_in))}} <br>
-                          @php
-                                $employee_schedule = employeeSchedule($schedules,$attendance_now->time_in,$schedules[0]->schedule_id);
-                                $estimated_out = "";
-                                $halfday_out = "";
-                                $schedule_hours = 0;
-                                if($employee_schedule != null)
-                                {
-                                  $schedule_out = strtotime(date('Y-m-d')." ".$employee_schedule->time_out_to);
-                                  $schedule_in = strtotime(date('Y-m-d')." ".$employee_schedule->time_in_to);
-                                  if(($schedule_out) < ($schedule_in))
-                                  {
-                                      
-                                      $schedule_out = strtotime($date_r." ".$employee_schedule->time_out_to)+86400;
-                                      // dd(date('Y-m-d H:i',$schedule_out)." ".date('Y-m-d H:i',$schedule_in));
-                                  }
-                                  $schedule_hours = ((($schedule_out)-($schedule_in))/3600);
-                                  // dd(date('Y-m-d',strtotime($date_r)));
-                                  if($schedule_hours > 8)
-                                  {
-                                      $schedule_hours =  $schedule_hours-1;
-                                      
-                                      
-                                  }
-                                  if(strtotime(date('h:i A',strtotime($attendance_now->time_in))) < strtotime(date('h:i A',strtotime(date('Y-m-d')." ".$employee_schedule['time_in_from']))))
-                                  {
-                                
-                                      $halfday_out = date("h:i A", strtotime('+'.intval(($schedule_hours/2)*60).' minutes', strtotime(date('Y-m-d')." ".$employee_schedule['time_in_from'])));
-                                      $estimated_out = date('h:i A',strtotime($employee_schedule['time_out_from']));
-                                  }
-                                  else
-                                  {
-                                    // dd($schedule_hours/2);
-                                  
-                                    $halfday_out = date("h:i A", strtotime('+'.intval(($schedule_hours/2)*60).' minutes', strtotime($attendance_now->time_in)));
-                                    // dd($halfday_out);
-                                      $hours = intval($employee_schedule['working_hours']);
-                                      $minutes = ($employee_schedule['working_hours']-$hours)*60;
-                                      $estimated_out = date('h:i A', strtotime("+".$hours." hours",strtotime($attendance_now->time_in)));
-                                      $estimated_out = date('h:i A', strtotime("+".$minutes." minutes",strtotime($estimated_out)));
-                                  }
-                                  if(strtotime(date('h:i A',strtotime($attendance_now->time_in))) > strtotime(date('h:i A',strtotime($employee_schedule['time_in_to']))))
-                                  {
-                                      $estimated_out = date('h:i A',strtotime($employee_schedule['time_out_to']));
-                                      $halfday_out = date("h:i A", strtotime('+'.intval(($schedule_hours/2)*60).' minutes', strtotime($attendance_now->time_in)));
-                                  }
 
-                                }
-                                else {
-                                  $estimated_out = "No Schedule";
-                                  $halfday_out = "No Schedule";
-                                }
-                                
-                              @endphp
-                          @if($attendance_now->time_out == null )
-                              {{-- <hr>
-                              <small>
-                              Estimated Halfday Out : {{$halfday_out}} <br>
-                              Estimated Out : {{$estimated_out}} 
-                            </small> --}}
-                          @else
-                          Time Out : {{date('h:i A',strtotime($attendance_now->time_out))}} <br>
-                          {{-- <hr>
-                          <small> --}}
-                          {{-- Estimated Halfday Out : {{$halfday_out}} <br>
-                          Estimated Out : {{$estimated_out}}  --}}
-                        </small>
-                          @endif
-                        @else NO TIME IN 
-                        @endif</p>
-                        {{-- <button type="button" class="btn btn-outline-danger btn-fw btn-sm">Time Out</button> --}}
+        <!-- Tabs Content -->
+        <div class="tab-content mt-3">
+            <div class="tab-pane fade show active" id="dashboard">
+                <div class="admin-dashboard-overview">
+                <div class="row g-3">
+                    <div class="col-md-3 mb-2 transparent">
+                    <div class="card">
+                        <div class="card-body">
+                        <h3 class="card-title">{{date('M d, Y')}} 
+                            @php
+                                // Check if user has an approved travel order for today
+                                $today = date('Y-m-d');
+                                $user_travel_orders_today = \App\EmployeeTo::where('user_id', auth()->user()->id)
+                                ->whereIn('status', ['Approved', 'Partially Approved'])
+                                ->where(function($query) use ($today) {
+                                    $query->whereDate('date_from', '<=', $today)
+                                        ->whereDate('date_to', '>=', $today);
+                                })
+                                ->exists();
+                            @endphp
+
+                            @if($user_travel_orders_today)
+                            @if(auth()->user()->login)
+                            @if($attendance_now != null)
+                                <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
+                                <i class="ti-control-pause" ></i>
+                                </button>
+                                @else
+                                <button onclick="getLocation()" type="button" Title='Time In' class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#timeIn">
+                                <i class="ti-control-play" ></i>
+                            </button>
+                            @endif
+                            @endif
+                            @endif
+                        </h3>
+                        <div class="media">
+                            <i class="ti-time icon-md text-info d-flex align-self-center mr-3"></i>
+                            <div class="media-body">
+                                <p class="card-text">Time In : 
+                                @if($attendance_now != null){{date('h:i A',strtotime($attendance_now->time_in))}} <br>
+                                @php
+                                        $employee_schedule = employeeSchedule($schedules,$attendance_now->time_in,$schedules[0]->schedule_id);
+                                        $estimated_out = "";
+                                        $halfday_out = "";
+                                        $schedule_hours = 0;
+                                        if($employee_schedule != null)
+                                        {
+                                        $schedule_out = strtotime(date('Y-m-d')." ".$employee_schedule->time_out_to);
+                                        $schedule_in = strtotime(date('Y-m-d')." ".$employee_schedule->time_in_to);
+                                        if(($schedule_out) < ($schedule_in))
+                                        {
+                                            
+                                            $schedule_out = strtotime($date_r." ".$employee_schedule->time_out_to)+86400;
+                                            // dd(date('Y-m-d H:i',$schedule_out)." ".date('Y-m-d H:i',$schedule_in));
+                                        }
+                                        $schedule_hours = ((($schedule_out)-($schedule_in))/3600);
+                                        // dd(date('Y-m-d',strtotime($date_r)));
+                                        if($schedule_hours > 8)
+                                        {
+                                            $schedule_hours =  $schedule_hours-1;
+                                            
+                                            
+                                        }
+                                        if(strtotime(date('h:i A',strtotime($attendance_now->time_in))) < strtotime(date('h:i A',strtotime(date('Y-m-d')." ".$employee_schedule['time_in_from']))))
+                                        {
+                                        
+                                            $halfday_out = date("h:i A", strtotime('+'.intval(($schedule_hours/2)*60).' minutes', strtotime(date('Y-m-d')." ".$employee_schedule['time_in_from'])));
+                                            $estimated_out = date('h:i A',strtotime($employee_schedule['time_out_from']));
+                                        }
+                                        else
+                                        {
+                                            // dd($schedule_hours/2);
+                                        
+                                            $halfday_out = date("h:i A", strtotime('+'.intval(($schedule_hours/2)*60).' minutes', strtotime($attendance_now->time_in)));
+                                            // dd($halfday_out);
+                                            $hours = intval($employee_schedule['working_hours']);
+                                            $minutes = ($employee_schedule['working_hours']-$hours)*60;
+                                            $estimated_out = date('h:i A', strtotime("+".$hours." hours",strtotime($attendance_now->time_in)));
+                                            $estimated_out = date('h:i A', strtotime("+".$minutes." minutes",strtotime($estimated_out)));
+                                        }
+                                        if(strtotime(date('h:i A',strtotime($attendance_now->time_in))) > strtotime(date('h:i A',strtotime($employee_schedule['time_in_to']))))
+                                        {
+                                            $estimated_out = date('h:i A',strtotime($employee_schedule['time_out_to']));
+                                            $halfday_out = date("h:i A", strtotime('+'.intval(($schedule_hours/2)*60).' minutes', strtotime($attendance_now->time_in)));
+                                        }
+
+                                        }
+                                        else {
+                                        $estimated_out = "No Schedule";
+                                        $halfday_out = "No Schedule";
+                                        }
+                                        
+                                    @endphp
+                                @if($attendance_now->time_out == null )
+                                    {{-- <hr>
+                                    <small>
+                                    Estimated Halfday Out : {{$halfday_out}} <br>
+                                    Estimated Out : {{$estimated_out}} 
+                                    </small> --}}
+                                @else
+                                Time Out : {{date('h:i A',strtotime($attendance_now->time_out))}} <br>
+                                {{-- <hr>
+                                <small> --}}
+                                {{-- Estimated Halfday Out : {{$halfday_out}} <br>
+                                Estimated Out : {{$estimated_out}}  --}}
+                                </small>
+                                @endif
+                                @else NO TIME IN 
+                                @endif</p>
+                                {{-- <button type="button" class="btn btn-outline-danger btn-fw btn-sm">Time Out</button> --}}
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="col-md-2-25 mb-2">
+                    <div class="card employees-card" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#employeesModal">
+                        <div class="card-body d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
+                            <i class="fas fa-user-friends" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                            </div>
+                            <div class="text-content">
+                            <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Employees</strong></p>
+                            </div>
+                        </div>
+                        <div class="number-badge employees-count" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                            {{ $total_employees }}
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="col-md-2-25 mb-2">
+                    <div class="card present-card" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#presentEmployeesModal">
+                        <div class="card-body d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
+                            <i class="fas fa-user-check" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                            </div>
+                            <div class="text-content">
+                            <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Present</strong></p>
+                            </div>
+                        </div>
+                        <div class="number-badge present-count" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                            {{ $present_today_count ?? 0 }}
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                    
+                    <div class="col-md-2-25 mb-2">
+                    <div class="card absent-card" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#absentEmployeesModal">
+                        <div class="card-body d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
+                            <i class="fas fa-user-times" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                            </div>
+                            <div class="text-content">
+                            <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Absent</strong></p>
+                            </div>
+                        </div>
+                        <div class="number-badge absent-count" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                            {{ $absent_today_count ?? 0 }}
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="col-md-2-25 mb-2">
+                    <div class="card late-card" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#lateEmployeesModal">
+                        <div class="card-body d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
+                            <i class="fas fa-clock" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                            </div>
+                            <div class="text-content">
+                            <p class="mb-1" style="font-size: 14px; color: #000; margin: 0;"><strong>Late</strong></p>
+                            </div>
+                        </div>
+                        <div class="number-badge late-count" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                            {{ $late_comers_count ?? 0 }}
+                        </div>
+                        </div>
+                    </div>  
+                    </div>
+                </div>
+                <br>
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                        <div class="col-md-6 mb-9">
+                            <div class="d-flex align-items-center">
+                                <label for="locationFilter" class="form-label mb-0 me-3 flex-shrink-0" style="min-width: 150px;">
+                                <strong>Select Location:</strong>
+                                </label>
+                                <select class="form-control" id="locationFilter" name="location">
+                                <option value="">All Locations</option>
+                                @foreach($locations as $location)
+                                    <option value="{{ $location }}">{{ $location }}</option>
+                                @endforeach
+                                </select>
+                            </div>
+                            </div>
+                        <br><br>
+                        <div class="row justify-content-center">
+                        <div class="col-md-4 mb-4">
+                            <h5 class="text-start mb-2"><strong>Absentees - Last 7 Days</strong></h5>
+                            <div class="d-flex justify-content-center">
+                                <div class="chart-wrapper">
+                                    <canvas class="sideCharts" id="absentPieChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <h5 class="text-start mb-2"><strong>Absentees - by Month</strong></h5>
+                            <div class="d-flex justify-content-center">
+                                <div class="chart-wrapper loading">
+                                    <canvas class="centerChart" id="absentMonthlyPieChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <h5 class="text-start mb-2"><strong>Late Concerns - Last 7 Days</strong></h5>
+                            <div class="d-flex justify-content-center">
+                                <div class="chart-wrapper">
+                                    <canvas class="sideCharts" id="latePieChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+               
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="employees">
+                <div class="employee-management">
+                   <div class="row">
+                    <div class="col-md-3 mb-4 transparent">
+                        <div class="card">
+                          <div class="card-body">
+                            <h3 class="card-title">{{date('M d, Y')}} 
+                              @php
+                                  // Check if user has an approved travel order for today
+                                  $today = date('Y-m-d');
+                                  $user_travel_orders_today = \App\EmployeeTo::where('user_id', auth()->user()->id)
+                                    ->whereIn('status', ['Approved', 'Partially Approved'])
+                                    ->where(function($query) use ($today) {
+                                      $query->whereDate('date_from', '<=', $today)
+                                            ->whereDate('date_to', '>=', $today);
+                                    })
+                                    ->exists();
+                                @endphp
+
+                                @if($user_travel_orders_today)
+                                @if($attendance_now != null)
+                                  <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
+                                    <i class="ti-control-pause" ></i>
+                                  </button>
+                                  @else
+                                  <button onclick="getLocation()" type="button" Title='Time In' class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#timeIn">
+                                  <i class="ti-control-play" ></i>
+                                </button>
+                              @endif
+                              @endif
+                            </h3>
+                            <div class="media">
+                                <i class="ti-time icon-md text-info d-flex align-self-center mr-3"></i>
+                                <div class="media-body">
+                                  <p class="card-text">Time In : 
+                                    @if($attendance_now != null){{date('h:i A',strtotime($attendance_now->time_in))}} <br>
+                                    @php
+                                          $employee_schedule = employeeSchedule($schedules,$attendance_now->time_in,$schedules[0]->schedule_id);
+                                          $estimated_out = "";
+                                          $halfday_out = "";
+                                          $schedule_hours = 0;
+                                          if($employee_schedule != null)
+                                          {
+                                            $schedule_out = strtotime(date('Y-m-d')." ".$employee_schedule->time_out_to);
+                                            $schedule_in = strtotime(date('Y-m-d')." ".$employee_schedule->time_in_to);
+                                            if(($schedule_out) < ($schedule_in))
+                                            {
+                                                
+                                                $schedule_out = strtotime($date_r." ".$employee_schedule->time_out_to)+86400;
+                                                // dd(date('Y-m-d H:i',$schedule_out)." ".date('Y-m-d H:i',$schedule_in));
+                                            }
+                                            $schedule_hours = ((($schedule_out)-($schedule_in))/3600);
+                                            // dd(date('Y-m-d',strtotime($date_r)));
+                                            if($schedule_hours > 8)
+                                            {
+                                                $schedule_hours =  $schedule_hours-1;
+                                                
+                                                
+                                            }
+                                            if(strtotime(date('h:i A',strtotime($attendance_now->time_in))) < strtotime(date('h:i A',strtotime(date('Y-m-d')." ".$employee_schedule['time_in_from']))))
+                                            {
+                                          
+                                                $halfday_out = date("h:i A", strtotime('+'.intval(($schedule_hours/2)*60).' minutes', strtotime(date('Y-m-d')." ".$employee_schedule['time_in_from'])));
+                                                $estimated_out = date('h:i A',strtotime($employee_schedule['time_out_from']));
+                                            }
+                                            else
+                                            {
+                                              // dd($schedule_hours/2);
+                                            
+                                              $halfday_out = date("h:i A", strtotime('+'.intval(($schedule_hours/2)*60).' minutes', strtotime($attendance_now->time_in)));
+                                              // dd($halfday_out);
+                                                $hours = intval($employee_schedule['working_hours']);
+                                                $minutes = ($employee_schedule['working_hours']-$hours)*60;
+                                                $estimated_out = date('h:i A', strtotime("+".$hours." hours",strtotime($attendance_now->time_in)));
+                                                $estimated_out = date('h:i A', strtotime("+".$minutes." minutes",strtotime($estimated_out)));
+                                            }
+                                            if(strtotime(date('h:i A',strtotime($attendance_now->time_in))) > strtotime(date('h:i A',strtotime($employee_schedule['time_in_to']))))
+                                            {
+                                                $estimated_out = date('h:i A',strtotime($employee_schedule['time_out_to']));
+                                                $halfday_out = date("h:i A", strtotime('+'.intval(($schedule_hours/2)*60).' minutes', strtotime($attendance_now->time_in)));
+                                            }
+
+                                          }
+                                          else {
+                                            $estimated_out = "No Schedule";
+                                            $halfday_out = "No Schedule";
+                                          }
+                                          
+                                        @endphp
+                                    @if($attendance_now->time_out == null )
+                                        {{-- <hr>
+                                        <small>
+                                        Estimated Halfday Out : {{$halfday_out}} <br>
+                                        Estimated Out : {{$estimated_out}} 
+                                      </small> --}}
+                                    @else
+                                    Time Out : {{date('h:i A',strtotime($attendance_now->time_out))}} <br>
+                                    {{-- <hr>
+                                    <small> --}}
+                                    {{-- Estimated Halfday Out : {{$halfday_out}} <br>
+                                    Estimated Out : {{$estimated_out}}  --}}
+                                  </small>
+                                    @endif
+                                  @else NO TIME IN 
+                                  @endif</p>
+                                  {{-- <button type="button" class="btn btn-outline-danger btn-fw btn-sm">Time Out</button> --}}
+                                </div>
+                              </div>
+                          </div>
+                        </div>
+                      </div>
+                    <div class="col-md-3 mb-3">
+                      <div class="card show-used-leave-days" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;">
+                        <div class="card-body d-flex align-items-center justify-content-between">
+                          <div class="d-flex align-items-center">
+                            <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
+                              <i class="fas fa-user-friends" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                            </div>
+                            <div class="text-content">
+                              <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Used Leave</strong></p>
+                            </div>
+                          </div>
+                          <div class="number-badge" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                            {{ $totalUsedLeaveDays }}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-2-25 mb-2">
-              <div class="card employees-card" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#employeesModal">
-                <div class="card-body d-flex align-items-center justify-content-between">
-                  <div class="d-flex align-items-center">
-                    <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
-                      <i class="fas fa-user-friends" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
-                    </div>
-                    <div class="text-content">
-                      <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Employees</strong></p>
-                    </div>
-                  </div>
-                  <div class="number-badge employees-count" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
-                    {{ $total_employees }}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-2-25 mb-2">
-              <div class="card present-card" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#presentEmployeesModal">
-                <div class="card-body d-flex align-items-center justify-content-between">
-                  <div class="d-flex align-items-center">
-                    <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
-                      <i class="fas fa-user-check" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
-                    </div>
-                    <div class="text-content">
-                      <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Present</strong></p>
-                    </div>
-                  </div>
-                  <div class="number-badge present-count" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
-                    {{ $present_today_count ?? 0 }}
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="col-md-2-25 mb-2">
-              <div class="card absent-card" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#absentEmployeesModal">
-                <div class="card-body d-flex align-items-center justify-content-between">
-                  <div class="d-flex align-items-center">
-                    <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
-                      <i class="fas fa-user-times" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
-                    </div>
-                    <div class="text-content">
-                      <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Absent</strong></p>
-                    </div>
-                  </div>
-                  <div class="number-badge absent-count" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
-                    {{ $absent_today_count ?? 0 }}
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <div class="col-md-2-25 mb-2">
-              <div class="card late-card" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#lateEmployeesModal">
-                <div class="card-body d-flex align-items-center justify-content-between">
-                  <div class="d-flex align-items-center">
-                    <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
-                      <i class="fas fa-clock" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
-                    </div>
-                    <div class="text-content">
-                      <p class="mb-1" style="font-size: 14px; color: #000; margin: 0;"><strong>Late</strong></p>
-                    </div>
-                  </div>
-                  <div class="number-badge late-count" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
-                    {{ $late_comers_count ?? 0 }}
-                  </div>
-                </div>
-              </div>  
-            </div>
-          </div>
-          <br>
-          <div class="card shadow-sm mb-3">
-            <div class="card-body">
-                <div class="col-md-6 mb-9">
-                    <div class="d-flex align-items-center">
-                        <label for="locationFilter" class="form-label mb-0 me-3 flex-shrink-0" style="min-width: 150px;">
-                          <strong>Select Location:</strong>
-                        </label>
-                        <select class="form-control" id="locationFilter" name="location">
-                          <option value="">All Locations</option>
-                          @foreach($locations as $location)
-                            <option value="{{ $location }}">{{ $location }}</option>
-                          @endforeach
-                        </select>
+                    <div class="col-md-3 mb-3">
+                      <div class="card show-late-records" style="cursor:pointer; border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px;">
+                        <div class="card-body d-flex align-items-center justify-content-between">
+                          <div class="d-flex align-items-center">
+                            <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
+                              <i class="fas fa-clock" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                            </div>
+                            <div class="text-content">
+                              <p class="mb-1" style="font-size: 14px; color: #000; margin: 0;"><strong>Late</strong></p>
+                            </div>
+                          </div>
+                          <div class="number-badge" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                            {{ count($lateRecords) ?? 0 }}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                <br><br>
-                <div class="row justify-content-center">
-                  <div class="col-md-4 mb-4">
-                      <h5 class="text-start mb-2"><strong>Absentees - Last 7 Days</strong></h5>
-                      <div class="d-flex justify-content-center">
-                          <div class="chart-wrapper">
-                              <canvas class="sideCharts" id="absentPieChart"></canvas>
+
+                    <div class="col-md-3 mb-3">
+                      <div class="card show-absent-dates" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;">
+                        <div class="card-body d-flex align-items-center justify-content-between">
+                          <div class="d-flex align-items-center">
+                            <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
+                              <i class="fas fa-user-times" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                            </div>
+                            <div class="text-content">
+                              <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Absent Days</strong></p>
+                            </div>
+                          </div>
+                          <div class="number-badge" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                            {{ count($absentDates) ?? 0 }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card shadow-sm mb-4 position-relative">
+                      <div class="position-absolute bg-light text-dark px-2 py-1 rounded small fw-bold" style="top: 20px; left: 20px;">
+                          <strong>Late – Current Cutoff</strong>
+                      </div>
+                      <br><br>
+                      <div class="card-body">
+                          <div class="chart-container" style="position: relative; width: 100%; height: 350px; overflow-x: auto; overflow-y: hidden;">
+                            <div style="min-width: 600px; height: 335px;">
+                                <canvas id="userLateChart"></canvas>
+                              </div>
                           </div>
                       </div>
                   </div>
-                  <div class="col-md-4 mb-4">
-                      <h5 class="text-start mb-2"><strong>Absentees - by Month</strong></h5>
-                      <div class="d-flex justify-content-center">
-                          <div class="chart-wrapper loading">
-                              <canvas class="centerChart" id="absentMonthlyPieChart"></canvas>
-                          </div>
-                      </div>
-                  </div>
-                  <div class="col-md-4 mb-4">
-                      <h5 class="text-start mb-2"><strong>Late Concerns - Last 7 Days</strong></h5>
-                      <div class="d-flex justify-content-center">
-                          <div class="chart-wrapper">
-                              <canvas class="sideCharts" id="latePieChart"></canvas>
-                          </div>
-                      </div>
-                  </div>
                 </div>
             </div>
-          </div>
-          @endif
+        </div>
+         @endif
+
+         
 
           <!-- Employee's list Modal -->
           <div class="modal fade" id="employeesModal" tabindex="-1" aria-labelledby="employeesModalLabel" aria-hidden="true">
@@ -1407,7 +1615,13 @@
                     position: 'bottom',
                     display: true
                 },
-                tooltip: { enabled: false }
+                tooltip: { 
+                    enabled: false 
+                },
+                // Disable any data labels on chart segments
+                datalabels: {
+                    display: false
+                }
             }
         };
 
@@ -1437,7 +1651,7 @@
             fetchLateChart(location)
         ]);
     }
-    
+
     async function fetchAbsentChart(location = '') {
         const response = await fetch(`{{ url('/dashboard/absentees-pie') }}?location=${location}`);
         const data = await response.json();
@@ -1445,14 +1659,34 @@
         absentPieChart.data = {
             labels: data.labels,
             datasets: [{
-                label: 'Absentees Count', // Changed label to reflect counts
-                data: data.counts, // Changed from data.percentages to data.counts
+                label: 'Absentees Count',
+                data: data.counts,
                 backgroundColor: [
                     '#a3f7f7', '#ff0000', '#e0e0e0',
                     '#add8e6', '#87cefa', '#0097a7', '#00796b'
                 ],
                 borderWidth: 1
             }]
+        };
+
+        // Update legend configuration to prevent showing numbers
+        absentPieChart.options.plugins.legend.labels.generateLabels = function(chart) {
+            const data = chart.data;
+            if (data.labels.length && data.datasets.length) {
+                return data.labels.map((label, i) => {
+                    const dataset = data.datasets[0];
+                    const backgroundColor = dataset.backgroundColor[i];
+                    return {
+                        text: label, // Only label text
+                        fillStyle: backgroundColor,
+                        strokeStyle: backgroundColor,
+                        lineWidth: 0,
+                        hidden: false,
+                        index: i
+                    };
+                });
+            }
+            return [];
         };
 
         absentPieChart.options.plugins.tooltip.enabled = true;
@@ -2282,6 +2516,17 @@
 
     const lateRecords = @json($lateRecords);
 
+    function formatDate(dateString) {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const dateObj = new Date(dateString);
+    const month = months[dateObj.getMonth()];
+    const day = dateObj.getDate();
+    const year = dateObj.getFullYear();
+    return `${month} ${day < 10 ? '0' + day : day}, ${year}`;
+    }
+
+
     document.addEventListener('DOMContentLoaded', function () {
       document.querySelector('.show-late-records').addEventListener('click', function () {
         let htmlContent = `<div style="font-size: 13px;">
@@ -2301,7 +2546,7 @@
             htmlContent += `
               <tr>
                 <td style="border: 1px solid #ccc; padding: 6px;">${index + 1}</td>
-                <td style="border: 1px solid #ccc; padding: 6px;">${late.date}</td>
+                <td style="border: 1px solid #ccc; padding: 6px;">${formatDate(late.date)}</td>
                 <td style="border: 1px solid #ccc; padding: 6px;">${late.time}</td>
                 <td style="border: 1px solid #ccc; padding: 6px;">${late.late_minutes} min${late.late_minutes != 1 ? 's' : ''}</td>
               </tr>`;

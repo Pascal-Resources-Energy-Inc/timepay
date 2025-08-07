@@ -13,6 +13,7 @@ class HubPerLocation extends Model implements Auditable
     
     protected $fillable = [
         'no',
+        'region',
         'territory',
         'area', 
         'hub_name',
@@ -29,6 +30,11 @@ class HubPerLocation extends Model implements Auditable
     ];
 
     // Scopes for common queries
+    public function scopeByRegion($query, $region)
+    {
+        return $query->where('region', $region);
+    }
+
     public function scopeByTerritory($query, $territory)
     {
         return $query->where('territory', $territory);

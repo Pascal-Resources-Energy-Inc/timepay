@@ -78,10 +78,6 @@ class EmployeeTravelOrderController extends Controller
         $all_approvers = $get_approvers->get_approvers(auth()->user()->id);
         $approver = $all_approvers->filter(fn($a) => $a->approver_info !== null)->last();
 
-        $latest_to = EmployeeTo::latest('id')->first();
-        $next_id = $latest_to ? $latest_to->id + 1 : 1;
-        $toNumber = 'TO-' . str_pad($next_id, 5, '0', STR_PAD_LEFT);
-
         $approvalThresholdValue = $approvalThreshold ? $approvalThreshold->higher_than : 0;
         $approversForJs = $all_approvers->map(function ($approver) {
             return [
@@ -106,7 +102,6 @@ class EmployeeTravelOrderController extends Controller
             'to' => $to,
             'status' => $status,
             'limit' => $limit,
-            'toNumber' => $toNumber,
             'approvalThreshold' => $approvalThresholdValue,
             'approversForJs' => $approversForJs
         ]);
@@ -118,7 +113,6 @@ class EmployeeTravelOrderController extends Controller
             $new_to->user_id = Auth::user()->id;
             $emp = Employee::where('user_id', auth()->user()->id)->first();
             $new_to->schedule_id = $emp->schedule_id;
-            $new_to->to_number = $request->to_number;
             $new_to->applied_date = $request->applied_date;
             $new_to->remarks = $request->remarks;
 
@@ -225,6 +219,10 @@ class EmployeeTravelOrderController extends Controller
             if ($request->filled('sig_image')) {
                 $new_to->sig_image = $request->sig_image;
             }
+
+            $latest_to = EmployeeTo::lockForUpdate()->latest('id')->first();
+            $next_id = $latest_to ? $latest_to->id + 1 : 1;
+            $new_to->to_number = 'TO-' . str_pad($next_id, 5, '0', STR_PAD_LEFT);
 
             $new_to->status = 'Pending';
             $new_to->level = 0;
@@ -413,23 +411,6 @@ class EmployeeTravelOrderController extends Controller
         Alert::success('Travel Order has been cancelled.')->persistent('Dismiss');
         return back();
     }
-
-    public function apply_form()
-    {
-        // Get the latest ID from the EmployeeTo table
-        $latest_to = EmployeeTo::latest('id')->first();
-
-        // If none exists yet, start from 1
-        $next_id = $latest_to ? $latest_to->id + 1 : 1;
-
-        // Format the TO number
-        $toNumber = 'TO-' . str_pad($next_id, 5, '0', STR_PAD_LEFT);
-
-        return view('forms.travelorder.apply_to', [
-            'toNumber' => $toNumber,
-        ]);
-    }
-
 
 }
 

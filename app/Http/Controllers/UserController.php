@@ -38,7 +38,7 @@ class UserController extends Controller
             $search = isset($request->search) ? $request->search : "";
             $limit = isset($request->limit) ? $request->limit : 1000;
             $companies = Company::whereHas('employee_has_company')->orderBy('company_name','ASC')->get();
-            $users = User::select('id','name','email','status','role')
+            $users = User::select('id','name','email','status','role', 'login')
                             ->whereHas('employee',function($q){
                                 $q->whereIn('status',['Active','Resigned','Terminated','Inactive']);
                             })
@@ -165,21 +165,12 @@ class UserController extends Controller
                 $user_privilege->employees_export_hr = $request->employees_export_hr;
                 $user_privilege->employees_rate = $request->employees_rate;
 
-                $user_privilege->leaves = $request->leaves;
-                $user_privilege->overtime = $request->overtime;
-                $user_privilege->daily_time_record = $request->daily_time_record;
-                $user_privilege->payroll_disbursement = $request->payroll_disbursement;
-                $user_privilege->authority_deduct = $request->authority_deduct;
-                $user_privilege->number_enrollment = $request->number_enrollment;
-                $user_privilege->coe_request = $request->coe_request;
 
                 $user_privilege->reports_leave = $request->reports_leave;
                 $user_privilege->reports_overtime = $request->reports_overtime;
                 $user_privilege->reports_wfh = $request->reports_wfh;
                 $user_privilege->reports_ob = $request->reports_ob;
                 $user_privilege->reports_dtr = $request->reports_dtr;
-                $user_privilege->reports_ne = $request->reports_ne;
-                $user_privilege->reports_coe = $request->reports_coe;
                 $user_privilege->reports_loan = $request->reports_loan;
 
                 $user_privilege->biometrics_per_employee = $request->biometrics_per_employee;
@@ -221,20 +212,11 @@ class UserController extends Controller
                 $new_user_privilege->employees_export_hr = $request->employees_export_hr;
                 $new_user_privilege->employees_rate = $request->employees_rate;
 
-                $new_user_privilege->leaves = $request->leaves;
-                $new_user_privilege->overtime = $request->overtime;
-                $new_user_privilege->daily_time_record = $request->daily_time_record;
-                $new_user_privilege->payroll_disbursement = $request->payroll_disbursement;
-                $new_user_privilege->authority_deduct = $request->authority_deduct;
-                $new_user_privilege->number_enrollment = $request->number_enrollment;
-                $new_user_privilege->coe_request = $request->coe_request;
 
                 $new_user_privilege->reports_leave = $request->reports_leave;
                 $new_user_privilege->reports_overtime = $request->reports_overtime;
                 $new_user_privilege->reports_wfh = $request->reports_wfh;
                 $new_user_privilege->reports_ob = $request->reports_ob;
-                $new_user_privilege->reports_coe = $request->reports_coe;
-                $new_user_privilege->reports_ne = $request->reports_ne;
                 $new_user_privilege->reports_dtr = $request->reports_dtr;
 
                 $new_user_privilege->biometrics_per_employee = $request->biometrics_per_employee;
@@ -269,6 +251,47 @@ class UserController extends Controller
             }
 
             
+        }
+    }
+
+    
+    public function enableMobileAttendance(Request $request)
+    {
+        try {
+            $user = User::findOrFail($request->id);
+            $user->login = 1;
+            $user->save();
+
+            return response()->json([
+                'status' => 1,
+                'message' => 'Mobile attendance has been enabled for ' . $user->name
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 0,
+                'message' => 'Error enabling mobile attendance'
+            ]);
+        }
+    } 
+
+    public function disableMobileAttendance(Request $request)
+    {
+        try {
+            $user = User::findOrFail($request->id);
+            $user->login = 0;
+            $user->save();
+
+            return response()->json([
+                'status' => 1,
+                'message' => 'Mobile attendance has been disabled for ' . $user->name
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 0,
+                'message' => 'Error disabling mobile attendance'
+            ]);
         }
     }
 

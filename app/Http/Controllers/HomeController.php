@@ -26,14 +26,10 @@ use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-
-
 class HomeController extends Controller
 {
     /**
      * Create a new controller instance.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -42,17 +38,19 @@ class HomeController extends Controller
 
     /**
      * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
      */
     public function index()
     {
-
+        // Cache current user data to avoid repeated database calls
+        $currentUser = auth()->user();
+        $currentEmployee = $currentUser->employee;
+        
         $documents = Document::get();
         $schedules = [];
         $attendance_controller = new AttendanceController;
         $current_day = date('d');
         $employee_birthday_celebrants = Employee::whereMonth('birth_date', date('m'))
+        ->whereHas('company')
         ->where(function($query) {
             $query->where('status', 'Active')
                   ->orWhere('status', 'HBU');
@@ -100,11 +98,13 @@ class HomeController extends Controller
         $employee_anniversaries = Employee::with('department', 'company') ->where(function($query) {
             $query->where('status', 'Active');
         })
+        ->whereHas('company')
           ->whereYear('original_date_hired','!=',date('Y'))
           ->whereMonth('original_date_hired', date('m'))
           ->get();
 
         $probationary_employee = Employee::with('department', 'company', 'user_info', 'classification_info')
+            ->whereHas('company') 
             ->where('classification', "1")
             ->where(function($query) {
                 $query->where('status', 'Active')
@@ -112,394 +112,427 @@ class HomeController extends Controller
             })
             ->orderBy('original_date_hired')
             ->get();
+        
+        $emp = Employee::where('user_id', Auth::id())->first();
 
         $classifications = Classification::get();
         $leaveTypes = Leave::all();
-
-        $usedLeaves = EmployeeLeave::where('user_id', auth()->user()->id)
-            ->where('status', 'Approved')
-            ->whereDate('date_to', '<=', Carbon::today())
-            ->get();
-
-        $totalUsedLeaveDays = $usedLeaves->reduce(function ($carry, $leave) {
-            $from = Carbon::parse($leave->date_from);
-            $to = Carbon::parse($leave->date_to);
-
-            if ($leave->halfday) {
-                return $carry + 0.5;
-            }
-
-            return $carry + $from->diffInDays($to) + 1;
-        }, 0);
-
-
-        $lateCount = null;
-
-        if (auth()->user()->employee && auth()->user()->employee->employee_number) {
-            $employeeNumber = auth()->user()->employee->employee_number;
-            
-            $scheduleId = auth()->user()->employee->schedule_id;
-            
-            $schedule = DB::table('schedule_datas')->where('schedule_id', $scheduleId)->first();
-            
-            if ($schedule) {
-                $expectedTimeIn = $schedule->time_in_from;
-                
-                $lateRecords = Attendance::where('employee_code', $employeeNumber)
-                    ->whereMonth('created_at', now()->month)
-                    ->whereYear('created_at', now()->year)
-                    ->orderBy('time_in', 'asc')
-                    ->get(['time_in', 'created_at'])
-                    ->map(function ($record) use ($expectedTimeIn) {
-                        if (is_null($record->created_at) || is_null($record->time_in)) {
-                            return null;
-                        }
-
-                        try {
-                            $date = \Carbon\Carbon::parse($record->created_at)->format('Y-m-d');
-                            $time = \Carbon\Carbon::parse($record->time_in)->format('H:i:s');
-                            $datetime = \Carbon\Carbon::parse("$date $time");
-
-                            $expectedDateTime = \Carbon\Carbon::parse("$date $expectedTimeIn");
-                            
-                            $actualTimeMinutes = $datetime->format('H:i');
-                            $expectedTimeMinutes = $expectedDateTime->format('H:i');
-                            
-                            // Check if late by comparing only hours and minutes
-                            $isLate = $actualTimeMinutes > $expectedTimeMinutes;
-                            
-                            if ($isLate) {
-                                $lateMinutes = $expectedDateTime->diffInMinutes($datetime);
-                                
-                                return [
-                                    'date' => \Carbon\Carbon::parse($record->created_at)->format('M d, Y'),
-                                    'time' => \Carbon\Carbon::parse($record->time_in)->format('h:i A'),
-                                    'late_minutes' => $lateMinutes,
-                                    'expected_time' => \Carbon\Carbon::parse($expectedTimeIn)->format('h:i A'),
-                                ];
-                            }
-                            
-                            return null;
-                        } catch (\Exception $e) {
-                            return null;
-                        }
-                    })
-                    ->filter();
-            } else {
-                $lateRecords = collect();
-            }
-        }
-
-
-        $employee_number = auth()->user()->employee->employee_number;
-
-        $start = Carbon::now()->startOfMonth();
-        $today = Carbon::now()->startOfDay();
-
-        $period = CarbonPeriod::create($start, $today);
-
+        
+        // User-specific data (only if user has employee record)
+        $totalUsedLeaveDays = 0;
+        $lateRecords = collect();
         $absentDates = [];
-
-        foreach ($period as $date) {
-            if ($date->isWeekend()) {
-                continue;
-            }
-
-            if (Holiday::whereDate('holiday_date', $date)->exists()) {
-                continue;
-            }
-
-            $hasDtr = Attendance::where('employee_code', $employee_number)
-                        ->whereDate('time_in', $date)
-                        ->exists();
-
-            $hasLeave = EmployeeLeave::where('user_id', auth()->id())
-                        ->where('status', 'Approved')
-                        ->whereDate('date_from', '<=', $date)
-                        ->whereDate('date_to', '>=', $date)
-                        ->exists();
-
-            if (!$hasDtr && !$hasLeave) {
-                $absentDates[] = $date->format('Y-m-d');
-            }
-        }
-
-        $header = 'leave_calendar';
-
-        $leave_plans_per_month = LeavePlan::where('department_id', auth()->user()->employee->department_id)
-            ->whereYear('date_from', date('Y'))
-            ->whereMonth('date_to', date('m'))
-            ->get();
-        $leave_plan_array = [];
-        $leave_plans = LeavePlan::where('department_id', auth()->user()->employee->department_id)->get();
-        foreach($leave_plans as $leave_plan)
-        {
-            $object = new stdClass;
-            $object->title = $leave_plan->reason;
-            $object->start = date('Y-m-d h:i:s', strtotime($leave_plan->date_from));
-            $object->end = date('Y-m-d h:i:s', strtotime($leave_plan->date_to));
-            $object->color = '#57B657';
-            $object->leave_calendar_id = $leave_plan->id;
-            $object->reason = $leave_plan->reason;
-            $object->date_from = $leave_plan->date_from;
-            $object->date_to = $leave_plan->date_to;
-            $leave_plan_array[] = $object;
-        }
-
         $latePerDay = [];
-
-        if (auth()->user()->employee && auth()->user()->employee->employee_number) {
-            $employeeNumber = auth()->user()->employee->employee_number;
-            $scheduleId = auth()->user()->employee->schedule_id;
-            $schedule = DB::table('schedule_datas')->where('schedule_id', $scheduleId)->first();
-
-            if ($schedule) {
-                $expectedTimeString = $schedule->time_in_from;
-                $today = Carbon::today();
-                $year = $today->year;
-                $month = $today->month;
-
-                if ($today->day >= 6 && $today->day <= 20) {
-                    $startDate = Carbon::create($year, $month, 6);
-                    $endDate = Carbon::create($year, $month, 20);
-                } else {
-                    if ($today->day >= 21) {
-                        $startDate = Carbon::create($year, $month, 21);
-                        $endDate = Carbon::create($year, $month, 5)->addMonth();
-                    } else {
-                        $startDate = Carbon::create($year, $month, 21)->subMonth();
-                        $endDate = Carbon::create($year, $month, 5);
-                    }
-                }
-
-                $dates = collect();
-                $current = $startDate->copy();
-                while ($current->lte($endDate)) {
-                    $dates->push($current->copy());
-                    $current->addDay();
-                }
-
-                foreach ($dates as $date) {
-                    if ($date->dayOfWeek === 0) {
-                        continue;
-                    }
-
-                    if (Holiday::whereDate('holiday_date', $date)->exists()) {
-                        continue;
-                    }
-
-                    $attendance = Attendance::where('employee_code', $employeeNumber)
-                        ->whereDate('created_at', $date->toDateString())
-                        ->orderBy('time_in', 'asc')
-                        ->first();
-
-                    $lateMinutes = 0;
-                    $status = 'Present';
-
-                    if ($attendance && $attendance->time_in) {
-                        $timeIn = Carbon::parse($attendance->time_in);
-                        $expectedTime = Carbon::parse($date->format('Y-m-d') . ' ' . $expectedTimeString);
-
-                        if ($timeIn->gt($expectedTime)) {
-                            $lateMinutes = $expectedTime->diffInMinutes($timeIn);
-                        }
-                    } else {
-                        $hasLeave = EmployeeLeave::where('user_id', auth()->id())
-                            ->where('status', 'Approved')
-                            ->whereDate('date_from', '<=', $date)
-                            ->whereDate('date_to', '>=', $date)
-                            ->exists();
-
-                        if (!$hasLeave && $date->lt($today)) {
-                            $status = 'Absent';
-                        } elseif (!$hasLeave && $date->isSameDay($today)) {
-                            $status = 'No Attendance';
-                        } else {
-                            $status = 'Present';
-                        }
-                    }
-
-                    $latePerDay[] = [
-                        'date' => $date->format('F j'),
-                        'late_minutes' => $lateMinutes,
-                        'status' => $status,
-                        'expected_time' => Carbon::parse($expectedTimeString)->format('g:i A'),
-                        'actual_time_in' => $attendance && $attendance->time_in
-                            ? Carbon::parse($attendance->time_in)->format('g:i A')
-                            : ($status === 'Absent' ? 'Absent' : ($status === 'No Attendance' ? 'No attendance' : '')),
-                    ];
-                }
-            } else {
-                $latePerDay = [];
-            }
-        }
-
-        // for admin side
-        $locations = Employee::whereIn('status', ['Active', 'HBU'])
-                            ->pluck('location')
-                            ->unique()
-                            ->sort()
-                            ->values();
-
-        $today = Carbon::today()->toDateString();
-        $tenAM = Carbon::today()->setTime(10, 0);
-
-        $all_employees = Employee::whereIn('status', ['Active', 'HBU'])->get();
-        $total_employees = $all_employees->count();
-
-
-        $present_today_count = Attendance::whereDate('time_in', $today)
-            ->whereHas('employee', function($query) {
-                $query->whereIn('status', ['Active', 'HBU']);
-            })
-            ->distinct('employee_code')
-            ->count('employee_code');
-
-
-        $activeEmployees = Employee::whereIn('status', ['Active', 'HBU'])->get();
-
-        $absentTodayCount = $activeEmployees->filter(function ($employee) use ($tenAM) {
-            if (!$employee->employee_number) return false;
-
-            $attendance = Attendance::where('employee_code', $employee->employee_number)
-                ->whereDate('time_in', now()->toDateString())
-                ->exists();
-
-            return !$attendance && now()->greaterThan($tenAM);
-        })->count();
-
-       $lateComersCount = 0;
-        try {
-            // Get all active employees with their schedules and attendance in one query
-            $lateEmployees = DB::table('employees')
-                ->join('schedule_datas', 'employees.schedule_id', '=', 'schedule_datas.schedule_id')
-                ->join('attendances', 'employees.employee_number', '=', 'attendances.employee_code')
-                ->whereIn('employees.status', ['Active', 'HBU'])
-                ->whereDate('attendances.time_in', $today)
-                ->whereRaw('TIME(attendances.time_in) > TIME( 
-                            CASE 
-                                WHEN LENGTH(TRIM(schedule_datas.time_in_from)) = 5 
-                                THEN ADDTIME(CONCAT(TRIM(schedule_datas.time_in_from), ":00"), "00:01:00")
-                                ELSE ADDTIME(TRIM(schedule_datas.time_in_from), "00:01:00") 
-                            END
-                          )')
-                ->select('employees.employee_number')
-                ->distinct()
+        
+        if ($currentEmployee && $currentEmployee->employee_number) {
+            // Optimized used leaves calculation
+            $usedLeaves = EmployeeLeave::select('date_from', 'date_to', 'halfday')
+                ->where('user_id', $currentUser->id)
+                ->where('status', 'Approved')
+                ->whereDate('date_to', '<=', Carbon::today())
                 ->get();
             
-            $lateComersCount = $lateEmployees->count();
+            $totalUsedLeaveDays = $usedLeaves->reduce(function ($carry, $leave) {
+                if ($leave->halfday) return $carry + 0.5;
+                return $carry + Carbon::parse($leave->date_from)->diffInDays(Carbon::parse($leave->date_to)) + 1;
+            }, 0);
             
-        } catch (\Exception $e) {
-            \Log::error('Error calculating late comers count', [
-                'error' => $e->getMessage(),
-                'date' => $today
-            ]);
-            $lateComersCount = 0;
+            // Optimized late records calculation
+            $scheduleId = $currentEmployee->schedule_id;
+            $schedule = DB::table('schedule_datas')
+                ->select('time_in_from')
+                ->where('schedule_id', $scheduleId)
+                ->first();
+            
+            if ($schedule) {
+                $lateRecords = $this->calculateLateRecords($currentEmployee->employee_number, $schedule->time_in_from);
+                $absentDates = $this->calculateAbsentDates($currentEmployee->employee_number, $currentUser->id);
+                $latePerDay = $this->calculateLatePerDay($currentEmployee->employee_number, $schedule->time_in_from, $currentUser->id);
+            }
         }
-
-
-        return view('dashboards.home',
-        array(
+        
+        // Leave plan data (only if user has employee record)
+        $leave_plans_per_month = collect();
+        $leave_plan_array = [];
+        
+        if ($currentEmployee) {
+            $leave_plans_per_month = LeavePlan::select('id', 'reason', 'date_from', 'date_to')
+                ->where('department_id', $currentEmployee->department_id)
+                ->whereYear('date_from', date('Y'))
+                ->whereMonth('date_to', date('m'))
+                ->get();
+            
+            $leave_plans = LeavePlan::select('id', 'reason', 'date_from', 'date_to')
+                ->where('department_id', $currentEmployee->department_id)
+                ->get();
+            
+            foreach($leave_plans as $leave_plan) {
+                $object = new stdClass;
+                $object->title = $leave_plan->reason;
+                $object->start = date('Y-m-d h:i:s', strtotime($leave_plan->date_from));
+                $object->end = date('Y-m-d h:i:s', strtotime($leave_plan->date_to));
+                $object->color = '#57B657';
+                $object->leave_calendar_id = $leave_plan->id;
+                $object->reason = $leave_plan->reason;
+                $object->date_from = $leave_plan->date_from;
+                $object->date_to = $leave_plan->date_to;
+                $leave_plan_array[] = $object;
+            }
+        }
+        
+        // Admin statistics (optimized with single query)
+        $adminStats = $this->getOptimizedAdminStats();
+        
+        return view('dashboards.home', array_merge([
             'header' => '',
+            'emp' => $emp,
             'date_ranges' => $date_ranges,
             'handbook' => $handbook,
             'attendance_now' => $attendance_now,
             'attendances' => $attendances,
             'schedules' => $schedules,
-            'announcements' => $announcements ,
-            'attendance_employees' => $attendance_employees ,
-            'holidays' => $holidays ,
-            'employee_birthday_celebrants' => $employee_birthday_celebrants ,
-            'employees_new_hire' => $employees_new_hire ,
+            'announcements' => $announcements,
+            'attendance_employees' => $attendance_employees,
+            'holidays' => $holidays,
+            'employee_birthday_celebrants' => $employee_birthday_celebrants,
+            'employees_new_hire' => $employees_new_hire,
             'employee_anniversaries' => $employee_anniversaries,
             'probationary_employee' => $probationary_employee,
-            'classifications' =>$classifications,
+            'classifications' => $classifications,
             'leaveTypes' => $leaveTypes,
             'documents' => $documents,
-            'usedLeaves' => $usedLeaves,
-            'totalUsedLeaveDays' => $totalUsedLeaveDays, 
+            'usedLeaves' => $usedLeaves ?? collect(),
+            'totalUsedLeaveDays' => $totalUsedLeaveDays,
             'lateRecords' => $lateRecords,
             'absentDates' => $absentDates,
             'latePerDay' => $latePerDay,
             'leave_plans_per_month' => $leave_plans_per_month,
             'leave_plan_array' => $leave_plan_array,
-            'total_employees' => $total_employees,
-            'present_today_count' => $present_today_count,
-            'absent_today_count' => $absentTodayCount,
-            'late_comers_count' => $lateComersCount,
+        ], $adminStats));
+    }
+    
+    /**
+     * Optimized admin statistics calculation
+     */
+    private function getOptimizedAdminStats()
+    {
+        $today = Carbon::today()->toDateString();
+        $tenAM = Carbon::today()->setTime(10, 0);
+        
+        // Single query to get all required statistics
+        $stats = DB::select("
+            SELECT 
+                COUNT(CASE WHEN e.status IN ('Active', 'HBU') THEN 1 END) as total_employees,
+                COUNT(CASE WHEN a.employee_code IS NOT NULL THEN 1 END) as present_count,
+                COUNT(CASE WHEN e.status IN ('Active', 'HBU') 
+                        AND a.employee_code IS NULL 
+                        AND NOW() > CONCAT(CURDATE(), ' 10:00:00') 
+                        AND el.user_id IS NULL 
+                        THEN 1 END) as absent_count,
+                COUNT(CASE WHEN la.employee_code IS NOT NULL THEN 1 END) as late_count
+            FROM employees e
+            LEFT JOIN (
+                SELECT DISTINCT employee_code 
+                FROM attendances 
+                WHERE DATE(time_in) = ?
+            ) a ON e.employee_number = a.employee_code
+            LEFT JOIN (
+                SELECT DISTINCT u.id as user_id
+                FROM employee_leaves el
+                JOIN users u ON el.user_id = u.id
+                WHERE el.status = 'Approved'
+                    AND DATE(el.date_from) <= ?
+                    AND DATE(el.date_to) >= ?
+            ) el ON e.user_id = el.user_id
+            LEFT JOIN (
+                SELECT DISTINCT e2.employee_number as employee_code
+                FROM employees e2
+                JOIN schedule_datas sd ON e2.schedule_id = sd.schedule_id
+                JOIN attendances a2 ON e2.employee_number = a2.employee_code
+                WHERE e2.status IN ('Active', 'HBU')
+                    AND DATE(a2.time_in) = ?
+                    AND TIME(a2.time_in) > TIME(
+                        CASE 
+                            WHEN LENGTH(TRIM(sd.time_in_from)) = 5 
+                            THEN ADDTIME(CONCAT(TRIM(sd.time_in_from), ':00'), '00:01:00')
+                            ELSE ADDTIME(TRIM(sd.time_in_from), '00:01:00') 
+                        END
+                    )
+            ) la ON e.employee_number = la.employee_code
+            WHERE e.status IN ('Active', 'HBU')
+        ", [$today, $today, $today, $today]);
+        
+        $result = $stats[0];
+        
+        $locations = Employee::select('location')
+            ->whereIn('status', ['Active', 'HBU'])
+            ->whereNotNull('location')
+            ->distinct()
+            ->orderBy('location')
+            ->pluck('location');
+        
+        return [
+            'total_employees' => $result->total_employees,
+            'present_today_count' => $result->present_count,
+            'absent_today_count' => $result->absent_count,
+            'late_comers_count' => $result->late_count,
             'locations' => $locations,
+        ];
+    }
+    
+    /**
+     * Optimized late records calculation
+     */
+   private function calculateLateRecords($employeeNumber, $expectedTimeIn)
+        {
+            return DB::select("
+                SELECT 
+                    DATE(time_in) as date,
+                    DATE_FORMAT(MIN(time_in), '%h:%i %p') as time,
+                    FLOOR((TIME_TO_SEC(MIN(time_in)) - TIME_TO_SEC(?)) / 60) as late_minutes
+                FROM attendances 
+                WHERE employee_code = ? 
+                    AND MONTH(time_in) = MONTH(NOW()) 
+                    AND YEAR(time_in) = YEAR(NOW())
+                    AND TIME(time_in) > ADDTIME(TIME(?), '00:01:00')  -- More than 1 min late
+                    AND time_in IS NOT NULL
+                GROUP BY DATE(time_in)
+                ORDER BY DATE(time_in) ASC
+            ", [$expectedTimeIn, $employeeNumber, $expectedTimeIn]);
+        }
+    
+    /**
+     * Optimized absent dates calculation
+     */
+    private function calculateAbsentDates($employeeNumber, $userId)
+        {
+            $start = Carbon::now()->startOfMonth()->toDateString();
+            $today = Carbon::now()->startOfDay()->toDateString();
 
-        ));
+            $workingDays = [];
+            $period = CarbonPeriod::create($start, $today);
+
+            foreach ($period as $date) {
+                if (!$date->isWeekend()) {
+                    $workingDays[] = $date->toDateString();
+                }
+            }
+
+            if (empty($workingDays)) return [];
+
+            $holidays = Holiday::selectRaw('DATE(holiday_date) as holiday_date_only')
+                ->whereIn(DB::raw('DATE(holiday_date)'), $workingDays)
+                ->get()
+                ->pluck('holiday_date_only')
+                ->toArray();
+
+            $attendanceDays = Attendance::selectRaw('DATE(time_in) as attendance_date')
+                ->where('employee_code', $employeeNumber)
+                ->whereIn(DB::raw('DATE(time_in)'), $workingDays)
+                ->get()
+                ->pluck('attendance_date')
+                ->toArray();
+
+            $leaveDays = EmployeeLeave::where('user_id', $userId)
+                ->where('status', 'Approved')
+                ->where(function($query) use ($start, $today) {
+                    $query->whereBetween('date_from', [$start, $today])
+                        ->orWhereBetween('date_to', [$start, $today])
+                        ->orWhere(function($q) use ($start, $today) {
+                            $q->where('date_from', '<=', $start)
+                                ->where('date_to', '>=', $today);
+                        });
+                })
+                ->get()
+                ->flatMap(function($leave) {
+                    return CarbonPeriod::create($leave->date_from, $leave->date_to)->toArray();
+                })
+                ->map(function($date) {
+                    return $date->toDateString();
+                })
+                ->toArray();
+
+            $presentOrExcused = array_unique(array_merge($attendanceDays, $leaveDays, $holidays));
+
+            return collect(array_values(array_diff($workingDays, $presentOrExcused)))
+                ->map(fn($date) => \Carbon\Carbon::parse($date)->format('M d, Y'))
+                ->toArray();
+                
+        }
+        
+
+
+    private function calculateLatePerDay($employeeNumber, $expectedTimeString, $userId)
+    {
+        $today = Carbon::today();
+        $year = $today->year;
+        $month = $today->month;
+
+        if ($today->day >= 6 && $today->day <= 20) {
+            $startDate = Carbon::create($year, $month, 6);
+            $endDate = Carbon::create($year, $month, 20);
+        } else {
+            if ($today->day >= 21) {
+                $startDate = Carbon::create($year, $month, 21);
+                $endDate = Carbon::create($year, $month, 5)->addMonth();
+            } else {
+                $startDate = Carbon::create($year, $month, 21)->subMonth();
+                $endDate = Carbon::create($year, $month, 5);
+            }
+        }
+
+        $attendanceData = DB::table('attendances')
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('MIN(time_in) as time_in'))
+            ->where('employee_code', $employeeNumber)
+            ->whereBetween(DB::raw('DATE(created_at)'), [$startDate->toDateString(), $endDate->toDateString()])
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->pluck('time_in', 'date');
+
+        $holidays = Holiday::whereBetween(DB::raw('DATE(holiday_date)'), [$startDate->toDateString(), $endDate->toDateString()])
+            ->pluck('holiday_date')
+            ->map(fn($d) => Carbon::parse($d)->toDateString())
+            ->toArray();
+
+        $leaveData = EmployeeLeave::where('user_id', $userId)
+            ->where('status', 'Approved')
+            ->where('date_from', '<=', $endDate->toDateString())
+            ->where('date_to', '>=', $startDate->toDateString())
+            ->get();
+
+        $hasSaturdayAttendance = DB::table('attendances')
+            ->where('employee_code', $employeeNumber)
+            ->whereRaw('DAYOFWEEK(created_at) = 7') // Saturday = 7
+            ->exists();
+
+        $latePerDay = [];
+        $current = $startDate->copy();
+
+        while ($current->lte($endDate)) {
+            $dateStr = $current->toDateString();
+            $dayOfWeek = $current->dayOfWeek; // 0=Sunday, 6=Saturday
+
+            $status = 'Present';
+            $lateMinutes = 0;
+            $actualTimeIn = '';
+            $isWorkingDay = true;
+
+            // Sunday: always show label, never show data
+            if ($dayOfWeek === 0) {
+                $status = 'Skip';
+                $isWorkingDay = false;
+            }
+
+            // Saturday: show label; include data only if they’ve worked Saturdays
+            if ($dayOfWeek === 6 && !$hasSaturdayAttendance) {
+                $status = 'Skip';
+                $isWorkingDay = false;
+            }
+
+            if ($isWorkingDay && !in_array($dateStr, $holidays)) {
+                if (isset($attendanceData[$dateStr])) {
+                    $timeIn = Carbon::parse($attendanceData[$dateStr]);
+                    $expectedTime = Carbon::parse($dateStr . ' ' . $expectedTimeString);
+
+                    if ($timeIn->gt($expectedTime)) {
+                        $lateMinutes = $expectedTime->diffInMinutes($timeIn);
+                    }
+
+                    $actualTimeIn = $timeIn->format('g:i A');
+                } else {
+                    $hasLeave = $leaveData->first(function ($leave) use ($dateStr) {
+                        return $dateStr >= $leave->date_from && $dateStr <= $leave->date_to;
+                    });
+
+                    if (!$hasLeave && $current->lt($today)) {
+                        $status = 'Absent';
+                        $actualTimeIn = 'Absent';
+                    } elseif (!$hasLeave && $current->isSameDay($today)) {
+                        $status = 'No Attendance';
+                        $actualTimeIn = 'No attendance';
+                    }
+                }
+            }
+
+            $latePerDay[] = [
+                'date' => $current->format('F j'),
+                'late_minutes' => $lateMinutes,
+                'status' => $status,
+                'expected_time' => $isWorkingDay ? Carbon::parse($expectedTimeString)->format('g:i A') : '',
+                'actual_time_in' => $actualTimeIn,
+            ];
+
+            $current->addDay();
+        }
+
+        return $latePerDay;
     }
 
+    
 
     public function filterByLocation(Request $request)
     {
         $location = $request->input('location');
-        $today = \Carbon\Carbon::today()->toDateString();
+        $today = Carbon::today()->toDateString();
 
-        $employees = \App\Employee::whereIn('status', ['Active', 'HBU']);
-        if ($location) {
-            $employees->where('location', $location);
-        }
+        // Use single optimized query with subqueries
+        $stats = DB::select("
+            SELECT 
+                COUNT(CASE WHEN e.status IN ('Active', 'HBU') THEN 1 END) as total_employees,
+                COUNT(CASE WHEN a.employee_code IS NOT NULL THEN 1 END) as present_count,
+                COUNT(CASE WHEN e.status IN ('Active', 'HBU') 
+                        AND a.employee_code IS NULL 
+                        AND NOW() > CONCAT(CURDATE(), ' 10:00:00') 
+                        AND el.user_id IS NULL 
+                        THEN 1 END) as absent_count,
+                COUNT(CASE WHEN la.employee_code IS NOT NULL THEN 1 END) as late_count
+            FROM employees e
+            LEFT JOIN (
+                SELECT DISTINCT employee_code 
+                FROM attendances 
+                WHERE DATE(time_in) = ?
+            ) a ON e.employee_number = a.employee_code
+            LEFT JOIN (
+                SELECT DISTINCT u.id as user_id
+                FROM employee_leaves el
+                JOIN users u ON el.user_id = u.id
+                JOIN employees emp ON u.id = emp.user_id
+                WHERE el.status = 'Approved'
+                    AND DATE(el.date_from) <= ?
+                    AND DATE(el.date_to) >= ?
+            ) el ON e.user_id = el.user_id
+            LEFT JOIN (
+                SELECT DISTINCT e2.employee_number as employee_code
+                FROM employees e2
+                JOIN schedule_datas sd ON e2.schedule_id = sd.schedule_id
+                JOIN attendances a2 ON e2.employee_number = a2.employee_code
+                WHERE e2.status IN ('Active', 'HBU')
+                    AND DATE(a2.time_in) = ?
+                    AND TIME(a2.time_in) > TIME(
+                        CASE 
+                            WHEN LENGTH(TRIM(sd.time_in_from)) = 5 
+                            THEN ADDTIME(CONCAT(TRIM(sd.time_in_from), ':00'), '00:01:00')
+                            ELSE ADDTIME(TRIM(sd.time_in_from), '00:01:00') 
+                        END
+                    )" . ($location ? " AND e2.location = ?" : "") . "
+            ) la ON e.employee_number = la.employee_code
+            WHERE e.status IN ('Active', 'HBU')" . ($location ? " AND e.location = ?" : ""),
+            array_filter([
+                $today, // for present count subquery
+                $today, // for leave subquery date_from
+                $today, // for leave subquery date_to  
+                $today, // for late count subquery
+                $location, // for late count location filter (if exists)
+                $location  // for main query location filter (if exists)
+            ])
+        );
 
-        $employeeCodes = $employees->pluck('employee_number')->filter();
-
-        $total_employees = $employeeCodes->count();
-
-        $present_today_count = \App\Attendance::whereDate('time_in', $today)
-            ->whereIn('employee_code', $employeeCodes)
-            ->distinct('employee_code')
-            ->count('employee_code');
-
-        $tenAM = \Carbon\Carbon::today()->setTime(10, 0);
-
-        $absent_today_count = $employees->get()->filter(function ($employee) use ($tenAM) {
-            if (!$employee->employee_number) return false;
-
-            $attendance = \App\Attendance::where('employee_code', $employee->employee_number)
-                ->whereDate('time_in', now()->toDateString())
-                ->exists();
-
-            return !$attendance && now()->greaterThan($tenAM);
-        })->count();
-
-        // Fixed late comers count - using the same logic as your working code
-        $late_comers_count = 0;
-        try {
-            $lateEmployees = DB::table('employees')
-                ->join('schedule_datas', 'employees.schedule_id', '=', 'schedule_datas.schedule_id')
-                ->join('attendances', 'employees.employee_number', '=', 'attendances.employee_code')
-                ->whereIn('employees.status', ['Active', 'HBU'])
-                ->whereIn('employees.employee_number', $employeeCodes) // Added location filter
-                ->whereDate('attendances.time_in', $today)
-                ->whereRaw('TIME(attendances.time_in) > TIME( 
-                            CASE 
-                                WHEN LENGTH(TRIM(schedule_datas.time_in_from)) = 5 
-                                THEN ADDTIME(CONCAT(TRIM(schedule_datas.time_in_from), ":00"), "00:01:00")
-                                ELSE ADDTIME(TRIM(schedule_datas.time_in_from), "00:01:00") 
-                            END
-                          )')
-                ->select('employees.employee_number')
-                ->distinct()
-                ->get();
-            
-            $late_comers_count = $lateEmployees->count();
-            
-        } catch (\Exception $e) {
-            \Log::error('Error calculating late comers count in filterByLocation', [
-                'error' => $e->getMessage(),
-                'date' => $today,
-                'location' => $location
-            ]);
-            $late_comers_count = 0;
-        }
+        $result = $stats[0];
 
         return response()->json([
-            'total_employees' => $total_employees,
-            'present_today_count' => $present_today_count,
-            'absent_today_count' => $absent_today_count,
-            'late_comers_count' => $late_comers_count,
+            'total_employees' => $result->total_employees,
+            'present_today_count' => $result->present_count,
+            'absent_today_count' => $result->absent_count,
+            'late_comers_count' => $result->late_count,
         ]);
     }
     
@@ -511,7 +544,6 @@ class HomeController extends Controller
             // Start with basic query
             $query = Employee::whereIn('status', ['Active', 'HBU']);
             
-            // Add location filter if provided
             if ($location && $location !== '') {
                 $query->where('location', $location);
             }
@@ -797,348 +829,286 @@ class HomeController extends Controller
         }
 
     public function absenteesPie(Request $request)
-        {
-            $location = $request->input('location');
-            $today = Carbon::today();
+    {
+        $location = $request->input('location');
+        $today = Carbon::today();
 
-            $dates = [];
-            $day = $today->copy();
-            while (count($dates) < 7) {
-                if (!$day->isWeekend()) {
-                    array_unshift($dates, $day->copy()); 
-                }
-                $day->subDay();
+        $dates = collect();
+        $day = $today->copy();
+        while ($dates->count() < 7) {
+            if (!$day->isWeekend()) {
+                $dates->push($day->format('Y-m-d'));
             }
+            $day->subDay();
+        }
+        $dates = $dates->reverse()->values();
 
-            $employeesQuery = Employee::select('user_id', 'employee_number')
-                ->whereIn('status', ['Active', 'HBU'])
-                ->whereNotNull('employee_number');
-            
-            if ($location) {
-                $employeesQuery->where('location', $location);
-            }
-            
-            $employees = $employeesQuery->get();
-            
-            if ($employees->isEmpty()) {
-                return response()->json([
-                    'labels' => array_map(fn($date) => $date->format('M d'), $dates),
-                    'counts' => array_fill(0, 7, 0),
-                ]);
-            }
-
-            $employeeCodes = $employees->pluck('employee_number')->toArray();
-            $userIds = $employees->pluck('user_id')->toArray();
-            $employeeMap = $employees->keyBy('employee_number');
-
-            $startDate = $dates[0]->format('Y-m-d');
-            $endDate = $dates[6]->format('Y-m-d');
-            
-            $attendanceRecords = Attendance::select('employee_code', 'time_in')
-                ->whereIn('employee_code', $employeeCodes)
-                ->whereDate('time_in', '>=', $startDate)
-                ->whereDate('time_in', '<=', $endDate)
-                ->get()
-                ->groupBy(function($record) {
-                    return Carbon::parse($record->time_in)->format('Y-m-d') . '|' . $record->employee_code;
-                });
-
-            $leaveRecords = EmployeeLeave::select('user_id', 'date_from', 'date_to')
-                ->whereIn('user_id', $userIds)
-                ->where('status', 'Approved')
-                ->where('date_from', '<=', $endDate)
-                ->where('date_to', '>=', $startDate)
-                ->get();
-
-            $leaveMap = [];
-            foreach ($leaveRecords as $leave) {
-                $dateFrom = Carbon::parse($leave->date_from);
-                $dateTo = Carbon::parse($leave->date_to);
-                
-                $current = max($dateFrom, Carbon::parse($startDate));
-                $end = min($dateTo, Carbon::parse($endDate));
-                
-                while ($current->lte($end)) {
-                    if (!$current->isWeekend()) {
-                        $leaveMap[$current->format('Y-m-d')][$leave->user_id] = true;
-                    }
-                    $current->addDay();
-                }
-            }
-
-            $absenteesCounts = [];
-            foreach ($dates as $date) {
-                $dateStr = $date->format('Y-m-d');
-                $absentCount = 0;
-
-                foreach ($employeeCodes as $empCode) {
-                    $attendanceKey = $dateStr . '|' . $empCode;
-                    $userId = $employeeMap[$empCode]->user_id;
-                    
-                    if (!isset($attendanceRecords[$attendanceKey]) && 
-                        !isset($leaveMap[$dateStr][$userId])) {
-                        $absentCount++;
-                    }
-                }
-                
-                $absenteesCounts[] = $absentCount;
-            }
-
+        $employeesQuery = Employee::select('user_id', 'employee_number')
+            ->whereIn('status', ['Active', 'HBU'])
+            ->whereNotNull('employee_number');
+        
+        if ($location) {
+            $employeesQuery->where('location', $location);
+        }
+        
+        $employees = $employeesQuery->get();
+        
+        if ($employees->isEmpty()) {
             return response()->json([
-                'labels' => array_map(fn($date) => $date->format('M d'), $dates),
-                'counts' => $absenteesCounts,
+                'labels' => $dates->map(fn($date) => Carbon::parse($date)->format('M d')),
+                'counts' => array_fill(0, 7, 0),
             ]);
         }
+
+        $employeeCodes = $employees->pluck('employee_number')->toArray();
+        $userIds = $employees->pluck('user_id')->toArray();
+        $totalEmployees = count($employeeCodes);
+
+        $attendanceData = DB::table('attendances')
+            ->select(DB::raw('DATE(time_in) as date'), 'employee_code')
+            ->whereIn('employee_code', $employeeCodes)
+            ->whereDate('time_in', '>=', $dates->first())
+            ->whereDate('time_in', '<=', $dates->last())
+            ->get()
+            ->groupBy('date')
+            ->map(function ($records) {
+                return $records->pluck('employee_code')->unique()->toArray();
+            });
+
+        $leaveData = DB::table('employee_leaves')
+            ->select('user_id', 'date_from', 'date_to')
+            ->whereIn('user_id', $userIds)
+            ->where('status', 'Approved')
+            ->where('date_from', '<=', $dates->last())
+            ->where('date_to', '>=', $dates->first())
+            ->get();
+
+        $leaveCoverage = [];
+        foreach ($dates as $date) {
+            $leaveCoverage[$date] = $leaveData->filter(function ($leave) use ($date) {
+                return $date >= $leave->date_from && $date <= $leave->date_to;
+            })->pluck('user_id')->toArray();
+        }
+
+        $userToEmployeeMap = $employees->pluck('employee_number', 'user_id')->toArray();
+
+        $absentCounts = [];
+        foreach ($dates as $date) {
+            $presentEmployees = $attendanceData->get($date, []);
+            $usersOnLeave = $leaveCoverage[$date];
+            $employeesOnLeave = collect($usersOnLeave)->map(fn($userId) => $userToEmployeeMap[$userId] ?? null)->filter()->toArray();
+            
+            $presentOrOnLeave = array_unique(array_merge($presentEmployees, $employeesOnLeave));
+            $absentCount = $totalEmployees - count($presentOrOnLeave);
+            
+            $absentCounts[] = max(0, $absentCount);
+        }
+
+        return response()->json([
+            'labels' => $dates->map(fn($date) => Carbon::parse($date)->format('M d')),
+            'counts' => $absentCounts,
+        ]);
+    }
 
     public function absenteesMonthlyPie(Request $request)
-        {
-            $location = $request->input('location');
-            $today = Carbon::today();
-
-            // Generate last 3 months
-            $months = collect();
-            for ($i = 3; $i >= 1; $i--) {
-                $months->push($today->copy()->subMonthsNoOverflow($i)->startOfMonth());
+    {
+        $location = $request->input('location');
+        $today = Carbon::today();
+        
+        $lastMonth = $today->copy()->subMonth();
+        $startOfLastMonth = $lastMonth->copy()->startOfMonth();
+        $endOfLastMonth = $lastMonth->copy()->endOfMonth();
+        
+        $workingDays = collect();
+        $currentDay = $startOfLastMonth->copy();
+        
+        while ($currentDay->lte($endOfLastMonth)) {
+            if (!$currentDay->isWeekend()) {
+                $workingDays->push($currentDay->format('Y-m-d'));
             }
-
-            // Get employees with optimized query
-            $employeesQuery = Employee::select('id', 'user_id', 'employee_number')
-                ->whereIn('status', ['Active', 'HBU'])
-                ->whereNotNull('employee_number');
-            
-            if ($location) {
-                $employeesQuery->where('location', $location);
-            }
-            
-            $employees = $employeesQuery->get();
-
-            if ($employees->isEmpty()) {
-                return response()->json([
-                    'labels' => $months->map(fn($m) => $m->format('M'))->values(),
-                    'percentages' => [0, 0, 0],
-                ]);
-            }
-
-            $employeeCodes = $employees->pluck('employee_number')->toArray();
-            $userIds = $employees->pluck('user_id')->toArray();
-
-            $startDate = $months->first()->startOfMonth();
-            $endDate = $months->last()->endOfMonth();
-
-            // Bulk fetch attendance records
-            $attendanceRecords = Attendance::select('employee_code', 'time_in')
-                ->whereIn('employee_code', $employeeCodes)
-                ->whereDate('time_in', '>=', $startDate)
-                ->whereDate('time_in', '<=', $endDate)
-                ->get()
-                ->groupBy(function($record) {
-                    return Carbon::parse($record->time_in)->format('Y-m-d') . '|' . $record->employee_code;
-                });
-
-            // Bulk fetch leave records
-            $leaveRecords = EmployeeLeave::select('user_id', 'date_from', 'date_to')
-                ->whereIn('user_id', $userIds)
-                ->where('status', 'Approved')
-                ->where(function ($q) use ($startDate, $endDate) {
-                    $q->whereBetween('date_from', [$startDate, $endDate])
-                    ->orWhereBetween('date_to', [$startDate, $endDate])
-                    ->orWhere(function ($query) use ($startDate, $endDate) {
-                        $query->where('date_from', '<=', $startDate)
-                                ->where('date_to', '>=', $endDate);
-                    });
-                })
-                ->get();
-
-            // Build leave lookup map
-            $leaveMap = [];
-            foreach ($leaveRecords as $leave) {
-                $period = CarbonPeriod::create(
-                    Carbon::parse($leave->date_from),
-                    Carbon::parse($leave->date_to)
-                );
-
-                foreach ($period as $day) {
-                    if (!$day->isWeekend()) {
-                        $dateStr = $day->format('Y-m-d');
-                        $leaveMap[$dateStr][$leave->user_id] = true;
-                    }
-                }
-            }
-
-            // Create employee lookup map
-            $employeeMap = $employees->keyBy('employee_number');
-            $monthlyData = [];
-
-            foreach ($months as $monthStart) {
-                $monthLabel = $monthStart->format('M');
-                $monthEnd = $monthStart->copy()->endOfMonth();
-
-                // Get working days for this month
-                $workingDays = collect();
-                $date = $monthStart->copy();
-                while ($date->lte($monthEnd)) {
-                    if (!$date->isWeekend()) {
-                        $workingDays->push($date->format('Y-m-d'));
-                    }
-                    $date->addDay();
-                }
-
-                $totalAbsent = 0;
-                $totalPossible = $employees->count() * $workingDays->count();
-
-                foreach ($workingDays as $dateStr) {
-                    foreach ($employeeCodes as $empCode) {
-                        $employee = $employeeMap[$empCode];
-                        $attendanceKey = $dateStr . '|' . $empCode;
-                        
-                        $hasAttendance = isset($attendanceRecords[$attendanceKey]);
-                        $hasLeave = isset($leaveMap[$dateStr][$employee->user_id]);
-
-                        if (!$hasAttendance && !$hasLeave) {
-                            $totalAbsent++;
-                        }
-                    }
-                }
-
-                $monthlyData[] = [
-                    'label' => $monthLabel,
-                    'percentage' => $totalPossible > 0 ? round(($totalAbsent / $totalPossible) * 100, 2) : 0,
-                ];
-            }
-
+            $currentDay->addDay();
+        }
+        
+        if ($workingDays->isEmpty()) {
             return response()->json([
-                'labels' => collect($monthlyData)->pluck('label'),
-                'percentages' => collect($monthlyData)->pluck('percentage'),
+                'labels' => [$lastMonth->format('M Y')],
+                'percentages' => [0],
             ]);
         }
+        
+        $employeesQuery = Employee::select('user_id', 'employee_number')
+            ->whereIn('status', ['Active', 'HBU'])
+            ->whereNotNull('employee_number');
+        
+        if ($location) {
+            $employeesQuery->where('location', $location);
+        }
+        
+        $employees = $employeesQuery->get();
+        
+        if ($employees->isEmpty()) {
+            return response()->json([
+                'labels' => [$lastMonth->format('M Y')],
+                'percentages' => [0],
+            ]);
+        }
+
+        $employeeCodes = $employees->pluck('employee_number')->toArray();
+        $userIds = $employees->pluck('user_id')->toArray();
+        $totalEmployees = count($employeeCodes);
+        $totalWorkingDays = $workingDays->count();
+        
+        $attendanceData = DB::table('attendances')
+            ->select(DB::raw('DATE(time_in) as date'), 'employee_code')
+            ->whereIn('employee_code', $employeeCodes)
+            ->whereDate('time_in', '>=', $startOfLastMonth)
+            ->whereDate('time_in', '<=', $endOfLastMonth)
+            ->get()
+            ->groupBy('date')
+            ->map(function ($records) {
+                return $records->pluck('employee_code')->unique()->toArray();
+            });
+
+        $leaveData = DB::table('employee_leaves')
+            ->select('user_id', 'date_from', 'date_to')
+            ->whereIn('user_id', $userIds)
+            ->where('status', 'Approved')
+            ->where('date_from', '<=', $endOfLastMonth)
+            ->where('date_to', '>=', $startOfLastMonth)
+            ->get();
+
+        $leaveCoverage = [];
+        foreach ($workingDays as $date) {
+            $leaveCoverage[$date] = $leaveData->filter(function ($leave) use ($date) {
+                return $date >= $leave->date_from && $date <= $leave->date_to;
+            })->pluck('user_id')->toArray();
+        }
+
+        $userToEmployeeMap = $employees->pluck('employee_number', 'user_id')->toArray();
+
+        $totalAbsentDays = 0;
+        $totalPossibleDays = $totalEmployees * $totalWorkingDays;
+        
+        foreach ($workingDays as $date) {
+            $presentEmployees = $attendanceData->get($date, []);
+            $usersOnLeave = $leaveCoverage[$date];
+            $employeesOnLeave = collect($usersOnLeave)
+                ->map(fn($userId) => $userToEmployeeMap[$userId] ?? null)
+                ->filter()
+                ->toArray();
+            
+            $presentOrOnLeave = array_unique(array_merge($presentEmployees, $employeesOnLeave));
+            $absentCount = $totalEmployees - count($presentOrOnLeave);
+            
+            $totalAbsentDays += max(0, $absentCount);
+        }
+        
+        $absenteePercentage = $totalPossibleDays > 0 ? round(($totalAbsentDays / $totalPossibleDays) * 100, 1) : 0;
+        $presentPercentage = 100 - $absenteePercentage;
+        
+        return response()->json([
+            'labels' => ['Present', 'Absent'],
+            'percentages' => [$presentPercentage, $absenteePercentage],
+        ]);
+    }
 
     public function latePie(Request $request)
-        {
-            $location = $request->input('location');
-            $today = Carbon::today();
+    {
+        $location = $request->input('location');
+        $today = Carbon::today();
 
-            // Generate last 7 working days
-            $dates = collect();
-            $day = $today->copy();
-            while ($dates->count() < 7) {
-                if (!$day->isWeekend()) {
-                    $dates->push($day->copy());
-                }
-                $day->subDay();
+        $dates = collect();
+        $day = $today->copy();
+        while ($dates->count() < 7) {
+            if (!$day->isWeekend()) {
+                $dates->push($day->format('Y-m-d'));
             }
-            $dates = $dates->reverse();
+            $day->subDay();
+        }
+        $dates = $dates->reverse()->values();
 
-            // Get employees with their schedules in one query
-            $employeesQuery = Employee::select('employee_number', 'schedule_id')
-                ->whereIn('status', ['Active', 'HBU'])
-                ->whereNotNull('employee_number')
-                ->whereNotNull('schedule_id');
-            
-            if ($location) {
-                $employeesQuery->where('location', $location);
-            }
-            
-            $employees = $employeesQuery->get();
-
-            if ($employees->isEmpty()) {
-                return response()->json([
-                    'labels' => $dates->map(fn($date) => $date->format('M d'))->values(),
-                    'counts' => array_fill(0, $dates->count(), 0),
-                ]);
-            }
-
-            // Get all unique schedule IDs and fetch their data
-            $scheduleIds = $employees->pluck('schedule_id')->unique()->toArray();
-            $schedules = DB::table('schedule_datas')
-                ->whereIn('schedule_id', $scheduleIds)
-                ->get()
-                ->keyBy('schedule_id');
-
-            // Create employee-schedule mapping
-            $employeeSchedules = [];
-            foreach ($employees as $employee) {
-                if (isset($schedules[$employee->schedule_id])) {
-                    $schedule = $schedules[$employee->schedule_id];
-                    $expectedTimeString = trim($schedule->time_in_from);
-                    
-                    // Normalize the time format (same logic as original code)
-                    if (strlen($expectedTimeString) == 5) {
-                        $expectedTimeString = $expectedTimeString . ':00';
-                    }
-                    
-                    $employeeSchedules[$employee->employee_number] = $expectedTimeString;
-                }
-            }
-
-            // Get employee numbers that have schedules
-            $employeeNumbers = array_keys($employeeSchedules);
-
-            if (empty($employeeNumbers)) {
-                return response()->json([
-                    'labels' => $dates->map(fn($date) => $date->format('M d'))->values(),
-                    'counts' => array_fill(0, $dates->count(), 0),
-                ]);
-            }
-
-            // Bulk fetch attendance records
-            $startDate = $dates->first()->format('Y-m-d');
-            $endDate = $dates->last()->format('Y-m-d');
-
-            $attendanceRecords = Attendance::select('employee_code', 'time_in')
-                ->whereIn('employee_code', $employeeNumbers)
-                ->whereDate('time_in', '>=', $startDate)
-                ->whereDate('time_in', '<=', $endDate)
-                ->get()
-                ->groupBy(function($record) {
-                    return Carbon::parse($record->time_in)->format('Y-m-d') . '|' . $record->employee_code;
-                });
-
-            // Calculate late counts for each date
-            $lateCounts = [];
-            foreach ($dates as $date) {
-                $dateStr = $date->format('Y-m-d');
-                $lateCount = 0;
-
-                foreach ($employeeNumbers as $empNum) {
-                    $key = $dateStr . '|' . $empNum;
-                    
-                    if (isset($attendanceRecords[$key]) && isset($employeeSchedules[$empNum])) {
-                        // Get the employee's expected time for this specific date
-                        $expectedTimeString = $employeeSchedules[$empNum];
-                        
-                        try {
-                            $expectedTime = Carbon::parse($date->format('Y-m-d') . ' ' . $expectedTimeString);
-                        } catch (Exception $e) {
-                            // Skip if time parsing fails
-                            \Log::error("Failed to parse expected time for employee", [
-                                'employee_number' => $empNum,
-                                'expected_time_string' => $expectedTimeString,
-                                'date' => $date->format('Y-m-d'),
-                                'error' => $e->getMessage()
-                            ]);
-                            continue;
-                        }
-
-                        // Check if any attendance record for this employee on this date is late
-                        foreach ($attendanceRecords[$key] as $attendance) {
-                            $timeIn = Carbon::parse($attendance->time_in);
-                            if ($timeIn->gt($expectedTime->copy()->addMinute())) {
-                                    $lateCount++;
-                                    break;
-                                }
-                        }
-                    }
-                }
-                
-                $lateCounts[] = $lateCount;
-            }
-
+        $employeesQuery = Employee::select('user_id', 'employee_number', 'schedule_id')
+            ->whereIn('status', ['Active', 'HBU'])
+            ->whereNotNull('employee_number')
+            ->whereNotNull('schedule_id');
+        
+        if ($location) {
+            $employeesQuery->where('location', $location);
+        }
+        
+        $employees = $employeesQuery->get();
+        
+        if ($employees->isEmpty()) {
             return response()->json([
-                'labels' => $dates->map(fn($date) => $date->format('M d'))->values(),
-                'counts' => $lateCounts,
+                'labels' => $dates->map(fn($date) => Carbon::parse($date)->format('M d')),
+                'counts' => array_fill(0, 7, 0),
             ]);
         }
 
+        $employeeCodes = $employees->pluck('employee_number')->toArray();
+        $scheduleIds = $employees->pluck('schedule_id')->unique()->toArray();
+
+        $scheduleData = DB::table('schedule_datas')
+            ->select('schedule_id', 'time_in_from')
+            ->whereIn('schedule_id', $scheduleIds)
+            ->get()
+            ->keyBy('schedule_id');
+
+        $employeeToScheduleMap = $employees->pluck('schedule_id', 'employee_number')->toArray();
+
+        $attendanceData = DB::table('attendances')
+            ->select(
+                DB::raw('DATE(time_in) as date'), 
+                'employee_code', 
+                DB::raw('MIN(TIME(time_in)) as earliest_time_in')
+            )
+            ->whereIn('employee_code', $employeeCodes)
+            ->whereDate('time_in', '>=', $dates->first())
+            ->whereDate('time_in', '<=', $dates->last())
+            ->groupBy(DB::raw('DATE(time_in)'), 'employee_code') 
+            ->get()
+            ->groupBy('date');
+
+        $lateCounts = [];
+        foreach ($dates as $date) {
+            $dayAttendance = $attendanceData->get($date, collect());
+            $lateCount = 0;
+
+            foreach ($dayAttendance as $attendance) {
+                $employeeCode = $attendance->employee_code;
+                $timeIn = $attendance->earliest_time_in;
+                
+                $scheduleId = $employeeToScheduleMap[$employeeCode] ?? null;
+                if (!$scheduleId) continue;
+                
+                $schedule = $scheduleData->get($scheduleId);
+                if (!$schedule) continue;
+                
+                $timeInFrom = trim($schedule->time_in_from);
+                if (strlen($timeInFrom) === 5) {
+                    $timeInFrom .= ':00';
+                }
+                
+                try {
+                    $scheduleTime = Carbon::createFromFormat('H:i:s', $timeInFrom)->addMinute();
+                    $attendanceTime = Carbon::createFromFormat('H:i:s', $timeIn);
+                    
+                    if ($attendanceTime->gt($scheduleTime)) {
+                        $lateCount++;
+                    }
+                } catch (Exception $e) {
+                    continue;
+                }
+            }
+            
+            $lateCounts[] = $lateCount;
+        }
+
+        return response()->json([
+            'labels' => $dates->map(fn($date) => Carbon::parse($date)->format('M d')),
+            'counts' => $lateCounts,
+        ]);
+    }
 
     public function managerDashboard()
     { 

@@ -835,7 +835,7 @@ class HomeController extends Controller
                     'success' => false,
                     'employees' => [],
                     'total' => 0,
-                    'error' => 'Failed to load late employees'
+                    'error' => $e
                 ], 500);
             }
         }

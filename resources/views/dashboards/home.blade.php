@@ -738,7 +738,7 @@
                             </div>
                         </div>
                         <div class="col-md-4 mb-4">
-                            <h5 class="text-start mb-2"><strong>Absentees - by Month</strong></h5>
+                            <h5 class="text-start mb-2"><strong>Absentees - By Last Month</strong></h5>
                             <div class="d-flex justify-content-center">
                                 <div class="chart-wrapper loading">
                                     <canvas class="centerChart" id="absentMonthlyPieChart"></canvas>

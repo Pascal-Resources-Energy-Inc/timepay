@@ -117,6 +117,7 @@
                               <th>Hub Code</th>
                               <th>Address</th>
                               <th>Hub Status</th>
+                              <th>Map Location</th>
                               <th>Actions</th>
                           </tr>
                       </thead>
@@ -130,11 +131,23 @@
                               <td>{{ $hub->hub_name }}</td>
                               <td>{{ $hub->hub_code }}</td>
                               <td>{{ $hub->retail_hub_address }}</td>
-                              <td>  {{ $hub->hub_status }}</td>
+                              <td>{{ $hub->hub_status }}</td>
+                              <td class="text-center">
+                                @if($hub->google_map_location_link)
+                                  <a href="{{ $hub->google_map_location_link }}" 
+                                     target="_blank" 
+                                     class="btn btn-sm btn-outline-primary"
+                                     title="View on Google Maps">
+                                    <i class="fa fa-map-marker"></i> View Map
+                                  </a>
+                                @else
+                                  <span class="text-muted">No Map</span>
+                                @endif
+                              </td>
                               <td>
                                 <div class="btn-group" role="group">
                                   <button data-toggle="modal" data-target="#edit-hub-{{ $hub->id }}"
-                                     class="btn btn-sm btn-warning" 
+                                     class="btn btn-sm btn-outline-info" 
                                      title="Edit Hub">
                                     <i class="fa fa-edit"></i> Edit
                                   </button>
@@ -144,7 +157,7 @@
                           @endforeach
                         @else
                           <tr>
-                            <td colspan="8" class="text-center">No hubs found</td>
+                            <td colspan="9" class="text-center">No hubs found</td>
                           </tr>
                         @endif
                       </tbody>
@@ -255,7 +268,7 @@ function updateAreas() {
                 },
                 {
                     "orderable": false,
-                    "targets": -1  // Disable sorting on Actions column
+                    "targets": [-1, -2]  // Disable sorting on Map Location and Actions columns
                 }
             ],
             order: [] 
@@ -263,13 +276,10 @@ function updateAreas() {
     });
 </script>
 
-
-
 @foreach($hubs as $hub)
 @include('hubs.edit_hub')
 @endforeach  
 
 @include('hubs.create_hub')
-
 
 @endsection

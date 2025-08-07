@@ -368,7 +368,7 @@
                         </a>
                         <div class="collapse @if ($header == 'forms') show @endif" id="forms">
                             <ul class="nav flex-column sub-menu @if ($header == 'forms') show @endif">
-                                <li class="nav-item "> <a class="nav-link active" href="{{ url('/file-leave') }}">Leave</a></li>
+                                {{-- <li class="nav-item "> <a class="nav-link active" href="{{ url('/file-leave') }}">Leave</a></li> --}}
                                 <!-- @php
                                     $user_allowed_overtime = auth()->user()->allowed_overtime ? auth()->user()->allowed_overtime->allowed_overtime : "";
                                 @endphp
@@ -378,7 +378,7 @@
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li> -->
                                 {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/work-from-home') }}">Work from home</a></li> --}}
 
-                                <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li>
+                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li> --}}
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> -->
@@ -433,13 +433,9 @@
                     <li class="nav-item @if ($header == 'for-approval') active @endif">
                         <a class="nav-link" data-toggle="collapse" href="#for-approval" aria-expanded="false" aria-controls="ui-basic">
                             <i class="icon-check menu-icon"></i>
-<<<<<<< HEAD
-                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id)+pending_overtime_count(auth()->user()->id)+pending_ob_count(auth()->user()->id)+pending_dtr_correction(auth()->user()->id)}}</span></span>
-=======
 
                             <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id) + pending_overtime_count(auth()->user()->id) + pending_to_count(auth()->user()->id) +pending_dtr_correction(auth()->user()->id)}}</span></span>
 
->>>>>>> 7244d5a99d6672ed02f4991ffaa345a02f4d2060
                             <i class="menu-arrow"></i>
                         </a>
                         <div class="collapse @if ($header == 'for-approval') show @endif" id="for-approval">

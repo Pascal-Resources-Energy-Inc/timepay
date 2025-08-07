@@ -823,7 +823,7 @@ class HomeController extends Controller
             'late_duration' => $lateDuration,
         ];
     });
-            return 'renz';
+            
                 return response()->json([
                     'success' => true,
                     'employees' => $lateEmployees,
@@ -833,7 +833,7 @@ class HomeController extends Controller
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
-                    'employees' => [],
+                    'employees' => collect(),
                     'total' => 0,
                     'error' => $e
                 ], 500);

@@ -56,9 +56,9 @@
         @endif
     </td>
     @if($attendance->location == "System")
-    <td><a href='https://maps.google.com/?q={{$attendance->lat}},{{$attendance->long}}' target="_blank">{{$attendance->location_maps}}</a></td>
+    <td><a href='https://maps.google.com/?q={{$attendance->lat}},{{$attendance->long}}' target="_blank">HERA</a></td>
     @else
-    <td>{{$attendance->ip_address}}</td>
+    <td>{{$attendance->location}}</td>
     @endif
 </tr>
 @endforeach

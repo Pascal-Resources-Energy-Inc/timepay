@@ -425,10 +425,7 @@
                         </a>
                     </li>
                     @endif
-                    @if ( auth()->user()->employee_under->count() != 0 
-                    && (!auth()->user()->user_privilege || auth()->user()->user_privilege->payroll_view != 'on')
-                    && (!auth()->user()->user_privilege || auth()->user()->user_privilege->reports_coe != 'on')
-                    && (!auth()->user()->user_privilege || auth()->user()->user_privilege->reports_ne != 'on') )
+                    @if ( auth()->user()->employee_under->count())
                     <li class="nav-item">
                         <hr>
                         <h5>Manager</h5>
@@ -440,7 +437,7 @@
                             <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id)+pending_overtime_count(auth()->user()->id)+pending_ob_count(auth()->user()->id)+pending_dtr_correction(auth()->user()->id)}}</span></span>
 =======
 
-                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id) + pending_overtime_count(auth()->user()->id) + pending_to_count(auth()->user()->id) }}</span></span>
+                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id) + pending_overtime_count(auth()->user()->id) + pending_to_count(auth()->user()->id) +pending_dtr_correction(auth()->user()->id)}}</span></span>
 
 >>>>>>> 7244d5a99d6672ed02f4991ffaa345a02f4d2060
                             <i class="menu-arrow"></i>
@@ -457,7 +454,7 @@
 =======
 
                                 <!-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-official-business') }}">Official Business <span class="badge badge-warning">{{ pending_ob_count(auth()->user()->id) }}</span></a></li> -->
-                                {{-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-dtr-correction') }}">DTR Correction <span class="badge badge-warning">{{ session('pending_dtr_count') }}</span></a></li> --}}
+                                <li class="nav-item "><a class="nav-link " href="{{ url('/for-dtr-correction') }}">DTR Correction <span class="badge badge-warning">{{ pending_dtr_correction(auth()->user()->id) }}</span></a></li>
 
 >>>>>>> 7244d5a99d6672ed02f4991ffaa345a02f4d2060
                             </ul>

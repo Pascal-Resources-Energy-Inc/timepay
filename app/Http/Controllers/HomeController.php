@@ -139,15 +139,12 @@ class HomeController extends Controller
             
             // Optimized late records calculation
             $scheduleId = $currentEmployee->schedule_id;
-            $schedule = DB::table('schedule_datas')
-                ->select('time_in_from')
-                ->where('schedule_id', $scheduleId)
-                ->first();
+            $schedule_ko = employeeSchedule($schedules,date('Y-m-d'),$scheduleId,auth()->user()->employee->employee_number);
             
-            if ($schedule) {
-                $lateRecords = $this->calculateLateRecords($currentEmployee->employee_number, $schedule->time_in_from);
+            if ($schedule_ko) {
+                $lateRecords = $this->calculateLateRecords($currentEmployee->employee_number, $schedule_ko->time_in_from);
                 $absentDates = $this->calculateAbsentDates($currentEmployee->employee_number, $currentUser->id);
-                $latePerDay = $this->calculateLatePerDay($currentEmployee->employee_number, $schedule->time_in_from, $currentUser->id);
+                $latePerDay = $this->calculateLatePerDay($currentEmployee->employee_number, $schedule_ko->time_in_from, $currentUser->id);
             }
         }
         
@@ -779,38 +776,53 @@ class HomeController extends Controller
                 }
                 
                 $lateEmployees = $query->orderBy('employees.first_name')
-                                    ->orderBy('employees.last_name')
-                                    ->get()
-                                    ->map(function($employee) use ($today) {
+    ->orderBy('employees.last_name')
+    ->get()
+    ->map(function($employee) use ($today) {
 
-                                        $expectedTime = \Carbon\Carbon::parse($today . ' ' . $employee->expected_time);
-                                        $actualTime = \Carbon\Carbon::parse($employee->actual_time_in);
-                                        $lateMinutes = $actualTime->diffInMinutes($expectedTime);
-                                        
-                                        $expectedTimeFormatted = \Carbon\Carbon::parse($employee->expected_time)->format('h:i A');
-                                        $actualTimeFormatted = $actualTime->format('h:i A');
-                                        
-                                        $lateDuration = '';
-                                        if ($lateMinutes >= 60) {
-                                            $hours = floor($lateMinutes / 60);
-                                            $minutes = $lateMinutes % 60;
-                                            $lateDuration = $hours . 'h ' . $minutes . 'm late';
-                                        } else {
-                                            $lateDuration = $lateMinutes . 'm late';
-                                        }
-                                        
-                                        return [
-                                            'employee_number' => $employee->employee_number,
-                                            'first_name' => $employee->first_name,
-                                            'middle_name' => $employee->middle_name,
-                                            'last_name' => $employee->last_name,
-                                            'location' => $employee->location,
-                                            'expected_time' => $expectedTimeFormatted,
-                                            'actual_time_in' => $actualTimeFormatted,
-                                            'late_minutes' => $lateMinutes,
-                                            'late_duration' => $lateDuration,
-                                        ];
-                                    });
+        // 🔄 Priority: Check if DailySchedule exists for this employee
+        $dailySchedule = \App\Models\DailySchedule::where('employee_code', $employee->employee_number)
+            ->where('log_date', $today)
+            ->orderBy('id', 'DESC')
+            ->first();
+
+        // 🕒 Get expected_time from DailySchedule if available, else use schedule_datas
+        if ($dailySchedule && $dailySchedule->time_in_from) {
+            $expectedTimeStr = $dailySchedule->time_in_from;
+        } else {
+            $expectedTimeStr = $employee->expected_time;
+        }
+
+        // ⏱ Normalize expected time to full time format
+        $expectedTimeFormattedRaw = strlen(trim($expectedTimeStr)) === 5 
+            ? $expectedTimeStr . ':00'
+            : $expectedTimeStr;
+
+        $expectedTime = \Carbon\Carbon::parse($today . ' ' . $expectedTimeFormattedRaw);
+        $actualTime = \Carbon\Carbon::parse($employee->actual_time_in);
+
+        // 🕓 Late calculation
+        $lateMinutes = $actualTime->diffInMinutes($expectedTime);
+
+        $expectedTimeFormatted = $expectedTime->format('h:i A');
+        $actualTimeFormatted = $actualTime->format('h:i A');
+
+        $lateDuration = $lateMinutes >= 60
+            ? floor($lateMinutes / 60) . 'h ' . ($lateMinutes % 60) . 'm late'
+            : $lateMinutes . 'm late';
+
+        return [
+            'employee_number' => $employee->employee_number,
+            'first_name' => $employee->first_name,
+            'middle_name' => $employee->middle_name,
+            'last_name' => $employee->last_name,
+            'location' => $employee->location,
+            'expected_time' => $expectedTimeFormatted,
+            'actual_time_in' => $actualTimeFormatted,
+            'late_minutes' => $lateMinutes,
+            'late_duration' => $lateDuration,
+        ];
+    });
 
                 return response()->json([
                     'success' => true,

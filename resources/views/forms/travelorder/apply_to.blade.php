@@ -35,7 +35,7 @@
                                 <input type="text" id="to_number" name="to_number"
                                         class="form-control text-center"
                                         style="width: 100px; height: 40px; font-size: 0.9rem; padding: 0.25rem 0.5rem;"
-                                        value=" {{ $toNumber ?? 'TO-000' }}" readonly>             
+                                        value=" {{ $toNumber ?? '' }}" readonly>             
                         </div>
                   </div>
                 </div>
@@ -331,6 +331,7 @@
                         class="form-control form-control-sm text-center"
                         value="{{auth()->user()->employee->cost_center ?? ''}}"
                         name="rc_code"
+                        required
                         > 
                     </div>
                   </div>

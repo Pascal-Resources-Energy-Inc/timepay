@@ -100,8 +100,8 @@
                           <th>Name</th>
                           <th>Reason for Request</th>
                           <th>Disbursement Account</th>
-                          <th>Status</th>
                           <th>Approvers</th>
+                          <th>Status</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -139,15 +139,6 @@
                           <td>{{ ucfirst(str_replace('_', ' ', $pd->reason_for_request ?? 'N/A')) }}</td>
                           <td>{{ ucfirst(str_replace('_', ' ', $pd->disbursement_account ?? 'N/A')) }}</td>
                           <td>
-                            @if ($pd->status == 'Pending')
-                              <label class="badge badge-warning">{{ $pd->status }}</label>
-                            @elseif ($pd->status == 'Approved')
-                              <label class="badge badge-success">{{ $pd->status }}</label>
-                            @elseif (in_array($pd->status, ['Declined', 'Cancelled']))
-                              <label class="badge badge-danger">{{ $pd->status }}</label>
-                            @endif
-                          </td>
-                          <td>
                           @php
                             $approver = $getApproverForEmployee($pd->user->employee);
                             $employee_company = $pd->user->employee->company_code ?? $pd->user->employee->company_id ?? null;
@@ -162,6 +153,15 @@
                             <div class="text-danger">No PD approver available</div>
                           @endif
                         </td>
+                          <td>
+                            @if ($pd->status == 'Pending')
+                              <label class="badge badge-warning">{{ $pd->status }}</label>
+                            @elseif ($pd->status == 'Approved')
+                              <label class="badge badge-success">{{ $pd->status }}</label>
+                            @elseif (in_array($pd->status, ['Declined', 'Cancelled']))
+                              <label class="badge badge-danger">{{ $pd->status }}</label>
+                            @endif
+                          </td>
                         </tr>
                         @endforeach
                       </tbody>

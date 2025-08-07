@@ -101,8 +101,8 @@
                           <th>Phone Number</th>
                           <th>Network Provider</th>
                           <th>Enrollment Type</th>
-                          <th>Status</th>    
-                          <th>Approvers</th>    
+                          <th>Approvers</th>  
+                          <th>Status</th>                        
                           <!-- <th>Attachement</th>      -->
                         </tr>
                       </thead>
@@ -140,6 +140,15 @@
                           <td>{{ $ne->cellphone_number ?? 'N/A' }}</td>
                           <td>{{ ucfirst(str_replace('_', ' ', $ne->network_provider ?? 'N/A')) }}</td>
                           <td>{{ ucfirst(str_replace('_', ' ', $ne->enrollment_type ?? 'N/A')) }}</td>
+                           <td id="tdStatus{{ $ne->id }}">
+                            @if ($ne->status == 'Pending')
+                                <label class="badge badge-warning">{{ $ne->status }}</label>
+                            @elseif ($ne->status == 'Approved')
+                                <label class="badge badge-success">{{ $ne->status }}</label>
+                            @elseif (in_array($ne->status, ['Declined', 'Cancelled']))
+                                <label class="badge badge-danger">{{ $ne->status }}</label>
+                            @endif
+                        </td>
                           <td>
                           @php
                             $approver = $getApproverForEmployee($ne->user->employee);
@@ -151,15 +160,6 @@
                           @else
                             <div class="text-danger">No NE approver available</div>
                           @endif
-                        </td>
-                        <td id="tdStatus{{ $ne->id }}">
-                            @if ($ne->status == 'Pending')
-                                <label class="badge badge-warning">{{ $ne->status }}</label>
-                            @elseif ($ne->status == 'Approved')
-                                <label class="badge badge-success">{{ $ne->status }}</label>
-                            @elseif (in_array($ne->status, ['Declined', 'Cancelled']))
-                                <label class="badge badge-danger">{{ $ne->status }}</label>
-                            @endif
                         </td>
                         <!-- <td>
                            <button type="button" class="btn btn-primary btn-sm" title="Attachment" style="" data-toggle="modal" data-target="#view-ne-{{ $ne->id }}" title="View">

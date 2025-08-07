@@ -64,6 +64,7 @@
                         <th>Date</th>
                         <th>Time</th>
                         <th>Type</th>
+                        <th>Attendance Source</th>
                         {{-- {{dd($loc)}} --}}
                         @if($loc === "System")
                         
@@ -96,6 +97,10 @@
                                 Break In
                                 @endif
                               </td>
+                              <td>
+                                  {{ $attendance->location == 'System' ? 'Web' : 'Biometrics' }}
+                              </td>
+                              
                               {{-- <td>{{$attendance->ip_address}}</td> --}}
                               @if($loc == "System")
                         

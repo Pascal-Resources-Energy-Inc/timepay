@@ -5,30 +5,51 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\HubPerLocation;
 use Illuminate\Support\Facades\DB;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class HubPerLocationController extends Controller
 {
     public function index(Request $request)
     {
+        $region = $request->get('region', '');
         $territory = $request->get('territory', '');
         $area = $request->get('area', '');
         $hub_status = $request->get('hub_status', '');
         
-        // Get unique territories for filter dropdown
-        $territories = HubPerLocation::select('territory')
+        // Header variable for the layout
+        $header = 'Hub Per Location';
+        
+        // Get unique regions for filter dropdown
+        $regions = HubPerLocation::select('region')
             ->distinct()
-            ->whereNotNull('territory')
-            ->where('territory', '!=', '')
-            ->orderBy('territory')
+            ->whereNotNull('region')
+            ->where('region', '!=', '')
+            ->orderBy('region')
             ->get();
             
-        // Get unique areas for filter dropdown
-        $areas = HubPerLocation::select('area')
-            ->distinct()
-            ->whereNotNull('area')
-            ->where('area', '!=', '')
-            ->orderBy('area')
-            ->get();
+        // Get territories based on selected region
+        $territories = collect();
+        if ($region) {
+            $territories = HubPerLocation::select('territory')
+                ->distinct()
+                ->where('region', $region)
+                ->whereNotNull('territory')
+                ->where('territory', '!=', '')
+                ->orderBy('territory')
+                ->get();
+        }
+            
+        // Get areas based on selected territory
+        $areas = collect();
+        if ($territory) {
+            $areas = HubPerLocation::select('area')
+                ->distinct()
+                ->where('territory', $territory)
+                ->whereNotNull('area')
+                ->where('area', '!=', '')
+                ->orderBy('area')
+                ->get();
+        }
             
         // Get unique hub statuses for filter dropdown
         $hub_statuses = HubPerLocation::select('hub_status')
@@ -38,123 +59,166 @@ class HubPerLocationController extends Controller
             ->orderBy('hub_status')
             ->get();
 
-        return view('attendances.hub_per_location', compact(
+        // Build query for hubs based on filters
+        $query = HubPerLocation::select([
+            'id', 'region', 'territory', 'area', 'hub_name', 'hub_code', 
+            'retail_hub_address', 'hub_status', 'google_map_location_link'
+        ]);
+        
+        // Apply filters
+        if ($region) {
+            $query->where('region', $region);
+        }
+        
+        if ($territory) {
+            $query->where('territory', $territory);
+        }
+        
+        if ($area) {
+            $query->where('area', $area);
+        }
+        
+        if ($hub_status) {
+            $query->where('hub_status', $hub_status);
+        }
+        
+        // Get the hubs
+        $hubs = $query->orderBy('region')->orderBy('territory')->orderBy('area')->orderBy('hub_name')->get();
+
+        return view('hubs.hub_per_location', compact(
+            'header',
+            'regions',
             'territories', 
             'areas', 
             'hub_statuses',
+            'region',
             'territory',
             'area',
-            'hub_status'
+            'hub_status',
+            'hubs'
         ));
     }
     
-    public function getData(Request $request)
+    public function edit(Request $request, $id)
     {
-        // Select only essential columns for display
-        $query = HubPerLocation::select([
-            'id', 'territory', 'area', 'hub_name', 'hub_code', 
-            'retail_hub_address', 'hub_status', 'google_map_location_link'
+        $request->validate([
+            'region' => 'required|string|max:255',
+            'territory' => 'required|string|max:255',
+            'area' => 'required|string|max:255',
+            'hub_name' => 'required|string|max:255',
+            'hub_code' => 'required|string|max:50|unique:hub_per_location,hub_code,' . $id,
+            'retail_hub_address' => 'required|string',
+            'hub_status' => 'required|string|max:50',
+            'google_map_location_link' => 'nullable|url',
         ]);
-        
-        // Apply filters only if provided
-        if ($request->filled('territory')) {
-            $query->where('territory', $request->territory);
-        }
-        
-        if ($request->filled('area')) {
-            $query->where('area', $request->area);
-        }
-        
-        if ($request->filled('hub_status')) {
-            $query->where('hub_status', $request->hub_status);
-        }
-        
-        // Search functionality
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('hub_name', 'like', "%{$search}%")
-                  ->orWhere('hub_code', 'like', "%{$search}%")
-                  ->orWhere('territory', 'like', "%{$search}%")
-                  ->orWhere('area', 'like', "%{$search}%");
-            });
-        }
-        
-        // Always get all hubs that match criteria (or all if no filters)
-        $hubs = $query->orderBy('territory')->orderBy('area')->orderBy('hub_name')->get();
-        
-        return response()->json([
-            'data' => $hubs->map(function($hub) {
-                return [
-                    'territory' => $hub->territory,
-                    'area' => $hub->area,
-                    'hub_name' => $hub->hub_name,
-                    'hub_code' => $hub->hub_code,
-                    'retail_hub_address' => $hub->retail_hub_address,
-                    'hub_status' => $hub->hub_status,
-                    'google_map_location_link' => $hub->google_map_location_link,
-                ];
-            })
+
+        $hub = HubPerLocation::findOrFail($id);
+
+        $hub->region = $request->region;
+        $hub->territory = $request->territory;
+        $hub->area = $request->area;
+        $hub->hub_name = $request->hub_name;
+        $hub->hub_code = $request->hub_code;
+        $hub->retail_hub_address = $request->retail_hub_address;
+        $hub->hub_status = $request->hub_status;
+        $hub->google_map_location_link = $request->google_map_location_link;
+        $hub->updated_at = now();
+
+        $hub->save();
+
+        Alert::success('Hub updated successfully')->persistent('Dismiss');
+        return back();
+    }
+
+    
+    public function store(Request $request)
+    {
+        $request->validate([
+            'region' => 'required|string|max:255',
+            'territory' => 'required|string|max:255',
+            'area' => 'required|string|max:255',
+            'hub_name' => 'required|string|max:255',
+            'hub_code' => 'required|string|max:50',
+            'retail_hub_address' => 'required|string',
+            'hub_status' => 'required|string|max:50',
+            'google_map_location_link' => 'nullable|url',
         ]);
+
+        $id = $request->input('id');
+
+        if ($id) {
+            $request->validate([
+                'hub_code' => 'required|string|max:50|unique:hub_per_location,hub_code,' . $id,
+            ]);
+
+            $hub = HubPerLocation::findOrFail($id);
+
+            $hub->region = $request->region;
+            $hub->territory = $request->territory;
+            $hub->area = $request->area;
+            $hub->hub_name = $request->hub_name;
+            $hub->hub_code = $request->hub_code;
+            $hub->retail_hub_address = $request->retail_hub_address;
+            $hub->hub_status = $request->hub_status;
+            $hub->google_map_location_link = $request->google_map_location_link;
+
+            $hub->save();
+
+            $message = 'Hub updated successfully!';
+        } else {
+            $request->validate([
+                'hub_code' => 'required|string|max:50|unique:hub_per_location,hub_code',
+            ]);
+
+            $hub = new HubPerLocation;
+
+            $hub->region = $request->region;
+            $hub->territory = $request->territory;
+            $hub->area = $request->area;
+            $hub->hub_name = $request->hub_name;
+            $hub->hub_code = $request->hub_code;
+            $hub->retail_hub_address = $request->retail_hub_address;
+            $hub->hub_status = $request->hub_status;
+            $hub->google_map_location_link = $request->google_map_location_link;
+
+            $hub->save();
+
+            $message = 'Hub created successfully!';
+        }
+
+        Alert::success($message)->persistent('Dismiss');
+        return back();
     }
     
-    public function export(Request $request)
+    public function getTerritoriesByRegion(Request $request)
     {
-        // Select only essential columns for export
-        $query = HubPerLocation::select([
-            'territory', 'area', 'hub_name', 'hub_code', 
-            'retail_hub_address', 'hub_status', 'google_map_location_link'
-        ]);
+        $region = $request->get('region');
         
-        // Apply same filters as getData
-        if ($request->filled('territory')) {
-            $query->where('territory', $request->territory);
-        }
-        
-        if ($request->filled('area')) {
-            $query->where('area', $request->area);
-        }
-        
-        if ($request->filled('hub_status')) {
-            $query->where('hub_status', $request->hub_status);
-        }
-        
-        $hubs = $query->orderBy('territory')->orderBy('area')->orderBy('hub_name')->get();
-        
-        $filename = 'hub_per_location_' . date('Y-m-d_H-i-s') . '.csv';
-        
-        $headers = [
-            "Content-type" => "text/csv",
-            "Content-Disposition" => "attachment; filename=$filename",
-            "Pragma" => "no-cache",
-            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
-            "Expires" => "0"
-        ];
-        
-        $callback = function() use ($hubs) {
-            $file = fopen('php://output', 'w');
+        $territories = HubPerLocation::select('territory')
+            ->distinct()
+            ->where('region', $region)
+            ->whereNotNull('territory')
+            ->where('territory', '!=', '')
+            ->orderBy('territory')
+            ->get();
             
-            // CSV headers - only essential columns
-            fputcsv($file, [
-                'Territory', 'Area', 'Hub Name', 'Hub Code', 
-                'Address', 'Status', 'Google Map Link'
-            ]);
-            
-            foreach ($hubs as $hub) {
-                fputcsv($file, [
-                    $hub->territory,
-                    $hub->area,
-                    $hub->hub_name,
-                    $hub->hub_code,
-                    $hub->retail_hub_address,
-                    $hub->hub_status,
-                    $hub->google_map_location_link,
-                ]);
-            }
-            
-            fclose($file);
-        };
-        
-        return response()->stream($callback, 200, $headers);
+        return response()->json($territories);
     }
+    
+    public function getAreasByTerritory(Request $request)
+    {
+        $territory = $request->get('territory');
+        
+        $areas = HubPerLocation::select('area')
+            ->distinct()
+            ->where('territory', $territory)
+            ->whereNotNull('area')
+            ->where('area', '!=', '')
+            ->orderBy('area')
+            ->get();
+            
+        return response()->json($areas);
+    }
+    
+
 }

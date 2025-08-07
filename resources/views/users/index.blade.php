@@ -66,6 +66,17 @@
                                                 Reset Password
                                                 <i class="fa fa-undo btn-icon-append"></i>
                                             </button>
+                                            @if($user->login == 1)
+                                                <button type="button" class="btn btn-icon-text btn-sm btn-outline-danger disable-mobile" data-user-id="{{$user->id}}">
+                                                    Disable Mobile
+                                                    <i class="ti-close btn-icon-append"></i>
+                                                </button>
+                                            @else
+                                                <button type="button" class="btn btn-icon-text btn-sm btn-outline-success enable-mobile" data-user-id="{{$user->id}}">
+                                                    Enable Mobile
+                                                    <i class="ti-check btn-icon-append"></i>
+                                                </button>
+                                            @endif
                                         </td>
                                     </tr>
                                     @endforeach
@@ -123,7 +134,80 @@
                 })
             })
         })
+
+        $('.enable-mobile').on('click', function() {
+            var id = $(this).data('user-id');
+            
+            $.ajax({
+                type: "POST",
+                url: "{{url('enable-mobile-attendance')}}",
+                data: {
+                    id: id
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(res) {
+                    if (res.status == 1) {
+                        Swal.fire({
+                            title: res.message,
+                            icon: 'success'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: res.message,
+                            icon: 'error'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error occurred while processing request',
+                        icon: 'error'
+                    });
+                }
+            });
+        });
+
+        $('.disable-mobile').on('click', function() {
+            var id = $(this).data('user-id');
+            
+            $.ajax({
+                type: "POST",
+                url: "{{url('disable-mobile-attendance')}}",
+                data: {
+                    id: id
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(res) {
+                    if (res.status == 1) {
+                        Swal.fire({
+                            title: res.message,
+                            icon: 'success'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: res.message,
+                            icon: 'error'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error occurred while processing request',
+                        icon: 'error'
+                    });
+                }
+            });
+        });
     </script>
+    
 @endsection
 
 @section('footer')

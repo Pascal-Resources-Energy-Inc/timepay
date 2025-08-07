@@ -441,6 +441,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/change-password/{user}','UserController@changePassword');
     Route::post('/update-user-role/{user}','UserController@updateUserRole');
     Route::post('/update-user-password/{user}','UserController@updateUserPassword');
+    Route::post('/enable-mobile-attendance', 'UserController@enableMobileAttendance');
+    Route::post('/disable-mobile-attendance', 'UserController@disableMobileAttendance');
 
 
     Route::get('users-export', 'UserController@export');
@@ -552,10 +554,15 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('update_plan_leave/{id}', 'LeaveCalendarController@update');
     Route::post('delete_plan_leave/{id}', 'LeaveCalendarController@destroy');
 
-    // Upload Raw Logs
-    Route::get('upload_raw_logs', 'UploadRawLogsController@index');
-    Route::post('store_raw_logs', 'UploadRawLogsController@store');
-    Route::get('export_template', 'UploadRawLogsController@export');
+    // Hub Location
+    Route::get('/hub-per-location', [HubPerLocationController::class, 'index'])->name('hub-per-location.index');
+    Route::get('/hub-per-location/export', [HubPerLocationController::class, 'export'])->name('hub-per-location.export');
+    Route::get('/hub-per-location/territories', [HubPerLocationController::class, 'getTerritoriesByRegion'])->name('hub-per-location.territories');
+    Route::get('/hub-per-location/areas', [HubPerLocationController::class, 'getAreasByTerritory'])->name('hub-per-location.areas');
+
+    Route::post('new-hub', 'HubPerLocationController@store');
+    Route::post('edit-hub/{id}', 'HubPerLocationController@edit')->name('edit-hub');
+        
 });
 Route::post('new-employee', 'EmployeeController@new');
 Route::post('upload-employee', 'EmployeeController@upload');

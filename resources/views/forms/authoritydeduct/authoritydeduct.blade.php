@@ -98,8 +98,8 @@
                         <th>Number of Deduction</th>
                         <th>Amount Per Cut Off</th>
                         <th>Total Amount</th>
-                        <th>Status</th>
                         <th>Approvers</th>
+                        <th>Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -137,15 +137,6 @@
                         <td>{{ $ad->frequency ?? 'N/A' }}</td>
                         <td>{{ number_format($ad->deductible ?? 0, 2) }}</td>
                         <td>{{ number_format($ad->amount ?? 0, 2) }}</td>
-                        <td>
-                          @if ($ad->status == 'Pending')
-                            <label class="badge badge-warning">{{ $ad->status }}</label>
-                          @elseif ($ad->status == 'Approved')
-                            <label class="badge badge-success">{{ $ad->status }}</label>
-                          @elseif (in_array($ad->status, ['Declined', 'Cancelled']))
-                            <label class="badge badge-danger">{{ $ad->status }}</label>
-                          @endif
-                        </td>
                         <td>
                           @php
                               // Get required approvers based on deduction amount and threshold
@@ -196,6 +187,15 @@
                               @endforeach
                           @else
                               <span class="text-muted">No approver assigned</span>
+                          @endif
+                        </td>
+                        <td>
+                          @if ($ad->status == 'Pending')
+                            <label class="badge badge-warning">{{ $ad->status }}</label>
+                          @elseif ($ad->status == 'Approved')
+                            <label class="badge badge-success">{{ $ad->status }}</label>
+                          @elseif (in_array($ad->status, ['Declined', 'Cancelled']))
+                            <label class="badge badge-danger">{{ $ad->status }}</label>
                           @endif
                         </td>
                       </tr>

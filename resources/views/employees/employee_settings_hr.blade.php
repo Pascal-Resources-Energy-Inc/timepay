@@ -228,9 +228,9 @@
                                             <button class="btn btn-info btn-sm mt-3" data-toggle="modal" data-target="#uploadSignature">
                                                 Upload Signature
                                             </button>
-                                            <a class="btn btn-warning btn-sm mt-3" href='{{url("print-id/".$user->employee->id)}}' target="_blank">
+                                            {{-- <a class="btn btn-warning btn-sm mt-3" href='{{url("print-id/".$user->employee->id)}}' target="_blank">
                                                 Print ID
-                                            </a>
+                                            </a> --}}
                                             <strong>
                                                 <h3 class="mt-3">Personal Information
                                                     @if (checkUserPrivilege('employees_edit',auth()->user()->id) == 'yes')

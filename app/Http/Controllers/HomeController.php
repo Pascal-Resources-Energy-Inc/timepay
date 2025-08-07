@@ -823,7 +823,7 @@ class HomeController extends Controller
             'late_duration' => $lateDuration,
         ];
     });
-
+            return 'renz';
                 return response()->json([
                     'success' => true,
                     'employees' => $lateEmployees,

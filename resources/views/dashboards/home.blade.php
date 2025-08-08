@@ -686,9 +686,28 @@
                             <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Absent</strong></p>
                             </div>
                         </div>
-                        <div class="number-badge absent-count" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
-                            {{ $absent_today_count ?? 0 }}
-                        </div>
+                       <div class="number-badge absent-count" 
+     id="admin_absent" 
+     style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+  
+            
+
+              <svg id="loadingSpinner" 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="20" height="20" viewBox="0 0 50 50">
+                <path fill="#fff" d="M43.935,25.145c0-10.318-8.364-18.682-18.682-18.682
+                  c-10.318,0-18.682,8.364-18.682,18.682h4.068
+                  c0-8.064,6.55-14.614,14.614-14.614s14.614,6.55,14.614,14.614H43.935z">
+                  <animateTransform attributeType="xml"
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 25 25"
+                    to="360 25 25"
+                    dur="0.8s"
+                    repeatCount="indefinite"/>
+                </path>
+              </svg>
+            </div>
                         </div>
                     </div>
                     </div>
@@ -701,11 +720,11 @@
                             <i class="fas fa-clock" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
                             </div>
                             <div class="text-content">
-                            <p class="mb-1" style="font-size: 14px; color: #000; margin: 0;"><strong>Late</strong></p>
+                            <p class="mb-1" style="font-size: 14px; color: #000; margin: 0;" ><strong>Late</strong></p>
                             </div>
                         </div>
-                        <div class="number-badge late-count" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
-                            {{ $late_comers_count ?? 0 }}
+                        <div class="number-badge late-count" id='late_admin' style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                            {{ 0 }}
                         </div>
                         </div>
                     </div>  
@@ -1434,6 +1453,11 @@
 
 <script>
 
+  document.addEventListener('DOMContentLoaded', function() {
+    
+    loadAbsentEmployees();
+    loadLateEmployees();
+  });
      document.addEventListener('DOMContentLoaded', () => {
         const chartData = @json($latePerDay);
         const labels = [];
@@ -2128,13 +2152,15 @@
                           throw new Error(`HTTP ${response.status}: ${text}`);
                       });
                   }
+      
                   return response.json();
               })
               .then(data => {
                   if (data.success === false) {
                       throw new Error(data.error || 'Unknown server error');
                   }
-                  
+                  document.getElementById('modalAbsentCount').textContent = data.employees.length;
+                  document.getElementById('admin_absent').textContent = data.employees.length;
                   allAbsentEmployees = data.employees || [];
                   
                   // Check if there's a message (like before 10 AM)
@@ -2243,7 +2269,7 @@
           });
 
           document.getElementById('absentEmployeesModal').addEventListener('shown.bs.modal', function () {
-              loadAbsentEmployees();
+           
               document.getElementById('absentEmployeeSearch').value = '';
           });
 
@@ -2299,6 +2325,7 @@
                 allLateEmployees = data.employees || [];
                 
                 document.getElementById('modalLateCount').textContent = data.employees.length;
+                document.getElementById('late_admin').textContent = data.employees.length;
                 displayLateEmployees(allLateEmployees);
             })
             .catch(error => {
@@ -2412,7 +2439,7 @@
         });
 
         document.getElementById('lateEmployeesModal').addEventListener('shown.bs.modal', function () {
-            loadLateEmployees();
+            // loadLateEmployees();
             document.getElementById('lateEmployeeSearch').value = '';
         });
 
@@ -2458,7 +2485,7 @@
                     
                     const absentModal = document.getElementById('absentEmployeesModal');
                     if (absentModal.classList.contains('show')) {
-                        loadAbsentEmployees();
+                        // loadAbsentEmployees();
                     }
                     
                     const lateModal = document.getElementById('lateEmployeesModal');

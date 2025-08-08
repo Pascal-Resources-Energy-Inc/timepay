@@ -1053,7 +1053,7 @@
                   <h5 class="modal-title" id="lateEmployeesModalLabel">
                     <i class="fas fa-clock me-2"></i>
                     Late Employees Today
-                    <span class="employee-count-badge" id="modalLateCount">{{ $late_comers_count ?? 0 }}</span>
+                    <span class="employee-count-badge" id="modalLateCount"></span>
                   </h5>
                   <button type="button" class="btn-close btn-danger" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
                   </button>
@@ -2297,6 +2297,8 @@
                 }
                 
                 allLateEmployees = data.employees || [];
+                
+                document.getElementById('modalLateCount').textContent = data.employees.length;
                 displayLateEmployees(allLateEmployees);
             })
             .catch(error => {

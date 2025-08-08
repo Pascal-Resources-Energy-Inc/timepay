@@ -5,6 +5,7 @@ use App\Http\Controllers\AttendanceController;
 use Illuminate\Http\Request;
 use Carbon\CarbonPeriod;
 use App\Attendance;
+use App\DailySchedule;
 use App\Handbook;
 use App\Employee;
 use App\Announcement;
@@ -781,7 +782,7 @@ class HomeController extends Controller
     ->map(function($employee) use ($today) {
 
         // 🔄 Priority: Check if DailySchedule exists for this employee
-        $dailySchedule = \App\Models\DailySchedule::where('employee_code', $employee->employee_number)
+        $dailySchedule = DailySchedule::where('employee_code', $employee->employee_number)
             ->where('log_date', $today)
             ->orderBy('id', 'DESC')
             ->first();

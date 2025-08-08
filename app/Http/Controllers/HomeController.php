@@ -669,7 +669,7 @@ class HomeController extends Controller
                 }
                 
                 // Get all active employees
-                $query = Employee::whereIn('status', ['Active', 'HBU']);
+                $query = Employee::where('company_id',"!=",2)->whereIn('status', ['Active', 'HBU']);
                 
                 if ($location) {
                     $query->where('location', $location);
@@ -747,6 +747,7 @@ class HomeController extends Controller
                     ->join('attendances', 'employees.employee_number', '=', 'attendances.employee_code')
                     ->whereIn('employees.status', ['Active', 'HBU'])
                     ->whereDate('attendances.time_in', $today)
+                    ->where('company_id',"!=",2)
                     ->whereRaw('TIME(attendances.time_in) > TIME( 
                                 CASE 
                                     WHEN LENGTH(TRIM(schedule_datas.time_in_from)) = 5 

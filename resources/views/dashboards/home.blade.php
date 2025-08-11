@@ -547,15 +547,16 @@
                             @endphp
 
                             @if(($user_travel_orders_today) || (auth()->user()->login == 1))
-                            @if($attendance_now != null)
-                                <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
-                                <i class="ti-control-pause" ></i>
-                                </button>
-                                @else
-                                <button onclick="getLocation()" type="button" Title='Time In' class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#timeIn">
-                                <i class="ti-control-play" ></i>
-                            </button>
-                            @endif
+                              @if($attendance_now != null)
+                                  <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
+                                  <i class="ti-control-pause" ></i>
+                                  </button>
+                                  @else
+                                  <button onclick="getLocation()" type="button" Title='Time In' class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#timeIn">
+                                  <i class="ti-control-play" ></i>
+                              </button>
+                              @endif
+
                             @endif
                         </h3>
                         <div class="media">
@@ -639,75 +640,54 @@
                     </div>
                     </div>
                     <div class="col-md-2-25 mb-2">
-                    <div class="card employees-card" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#employeesModal">
-                        <div class="card-body d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
-                            <i class="fas fa-user-friends" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
-                            </div>
-                            <div class="text-content">
-                            <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Employees</strong></p>
-                            </div>
-                        </div>
-                        <div class="number-badge employees-count" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
-                            {{ $total_employees }}
-                        </div>
-                        </div>
-                    </div>
+                      <div class="card employees-card" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#employeesModal">
+                          <div class="card-body d-flex align-items-center justify-content-between">
+                          <div class="d-flex align-items-center">
+                              <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
+                              <i class="fas fa-user-friends" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                              </div>
+                              <div class="text-content">
+                              <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Employees</strong></p>
+                              </div>
+                          </div>
+                          <div class="number-badge employees-count" id="employee_admin" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                          </div>
+                          </div>
+                      </div>
                     </div>
                     <div class="col-md-2-25 mb-2">
-                    <div class="card present-card" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#presentEmployeesModal">
-                        <div class="card-body d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
-                            <i class="fas fa-user-check" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
-                            </div>
-                            <div class="text-content">
-                            <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Present</strong></p>
-                            </div>
-                        </div>
-                        <div class="number-badge present-count" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
-                            {{ $present_today_count ?? 0 }}
-                        </div>
-                        </div>
-                    </div>
+                      <div class="card present-card" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#presentEmployeesModal">
+                          <div class="card-body d-flex align-items-center justify-content-between">
+                              <div class="d-flex align-items-center">
+                                  <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
+                                  <i class="fas fa-user-check" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                                  </div>
+                                  <div class="text-content">
+                                  <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Present</strong></p>
+                                  </div>
+                              </div>
+                              <div class="number-badge present-count" id='present_admin' style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                              </div>
+                          </div>
+                      </div>
                     </div>
                     
                     <div class="col-md-2-25 mb-2">
-                    <div class="card absent-card" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#absentEmployeesModal">
-                        <div class="card-body d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
-                            <i class="fas fa-user-times" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                      <div class="card absent-card" style="border: 2px solid rgba(0, 191, 255, 0.67); border-radius: 8px; height: 110px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#absentEmployeesModal">
+                          <div class="card-body d-flex align-items-center justify-content-between">
+                          <div class="d-flex align-items-center">
+                              <div class="icon-container me-3" style="position: relative; width: 60px; height: 40px;">
+                              <i class="fas fa-user-times" style="font-size: 24px; color: #ff4444; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                              </div>
+                              <div class="text-content">
+                              <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Absent</strong></p>
+                              </div>
+                          </div>
+                        <div class="number-badge absent-count" id="admin_absent" style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                             
                             </div>
-                            <div class="text-content">
-                            <p class="mb-1" style="font-size: 14px; color: #000;"><strong>Absent</strong></p>
-                            </div>
-                        </div>
-                       <div class="number-badge absent-count" 
-     id="admin_absent" 
-     style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
-  
-            
-
-              <svg id="loadingSpinner" 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="20" height="20" viewBox="0 0 50 50">
-                <path fill="#fff" d="M43.935,25.145c0-10.318-8.364-18.682-18.682-18.682
-                  c-10.318,0-18.682,8.364-18.682,18.682h4.068
-                  c0-8.064,6.55-14.614,14.614-14.614s14.614,6.55,14.614,14.614H43.935z">
-                  <animateTransform attributeType="xml"
-                    attributeName="transform"
-                    type="rotate"
-                    from="0 25 25"
-                    to="360 25 25"
-                    dur="0.8s"
-                    repeatCount="indefinite"/>
-                </path>
-              </svg>
-            </div>
-                        </div>
-                    </div>
+                          </div>
+                      </div>
                     </div>
 
                     <div class="col-md-2-25 mb-2">
@@ -722,7 +702,6 @@
                             </div>
                         </div>
                         <div class="number-badge late-count" id='late_admin' style="width: 35px; height: 35px; background-color: #00bfff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
-                            {{ 0 }}
                         </div>
                         </div>
                     </div>  
@@ -959,8 +938,6 @@
             </div>
         </div>
          @endif
-
-         
 
           <!-- Employee's list Modal -->
           <div class="modal fade" id="employeesModal" tabindex="-1" aria-labelledby="employeesModalLabel" aria-hidden="true">
@@ -1762,193 +1739,436 @@
     </script>
 
     <script>
-        let currentLocation = '';
-        let allEmployees = [];
+    // === ALL EMPLOYEES MODAL FUNCTIONALITY ===
+    let currentEmployeesLocation = '';
+    let allEmployees = [];
+    let employeesDataCache = new Map();
+    let isLoadingEmployees = false;
+    let isEmployeesFullyLoaded = false;
 
-            document.getElementById('locationFilter').addEventListener('change', function () {
-                const selectedLocation = this.value;
-                currentLocation = selectedLocation;
+    const getEmployeesCacheKey = (location) => location || 'all_locations';
 
-                fetch(`{{ url('/dashboard/filter-by-location') }}?location=${encodeURIComponent(selectedLocation)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        document.querySelector('.employees-count').innerText = data.total_employees;
-                        document.querySelector('.present-count').innerText = data.present_today_count;
-                        document.querySelector('.absent-count').innerText = data.absent_today_count;
-                        document.querySelector('.late-count').innerText = data.late_comers_count;
-                        
-                        document.getElementById('modalEmployeeCount').innerText = data.total_employees;
-                        
-                        const modal = document.getElementById('employeesModal');
-                        if (modal.classList.contains('show')) {
-                            loadEmployees();
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching data:', error);
-                    });
-            });
+    function setEmployeesLocation(location) {
+        const oldLocation = currentEmployeesLocation;
+        currentEmployeesLocation = location || '';
+        
+        if (oldLocation !== currentEmployeesLocation) {
+            employeesDataCache.delete(getEmployeesCacheKey(oldLocation));
+            
+            const newCacheKey = getEmployeesCacheKey(currentEmployeesLocation);
+            if (employeesDataCache.has(newCacheKey)) {
+                const cachedData = employeesDataCache.get(newCacheKey);
+                allEmployees = cachedData.employees;
+                isEmployeesFullyLoaded = true;
+                isLoadingEmployees = false;
+                updateEmployeesUI();
+            } else {
+                isEmployeesFullyLoaded = false;
+                loadEmployees();
+            }
+            
+            const modal = document.getElementById('employeesModal');
+            if (modal?.classList.contains('show')) {
+                loadEmployees();
+            }
+        }
+    }
 
-            function loadEmployees() {
-                const employeesList = document.getElementById('employeesList');
-                employeesList.innerHTML = `
-                    <div class="loading-spinner">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden"></span>
-                        </div>
-                        <p class="mt-2">Loading employees...</p>
-                    </div>
-                `;
+    function loadEmployees() {
+        if (isLoadingEmployees) return;
 
-                let url = '{{ url("/dashboard/get-employees") }}';
-                if (currentLocation) {
-                    url += `?location=${encodeURIComponent(currentLocation)}`;
-                }
+        const cacheKey = getEmployeesCacheKey(currentEmployeesLocation);
+        const employeesList = document.getElementById('employeesList');
+        
+        if (employeesDataCache.has(cacheKey)) {
+            const cachedData = employeesDataCache.get(cacheKey);
+            allEmployees = cachedData.employees;
+            isEmployeesFullyLoaded = true;
+            isLoadingEmployees = false;
+            updateEmployeesUI();
+            
+            displayEmployees(cachedData.employees);
+            return;
+        }
+        
+        isLoadingEmployees = true;
+        isEmployeesFullyLoaded = false;
+        updateEmployeesUI();
 
-                fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.text().then(text => {
-                            throw new Error(`HTTP ${response.status}: ${text}`);
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success === false) {
-                        throw new Error(data.error || 'Unknown server error');
-                    }
-                    
-                    allEmployees = data.employees || [];
-                    displayEmployees(allEmployees);
-                })
-                .catch(error => {
-                    console.error('Fetch error:', error);
-                    employeesList.innerHTML = `
-                        <div class="no-employees">
-                            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                            <h5>Error Loading Employees</h5>
-                            <p class="text-danger">${error.message}</p>
-                            <button class="btn btn-primary btn-sm" onclick="loadEmployees()">
-                                <i class="fas fa-redo"></i> Try Again
-                            </button>
-                        </div>
-                    `;
+        let url = '{{ url("/dashboard/get-employees") }}';
+        if (currentEmployeesLocation) {
+            url += `?location=${encodeURIComponent(currentEmployeesLocation)}`;
+        }
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`HTTP ${response.status}: ${text}`);
                 });
             }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success === false) {
+                throw new Error(data.error || 'Unknown server error');
+            }
 
-            function displayEmployees(employees) {
-                const employeesList = document.getElementById('employeesList');
-                
-                if (!employees || employees.length === 0) {
-                    employeesList.innerHTML = `
-                        <div class="no-employees">
-                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                            <h5>No Employees Found</h5>
-                            <p>No employees match the current filter criteria.</p>
+            const employees = data.employees || [];
+            const cacheData = {
+                employees: employees,
+                timestamp: Date.now()
+            };
+            
+            employeesDataCache.set(cacheKey, cacheData);
+            allEmployees = employees;
+            isLoadingEmployees = false;
+            isEmployeesFullyLoaded = true;
+
+            updateEmployeesUI();
+            displayEmployees(employees);
+        })
+        .catch(error => {
+            isLoadingEmployees = false;
+            isEmployeesFullyLoaded = true;
+
+            employeesList.innerHTML = `
+                <div class="no-employees">
+                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                    <h5>Error Loading Employees</h5>
+                    <p class="text-danger">${error.message}</p>
+                    <br><br>
+                    <button class="btn btn-primary btn-sm" onclick="loadEmployees()">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                </div>
+            `;
+        });
+    }
+
+    function updateEmployeesUI() {
+        const employeesList = document.getElementById('employeesList');
+
+        const spinnerSVG = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 50 50">
+                    <path fill="#fff" d="M43.935,25.145c0-10.318-8.364-18.682-18.682-18.682
+                        c-10.318,0-18.682,8.364-18.682,18.682h4.068
+                        c0-8.064,6.55-14.614,14.614-14.614s14.614,6.55,14.614,14.614H43.935z">
+                        <animateTransform attributeType="xml" attributeName="transform" type="rotate"
+                            from="0 25 25" to="360 25 25" dur="0.8s" repeatCount="indefinite"/>
+                    </path>
+                </svg>
+        `;
+
+        // Show spinner if loading - this will run FIRST
+        if (isLoadingEmployees) {
+            employeesList.innerHTML = `
+                <div class="loading-spinner text-center">
+                    ${spinnerSVG}
+                    <p class="mt-2">Loading employees...</p>
+                </div>
+            `;
+            document.getElementById('modalEmployeeCount').innerHTML = spinnerSVG;
+            document.getElementById('employee_admin').innerHTML = spinnerSVG;
+            return;
+        }
+
+        // Only update count when data is fully loaded and not loading
+        if (isEmployeesFullyLoaded && !isLoadingEmployees) {
+            document.getElementById('modalEmployeeCount').textContent = allEmployees.length;
+            document.getElementById('employee_admin').textContent = allEmployees.length;
+            displayEmployees(allEmployees);
+        }
+    }
+
+    function displayEmployees(employees) {
+        const employeesList = document.getElementById('employeesList');
+
+        if (!employees || employees.length === 0) {
+            employeesList.innerHTML = `
+                <div class="no-employees">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5>No Employees Found</h5>
+                    <p>No employees match the current filter criteria.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        employees.forEach(employee => {
+            const initials = getInitials(employee.first_name, employee.last_name);
+            const middleName = employee.middle_name ? employee.middle_name + ' ' : '';
+            const location = employee.location || 'No location specified';
+            const employeeNumber = employee.employee_number || 'N/A';
+
+            html += `
+                <div class="employee-list-item">
+                    <div class="d-flex align-items-center">
+                        <div class="employee-avatar me-3">
+                            ${initials}
                         </div>
-                    `;
-                    return;
-                }
-
-                let html = '';
-                employees.forEach(employee => {
-                    const initials = getInitials(employee.first_name, employee.last_name);
-                    const middleName = employee.middle_name ? employee.middle_name + ' ' : '';
-                    const location = employee.location || 'No location specified';
-                    const employeeNumber = employee.employee_number || 'N/A';
-                    
-                    html += `
-                        <div class="employee-list-item">
-                            <div class="d-flex align-items-center">
-                                <div class="employee-avatar me-3">
-                                    ${initials}
-                                </div>
-                                &nbsp;&nbsp;
-                                <div class="flex-grow-1">
-                                    <div class="employee-name">
-                                        ${employee.first_name} ${middleName}${employee.last_name}
-                                    </div>
-                                    <div class="employee-location">
-                                        <i class="fas fa-map-marker-alt me-1"></i>
-                                        ${location}
-                                    </div>
-                                </div>
-                                <div class="text-end">
-                                    <small class="text-muted">${employeeNumber}</small>
-                                </div>
+                        &nbsp;&nbsp;
+                        <div class="flex-grow-1">
+                            <div class="employee-name">
+                                ${employee.first_name} ${middleName}${employee.last_name}
+                            </div>
+                            <div>
+                                <i class="fas fa-id-badge me-1 text-muted"></i>
+                                <small class="text-muted">${employeeNumber}</small>
+                            </div>
+                            <div class="employee-location">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                ${location}
                             </div>
                         </div>
-                    `;
-                });
+                        <div class="text-end">
+                            <div class="employee-status">
+                                <span class="text-muted" style="font-size: 14px;">Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        employeesList.innerHTML = html;
+    }
+
+    function getInitials(firstName, lastName) {
+        const first = firstName ? firstName.charAt(0).toUpperCase() : '';
+        const last = lastName ? lastName.charAt(0).toUpperCase() : '';
+        return first + last || '??';
+    }
+
+    // Cache management
+    function clearEmployeesCache() {
+        employeesDataCache.clear();
+        isEmployeesFullyLoaded = false;
+        allEmployees = [];
+    }
+
+    // Background count update
+    async function updateEmployeesCount(location = null, showLoading = true) {
+        const targetLocation = location !== null ? location : currentEmployeesLocation;
+        const cacheKey = getEmployeesCacheKey(targetLocation);
+        
+        // Use cached data immediately if available
+        if (employeesDataCache.has(cacheKey)) {
+            const cachedData = employeesDataCache.get(cacheKey);
+            allEmployees = cachedData.employees;
+            isEmployeesFullyLoaded = true;
+            isLoadingEmployees = false;
+            updateEmployeesUI();
+            return cachedData.employees.length;
+        }
+        
+        // Set loading state if requested
+        if (showLoading) {
+            isLoadingEmployees = true;
+            isEmployeesFullyLoaded = false;
+            updateEmployeesUI();
+        }
+        
+        try {
+            let url = '{{ url("/dashboard/get-employees") }}';
+            if (targetLocation) {
+                url += `?location=${encodeURIComponent(targetLocation)}`;
+            }
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                }
+            });
+            
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`HTTP ${response.status}: ${text}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success !== false) {
+                const employees = data.employees || [];
+                const cacheData = {
+                    employees: employees,
+                    timestamp: Date.now()
+                };
                 
-                employeesList.innerHTML = html;
+                employeesDataCache.set(cacheKey, cacheData);
+                allEmployees = employees;
+                isLoadingEmployees = false;
+                isEmployeesFullyLoaded = true;
+                updateEmployeesUI();
+                return employees.length;
+            } else {
+                throw new Error(data.error || 'API returned success: false');
             }
+        } catch (error) {
+            console.error('Error updating employees count:', error);
+            isLoadingEmployees = false;
+            isEmployeesFullyLoaded = true;
+            updateEmployeesUI();
+            return allEmployees.length;
+        }
+    }
 
-            function getInitials(firstName, lastName) {
-                const first = firstName ? firstName.charAt(0).toUpperCase() : '';
-                const last = lastName ? lastName.charAt(0).toUpperCase() : '';
-                return first + last || '??';
-            }
-
-            document.getElementById('employeeSearch').addEventListener('input', function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize with loading state
+        isLoadingEmployees = true;
+        isEmployeesFullyLoaded = false;
+        updateEmployeesUI();
+        
+        // Start background loading
+        updateEmployeesCount(null, true);
+        
+        // Search functionality
+        const employeeSearchInput = document.getElementById('employeeSearch');
+        if (employeeSearchInput) {
+            employeeSearchInput.addEventListener('input', function() {
                 const searchTerm = this.value.toLowerCase().trim();
-                
+
                 if (searchTerm === '') {
                     displayEmployees(allEmployees);
                     return;
                 }
-                
+
                 const filteredEmployees = allEmployees.filter(employee => {
                     const fullName = `${employee.first_name} ${employee.middle_name || ''} ${employee.last_name}`.toLowerCase();
                     const location = (employee.location || '').toLowerCase();
                     const employeeNumber = (employee.employee_number || '').toLowerCase();
-                    
-                    return fullName.includes(searchTerm) || 
-                          location.includes(searchTerm) || 
+
+                    return fullName.includes(searchTerm) ||
+                          location.includes(searchTerm) ||
                           employeeNumber.includes(searchTerm);
                 });
-                
+
                 displayEmployees(filteredEmployees);
             });
+        }
 
-            document.getElementById('employeesModal').addEventListener('shown.bs.modal', function () {
+        // Modal handlers
+        const employeesModal = document.getElementById('employeesModal');
+        if (employeesModal) {
+            employeesModal.addEventListener('shown.bs.modal', function () {
+                const searchInput = document.getElementById('employeeSearch');
+                if (searchInput) searchInput.value = '';
+                
                 loadEmployees();
-                document.getElementById('employeeSearch').value = '';
             });
 
-            document.getElementById('employeesModal').addEventListener('hidden.bs.modal', function () {
-                document.getElementById('employeeSearch').value = '';
-                allEmployees = [];
+            employeesModal.addEventListener('hidden.bs.modal', function () {
+                const searchInput = document.getElementById('employeeSearch');
+                if (searchInput) searchInput.value = '';
             });
+        }
+
+        // Location filter integration
+        const locationFilter = document.getElementById('locationFilter');
+        if (locationFilter) {
+            locationFilter.addEventListener('change', function() {
+                const selectedLocation = this.value;
+                setEmployeesLocation(selectedLocation);
+            });
+        }
+    });
+
+    // Cache cleanup - runs every minute to remove stale cache entries
+    setInterval(() => {
+        const now = Date.now();
+        const fiveMinutes = 5 * 60 * 1000;
+        
+        for (let [key, data] of employeesDataCache.entries()) {
+            if (now - data.timestamp > fiveMinutes) {
+                employeesDataCache.delete(key);
+            }
+        }
+    }, 60000);
     </script>
-
-    <script>
+   <script>
+      // === PRESENT EMPLOYEES MODAL FUNCTIONALITY ===
       let currentPresentLocation = '';
       let allPresentEmployees = [];
+      let presentDataCache = new Map();
+      let isLoadingPresentEmployees = false;
+      let isPresentEmployeesFullyLoaded = false;
+
+      const getPresentCacheKey = (location) => location || 'all_locations';
+
+      function setPresentEmployeesLocation(location) {
+          const oldLocation = currentPresentLocation;
+          currentPresentLocation = location || '';
+          
+          if (oldLocation !== currentPresentLocation) {
+              presentDataCache.delete(getPresentCacheKey(oldLocation));
+              
+              // Check if we have cached data for new location
+              const newCacheKey = getPresentCacheKey(currentPresentLocation);
+              if (presentDataCache.has(newCacheKey)) {
+                  // Use cached data immediately - data is already loaded
+                  const cachedData = presentDataCache.get(newCacheKey);
+                  allPresentEmployees = cachedData.employees;
+                  isPresentEmployeesFullyLoaded = true;
+                  isLoadingPresentEmployees = false;
+                  updatePresentEmployeesUI();
+              } else {
+                  // Need to load data
+                  isPresentEmployeesFullyLoaded = false;
+                  loadPresentEmployees();
+              }
+              
+              // Reload modal if open
+              const modal = document.getElementById('presentEmployeesModal');
+              if (modal?.classList.contains('show')) {
+                  loadPresentEmployees();
+              }
+          }
+      }
 
       function loadPresentEmployees() {
+          if (isLoadingPresentEmployees) return;
+
+          const cacheKey = getPresentCacheKey(currentPresentLocation);
           const presentEmployeesList = document.getElementById('presentEmployeesList');
-          presentEmployeesList.innerHTML = `
-              <div class="loading-spinner">
-                  <div class="spinner-border text-primary" role="status">
-                      <span class="visually-hidden"></span>
-                  </div>
-                  <p class="mt-2">Loading present employees...</p>
-              </div>
-          `;
+          
+          // Check cache first - if data exists, use it immediately
+          if (presentDataCache.has(cacheKey)) {
+              const cachedData = presentDataCache.get(cacheKey);
+              allPresentEmployees = cachedData.employees;
+              isPresentEmployeesFullyLoaded = true;
+              isLoadingPresentEmployees = false;
+              updatePresentEmployeesUI();
+              
+              // Show cached results in modal immediately
+              if (cachedData.message && cachedData.employees.length === 0) {
+                  presentEmployeesList.innerHTML = createPresentNoEmployeesHTML('clock', 'Too Early', cachedData.message);
+              } else {
+                  displayPresentEmployees(cachedData.employees);
+              }
+              return;
+          }
+          
+          // Set loading state IMMEDIATELY
+          isLoadingPresentEmployees = true;
+          isPresentEmployeesFullyLoaded = false;
+          updatePresentEmployeesUI();
 
           let url = '{{ url("/dashboard/get-present-employees") }}';
-          if (currentLocation) {
-              url += `?location=${encodeURIComponent(currentLocation)}`;
+          if (currentPresentLocation) {
+              url += `?location=${encodeURIComponent(currentPresentLocation)}`;
           }
 
           fetch(url, {
@@ -1972,12 +2192,34 @@
               if (data.success === false) {
                   throw new Error(data.error || 'Unknown server error');
               }
+
+              const employees = data.employees || [];
+              const cacheData = {
+                  employees: employees,
+                  message: data.message,
+                  timestamp: Date.now()
+              };
               
-              allPresentEmployees = data.employees || [];
-              displayPresentEmployees(allPresentEmployees);
+              // Cache the data
+              presentDataCache.set(cacheKey, cacheData);
+              allPresentEmployees = employees;
+              isLoadingPresentEmployees = false;
+              isPresentEmployeesFullyLoaded = true;
+
+              updatePresentEmployeesUI();
+              
+              // Update modal display
+              if (data.message && employees.length === 0) {
+                  document.getElementById('presentEmployeesList').innerHTML = createPresentNoEmployeesHTML('clock', 'Too Early', data.message);
+              } else {
+                  displayPresentEmployees(employees);
+              }
           })
           .catch(error => {
-              presentEmployeesList.innerHTML = `
+              isLoadingPresentEmployees = false;
+              isPresentEmployeesFullyLoaded = true;
+
+              document.getElementById('presentEmployeesList').innerHTML = `
                   <div class="no-employees">
                       <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
                       <h5>Error Loading Present Employees</h5>
@@ -1991,15 +2233,50 @@
           });
       }
 
+      function updatePresentEmployeesUI() {
+          const presentEmployeesList = document.getElementById('presentEmployeesList');
+
+          const spinnerSVG = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 50 50">
+                      <path fill="#fff" d="M43.935,25.145c0-10.318-8.364-18.682-18.682-18.682
+                          c-10.318,0-18.682,8.364-18.682,18.682h4.068
+                          c0-8.064,6.55-14.614,14.614-14.614s14.614,6.55,14.614,14.614H43.935z">
+                          <animateTransform attributeType="xml" attributeName="transform" type="rotate"
+                              from="0 25 25" to="360 25 25" dur="0.8s" repeatCount="indefinite"/>
+                      </path>
+                  </svg>
+          `;
+
+          // Show spinner if loading - this will run FIRST
+          if (isLoadingPresentEmployees) {
+              presentEmployeesList.innerHTML = `
+                  <div class="loading-spinner text-center">
+                      ${spinnerSVG}
+                      <p class="mt-2">Loading present employees...</p>
+                  </div>
+              `;
+              document.getElementById('modalPresentCount').innerHTML = spinnerSVG;
+              document.getElementById('present_admin').innerHTML = spinnerSVG;
+              return;
+          }
+
+          // Only update count when data is fully loaded and not loading
+          if (isPresentEmployeesFullyLoaded && !isLoadingPresentEmployees) {
+              document.getElementById('modalPresentCount').textContent = allPresentEmployees.length;
+              document.getElementById('present_admin').textContent = allPresentEmployees.length;
+              displayPresentEmployees(allPresentEmployees);
+          }
+      }
+
       function displayPresentEmployees(employees) {
           const presentEmployeesList = document.getElementById('presentEmployeesList');
-          
+
           if (!employees || employees.length === 0) {
               presentEmployeesList.innerHTML = `
                   <div class="no-employees">
                       <i class="fas fa-user-check fa-3x text-muted mb-3"></i>
                       <h5>No Present Employees Found</h5>
-                      <p>No employees are present today</p>
+                      <p>No employees are present today${currentPresentLocation ? ` in ${currentPresentLocation}` : ''}.</p>
                   </div>
               `;
               return;
@@ -2012,7 +2289,7 @@
               const location = employee.location || 'No location specified';
               const employeeNumber = employee.employee_number || 'N/A';
               const timeIn = employee.time_in || 'N/A';
-              
+
               html += `
                   <div class="employee-list-item">
                       <div class="d-flex align-items-center">
@@ -2025,8 +2302,8 @@
                                   ${employee.first_name} ${middleName}${employee.last_name}
                               </div>
                               <div>
-                                <i class="fas fa-id-badge me-1 text-muted""></i>
-                                <small class="text-muted">${employeeNumber}</small>
+                                  <i class="fas fa-id-badge me-1 text-muted"></i>
+                                  <small class="text-muted">${employeeNumber}</small>
                               </div>
                               <div class="employee-location">
                                   <i class="fas fa-map-marker-alt me-1"></i>
@@ -2034,8 +2311,8 @@
                               </div>
                           </div>
                           <div class="text-end">
-                              <div class="time-in-badge" style="background: #28a745; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; margin-bottom: 4px;">
-                                  <i class="fas fa-clock me-1"></i>
+                              <div class="present-badge" style="background: #28a745; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; margin-bottom: 4px;">
+                                  <i class="fas fa-check me-1"></i>
                                   ${timeIn}
                               </div>
                           </div>
@@ -2043,99 +2320,62 @@
                   </div>
               `;
           });
-          
+
           presentEmployeesList.innerHTML = html;
       }
 
-      document.getElementById('presentEmployeeSearch').addEventListener('input', function() {
-          const searchTerm = this.value.toLowerCase().trim();
+      function getInitials(firstName, lastName) {
+          const first = firstName ? firstName.charAt(0).toUpperCase() : '';
+          const last = lastName ? lastName.charAt(0).toUpperCase() : '';
+          return first + last || '??';
+      }
+
+      function createPresentNoEmployeesHTML(icon, title, message) {
+          return `
+              <div class="no-employees text-center">
+                  <i class="fas fa-${icon} fa-3x text-info mb-3"></i>
+                  <h5>${title}</h5>
+                  <p>${message}</p>
+              </div>
+          `;
+      }
+
+      // Cache management
+      function clearPresentEmployeesCache() {
+          presentDataCache.clear();
+          isPresentEmployeesFullyLoaded = false;
+          allPresentEmployees = [];
+      }
+
+      // Background count update
+      async function updatePresentCount(location = null, showLoading = true) {
+          const targetLocation = location !== null ? location : currentPresentLocation;
+          const cacheKey = getPresentCacheKey(targetLocation);
           
-          if (searchTerm === '') {
-              displayPresentEmployees(allPresentEmployees);
-              return;
+          // Use cached data immediately if available
+          if (presentDataCache.has(cacheKey)) {
+              const cachedData = presentDataCache.get(cacheKey);
+              allPresentEmployees = cachedData.employees;
+              isPresentEmployeesFullyLoaded = true;
+              isLoadingPresentEmployees = false;
+              updatePresentEmployeesUI();
+              return cachedData.employees.length;
           }
           
-          const filteredEmployees = allPresentEmployees.filter(employee => {
-              const fullName = `${employee.first_name} ${employee.middle_name || ''} ${employee.last_name}`.toLowerCase();
-              const location = (employee.location || '').toLowerCase();
-              const employeeNumber = (employee.employee_number || '').toLowerCase();
-              const timeIn = (employee.time_in || '').toLowerCase();
-              
-              return fullName.includes(searchTerm) || 
-                    location.includes(searchTerm) || 
-                    employeeNumber.includes(searchTerm) ||
-                    timeIn.includes(searchTerm);
-          });
+          // Set loading state if requested
+          if (showLoading) {
+              isLoadingPresentEmployees = true;
+              isPresentEmployeesFullyLoaded = false;
+              updatePresentEmployeesUI();
+          }
           
-          displayPresentEmployees(filteredEmployees);
-      });
-
-      document.getElementById('presentEmployeesModal').addEventListener('shown.bs.modal', function () {
-          loadPresentEmployees();
-          document.getElementById('presentEmployeeSearch').value = '';
-      });
-
-      document.getElementById('presentEmployeesModal').addEventListener('hidden.bs.modal', function () {
-          document.getElementById('presentEmployeeSearch').value = '';
-          allPresentEmployees = [];
-      });
-
-      // Update the location filter to also refresh present employees modal if open
-      document.getElementById('locationFilter').addEventListener('change', function () {
-          const selectedLocation = this.value;
-          currentLocation = selectedLocation;
-          currentPresentLocation = selectedLocation;
-
-          fetch(`{{ url('/dashboard/filter-by-location') }}?location=${encodeURIComponent(selectedLocation)}`)
-              .then(response => response.json())
-              .then(data => {
-                  document.querySelector('.employees-count').innerText = data.total_employees;
-                  document.querySelector('.present-count').innerText = data.present_today_count;
-                  document.querySelector('.absent-count').innerText = data.absent_today_count;
-                  document.querySelector('.late-count').innerText = data.late_comers_count;
-                  
-                  document.getElementById('modalEmployeeCount').innerText = data.total_employees;
-                  document.getElementById('modalPresentCount').innerText = data.present_today_count;
-                  
-                  const presentModal = document.getElementById('presentEmployeesModal');
-                  if (presentModal.classList.contains('show')) {
-                      loadPresentEmployees();
-                  }
-                  
-                  const modal = document.getElementById('employeesModal');
-                  if (modal.classList.contains('show')) {
-                      loadEmployees();
-                  }
-              })
-              .catch(error => {
-                  console.error('Error fetching data:', error);
-              });
-      });
-      </script>
-
-    <script>
-    // === ABSENT EMPLOYEES MODAL FUNCTIONALITY ===
-    let currentAbsentLocation = '';
-    let allAbsentEmployees = [];
-
-          // Load absent employees function
-          function loadAbsentEmployees() {
-              const absentEmployeesList = document.getElementById('absentEmployeesList');
-              absentEmployeesList.innerHTML = `
-                  <div class="loading-spinner">
-                      <div class="spinner-border text-primary" role="status">
-                          <span class="visually-hidden"></span>
-                      </div>
-                      <p class="mt-2">Loading absent employees...</p>
-                  </div>
-              `;
-
-              let url = '{{ url("/dashboard/get-absent-employees") }}';
-              if (currentAbsentLocation) {
-                  url += `?location=${encodeURIComponent(currentAbsentLocation)}`;
+          try {
+              let url = '{{ url("/dashboard/get-present-employees") }}';
+              if (targetLocation) {
+                  url += `?location=${encodeURIComponent(targetLocation)}`;
               }
-
-              fetch(url, {
+              
+              const response = await fetch(url, {
                   method: 'GET',
                   headers: {
                       'Accept': 'application/json',
@@ -2143,155 +2383,631 @@
                       'X-Requested-With': 'XMLHttpRequest',
                       'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
                   }
-              })
-              .then(response => {
-                  if (!response.ok) {
-                      return response.text().then(text => {
-                          throw new Error(`HTTP ${response.status}: ${text}`);
-                      });
-                  }
-      
-                  return response.json();
-              })
-              .then(data => {
-                  if (data.success === false) {
-                      throw new Error(data.error || 'Unknown server error');
-                  }
-                  document.getElementById('modalAbsentCount').textContent = data.employees.length;
-                  document.getElementById('admin_absent').textContent = data.employees.length;
-                  allAbsentEmployees = data.employees || [];
+              });
+              
+              if (!response.ok) {
+                  const text = await response.text();
+                  throw new Error(`HTTP ${response.status}: ${text}`);
+              }
+              
+              const data = await response.json();
+              
+              if (data.success !== false) {
+                  const employees = data.employees || [];
+                  const cacheData = {
+                      employees: employees,
+                      message: data.message,
+                      timestamp: Date.now()
+                  };
                   
-                  // Check if there's a message (like before 10 AM)
-                  if (data.message && allAbsentEmployees.length === 0) {
-                      absentEmployeesList.innerHTML = `
-                          <div class="no-employees">
-                              <i class="fas fa-clock fa-3x text-info mb-3"></i>
-                              <h5>Too Early</h5>
-                              <p>${data.message}</p>
-                          </div>
-                      `;
-                      return;
-                  }
-                  
-                  displayAbsentEmployees(allAbsentEmployees);
-              })
-              .catch(error => {
-                  absentEmployeesList.innerHTML = `
-                      <div class="no-employees">
-                          <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                          <h5>Error Loading Absent Employees</h5>
-                          <p class="text-danger">${error.message}</p>
-                          <br><br>
-                          <button class="btn btn-primary btn-sm" onclick="loadAbsentEmployees()">
-                              <i class="fas fa-redo"></i> Try Again
-                          </button>
-                      </div>
-                  `;
+                  presentDataCache.set(cacheKey, cacheData);
+                  allPresentEmployees = employees;
+                  isLoadingPresentEmployees = false;
+                  isPresentEmployeesFullyLoaded = true;
+                  updatePresentEmployeesUI();
+                  return employees.length;
+              } else {
+                  throw new Error(data.error || 'API returned success: false');
+              }
+          } catch (error) {
+              console.error('Error updating present count:', error);
+              isLoadingPresentEmployees = false;
+              isPresentEmployeesFullyLoaded = true;
+              updatePresentEmployeesUI();
+              return allPresentEmployees.length;
+          }
+      }
+
+      // Debounce utility
+      function debouncePresentSearch(func, wait) {
+          let timeout;
+          return function executedFunction(...args) {
+              const later = () => {
+                  clearTimeout(timeout);
+                  func(...args);
+              };
+              clearTimeout(timeout);
+              timeout = setTimeout(later, wait);
+          };
+      }
+
+      // Search functionality with debounce
+      const debouncedPresentSearch = debouncePresentSearch(function(searchTerm) {
+          if (searchTerm === '') {
+              displayPresentEmployees(allPresentEmployees);
+              return;
+          }
+          
+          const lowerSearchTerm = searchTerm.toLowerCase();
+          const filteredEmployees = allPresentEmployees.filter(employee => {
+              const fullName = `${employee.first_name} ${employee.middle_name || ''} ${employee.last_name}`.toLowerCase();
+              const location = (employee.location || '').toLowerCase();
+              const employeeNumber = (employee.employee_number || '').toLowerCase();
+              const timeIn = (employee.time_in || '').toLowerCase();
+              
+              return fullName.includes(lowerSearchTerm) || 
+                    location.includes(lowerSearchTerm) || 
+                    employeeNumber.includes(lowerSearchTerm) ||
+                    timeIn.includes(lowerSearchTerm);
+          });
+          
+          displayPresentEmployees(filteredEmployees);
+      }, 300);
+
+      document.addEventListener('DOMContentLoaded', function() {
+          // Initialize with loading state
+          isLoadingPresentEmployees = true;
+          isPresentEmployeesFullyLoaded = false;
+          updatePresentEmployeesUI();
+          
+          // Start background loading
+          updatePresentCount(null, true);
+          
+          // Search functionality
+          const presentSearchInput = document.getElementById('presentEmployeeSearch');
+          if (presentSearchInput) {
+              presentSearchInput.addEventListener('input', function() {
+                  debouncedPresentSearch(this.value.trim());
               });
           }
 
-          function displayAbsentEmployees(employees) {
-              const absentEmployeesList = document.getElementById('absentEmployeesList');
-              
-              if (!employees || employees.length === 0) {
-                  absentEmployeesList.innerHTML = `
-                      <div class="no-employees">
-                          <i class="fas fa-user-check fa-3x text-muted mb-3"></i>
-                          <h5>Great! No Absent Employees</h5>
-                          <p>All employees are present or on approved leave today.</p>
-                      </div>
-                  `;
-                  return;
-              }
-
-              let html = '';
-              employees.forEach(employee => {
-                  const initials = getInitials(employee.first_name, employee.last_name);
-                  const middleName = employee.middle_name ? employee.middle_name + ' ' : '';
-                  const location = employee.location || 'No location specified';
-                  const employeeNumber = employee.employee_number || 'N/A';
+          // Modal handlers
+          const presentModal = document.getElementById('presentEmployeesModal');
+          if (presentModal) {
+              presentModal.addEventListener('shown.bs.modal', function () {
+                  const searchInput = document.getElementById('presentEmployeeSearch');
+                  if (searchInput) searchInput.value = '';
                   
-                  html += `
-                      <div class="employee-list-item">
-                          <div class="d-flex align-items-center">
-                              <div class="employee-avatar me-3">
-                                  ${initials}
-                              </div>
-                              &nbsp;&nbsp;
-                              <div class="flex-grow-1">
-                                  <div class="employee-name">
-                                      ${employee.first_name} ${middleName}${employee.last_name}
-                                  </div>
-                                  <div>
-                                    <i class="fas fa-id-badge me-1 text-muted""></i>
-                                    <small class="text-muted">${employeeNumber}</small>
-                                  </div>
-                                  <div class="employee-location">
-                                      <i class="fas fa-map-marker-alt me-1"></i>
-                                      ${location}
-                                  </div>
-                              </div>
-                              <div class="text-end">
-                                  <div class="absent-badge" style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; margin-bottom: 4px;">
-                                      <i class="fas fa-times me-1"></i>
-                                      ABSENT
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                  `;
+                  loadPresentEmployees();
               });
-              
-              absentEmployeesList.innerHTML = html;
+
+              presentModal.addEventListener('hidden.bs.modal', function () {
+                  const searchInput = document.getElementById('presentEmployeeSearch');
+                  if (searchInput) searchInput.value = '';
+              });
           }
 
-          document.getElementById('absentEmployeeSearch').addEventListener('input', function() {
-              const searchTerm = this.value.toLowerCase().trim();
-              
-              if (searchTerm === '') {
-                  displayAbsentEmployees(allAbsentEmployees);
-                  return;
-              }
-              
-              const filteredEmployees = allAbsentEmployees.filter(employee => {
-                  const fullName = `${employee.first_name} ${employee.middle_name || ''} ${employee.last_name}`.toLowerCase();
-                  const location = (employee.location || '').toLowerCase();
-                  const employeeNumber = (employee.employee_number || '').toLowerCase();
-                  
-                  return fullName.includes(searchTerm) || 
-                        location.includes(searchTerm) || 
-                        employeeNumber.includes(searchTerm);
+          // Location filter integration
+          const locationFilter = document.getElementById('locationFilter');
+          if (locationFilter) {
+              locationFilter.addEventListener('change', function() {
+                  const selectedLocation = this.value;
+                  setPresentEmployeesLocation(selectedLocation);
               });
-              
-              displayAbsentEmployees(filteredEmployees);
-          });
+          }
+      });
 
-          document.getElementById('absentEmployeesModal').addEventListener('shown.bs.modal', function () {
-           
-              document.getElementById('absentEmployeeSearch').value = '';
-          });
+      // Cache cleanup - runs every minute to remove stale cache entries
+      setInterval(() => {
+          const now = Date.now();
+          const fiveMinutes = 5 * 60 * 1000;
+          
+          for (let [key, data] of presentDataCache.entries()) {
+              if (now - data.timestamp > fiveMinutes) {
+                  presentDataCache.delete(key);
+              }
+          }
+      }, 60000);
+  </script>
+   
+  <script>
+        // === ABSENT EMPLOYEES MODAL FUNCTIONALITY ===
+        let currentAbsentLocation = '';
+        let allAbsentEmployees = [];
+        let absentDataCache = new Map();
+        let isLoadingAbsentEmployees = false;
+        let currentAbsentCount = 0;
 
-          document.getElementById('absentEmployeesModal').addEventListener('hidden.bs.modal', function () {
-              document.getElementById('absentEmployeeSearch').value = '';
-              allAbsentEmployees = [];
-          });
-    </script>
+        function updateAbsentDisplay(count, isLoading = false, isDataFullyLoaded = false) {
+            const absentElement = document.getElementById('admin_absent');
+            if (!absentElement) return;
+            
+            currentAbsentCount = count;
+            
+            if (isLoading || !isDataFullyLoaded) {
+                absentElement.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 50 50">
+                        <path fill="#fff" d="M43.935,25.145c0-10.318-8.364-18.682-18.682-18.682
+                            c-10.318,0-18.682,8.364-18.682,18.682h4.068
+                            c0-8.064,6.55-14.614,14.614-14.614s14.614,6.55,14.614,14.614H43.935z">
+                            <animateTransform attributeType="xml" attributeName="transform" type="rotate"
+                                from="0 25 25" to="360 25 25" dur="0.8s" repeatCount="indefinite"/>
+                        </path>
+                    </svg>
+                `;
+            } else {
+                absentElement.textContent = count;
+                absentElement.style.fontSize = '18px';
+                absentElement.style.fontWeight = 'bold';
+            }
+            
+            const modalCount = document.getElementById('modalAbsentCount');
+            if (modalCount) {
+                modalCount.textContent = count;
+            }
+        }
 
-    <script>
-      // === LATE EMPLOYEES MODAL FUNCTIONALITY ===
-      let currentLateLocation = '';
-      let allLateEmployees = [];
 
-        function loadLateEmployees() {
-            const lateEmployeesList = document.getElementById('lateEmployeesList');
-            lateEmployeesList.innerHTML = `
-                <div class="loading-spinner">
+        function debounceAbsent(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        const getAbsentCacheKey = (location) => location || 'all_locations';
+
+        function setAbsentEmployeesLocation(location) {
+            const oldLocation = currentAbsentLocation;
+            currentAbsentLocation = location || '';
+            
+            if (oldLocation !== currentAbsentLocation) {
+                absentDataCache.delete(getAbsentCacheKey(oldLocation));
+                
+                // Check if we have cached data for new location
+                const newCacheKey = getAbsentCacheKey(currentAbsentLocation);
+                if (absentDataCache.has(newCacheKey)) {
+                    // Use cached data immediately - data is already loaded
+                    const cachedData = absentDataCache.get(newCacheKey);
+                    updateAbsentDisplay(cachedData.employees.length, false, true);
+                } else {
+                    // Show current count with loading indicator
+                    updateAbsentDisplay(currentAbsentCount, true, false);
+                    updateAbsentCount();
+                }
+                
+                // Reload modal if open
+                const modal = document.getElementById('absentEmployeesModal');
+                if (modal?.classList.contains('show')) {
+                    loadAbsentEmployees(true);
+                }
+            }
+        }
+
+        // Background count update - doesn't interfere with display
+        async function updateAbsentCount(location = null, showLoading = true) {
+            const targetLocation = location !== null ? location : currentAbsentLocation;
+            const cacheKey = getAbsentCacheKey(targetLocation);
+            
+            // Use cached data immediately if available
+            if (absentDataCache.has(cacheKey)) {
+                const cachedData = absentDataCache.get(cacheKey);
+                updateAbsentDisplay(cachedData.employees.length, false);
+                return cachedData.employees.length;
+            }
+            
+            // Show loading indicator
+            if (showLoading) {
+                updateAbsentDisplay(currentAbsentCount, true);
+            }
+            
+            try {
+                let url = '{{ url("/dashboard/get-absent-employees") }}';
+                if (targetLocation) {
+                    url += `?location=${encodeURIComponent(targetLocation)}`;
+                }
+                
+                const response = await fetchAbsentWithTimeout(url, 5000);
+                const data = await response.json();
+                
+                if (data.success !== false) {
+                    const count = data.employees ? data.employees.length : 0;
+                    const cacheData = {
+                        employees: data.employees || [],
+                        message: data.message,
+                        timestamp: Date.now()
+                    };
+                    
+                    absentDataCache.set(cacheKey, cacheData);
+                    // Data is now fully loaded and cached
+                    updateAbsentDisplay(count, false, true);
+                    return count;
+                } else {
+                    throw new Error(data.error || 'API returned success: false');
+                }
+            } catch (error) {
+                console.error('Error updating absent count:', error);
+                // Keep current count, just remove loading indicator
+                updateAbsentDisplay(currentAbsentCount, false);
+                return currentAbsentCount;
+            }
+        }
+
+        // Fast sync from external data (like location filter)
+        function syncAbsentCountFromFilterData(absentCount, location = null) {
+            const targetLocation = location !== null ? location : currentAbsentLocation;
+            const cacheKey = getAbsentCacheKey(targetLocation);
+            
+            // Immediate update - but data not fully loaded until cached
+            updateAbsentDisplay(absentCount, false, false);
+            
+            // Clear cache to ensure fresh data later
+            absentDataCache.delete(cacheKey);
+        }
+
+        // Load absent employees function
+        async function loadAbsentEmployees(forceReload = false) {
+            if (isLoadingAbsentEmployees) return;
+
+            const cacheKey = getAbsentCacheKey(currentAbsentLocation);
+            const absentEmployeesList = document.getElementById('absentEmployeesList');
+            
+            // Use cache first
+            if (!forceReload && absentDataCache.has(cacheKey)) {
+                const cachedData = absentDataCache.get(cacheKey);
+                allAbsentEmployees = cachedData.employees;
+                // Data is from cache - fully loaded
+                updateAbsentDisplay(cachedData.employees.length, false, true);
+                
+                if (cachedData.message && cachedData.employees.length === 0) {
+                    absentEmployeesList.innerHTML = createAbsentNoEmployeesHTML('clock', 'Too Early', cachedData.message);
+                } else {
+                    displayAbsentEmployees(cachedData.employees);
+                }
+                return;
+            }
+
+            isLoadingAbsentEmployees = true;
+            
+            // Show modal loading
+            if (absentEmployeesList) {
+                absentEmployeesList.innerHTML = createAbsentLoadingHTML();
+            }
+
+            try {
+                const url = buildAbsentURL();
+                const response = await fetchAbsentWithTimeout(url, 10000);
+                
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success === false) {
+                    throw new Error(data.error || 'Unknown server error');
+                }
+                
+                const employees = data.employees || [];
+                const cacheData = {
+                    employees,
+                    message: data.message,
+                    timestamp: Date.now()
+                };
+                
+                absentDataCache.set(cacheKey, cacheData);
+                allAbsentEmployees = employees;
+                
+                // Update count - data is now fully loaded and cached
+                updateAbsentDisplay(employees.length, false, true);
+                
+                // Update modal display
+                if (absentEmployeesList) {
+                    if (data.message && employees.length === 0) {
+                        absentEmployeesList.innerHTML = createAbsentNoEmployeesHTML('clock', 'Too Early', data.message);
+                    } else {
+                        displayAbsentEmployees(employees);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error loading absent employees:', error);
+                updateAbsentDisplay(currentAbsentCount, false, false);
+                
+                if (absentEmployeesList) {
+                    absentEmployeesList.innerHTML = createAbsentErrorHTML(error.message);
+                }
+            } finally {
+                isLoadingAbsentEmployees = false;
+            }
+        }
+
+        // Utility functions
+        function buildAbsentURL() {
+            let url = '{{ url("/dashboard/get-absent-employees") }}';
+            if (currentAbsentLocation) {
+                url += `?location=${encodeURIComponent(currentAbsentLocation)}`;
+            }
+            return url;
+        }
+
+        function fetchAbsentWithTimeout(url, timeout = 8000) {
+            return Promise.race([
+                fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    }
+                }),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Request timeout')), timeout)
+                )
+            ]);
+        }
+
+        function createAbsentLoadingHTML() {
+            return `
+                <div class="loading-spinner text-center">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden"></span>
                     </div>
-                    <p class="mt-2">Loading late employees...</p>
+                    <p class="mt-2">Loading absent employees...</p>
                 </div>
             `;
+        }
+
+        function createAbsentNoEmployeesHTML(icon, title, message) {
+            return `
+                <div class="no-employees text-center">
+                    <i class="fas fa-${icon} fa-3x text-info mb-3"></i>
+                    <h5>${title}</h5>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        function createAbsentErrorHTML(message) {
+            return `
+                <div class="no-employees text-center">
+                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                    <h5>Error Loading Absent Employees</h5>
+                    <p class="text-danger">${message}</p>
+                    <br>
+                    <button class="btn btn-primary btn-sm" onclick="loadAbsentEmployees(true)">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        function displayAbsentEmployees(employees) {
+            const absentEmployeesList = document.getElementById('absentEmployeesList');
+            if (!absentEmployeesList) return;
+            
+            if (!employees || employees.length === 0) {
+                absentEmployeesList.innerHTML = `
+                    <div class="no-employees text-center">
+                        <i class="fas fa-user-check fa-3x text-muted mb-3"></i>
+                        <h5>Great! No Absent Employees</h5>
+                        <p>All employees are present or on approved leave today${currentAbsentLocation ? ` in ${currentAbsentLocation}` : ''}.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = employees.map(employee => {
+                const initials = getInitials(employee.first_name, employee.last_name);
+                const middleName = employee.middle_name ? employee.middle_name + ' ' : '';
+                const location = employee.location || 'No location specified';
+                const employeeNumber = employee.employee_number || 'N/A';
+                
+                return `
+                    <div class="employee-list-item">
+                        <div class="d-flex align-items-center">
+                            <div class="employee-avatar me-3">
+                                ${initials}
+                            </div>
+                            &nbsp;&nbsp;
+                            <div class="flex-grow-1">
+                                <div class="employee-name">
+                                    ${employee.first_name} ${middleName}${employee.last_name}
+                                </div>
+                                <div>
+                                  <i class="fas fa-id-badge me-1 text-muted"></i>
+                                  <small class="text-muted">${employeeNumber}</small>
+                                </div>
+                                <div class="employee-location">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    ${location}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="absent-badge" style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; margin-bottom: 4px;">
+                                    <i class="fas fa-times me-1"></i>
+                                    ABSENT
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            absentEmployeesList.innerHTML = html;
+        }
+
+        // Search functionality with debounce
+        const debouncedAbsentSearch = debounceAbsent(function(searchTerm) {
+            if (searchTerm === '') {
+                displayAbsentEmployees(allAbsentEmployees);
+                return;
+            }
+            
+            const lowerSearchTerm = searchTerm.toLowerCase();
+            const filteredEmployees = allAbsentEmployees.filter(employee => {
+                const fullName = `${employee.first_name} ${employee.middle_name || ''} ${employee.last_name}`.toLowerCase();
+                const location = (employee.location || '').toLowerCase();
+                const employeeNumber = (employee.employee_number || '').toLowerCase();
+                
+                return fullName.includes(lowerSearchTerm) || 
+                      location.includes(lowerSearchTerm) || 
+                      employeeNumber.includes(lowerSearchTerm);
+            });
+            
+            displayAbsentEmployees(filteredEmployees);
+        }, 300);
+
+        // Cache management
+        function clearAbsentEmployeesCache() {
+            absentDataCache.clear();
+        }
+
+        // Event listeners and modal handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize with loading state
+            updateAbsentDisplay(0, true, false);
+            
+            // Start background loading to populate cache
+            updateAbsentCount(null, true);
+            
+            // Search functionality
+            const absentSearchInput = document.getElementById('absentEmployeeSearch');
+            if (absentSearchInput) {
+                absentSearchInput.addEventListener('input', function() {
+                    debouncedAbsentSearch(this.value.trim());
+                });
+            }
+
+            // Modal handlers
+            const absentModal = document.getElementById('absentEmployeesModal');
+            if (absentModal) {
+                absentModal.addEventListener('shown.bs.modal', function () {
+                    const searchInput = document.getElementById('absentEmployeeSearch');
+                    if (searchInput) searchInput.value = '';
+                    loadAbsentEmployees();
+                });
+
+                absentModal.addEventListener('hidden.bs.modal', function () {
+                    const searchInput = document.getElementById('absentEmployeeSearch');
+                    if (searchInput) searchInput.value = '';
+                });
+            }
+
+            // Location filter integration
+            const locationFilter = document.getElementById('locationFilter');
+            if (locationFilter) {
+                // Add event listener that specifically handles absent employees
+                locationFilter.addEventListener('change', function() {
+                    const selectedLocation = this.value;
+                    
+                    // Update absent location
+                    setAbsentEmployeesLocation(selectedLocation);
+                });
+            }
+        });
+
+        // Cache cleanup - runs every minute to remove stale cache entries
+        setInterval(() => {
+            const now = Date.now();
+            const fiveMinutes = 5 * 60 * 1000;
+            
+            for (let [key, data] of absentDataCache.entries()) {
+                if (now - data.timestamp > fiveMinutes) {
+                    absentDataCache.delete(key);
+                }
+            }
+        }, 60000);
+
+        // Integration with main location filter (to be called from the main location filter handler)
+        function updateAbsentForLocationFilter(selectedLocation, absentCount) {
+            // Set the location
+            setAbsentEmployeesLocation(selectedLocation);
+            
+            // Sync the count immediately but keep loading state until cache is populated
+            syncAbsentCountFromFilterData(absentCount, selectedLocation);
+            
+            // Trigger background loading to populate cache for instant modal access
+            updateAbsentCount(selectedLocation, false);
+        }
+
+        // Helper function (assuming it exists globally, or define it here)
+        function getInitials(firstName, lastName) {
+            const first = firstName ? firstName.charAt(0).toUpperCase() : '';
+            const last = lastName ? lastName.charAt(0).toUpperCase() : '';
+            return first + last;
+        }
+    </script>
+    <script>
+        // === LATE EMPLOYEES MODAL FUNCTIONALITY ===
+        let currentLateLocation = '';
+        let allLateEmployees = [];
+        let lateDataCache = new Map();
+        let isLoadingLateEmployees = false;
+        let isLateEmployeesFullyLoaded = false;
+
+        const getLateCacheKey = (location) => location || 'all_locations';
+
+        function setLateEmployeesLocation(location) {
+            const oldLocation = currentLateLocation;
+            currentLateLocation = location || '';
+            
+            if (oldLocation !== currentLateLocation) {
+                lateDataCache.delete(getLateCacheKey(oldLocation));
+                
+                // Check if we have cached data for new location
+                const newCacheKey = getLateCacheKey(currentLateLocation);
+                if (lateDataCache.has(newCacheKey)) {
+                    // Use cached data immediately - data is already loaded
+                    const cachedData = lateDataCache.get(newCacheKey);
+                    allLateEmployees = cachedData.employees;
+                    isLateEmployeesFullyLoaded = true;
+                    isLoadingLateEmployees = false;
+                    updateLateEmployeesUI();
+                } else {
+                    // Need to load data
+                    isLateEmployeesFullyLoaded = false;
+                    loadLateEmployees();
+                }
+                
+                // Reload modal if open
+                const modal = document.getElementById('lateEmployeesModal');
+                if (modal?.classList.contains('show')) {
+                    loadLateEmployees();
+                }
+            }
+        }
+
+        function loadLateEmployees() {
+            if (isLoadingLateEmployees) return;
+
+            const cacheKey = getLateCacheKey(currentLateLocation);
+            const lateEmployeesList = document.getElementById('lateEmployeesList');
+            
+            // Check cache first - if data exists, use it immediately
+            if (lateDataCache.has(cacheKey)) {
+                const cachedData = lateDataCache.get(cacheKey);
+                allLateEmployees = cachedData.employees;
+                isLateEmployeesFullyLoaded = true;
+                isLoadingLateEmployees = false;
+                updateLateEmployeesUI();
+                
+                // Show cached results in modal immediately
+                displayLateEmployees(cachedData.employees);
+                return;
+            }
+            
+            // Set loading state IMMEDIATELY
+            isLoadingLateEmployees = true;
+            isLateEmployeesFullyLoaded = false;
+            updateLateEmployeesUI();
 
             let url = '{{ url("/dashboard/get-late-employees") }}';
             if (currentLateLocation) {
@@ -2319,14 +3035,26 @@
                 if (data.success === false) {
                     throw new Error(data.error || 'Unknown server error');
                 }
+
+                const employees = data.employees || [];
+                const cacheData = {
+                    employees: employees,
+                    timestamp: Date.now()
+                };
                 
-                allLateEmployees = data.employees || [];
-                
-                document.getElementById('modalLateCount').textContent = data.employees.length;
-                document.getElementById('late_admin').textContent = data.employees.length;
-                displayLateEmployees(allLateEmployees);
+                // Cache the data
+                lateDataCache.set(cacheKey, cacheData);
+                allLateEmployees = employees;
+                isLoadingLateEmployees = false;
+                isLateEmployeesFullyLoaded = true;
+
+                updateLateEmployeesUI();
+                displayLateEmployees(employees);
             })
             .catch(error => {
+                isLoadingLateEmployees = false;
+                isLateEmployeesFullyLoaded = true;
+
                 lateEmployeesList.innerHTML = `
                     <div class="no-employees">
                         <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
@@ -2341,9 +3069,44 @@
             });
         }
 
+        function updateLateEmployeesUI() {
+            const lateEmployeesList = document.getElementById('lateEmployeesList');
+
+            const spinnerSVG = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 50 50">
+                        <path fill="#fff" d="M43.935,25.145c0-10.318-8.364-18.682-18.682-18.682
+                            c-10.318,0-18.682,8.364-18.682,18.682h4.068
+                            c0-8.064,6.55-14.614,14.614-14.614s14.614,6.55,14.614,14.614H43.935z">
+                            <animateTransform attributeType="xml" attributeName="transform" type="rotate"
+                                from="0 25 25" to="360 25 25" dur="0.8s" repeatCount="indefinite"/>
+                        </path>
+                    </svg>
+            `;
+
+            // Show spinner if loading - this will run FIRST
+            if (isLoadingLateEmployees) {
+                lateEmployeesList.innerHTML = `
+                    <div class="loading-spinner text-center">
+                        ${spinnerSVG}
+                        <p class="mt-2">Loading late employees...</p>
+                    </div>
+                `;
+                document.getElementById('modalLateCount').innerHTML = spinnerSVG;
+                document.getElementById('late_admin').innerHTML = spinnerSVG;
+                return;
+            }
+
+            // Only update count when data is fully loaded and not loading
+            if (isLateEmployeesFullyLoaded && !isLoadingLateEmployees) {
+                document.getElementById('modalLateCount').textContent = allLateEmployees.length;
+                document.getElementById('late_admin').textContent = allLateEmployees.length;
+                displayLateEmployees(allLateEmployees);
+            }
+        }
+
         function displayLateEmployees(employees) {
             const lateEmployeesList = document.getElementById('lateEmployeesList');
-            
+
             if (!employees || employees.length === 0) {
                 lateEmployeesList.innerHTML = `
                     <div class="no-employees">
@@ -2361,14 +3124,14 @@
                 const middleName = employee.middle_name ? employee.middle_name + ' ' : '';
                 const location = employee.location || 'No location specified';
                 const employeeNumber = employee.employee_number || 'N/A';
-                
+
                 let badgeColor = '#ffc107';
                 if (employee.late_minutes > 60) {
                     badgeColor = '#dc3545';
                 } else if (employee.late_minutes > 30) {
                     badgeColor = '#fd7e14';
                 }
-                
+
                 html += `
                     <div class="employee-list-item">
                         <div class="d-flex align-items-center">
@@ -2381,7 +3144,7 @@
                                     ${employee.first_name} ${middleName}${employee.last_name}
                                 </div>
                                 <div>
-                                    <i class="fas fa-id-badge me-1 text-muted""></i>
+                                    <i class="fas fa-id-badge me-1 text-muted"></i>
                                     <small class="text-muted">${employeeNumber}</small>
                                 </div>
                                 <div class="employee-location">
@@ -2405,96 +3168,164 @@
                     </div>
                 `;
             });
-            
+
             lateEmployeesList.innerHTML = html;
         }
 
-        document.getElementById('lateEmployeeSearch').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
+        // Cache management
+        function clearLateEmployeesCache() {
+            lateDataCache.clear();
+            isLateEmployeesFullyLoaded = false;
+            allLateEmployees = [];
+        }
+
+        // Background count update
+        async function updateLateCount(location = null, showLoading = true) {
+            const targetLocation = location !== null ? location : currentLateLocation;
+            const cacheKey = getLateCacheKey(targetLocation);
             
-            if (searchTerm === '') {
-                displayLateEmployees(allLateEmployees);
-                return;
+            // Use cached data immediately if available
+            if (lateDataCache.has(cacheKey)) {
+                const cachedData = lateDataCache.get(cacheKey);
+                allLateEmployees = cachedData.employees;
+                isLateEmployeesFullyLoaded = true;
+                isLoadingLateEmployees = false;
+                updateLateEmployeesUI();
+                return cachedData.employees.length;
             }
             
-            const filteredEmployees = allLateEmployees.filter(employee => {
-                const fullName = `${employee.first_name} ${employee.middle_name || ''} ${employee.last_name}`.toLowerCase();
-                const location = (employee.location || '').toLowerCase();
-                const employeeNumber = (employee.employee_number || '').toLowerCase();
-                const expectedTime = (employee.expected_time || '').toLowerCase();
-                const actualTime = (employee.actual_time_in || '').toLowerCase();
-                const lateDuration = (employee.late_duration || '').toLowerCase();
+            // Set loading state if requested
+            if (showLoading) {
+                isLoadingLateEmployees = true;
+                isLateEmployeesFullyLoaded = false;
+                updateLateEmployeesUI();
+            }
+            
+            try {
+                let url = '{{ url("/dashboard/get-late-employees") }}';
+                if (targetLocation) {
+                    url += `?location=${encodeURIComponent(targetLocation)}`;
+                }
                 
-                return fullName.includes(searchTerm) || 
-                      location.includes(searchTerm) || 
-                      employeeNumber.includes(searchTerm) ||
-                      expectedTime.includes(searchTerm) ||
-                      actualTime.includes(searchTerm) ||
-                      lateDuration.includes(searchTerm);
-            });
-            
-            displayLateEmployees(filteredEmployees);
-        });
-
-        document.getElementById('lateEmployeesModal').addEventListener('shown.bs.modal', function () {
-            // loadLateEmployees();
-            document.getElementById('lateEmployeeSearch').value = '';
-        });
-
-        document.getElementById('lateEmployeesModal').addEventListener('hidden.bs.modal', function () {
-            document.getElementById('lateEmployeeSearch').value = '';
-            allLateEmployees = [];
-        });
-    </script>
-
-    <script>
-        // === LOCATION FILTER (affects all four modals) ===
-        document.getElementById('locationFilter').addEventListener('change', function () {
-            const selectedLocation = this.value;
-            
-            currentLocation = selectedLocation;
-            currentPresentLocation = selectedLocation;
-            currentAbsentLocation = selectedLocation;
-            currentLateLocation = selectedLocation;
-
-            fetch(`{{ url('/dashboard/filter-by-location') }}?location=${encodeURIComponent(selectedLocation)}`)
-                .then(response => response.json())
-                .then(data => {
-                 
-                    document.querySelector('.employees-count').innerText = data.total_employees;
-                    document.querySelector('.present-count').innerText = data.present_today_count;
-                    document.querySelector('.absent-count').innerText = data.absent_today_count;
-                    document.querySelector('.late-count').innerText = data.late_comers_count;
-                    
-                    document.getElementById('modalEmployeeCount').innerText = data.total_employees;
-                    document.getElementById('modalPresentCount').innerText = data.present_today_count;
-                    document.getElementById('modalAbsentCount').innerText = data.absent_today_count;
-                    document.getElementById('modalLateCount').innerText = data.late_comers_count;
-                    
-                    const employeesModal = document.getElementById('employeesModal');
-                    if (employeesModal.classList.contains('show')) {
-                        loadEmployees();
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
                     }
-                    
-                    const presentModal = document.getElementById('presentEmployeesModal');
-                    if (presentModal.classList.contains('show')) {
-                        loadPresentEmployees();
-                    }
-                    
-                    const absentModal = document.getElementById('absentEmployeesModal');
-                    if (absentModal.classList.contains('show')) {
-                        // loadAbsentEmployees();
-                    }
-                    
-                    const lateModal = document.getElementById('lateEmployeesModal');
-                    if (lateModal.classList.contains('show')) {
-                        loadLateEmployees();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
                 });
+                
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success !== false) {
+                    const employees = data.employees || [];
+                    const cacheData = {
+                        employees: employees,
+                        timestamp: Date.now()
+                    };
+                    
+                    lateDataCache.set(cacheKey, cacheData);
+                    allLateEmployees = employees;
+                    isLoadingLateEmployees = false;
+                    isLateEmployeesFullyLoaded = true;
+                    updateLateEmployeesUI();
+                    return employees.length;
+                } else {
+                    throw new Error(data.error || 'API returned success: false');
+                }
+            } catch (error) {
+                console.error('Error updating late count:', error);
+                isLoadingLateEmployees = false;
+                isLateEmployeesFullyLoaded = true;
+                updateLateEmployeesUI();
+                return allLateEmployees.length;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize with loading state
+            isLoadingLateEmployees = true;
+            isLateEmployeesFullyLoaded = false;
+            updateLateEmployeesUI();
+            
+            // Start background loading
+            updateLateCount(null, true);
+            
+            // Search functionality
+            const lateSearchInput = document.getElementById('lateEmployeeSearch');
+            if (lateSearchInput) {
+                lateSearchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase().trim();
+
+                    if (searchTerm === '') {
+                        displayLateEmployees(allLateEmployees);
+                        return;
+                    }
+
+                    const filteredEmployees = allLateEmployees.filter(employee => {
+                        const fullName = `${employee.first_name} ${employee.middle_name || ''} ${employee.last_name}`.toLowerCase();
+                        const location = (employee.location || '').toLowerCase();
+                        const employeeNumber = (employee.employee_number || '').toLowerCase();
+                        const expectedTime = (employee.expected_time || '').toLowerCase();
+                        const actualTime = (employee.actual_time_in || '').toLowerCase();
+                        const lateDuration = (employee.late_duration || '').toLowerCase();
+
+                        return fullName.includes(searchTerm) ||
+                              location.includes(searchTerm) ||
+                              employeeNumber.includes(searchTerm) ||
+                              expectedTime.includes(searchTerm) ||
+                              actualTime.includes(searchTerm) ||
+                              lateDuration.includes(searchTerm);
+                    });
+
+                    displayLateEmployees(filteredEmployees);
+                });
+            }
+
+            // Modal handlers
+            const lateModal = document.getElementById('lateEmployeesModal');
+            if (lateModal) {
+                lateModal.addEventListener('shown.bs.modal', function () {
+                    const searchInput = document.getElementById('lateEmployeeSearch');
+                    if (searchInput) searchInput.value = '';
+                    
+                    loadLateEmployees();
+                });
+
+                lateModal.addEventListener('hidden.bs.modal', function () {
+                    const searchInput = document.getElementById('lateEmployeeSearch');
+                    if (searchInput) searchInput.value = '';
+                });
+            }
+
+            // Location filter integration
+            const locationFilter = document.getElementById('locationFilter');
+            if (locationFilter) {
+                locationFilter.addEventListener('change', function() {
+                    const selectedLocation = this.value;
+                    setLateEmployeesLocation(selectedLocation);
+                });
+            }
         });
+
+        // Cache cleanup - runs every minute to remove stale cache entries
+        setInterval(() => {
+            const now = Date.now();
+            const fiveMinutes = 5 * 60 * 1000;
+            
+            for (let [key, data] of lateDataCache.entries()) {
+                if (now - data.timestamp > fiveMinutes) {
+                    lateDataCache.delete(key);
+                }
+            }
+        }, 60000);
     </script>
 
     <script>

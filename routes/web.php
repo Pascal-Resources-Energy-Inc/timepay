@@ -470,7 +470,8 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Daily Schedule
     Route::get('/daily-schedule', 'DailyScheduleController@index');
-    Route::get('/export-schedule', 'DailyScheduleController@export');
+    Route::get('/export-schedule-template', 'DailyScheduleController@exportTemplate');
+    Route::get('/export-schedule', 'DailyScheduleController@export');   
     Route::post('/upload-schedule', 'DailyScheduleController@upload');
     Route::post('/update-schedule/{id}', 'DailyScheduleController@update');
 

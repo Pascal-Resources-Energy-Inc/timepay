@@ -556,6 +556,7 @@
                                   <i class="ti-control-play" ></i>
                               </button>
                               @endif
+
                             @endif
                         </h3>
                         <div class="media">

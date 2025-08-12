@@ -17,7 +17,7 @@
                                         <input type="text" name="name" value="{{$user->name}}" class="form-control">
                                     </div>
                                     <div class='col-md-12 form-group'>
-                                        Email
+                                        Username
                                         <input type="email" name="email" value="{{$user->email}}" class="form-control">
                                     </div>
 

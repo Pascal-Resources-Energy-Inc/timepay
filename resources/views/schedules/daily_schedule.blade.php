@@ -27,39 +27,44 @@
                                 <i class="ti-plus btn-icon-prepend"></i>
                                 Upload Schedule
                             </button>
-                            <a href="{{url('export-schedule')}}" class="btn btn-outline-success btn-icon-text">
-                                <i class="ti-plus btn-icon-prepend"></i>
+                            <a href="{{url('export-schedule-template')}}" class="btn btn-outline-info btn-icon-text">
+                                <i class="ti-download btn-icon-prepend"></i>
                                 Export Template
                             </a>
+                            <a href="{{url('export-schedule')}}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" 
+                            class="btn btn-outline-success btn-icon-text">
+                                <i class="ti-export btn-icon-prepend"></i>
+                                Export Data
+                            </a>
                         </p>
-                        <form action="" method="get" onsubmit="show();">
+                        <form action="" method="get">
                             <div class="row">
                                 <div class="col-md-3">
                                     Employee
-                                    <select name="employee" class="form-control js-example-basic-single" required>
+                                    <select name="employee" class="form-control js-example-basic-single">
                                         <option value="">-Employee-</option>
                                         @foreach ($employee as $emp)
-                                        <option value="{{$emp->employee_number}}" {{$empNum==$emp->
-                                            employee_number?'selected':''}}>{{$emp->employee_code}}-{{$emp->first_name.'
-                                            '.$emp->last_name}}</option>
+                                        <option value="{{$emp->employee_number}}" {{$empNum == $emp->employee_number ? 'selected' : ''}}>
+                                            {{$emp->employee_code}}-{{$emp->first_name.' '.$emp->last_name}}
+                                        </option>
                                         @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-3">
                                     Date From
-                                    <input type="date" name="date_from" class="form-control" value="{{$dateFrom}}"
-                                        required>
+                                    <input type="date" name="date_from" class="form-control" value="{{$dateFrom}}">
                                 </div>
                                 <div class="col-md-3">
                                     Date To
-                                    <input type="date" name="date_to" class="form-control" value="{{$dateTo}}" required>
+                                    <input type="date" name="date_to" class="form-control" value="{{$dateTo}}">
                                 </div>
                                 <div class="col-md-3">
+                                    <br>
                                     <button type="submit" class="btn btn-primary">Filter</button>
+                                    <a href="{{url()->current()}}" class="btn btn-secondary">Clear</a>
                                 </div>
                             </div>
                         </form>
-
                         <div class="table-responsive">
                             <table class="table table-hover table-bordered mt-3">
                                 <thead>
@@ -81,7 +86,7 @@
                                     @foreach ($dailySchedule as $ds)
                                     <tr>
                                         <td>{{$ds->company}}</td>
-                                        <td>{{$ds->employee_number}}</td>
+                                        <td>{{$ds->employee_code}}</td>
                                         <td>{{$ds->employee_code}}</td>
                                         <td>{{$ds->employee_name}}</td>
                                         <td>{{date('M d, Y - l', strtotime($ds->log_date))}}</td>
@@ -106,7 +111,16 @@
                                 </tbody>
                             </table>
 
-                            {!! $dailySchedule->links() !!}
+                            <!-- Fixed pagination with filter preservation -->
+                            {{ $dailySchedule->appends(request()->query())->links() }}
+                            
+                            <!-- Optional: Show pagination info -->
+                            <div class="mt-3">
+                                <p class="text-muted">
+                                    Showing {{ $dailySchedule->firstItem() ?? 0 }} to {{ $dailySchedule->lastItem() ?? 0 }} 
+                                    of {{ $dailySchedule->total() }} results
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>

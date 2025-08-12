@@ -63,7 +63,7 @@ class EmailAttendance extends Command
             }   
             else
             {
-                $att = "2025-05-18";
+                $att = "2025-08-01";
             }
             
             $date_ranges = dateRange(date('Y-m-d', strtotime($att . ' +1 day')),date('Y-m-d'));

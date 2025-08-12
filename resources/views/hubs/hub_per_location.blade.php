@@ -117,6 +117,8 @@
                               <th>Hub Code</th>
                               <th>Address</th>
                               <th>Hub Status</th>
+                              <th>Latitude</th>
+                              <th>Longtitude</th>
                               <th>Map Location</th>
                               <th>Actions</th>
                           </tr>
@@ -132,12 +134,27 @@
                               <td>{{ $hub->hub_code }}</td>
                               <td>{{ $hub->retail_hub_address }}</td>
                               <td>{{ $hub->hub_status }}</td>
+                              <td>
+                                @if(isset($hub->lat))
+                                  {{ number_format($hub->lat, 5) }}
+                                @else
+                                  <span class="text-muted">N/A</span>
+                                @endif
+                              </td>
+
+                              <td>
+                                @if(isset($hub->long))
+                                  {{ number_format($hub->long, 5) }}
+                                @else
+                                  <span class="text-muted">N/A</span>
+                                @endif
+                              </td>
                               <td class="text-center">
                                 @if($hub->google_map_location_link)
                                   <a href="{{ $hub->google_map_location_link }}" 
-                                     target="_blank" 
-                                     class="btn btn-sm btn-outline-primary"
-                                     title="View on Google Maps">
+                                    target="_blank" 
+                                    class="btn btn-sm btn-outline-primary"
+                                    title="View on Google Maps">
                                     <i class="fa fa-map-marker"></i> View Map
                                   </a>
                                 @else
@@ -147,8 +164,8 @@
                               <td>
                                 <div class="btn-group" role="group">
                                   <button data-toggle="modal" data-target="#edit-hub-{{ $hub->id }}"
-                                     class="btn btn-sm btn-outline-info" 
-                                     title="Edit Hub">
+                                    class="btn btn-sm btn-outline-info" 
+                                    title="Edit Hub">
                                     <i class="fa fa-edit"></i> Edit
                                   </button>
                                 </div>
@@ -157,7 +174,7 @@
                           @endforeach
                         @else
                           <tr>
-                            <td colspan="9" class="text-center">No hubs found</td>
+                            <td colspan="11" class="text-center">No hubs found</td>
                           </tr>
                         @endif
                       </tbody>

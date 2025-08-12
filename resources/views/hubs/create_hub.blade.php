@@ -161,3 +161,148 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const googleMapInput = document.getElementById('modal_google_map_location_link');
+    const coordinatesDisplay = document.createElement('div');
+    coordinatesDisplay.id = 'coordinates-display';
+    coordinatesDisplay.className = 'mt-2';
+    coordinatesDisplay.style.display = 'none';
+    
+    if (googleMapInput) {
+        googleMapInput.parentNode.insertBefore(coordinatesDisplay, googleMapInput.nextSibling);
+        
+        googleMapInput.addEventListener('input', function() {
+            const url = this.value.trim();
+            if (url) {
+                const coordinates = extractLatLngFromUrl(url);
+                displayCoordinates(coordinates);
+            } else {
+                hideCoordinates();
+            }
+        });
+        
+        googleMapInput.addEventListener('paste', function() {
+            setTimeout(() => {
+                const url = this.value.trim();
+                if (url) {
+                    const coordinates = extractLatLngFromUrl(url);
+                    displayCoordinates(coordinates);
+                }
+            }, 100);
+        });
+    }
+    
+    function extractLatLngFromUrl(url) {
+        let lat = null;
+        let lng = null;
+        
+        try {
+            
+            let matches = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+            if (matches) {
+                lat = parseFloat(matches[1]);
+                lng = parseFloat(matches[2]);
+                return { lat, lng, source: 'Standard URL' };
+            }
+            
+            matches = url.match(/\/place\/[^\/]+\/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+            if (matches) {
+                lat = parseFloat(matches[1]);
+                lng = parseFloat(matches[2]);
+                return { lat, lng, source: 'Place URL' };
+            }
+            
+            matches = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+            if (matches) {
+                lat = parseFloat(matches[1]);
+                lng = parseFloat(matches[2]);
+                return { lat, lng, source: 'Query Parameter' };
+            }
+            
+            matches = url.match(/[?&]ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+            if (matches) {
+                lat = parseFloat(matches[1]);
+                lng = parseFloat(matches[2]);
+                return { lat, lng, source: 'LL Parameter' };
+            }
+            
+            if (url.match(/(?:maps\.app\.goo\.gl|goo\.gl\/maps)/)) {
+                return { lat: null, lng: null, source: 'Shortened URL', needsResolution: true };
+            }
+            
+        } catch (error) {
+            console.error('Error extracting coordinates:', error);
+        }
+        
+        return { lat: null, lng: null, source: 'Unknown' };
+    }
+    
+    function displayCoordinates(coordinates) {
+        if (coordinates.lat && coordinates.lng) {
+            coordinatesDisplay.innerHTML = `
+                <div class="alert alert-success alert-sm mb-0">
+                    <i class="bi bi-geo-alt-fill"></i> 
+                    <strong>Coordinates detected:</strong> 
+                    Latitude: ${coordinates.lat}, Longitude: ${coordinates.lng}
+                    <small class="text-muted">(${coordinates.source})</small>
+                </div>
+            `;
+            coordinatesDisplay.style.display = 'block';
+        } else if (coordinates.needsResolution) {
+            coordinatesDisplay.innerHTML = `
+                <div class="alert alert-warning alert-sm mb-0">
+                    <i class="bi bi-hourglass-split"></i> 
+                    <strong>Shortened URL detected.</strong> 
+                    Coordinates will be extracted when you save the hub.
+                </div>
+            `;
+            coordinatesDisplay.style.display = 'block';
+        } else {
+            coordinatesDisplay.innerHTML = `
+                <div class="alert alert-warning alert-sm mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    <strong>No coordinates found.</strong> 
+                    Please check if the Google Maps URL is valid.
+                </div>
+            `;
+            coordinatesDisplay.style.display = 'block';
+        }
+    }
+    
+    function hideCoordinates() {
+        coordinatesDisplay.style.display = 'none';
+    }
+    
+    function addTestButton() {
+        const testButton = document.createElement('button');
+        testButton.type = 'button';
+        testButton.className = 'btn btn-sm btn-outline-info mt-2';
+        testButton.innerHTML = '<i class="bi bi-search"></i> Test Coordinates';
+        testButton.style.display = 'none';
+        
+        testButton.addEventListener('click', function() {
+            const url = googleMapInput.value.trim();
+            if (url) {
+                const coordinates = extractLatLngFromUrl(url);
+                if (coordinates.lat && coordinates.lng) {
+                    alert(`Coordinates found!\nLatitude: ${coordinates.lat}\nLongitude: ${coordinates.lng}\nSource: ${coordinates.source}`);
+                } else if (coordinates.needsResolution) {
+                    alert('This is a shortened URL. Coordinates will be extracted on the server when you save.');
+                } else {
+                    alert('No coordinates could be extracted from this URL.');
+                }
+            } else {
+                alert('Please enter a Google Maps URL first.');
+            }
+        });
+        
+        googleMapInput.parentNode.appendChild(testButton);
+        
+        googleMapInput.addEventListener('input', function() {
+            testButton.style.display = this.value.trim() ? 'inline-block' : 'none';
+        });
+    }
+});
+</script>

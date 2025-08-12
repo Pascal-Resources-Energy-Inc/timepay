@@ -502,4 +502,5 @@ class HubPerLocationController extends Controller
         
         return response()->json($result);
     }
+    
 }

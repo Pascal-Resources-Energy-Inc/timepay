@@ -89,4 +89,5 @@ class HubPerLocation extends Model implements Auditable
     {
         return $this->long ? number_format((float)$this->long, 6) : 'N/A';
     }
+    
 }

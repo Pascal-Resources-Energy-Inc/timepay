@@ -291,6 +291,7 @@ function updateAreas() {
             order: [] 
         });
     });
+    
 </script>
 
 @foreach($hubs as $hub)

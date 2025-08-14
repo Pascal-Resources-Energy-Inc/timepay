@@ -23,7 +23,7 @@
 
 .centerChart {
     width: 100% !important;
-    height: 332px !important;
+    height: 306px !important;
 }
 
 .col-md-2-25 {

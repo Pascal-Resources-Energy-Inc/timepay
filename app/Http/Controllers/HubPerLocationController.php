@@ -181,14 +181,19 @@ class HubPerLocationController extends Controller
         $hub->google_map_location_link = $request->google_map_location_link;
         $hub->lat = $request->lat;
         $hub->long = $request->long;
+        
+        if (!$id) {
+            $hub->created_at = now();
+        }
         $hub->updated_at = now();
 
         $hub->save();
 
-        $message = 'Hub updated successfully!';
+        $message = $action === 'created' ? 'Hub created successfully!' : 'Hub updated successfully!';
         Alert::success($message)->persistent('Dismiss');
         return back();
     }
+    
     
     public function createUserForHub(Request $request)
     {

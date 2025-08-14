@@ -147,6 +147,44 @@
                                placeholder="https://maps.app.goo.gl/....">
                         <small class="form-text text-muted">Optional: Paste the Google Maps URL for location reference</small>
                     </div>
+
+                    <div class="mb-4">
+                        <h6 class="mb-3"><strong>Coordinates</strong></h6>
+                    </div>
+
+                    <div class="row">
+                        <!-- Latitude -->
+                        <div class="col-md-6 mb-3">
+                            <label for="modal_lat" class="form-label">
+                                Latitude
+                            </label>
+                            <input type="number" 
+                                   step="any" 
+                                   name="lat" 
+                                   id="modal_lat" 
+                                   class="form-control" 
+                                   placeholder="Enter latitude (e.g., 14.6042)" 
+                                   min="-90" 
+                                   max="90">
+                            <small class="form-text text-muted">Optional: Enter latitude for precise location mapping</small>
+                        </div>
+
+                        <!-- Longitude -->
+                        <div class="col-md-6 mb-3">
+                            <label for="modal_long" class="form-label">
+                                Longitude
+                            </label>
+                            <input type="number" 
+                                   step="any" 
+                                   name="long" 
+                                   id="modal_long" 
+                                   class="form-control" 
+                                   placeholder="Enter longitude (e.g., 121.0700)" 
+                                   min="-180" 
+                                   max="180">
+                            <small class="form-text text-muted">Optional: Enter longitude for precise location mapping</small>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-footer">
@@ -274,36 +312,5 @@ document.addEventListener('DOMContentLoaded', function() {
     function hideCoordinates() {
         coordinatesDisplay.style.display = 'none';
     }
-    
-    function addTestButton() {
-        const testButton = document.createElement('button');
-        testButton.type = 'button';
-        testButton.className = 'btn btn-sm btn-outline-info mt-2';
-        testButton.innerHTML = '<i class="bi bi-search"></i> Test Coordinates';
-        testButton.style.display = 'none';
-        
-        testButton.addEventListener('click', function() {
-            const url = googleMapInput.value.trim();
-            if (url) {
-                const coordinates = extractLatLngFromUrl(url);
-                if (coordinates.lat && coordinates.lng) {
-                    alert(`Coordinates found!\nLatitude: ${coordinates.lat}\nLongitude: ${coordinates.lng}\nSource: ${coordinates.source}`);
-                } else if (coordinates.needsResolution) {
-                    alert('This is a shortened URL. Coordinates will be extracted on the server when you save.');
-                } else {
-                    alert('No coordinates could be extracted from this URL.');
-                }
-            } else {
-                alert('Please enter a Google Maps URL first.');
-            }
-        });
-        
-        googleMapInput.parentNode.appendChild(testButton);
-        
-        googleMapInput.addEventListener('input', function() {
-            testButton.style.display = this.value.trim() ? 'inline-block' : 'none';
-        });
-    }
 });
-
 </script>

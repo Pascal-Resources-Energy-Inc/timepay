@@ -23,7 +23,7 @@
 
 .centerChart {
     width: 100% !important;
-    height: 332px !important;
+    height: 306px !important;
 }
 
 .col-md-2-25 {
@@ -1505,6 +1505,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
+<script>
+$(document).ready(function() {
+    // Force clean up modal backdrops
+    $('.modal').on('hidden.bs.modal', function () {
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open').css('padding-right', '');
+    });
+});
+</script>
 
 <script>
 let userLocation = null;
@@ -1821,7 +1830,6 @@ function getAccurateLocation() {
     });
 }
 
-// Updated showLocationSweetAlert function with hub coordinates display
 async function showLocationSweetAlert(userLocation, proximityResult) {
     let readableAddress = 'Fetching address...';
     try {
@@ -1880,17 +1888,13 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
         hubsHtml = '<div class="mt-3 alert alert-danger">⚠️ Please contact HR to assign a hub location to your account.</div>';
     }
 
-    // HTML for SweetAlert with enhanced coordinate display
     const htmlContent = `
         <div style="font-size: 14px; color: #333;">
-        <!-- Map Icon Header -->
         <div class="text-center mb-3">
             <i class="fas fa-map-marker-alt fa-2x" style="color: ${proximityResult.isNearHub ? '#28a745' : '#ffc107'};"></i>
         </div>
 
-        <!-- FLEX CONTAINER: Location + Hub Info -->
         <div style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between;">
-            <!-- Your Location -->
             <div style="flex: 1; min-width: 260px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
             <h6 style="margin-bottom: 10px;"><i class="fas fa-user-circle text-success"></i> Your Location</h6>
             <p><strong>Address:</strong><br>${readableAddress}</p>
@@ -1898,7 +1902,6 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
             <p><strong>Accuracy:</strong> ±${userLocation.accuracy || 'Unknown'}m</p>
             </div>
 
-            <!-- Hub Info -->
             ${proximityResult.assignedHub ? `
             <div style="flex: 1; min-width: 260px; background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
             <h6 style="margin-bottom: 10px;"><i class="fas fa-building"></i> Assigned Hub</h6>
@@ -1909,19 +1912,16 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
             </div>` : ''}
         </div>
 
-        <!-- Map -->
         <div style="margin-top: 20px; margin-bottom: 20px;">
             <div id="hubMap" style="width: 100%; height: 300px; border-radius: 8px; border: 1px solid #ccc;"></div>
         </div>
 
-        <!-- FULL LEGEND (Cleaned up and grouped) -->
         <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; border: 1px solid #e0e0e0; margin-bottom: 15px;">
             <h6 style="margin-bottom: 15px;"><i class="fas fa-info-circle"></i> Map Legend & Distance Info</h6>
             
-            <!-- Symbols -->
             <div style="display: flex; flex-wrap: wrap; gap: 20px;">
             <div style="display: flex; align-items: center;">
-                <div style="width: 24px; height: 24px; background-color: #FF4444; color: white; font-weight: bold; font-size: 12px; text-align: center; line-height: 24px; border-radius: 50%; margin-right: 8px;">H</div>
+                <img src="{{ asset('images/location.png') }}" style="width: 24px; height: 24px; margin-right: 8px;" alt="Hub Location">
                 <span><strong>Hub Location</strong> - Your assigned work hub</span>
             </div>
             <div style="display: flex; align-items: center;">
@@ -1930,7 +1930,6 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
             </div>
             </div>
 
-            <!-- Zone -->
             <div style="margin-top: 12px;">
             <div style="display: flex; align-items: center; margin-bottom: 5px;">
                 <span style="display:inline-block; width: 20px; height: 12px; background-color: #FF0000; opacity: 0.4; border-radius: 2px; margin-right: 8px;"></span>
@@ -1938,7 +1937,6 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
             </div>
             </div>
 
-            <!-- Distance Details -->
             ${proximityResult.assignedHub ? `
             <div style="border-top: 1px solid #ddd; padding-top: 12px; margin-top: 12px;">
             <p><i class="fas fa-map-marker-alt text-danger"></i> <strong>Hub Coordinates:</strong> ${proximityResult.assignedHub.latitude.toFixed(6)}°, ${proximityResult.assignedHub.longitude.toFixed(6)}°</p>
@@ -1962,7 +1960,6 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
             ` : ''}
         </div>
 
-        <!-- Status Summary Alert -->
         ${proximityResult.isNearHub ? 
             `<div class="alert alert-success text-center" style="border-radius: 8px;">✅ Camera attendance is now accessible!</div>` : 
             proximityResult.assignedHub ? 
@@ -1972,7 +1969,6 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
 
     `;
 
-    // Show SweetAlert
     await Swal.fire({
         title: alertTitle,
         html: htmlContent,
@@ -1982,8 +1978,21 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
         confirmButtonColor: proximityResult.isNearHub ? '#28a745' : alertType === 'warning' ? '#ffc107' : '#dc3545',
         width: '800px',
         didOpen: () => {
+            let mapCenter;
+            if (proximityResult.assignedHub) {
+                mapCenter = { 
+                    lat: parseFloat(proximityResult.assignedHub.latitude), 
+                    lng: parseFloat(proximityResult.assignedHub.longitude) 
+                };
+            } else {
+                mapCenter = { 
+                    lat: userLocation.latitude, 
+                    lng: userLocation.longitude 
+                };
+            }
+
             const map = new google.maps.Map(document.getElementById('hubMap'), {
-                center: { lat: userLocation.latitude, lng: userLocation.longitude },
+                center: mapCenter,
                 zoom: 18,
                 mapTypeId: 'roadmap',
                 streetViewControl: false,
@@ -1992,7 +2001,6 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
                 mapTypeControl: false
             });
 
-            // Custom icon for user location
             const userIcon = {
                 path: google.maps.SymbolPath.CIRCLE,
                 fillColor: '#4CAF50',
@@ -2002,7 +2010,6 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
                 scale: 8
             };
 
-            // User marker with enhanced info window
             const userMarker = new google.maps.Marker({
                 position: { lat: userLocation.latitude, lng: userLocation.longitude },
                 map: map,
@@ -2011,7 +2018,6 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
                 animation: google.maps.Animation.DROP
             });
 
-            // User info window with detailed information
             const userInfoWindow = new google.maps.InfoWindow({
                 content: `
                     <div style="padding: 8px; min-width: 200px;">
@@ -2032,7 +2038,6 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
                 userInfoWindow.open(map, userMarker);
             });
 
-            // Hub marker and radius circles
             if (proximityResult.assignedHub) {
                 const hubLat = parseFloat(proximityResult.assignedHub.latitude);
                 const hubLng = parseFloat(proximityResult.assignedHub.longitude);
@@ -2040,14 +2045,11 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
                 const isInRange = proximityResult.isNearHub;
                 const distanceToMove = Math.max(0, distance - proximityResult.radius);
 
-                // Custom icon for hub location
                 const hubIcon = {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    fillColor: isInRange ? '#FF4444' : '#FF8800',
-                    fillOpacity: 1,
-                    strokeColor: isInRange ? '#D32F2F' : '#F57C00',
-                    strokeWeight: 3,
-                    scale: 10
+                    url: '{{ asset("images/location.png") }}',
+                    scaledSize: new google.maps.Size(50, 50),
+                    origin: new google.maps.Point(0, 0),
+                    anchor: new google.maps.Point(20, 40)
                 };
 
                 const hubMarker = new google.maps.Marker({
@@ -2058,11 +2060,10 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
                     animation: google.maps.Animation.BOUNCE
                 });
 
-                // Enhanced hub info window
                 const hubInfoWindow = new google.maps.InfoWindow({
                     content: `
                         <div style="padding: 8px; min-width: 250px;">
-                            <h6 style="margin: 0 0 8px 0; color: ${isInRange ? '#FF4444' : '#FF8800'};"><i class="fas fa-building"></i> ${proximityResult.assignedHub.name}</h6>
+                            <h6 style="margin: 0 0 8px 0; color: #FF4444;"><i class="fas fa-building"></i> ${proximityResult.assignedHub.name}</h6>
                             <div style="font-size: 12px; line-height: 1.5;">
                                 <strong>Hub Code:</strong> ${proximityResult.assignedHub.code}<br>
                                 <strong>Status:</strong> <span style="color: ${proximityResult.assignedHub.status === 'Open' ? '#4CAF50' : '#f44336'};">${proximityResult.assignedHub.status}</span><br>
@@ -2091,7 +2092,6 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
                     hubInfoWindow.open(map, hubMarker);
                 });
 
-                // Main attendance radius circle (required zone)
                 const mainCircle = new google.maps.Circle({
                     strokeColor: isInRange ? "#4CAF50" : "#FF4444",
                     strokeOpacity: 0.8,
@@ -2103,7 +2103,6 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
                     radius: proximityResult.radius
                 });
 
-                // Add distance line between user and hub
                 const distanceLine = new google.maps.Polyline({
                     path: [
                         { lat: userLocation.latitude, lng: userLocation.longitude },
@@ -2126,7 +2125,6 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
 
                 distanceLine.setMap(map);
 
-                // Add distance label at midpoint
                 const midLat = (userLocation.latitude + hubLat) / 2;
                 const midLng = (userLocation.longitude + hubLng) / 2;
 
@@ -2147,27 +2145,26 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
 
                 distanceLabel.open(map);
 
-                // Adjust map bounds to show both markers and circles
-                const bounds = new google.maps.LatLngBounds();
-                bounds.extend(new google.maps.LatLng(userLocation.latitude, userLocation.longitude));
-                bounds.extend(new google.maps.LatLng(hubLat, hubLng));
+                const distance_num = proximityResult.assignedHub.distance;
+                let zoomLevel;
+                if (distance_num <= 50) {
+                    zoomLevel = 19;
+                } else if (distance_num <= 100) {
+                    zoomLevel = 18;
+                } else if (distance_num <= 200) {
+                    zoomLevel = 17;
+                } else if (distance_num <= 500) {
+                    zoomLevel = 16;
+                } else {
+                    zoomLevel = 15;
+                }
                 
-                // Extend bounds to include the warning circle
-                const earthRadius = 6371000;
-                const latOffset = (proximityResult.radius + 10) / earthRadius * (180 / Math.PI);
-                const lngOffset = (proximityResult.radius + 10) / earthRadius * (180 / Math.PI) / Math.cos(hubLat * Math.PI / 180);
-                
-                bounds.extend(new google.maps.LatLng(hubLat - latOffset, hubLng - lngOffset));
-                bounds.extend(new google.maps.LatLng(hubLat + latOffset, hubLng + lngOffset));
-                
-                map.fitBounds(bounds);
-                
-                // Set minimum zoom to avoid being too zoomed out
-                const listener = google.maps.event.addListener(map, "idle", function() { 
-                    if (map.getZoom() > 19) map.setZoom(19); 
-                    if (map.getZoom() < 15) map.setZoom(15);
-                    google.maps.event.removeListener(listener); 
-                });
+                map.setCenter({ lat: hubLat, lng: hubLng });
+                map.setZoom(zoomLevel);
+
+            } else {
+                map.setCenter({ lat: userLocation.latitude, lng: userLocation.longitude });
+                map.setZoom(18);
             }
         }
     });

@@ -21,7 +21,8 @@ class HubPerLocation extends Model implements Auditable
         'retail_hub_address',
         'hub_status',
         'google_map_location_link',
-        'pqd_remarks_gmap_update',
+        'lat',
+        'long',
     ];
 
     protected $casts = [
@@ -29,7 +30,6 @@ class HubPerLocation extends Model implements Auditable
         'updated_at' => 'datetime',
     ];
 
-    // Scopes for common queries
     public function scopeByRegion($query, $region)
     {
         return $query->where('region', $region);
@@ -79,4 +79,15 @@ class HubPerLocation extends Model implements Auditable
                 return 'badge-secondary';
         }
     }
+
+    public function getFormattedLatAttribute()
+    {
+        return $this->lat ? number_format((float)$this->lat, 6) : 'N/A';
+    }
+
+    public function getFormattedLongAttribute()
+    {
+        return $this->long ? number_format((float)$this->long, 6) : 'N/A';
+    }
+    
 }

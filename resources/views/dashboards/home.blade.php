@@ -347,21 +347,49 @@
           <div class="col-md-3 mb-4 transparent">
               <div class="card">
                 <div class="card-body">
-                  <h3 class="card-title">{{date('M d, Y')}} 
-                   
+                <div class="d-flex align-items-center justify-content-between">
+                    <h3 class="card-title mb-0">{{ date('M d, Y') }}</h3>
 
-                      @if(($user_travel_orders_today) || (auth()->user()->login == 1))
-                        @if($attendance_now != null)
-                            <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
-                              <i class="ti-control-pause" ></i>
-                            </button>
+                    <div class="attendance-buttons" data-attendance-container>
+                        {{-- Location status will be inserted here by JavaScript --}}
+
+                        @if(($user_travel_orders_today) || (auth()->user()->login == 1))
+                            @if($attendance_now != null)
+                                <button style="height: 40px; width: 40px;" onclick="getLocation()" 
+                                        type="button" 
+                                        title="Time Out" 
+                                        class="btn btn-danger btn-rounded btn-icon" 
+                                        data-toggle="modal" 
+                                        data-target="#timeOut"
+                                        data-attendance-btn="true"
+                                        disabled>
+                                    <i class="ti-control-pause"></i>
+                                </button>
                             @else
-                            <button onclick="getLocation()" type="button" Title='Time In' class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#timeIn">
-                            <i class="ti-control-play" ></i>
-                          </button>
+                                <button style="height: 40px; width: 40px;" onclick="getLocation()" 
+                                        type="button" 
+                                        title="Time In" 
+                                        class="btn btn-success btn-rounded btn-icon" 
+                                        data-toggle="modal" 
+                                        data-target="#timeIn"
+                                        data-attendance-btn="true"
+                                        disabled>
+                                    <i class="ti-control-play"></i>
+                                </button>
+                            @endif
+
+                            {{-- Optional: Manual location refresh button --}}
+                            <button style="height: 40px; width: 40px;" onclick="showDetailedLocationCheck()"
+                                    type="button"
+                                    title="Check Location Details"
+                                    class="btn btn-info btn-rounded btn-icon"
+                                    data-attendance-btn="true">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </button>
                         @endif
-                      @endif
-                  </h3>
+                    </div>
+                </div>
+
                   <div class="media">
                       <i class="ti-time icon-md text-info d-flex align-self-center mr-3"></i>
                       <div class="media-body">
@@ -533,32 +561,59 @@
                     <div class="col-md-3 mb-2 transparent">
                     <div class="card">
                         <div class="card-body">
-                        <h3 class="card-title">{{date('M d, Y')}} 
-                            @php
-                                // Check if user has an approved travel order for today
-                                $today = date('Y-m-d');
-                                $user_travel_orders_today = \App\EmployeeTo::where('user_id', auth()->user()->id)
+                        @php
+                            // Check if user has an approved travel order for today
+                            $today = date('Y-m-d');
+                            $user_travel_orders_today = \App\EmployeeTo::where('user_id', auth()->user()->id)
                                 ->whereIn('status', ['Approved', 'Partially Approved'])
                                 ->where(function($query) use ($today) {
                                     $query->whereDate('date_from', '<=', $today)
                                         ->whereDate('date_to', '>=', $today);
                                 })
                                 ->exists();
-                            @endphp
+                        @endphp
 
-                            @if(($user_travel_orders_today) || (auth()->user()->login == 1))
-                              @if($attendance_now != null)
-                                  <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
-                                  <i class="ti-control-pause" ></i>
-                                  </button>
-                                  @else
-                                  <button onclick="getLocation()" type="button" Title='Time In' class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#timeIn">
-                                  <i class="ti-control-play" ></i>
-                              </button>
-                              @endif
+                        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-3 flex-wrap">
+                            <h3 class="card-title mb-2 mb-md-0 me-md-3">{{ date('M d, Y') }}</h3>
 
-                            @endif
-                        </h3>
+                            <div class="attendance-buttons d-flex flex-wrap align-items-center gap-2" data-attendance-container>
+                                {{-- Location status will be inserted here by JavaScript --}}
+                                @if(($user_travel_orders_today) || (auth()->user()->login == 1))
+                                    @if($attendance_now != null)
+                                        <button style="height: 40px; width: 40px;" onclick="getLocation()" 
+                                                type="button" 
+                                                title="Time Out" 
+                                                class="btn btn-danger btn-rounded btn-icon" 
+                                                data-toggle="modal" 
+                                                data-target="#timeOut"
+                                                data-attendance-btn="true"
+                                                disabled>
+                                            <i class="ti-control-pause"></i>
+                                        </button>
+                                    @else
+                                        <button style="height: 40px; width: 40px;" onclick="getLocation()" 
+                                                type="button" 
+                                                title="Time In" 
+                                                class="btn btn-success btn-rounded btn-icon" 
+                                                data-toggle="modal" 
+                                                data-target="#timeIn"
+                                                data-attendance-btn="true"
+                                                disabled>
+                                            <i class="ti-control-play"></i>
+                                        </button>
+                                    @endif
+                                    
+                                    <button style="height: 40px; width: 40px;" onclick="showDetailedLocationCheck()"
+                                                type="button"
+                                                title="Check Location Details"
+                                                class="btn btn-info btn-rounded btn-icon">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </button>
+                                @endif
+                            </div>
+                        </div>
+
+
                         <div class="media">
                             <i class="ti-time icon-md text-info d-flex align-self-center mr-3"></i>
                             <div class="media-body">
@@ -762,31 +817,57 @@
                     <div class="col-md-3 mb-4 transparent">
                         <div class="card">
                           <div class="card-body">
-                            <h3 class="card-title">{{date('M d, Y')}} 
-                              @php
-                                  // Check if user has an approved travel order for today
-                                  $today = date('Y-m-d');
-                                  $user_travel_orders_today = \App\EmployeeTo::where('user_id', auth()->user()->id)
+                            @php
+                                // Check if user has an approved travel order for today
+                                $today = date('Y-m-d');
+                                $user_travel_orders_today = \App\EmployeeTo::where('user_id', auth()->user()->id)
                                     ->whereIn('status', ['Approved', 'Partially Approved'])
                                     ->where(function($query) use ($today) {
-                                      $query->whereDate('date_from', '<=', $today)
+                                        $query->whereDate('date_from', '<=', $today)
                                             ->whereDate('date_to', '>=', $today);
                                     })
                                     ->exists();
-                                @endphp
+                            @endphp
 
-                                @if($user_travel_orders_today)
-                                @if($attendance_now != null)
-                                  <button onclick="getLocation()" type="button" Title='Time Out' class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#timeOut">
-                                    <i class="ti-control-pause" ></i>
-                                  </button>
-                                  @else
-                                  <button onclick="getLocation()" type="button" Title='Time In' class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#timeIn">
-                                  <i class="ti-control-play" ></i>
-                                </button>
-                              @endif
-                              @endif
-                            </h3>
+                            <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-3 flex-wrap">
+                                <h3 class="card-title mb-2 mb-md-0 me-md-3">{{ date('M d, Y') }}</h3>
+
+                                <div class="attendance-buttons d-flex flex-wrap align-items-center gap-2" data-attendance-container>
+                                    {{-- Location status will be inserted here by JavaScript --}}
+                                    @if(($user_travel_orders_today) || (auth()->user()->login == 1))
+                                        @if($attendance_now != null)
+                                            <button style="height: 40px; width: 40px;" onclick="getLocation()" 
+                                                    type="button" 
+                                                    title="Time Out" 
+                                                    class="btn btn-danger btn-rounded btn-icon" 
+                                                    data-toggle="modal" 
+                                                    data-target="#timeOut"
+                                                    data-attendance-btn="true"
+                                                    disabled>
+                                                <i class="ti-control-pause"></i>
+                                            </button>
+                                        @else
+                                            <button style="height: 40px; width: 40px;" onclick="getLocation()" 
+                                                    type="button" 
+                                                    title="Time In" 
+                                                    class="btn btn-success btn-rounded btn-icon" 
+                                                    data-toggle="modal" 
+                                                    data-target="#timeIn"
+                                                    data-attendance-btn="true"
+                                                    disabled>
+                                                <i class="ti-control-play"></i>
+                                            </button>
+                                        @endif
+                                        
+                                        <button style="height: 40px; width: 40px;" onclick="showDetailedLocationCheck()"
+                                                type="button"
+                                                title="Check Location Details"
+                                                class="btn btn-info btn-rounded btn-icon">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
                             <div class="media">
                                 <i class="ti-time icon-md text-info d-flex align-self-center mr-3"></i>
                                 <div class="media-body">
@@ -1425,6 +1506,797 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
 
+<script>
+let userLocation = null;
+let locationCheckPassed = false;
+
+function getCurrentLocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error('Geolocation is not supported by this browser.'));
+            return;
+        }
+        
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                resolve({
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy
+                });
+            },
+            (error) => {
+                let errorMessage = 'Unknown error occurred';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = 'Location access denied by user.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = 'Location information is unavailable.';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = 'Location request timed out.';
+                        break;
+                }
+                reject(new Error(errorMessage));
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 60000
+            }
+        );
+    });
+}
+
+// Silent location proximity check
+async function checkLocationProximity() {
+    try {
+        console.log('Checking location proximity silently...');
+
+        const location = await getCurrentLocation();
+        userLocation = location;
+
+        console.log('User location obtained:', location);
+
+        const response = await fetch('{{ route("check.location.proximity") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                latitude: location.latitude,
+                longitude: location.longitude
+            })
+        });
+
+        const result = await response.json();
+        console.log('Location check result:', result);
+
+        if (result.success) {
+            locationCheckPassed = result.isNearHub;
+            const shouldShowStatus = result.showLocationStatus !== false && result.accessType !== 'no_access';
+
+            if (result.isNearHub) {
+                if (shouldShowStatus) {
+                    showLocationStatus(result.message, 'success');
+                }
+                enableAttendanceButtons();
+
+                if (result.nearbyHubs?.length > 0) {
+                    let hubInfo = 'Nearby hubs:\n';
+                    result.nearbyHubs.forEach(hub => {
+                        hubInfo += `• ${hub.name} (${hub.code}) - ${hub.distance}m away - Status: ${hub.status}\n`;
+                    });
+                    console.log(hubInfo);
+                }
+
+                if (result.accessType === 'unrestricted_access') {
+                    console.log('✅ User has unrestricted camera access');
+                }
+            } else {
+                if (shouldShowStatus && result.message) {
+                    showLocationStatus(result.message, 'error');
+                }
+                disableAttendanceButtons();
+
+                if (shouldShowStatus && result.allDistances) {
+                    console.log('All hub distances:', result.allDistances);
+                }
+            }
+
+            if (result.accessType === 'no_access') {
+                console.log('User has no camera access');
+                disableAttendanceButtons();
+            }
+
+        } else {
+            throw new Error(result.message);
+        }
+
+    } catch (error) {
+        console.error('Location check failed:', error);
+
+        const attendanceButtons = document.querySelectorAll('[data-attendance-btn]');
+        if (attendanceButtons.length > 0) {
+            showLocationStatus('Location check failed: ' + error.message, 'error');
+        }
+
+        disableAttendanceButtons();
+        locationCheckPassed = false;
+    }
+}
+
+// Show location-related status messages (respects silent mode)
+function showLocationStatus(message, type) {
+    if (!message?.trim()) return;
+
+    const existingStatus = document.getElementById('location-status');
+    if (existingStatus) existingStatus.remove();
+
+    const statusDiv = document.createElement('div');
+    statusDiv.id = 'location-status';
+    statusDiv.className = `alert alert-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} alert-dismissible fade show`;
+
+    let icon = 'info-circle';
+    if (type === 'error') icon = 'exclamation-triangle';
+    if (type === 'success') icon = 'check-circle';
+
+    statusDiv.innerHTML = `
+        <i class="fas fa-${icon}"></i>
+        <strong>Hub Access:</strong> ${message}
+        <button type="button" class="close" data-dismiss="alert">
+            <span>&times;</span>
+        </button>
+    `;
+
+    const attendanceContainer = document.querySelector('.attendance-buttons') || document.querySelector('[data-attendance-container]');
+    if (attendanceContainer) {
+        attendanceContainer.insertBefore(statusDiv, attendanceContainer.firstChild);
+    }
+
+    if (type !== 'error') {
+        setTimeout(() => {
+            if (document.getElementById('location-status')) {
+                statusDiv.style.transition = 'opacity 0.5s';
+                statusDiv.style.opacity = '0';
+                setTimeout(() => statusDiv.remove(), 500);
+            }
+        }, 8000);
+    }
+}
+
+function enableAttendanceButtons() {
+    const attendanceButtons = document.querySelectorAll('[data-attendance-btn]');
+    attendanceButtons.forEach(button => {
+        button.disabled = false;
+        button.style.opacity = '1';
+        button.style.cursor = 'pointer';
+        
+        button.classList.add('btn-success');
+        button.classList.remove('btn-secondary', 'btn-disabled');
+    });
+    
+    console.log('✅ Camera attendance buttons enabled - ready to use!');
+}
+
+function disableAttendanceButtons() {
+    const attendanceButtons = document.querySelectorAll('[data-attendance-btn]');
+    attendanceButtons.forEach(button => {
+        button.disabled = true;
+        button.style.opacity = '0.5';
+        button.style.cursor = 'not-allowed';
+        
+        button.classList.add('btn-secondary');
+        button.classList.remove('btn-success');
+    });
+    
+    console.log('❌ Camera attendance buttons disabled');
+}
+
+function getLocation() {
+    if (!locationCheckPassed) {
+        const attendanceButtons = document.querySelectorAll('[data-attendance-btn]');
+        if (attendanceButtons.length > 0) {
+            Swal.fire({
+                title: '❌ Not in Range',
+                text: 'You need to be within hub range to use attendance features.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                timer: 3000
+            });
+        }
+        return;
+    }
+
+    proceedWithAttendance();
+}
+
+// Direct proceed to camera
+function proceedWithAttendance() {
+    console.log('Opening camera directly - location verified');
+    
+    @if($attendance_now != null)
+        $('#timeOut').modal('show');
+    @else
+        $('#timeIn').modal('show');
+    @endif
+}
+
+async function showDetailedLocationCheck() {
+    try {
+        Swal.fire({
+            title: '📍 Getting Your Location',
+            html: 'Please wait while we determine your current location...',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        const location = await getCurrentLocation();
+        userLocation = location;
+        
+        console.log('User location obtained for detailed check:', location);
+        
+        Swal.update({
+            title: '🔍 Checking Hub Proximity',
+            html: 'Checking if you are near any hub locations...'
+        });
+        
+        const response = await fetch('{{ route("check.location.proximity") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                latitude: location.latitude,
+                longitude: location.longitude
+            })
+        });
+        
+        const result = await response.json();
+        
+        Swal.close();
+        
+        console.log('Detailed location check result:', result);
+        
+        if (result.success) {
+            await showLocationSweetAlert(location, result);
+            
+            
+        } else {
+            throw new Error(result.message);
+        }
+        
+    } catch (error) {
+        console.error('Detailed location check failed:', error);
+        
+        Swal.close();
+
+        await Swal.fire({
+            title: '❌ Location Error',
+            html: `
+                <div class="text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                    </div>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <div class="mt-3 alert alert-danger">
+                        Please make sure location services are enabled and try again.
+                    </div>
+                </div>
+            `,
+            icon: 'error',
+            confirmButtonText: 'Try Again',
+            confirmButtonColor: '#dc3545'
+        });
+    }
+}
+
+function getAccurateLocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            return reject(new Error("Geolocation is not supported by your browser"));
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                resolve({
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy
+                });
+            },
+            error => reject(error),
+            {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
+            }
+        );
+    });
+}
+
+// Updated showLocationSweetAlert function with hub coordinates display
+async function showLocationSweetAlert(userLocation, proximityResult) {
+    let readableAddress = 'Fetching address...';
+    try {
+        const geocodeResponse = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${userLocation.latitude}&longitude=${userLocation.longitude}&localityLanguage=en`);
+        if (geocodeResponse.ok) {
+            const geocodeData = await geocodeResponse.json();
+            readableAddress = geocodeData.display_name || geocodeData.locality || geocodeData.city || 'Address not found';
+        }
+    } catch {
+        readableAddress = 'Unable to get address';
+    }
+
+    let hubsHtml = '';
+    let alertType = 'error';
+    let alertTitle = 'Location Check';
+    let alertText = 'Location verification completed.';
+
+    if (proximityResult.isNearHub && proximityResult.nearbyHubs.length > 0) {
+        alertType = 'success';
+        alertTitle = '✅ Location Verified!';
+        alertText = 'You are within range of your assigned hub location. Attendance is available.';
+        hubsHtml = '<div class="mt-3"><strong>🏢 Your Assigned Hub (In Range):</strong><ul class="text-left mt-2">';
+        proximityResult.nearbyHubs.forEach(hub => {
+            hubsHtml += `<li><strong>${hub.name}</strong> (${hub.code})<br>
+                         <small class="text-success">✅ ${hub.distance}m away • Status: ${hub.status}</small><br>
+                         <small class="text-info">📍 Coordinates: ${proximityResult.assignedHub?.latitude || 'N/A'}°, ${proximityResult.assignedHub?.longitude || 'N/A'}°</small></li>`;
+        });
+        hubsHtml += '</ul></div>';
+    } else if (proximityResult.assignedHub) {
+        const hub = proximityResult.assignedHub;
+        if (hub.status !== 'Open') {
+            alertType = 'warning';
+            alertTitle = '🔒 Hub Closed';
+            alertText = 'Your assigned hub is currently closed.';
+        } else {
+            alertType = 'warning';
+            alertTitle = '📍 Move Closer to Hub';
+            alertText = `You need to move within ${proximityResult.radius}m of your assigned hub to use attendance features.`;
+        }
+        hubsHtml = '<div class="mt-3"><strong>🏢 Your Assigned Hub:</strong><ul class="text-left mt-2">';
+        hubsHtml += `<li><strong>${hub.name}</strong> (${hub.code})<br>
+                     <small class="text-warning">⚠️ ${hub.distance}m away • Status: ${hub.status}</small><br>
+                     <small class="text-muted">${hub.address}</small><br>
+                     <small class="text-info">📍 Hub Coordinates: ${hub.latitude || 'N/A'}°, ${hub.longitude || 'N/A'}°</small></li>`;
+        hubsHtml += '</ul></div>';
+        hubsHtml += `<div class="mt-2 alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Required Distance:</strong> Within ${proximityResult.radius}m<br>
+                        <strong>Current Distance:</strong> ${hub.distance}m<br>
+                        <strong>Need to move:</strong> ${Math.max(0, hub.distance - proximityResult.radius)}m closer
+                     </div>`;
+    } else {
+        alertType = 'success';
+        alertTitle = '✅ No Assigned Hub';
+        alertText = 'No hub has been assigned to your account.';
+        hubsHtml = '<div class="mt-3 alert alert-danger">⚠️ Please contact HR to assign a hub location to your account.</div>';
+    }
+
+    // HTML for SweetAlert with enhanced coordinate display
+    const htmlContent = `
+        <div style="font-size: 14px; color: #333;">
+        <!-- Map Icon Header -->
+        <div class="text-center mb-3">
+            <i class="fas fa-map-marker-alt fa-2x" style="color: ${proximityResult.isNearHub ? '#28a745' : '#ffc107'};"></i>
+        </div>
+
+        <!-- FLEX CONTAINER: Location + Hub Info -->
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between;">
+            <!-- Your Location -->
+            <div style="flex: 1; min-width: 260px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+            <h6 style="margin-bottom: 10px;"><i class="fas fa-user-circle text-success"></i> Your Location</h6>
+            <p><strong>Address:</strong><br>${readableAddress}</p>
+            <p><strong>Coordinates:</strong><br>${userLocation.latitude.toFixed(6)}°, ${userLocation.longitude.toFixed(6)}°</p>
+            <p><strong>Accuracy:</strong> ±${userLocation.accuracy || 'Unknown'}m</p>
+            </div>
+
+            <!-- Hub Info -->
+            ${proximityResult.assignedHub ? `
+            <div style="flex: 1; min-width: 260px; background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
+            <h6 style="margin-bottom: 10px;"><i class="fas fa-building"></i> Assigned Hub</h6>
+            <p><strong>${proximityResult.assignedHub.name}</strong> (${proximityResult.assignedHub.code})</p>
+            <p><strong>Status:</strong> <span style="color: ${proximityResult.assignedHub.status === 'Open' ? '#28a745' : '#dc3545'};">${proximityResult.assignedHub.status}</span></p>
+            <p><strong>Distance:</strong> ${proximityResult.assignedHub.distance}m</p>
+            <p><strong>Coordinates:</strong><br>${proximityResult.assignedHub.latitude.toFixed(6)}°, ${proximityResult.assignedHub.longitude.toFixed(6)}°</p>
+            </div>` : ''}
+        </div>
+
+        <!-- Map -->
+        <div style="margin-top: 20px; margin-bottom: 20px;">
+            <div id="hubMap" style="width: 100%; height: 300px; border-radius: 8px; border: 1px solid #ccc;"></div>
+        </div>
+
+        <!-- FULL LEGEND (Cleaned up and grouped) -->
+        <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; border: 1px solid #e0e0e0; margin-bottom: 15px;">
+            <h6 style="margin-bottom: 15px;"><i class="fas fa-info-circle"></i> Map Legend & Distance Info</h6>
+            
+            <!-- Symbols -->
+            <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+            <div style="display: flex; align-items: center;">
+                <div style="width: 24px; height: 24px; background-color: #FF4444; color: white; font-weight: bold; font-size: 12px; text-align: center; line-height: 24px; border-radius: 50%; margin-right: 8px;">H</div>
+                <span><strong>Hub Location</strong> - Your assigned work hub</span>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <div style="width: 24px; height: 24px; background-color: #4CAF50; color: white; font-weight: bold; font-size: 12px; text-align: center; line-height: 24px; border-radius: 50%; margin-right: 8px;">Y</div>
+                <span><strong>Your Location</strong> - Current GPS position</span>
+            </div>
+            </div>
+
+            <!-- Zone -->
+            <div style="margin-top: 12px;">
+            <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                <span style="display:inline-block; width: 20px; height: 12px; background-color: #FF0000; opacity: 0.4; border-radius: 2px; margin-right: 8px;"></span>
+                <span><strong>Attendance Zone:</strong> ${proximityResult.radius}m radius from hub</span>
+            </div>
+            </div>
+
+            <!-- Distance Details -->
+            ${proximityResult.assignedHub ? `
+            <div style="border-top: 1px solid #ddd; padding-top: 12px; margin-top: 12px;">
+            <p><i class="fas fa-map-marker-alt text-danger"></i> <strong>Hub Coordinates:</strong> ${proximityResult.assignedHub.latitude.toFixed(6)}°, ${proximityResult.assignedHub.longitude.toFixed(6)}°</p>
+            <p><i class="fas fa-ruler-horizontal text-muted"></i> <strong>Current Distance:</strong> ${proximityResult.assignedHub.distance}m from hub</p>
+
+            ${!proximityResult.isNearHub && proximityResult.assignedHub.status === 'Open' ? `
+                <div style="background:#fff3cd; padding:10px; border-left:4px solid #ffc107; border-radius:4px; margin-top:10px;">
+                <i class="fas fa-walking" style="margin-right:8px; color:#856404;"></i>
+                Move ${Math.max(0, proximityResult.assignedHub.distance - proximityResult.radius)}m closer to enable attendance
+                </div>
+                <div style="margin-top: 8px;">
+                <i class="fas fa-clock text-info"></i> Estimated Walk Time: ~${Math.ceil(Math.max(0, proximityResult.assignedHub.distance - proximityResult.radius) / 80)} minutes
+                </div>
+            ` : ''}
+            ${proximityResult.isNearHub ? `
+                <div style="background:#d1edff; padding:10px; border-left:4px solid #007bff; border-radius:4px; margin-top:10px;">
+                <i class="fas fa-check-circle text-primary"></i> Within attendance zone – Camera access enabled!
+                </div>
+            ` : ''}
+            </div>
+            ` : ''}
+        </div>
+
+        <!-- Status Summary Alert -->
+        ${proximityResult.isNearHub ? 
+            `<div class="alert alert-success text-center" style="border-radius: 8px;">✅ Camera attendance is now accessible!</div>` : 
+            proximityResult.assignedHub ? 
+            `<div class="alert alert-warning text-center" style="border-radius: 8px;">⚠️ Move closer to your assigned hub for camera access.</div>` :
+            `<div class="alert alert-danger text-center" style="border-radius: 8px;">❌ No hub assigned to your account.</div>`}
+        </div>
+
+    `;
+
+    // Show SweetAlert
+    await Swal.fire({
+        title: alertTitle,
+        html: htmlContent,
+        icon: alertType,
+        showConfirmButton: true,
+        confirmButtonText: proximityResult.isNearHub ? 'Great!' : 'Got it',
+        confirmButtonColor: proximityResult.isNearHub ? '#28a745' : alertType === 'warning' ? '#ffc107' : '#dc3545',
+        width: '800px',
+        didOpen: () => {
+            const map = new google.maps.Map(document.getElementById('hubMap'), {
+                center: { lat: userLocation.latitude, lng: userLocation.longitude },
+                zoom: 18,
+                mapTypeId: 'roadmap',
+                streetViewControl: false,
+                fullscreenControl: true,
+                zoomControl: true,
+                mapTypeControl: false
+            });
+
+            // Custom icon for user location
+            const userIcon = {
+                path: google.maps.SymbolPath.CIRCLE,
+                fillColor: '#4CAF50',
+                fillOpacity: 1,
+                strokeColor: '#2E7D32',
+                strokeWeight: 2,
+                scale: 8
+            };
+
+            // User marker with enhanced info window
+            const userMarker = new google.maps.Marker({
+                position: { lat: userLocation.latitude, lng: userLocation.longitude },
+                map: map,
+                icon: userIcon,
+                title: `Your Current Location`,
+                animation: google.maps.Animation.DROP
+            });
+
+            // User info window with detailed information
+            const userInfoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div style="padding: 8px; min-width: 200px;">
+                        <h6 style="margin: 0 0 8px 0; color: #4CAF50;"><i class="fas fa-user-circle"></i> Your Location</h6>
+                        <div style="font-size: 12px; line-height: 1.4;">
+                            <strong>Coordinates:</strong><br>
+                            Lat: ${userLocation.latitude.toFixed(6)}°<br>
+                            Lng: ${userLocation.longitude.toFixed(6)}°<br>
+                            <strong>Accuracy:</strong> ±${userLocation.accuracy || 'Unknown'}m<br>
+                            <strong>Address:</strong><br>
+                            <span style="color: #666;">${readableAddress}</span>
+                        </div>
+                    </div>
+                `
+            });
+
+            userMarker.addListener('click', () => {
+                userInfoWindow.open(map, userMarker);
+            });
+
+            // Hub marker and radius circles
+            if (proximityResult.assignedHub) {
+                const hubLat = parseFloat(proximityResult.assignedHub.latitude);
+                const hubLng = parseFloat(proximityResult.assignedHub.longitude);
+                const distance = proximityResult.assignedHub.distance;
+                const isInRange = proximityResult.isNearHub;
+                const distanceToMove = Math.max(0, distance - proximityResult.radius);
+
+                // Custom icon for hub location
+                const hubIcon = {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: isInRange ? '#FF4444' : '#FF8800',
+                    fillOpacity: 1,
+                    strokeColor: isInRange ? '#D32F2F' : '#F57C00',
+                    strokeWeight: 3,
+                    scale: 10
+                };
+
+                const hubMarker = new google.maps.Marker({
+                    position: { lat: hubLat, lng: hubLng },
+                    map: map,
+                    icon: hubIcon,
+                    title: `${proximityResult.assignedHub.name} Hub`,
+                    animation: google.maps.Animation.BOUNCE
+                });
+
+                // Enhanced hub info window
+                const hubInfoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div style="padding: 8px; min-width: 250px;">
+                            <h6 style="margin: 0 0 8px 0; color: ${isInRange ? '#FF4444' : '#FF8800'};"><i class="fas fa-building"></i> ${proximityResult.assignedHub.name}</h6>
+                            <div style="font-size: 12px; line-height: 1.5;">
+                                <strong>Hub Code:</strong> ${proximityResult.assignedHub.code}<br>
+                                <strong>Status:</strong> <span style="color: ${proximityResult.assignedHub.status === 'Open' ? '#4CAF50' : '#f44336'};">${proximityResult.assignedHub.status}</span><br>
+                                <strong>Coordinates:</strong><br>
+                                Lat: ${hubLat.toFixed(6)}°<br>
+                                Lng: ${hubLng.toFixed(6)}°<br>
+                                <hr style="margin: 8px 0;">
+                                <strong>Distance Analysis:</strong><br>
+                                Current: ${distance}m away<br>
+                                Required: Within ${proximityResult.radius}m<br>
+                                ${!isInRange && distanceToMove > 0 ? 
+                                    `<span style="color: #FF8800;"><strong>Move closer:</strong> ${distanceToMove}m<br><strong>Walk time:</strong> ~${Math.ceil(distanceToMove / 80)} min</span>` : 
+                                    isInRange ? 
+                                        `<span style="color: #4CAF50;"><strong>✅ Within range!</strong> Attendance enabled</span>` :
+                                        `<span style="color: #f44336;">Hub is closed</span>`
+                                }<br>
+                                <hr style="margin: 8px 0;">
+                                <strong>Address:</strong><br>
+                                <span style="color: #666;">${proximityResult.assignedHub.address || 'N/A'}</span>
+                            </div>
+                        </div>
+                    `
+                });
+
+                hubMarker.addListener('click', () => {
+                    hubInfoWindow.open(map, hubMarker);
+                });
+
+                // Main attendance radius circle (required zone)
+                const mainCircle = new google.maps.Circle({
+                    strokeColor: isInRange ? "#4CAF50" : "#FF4444",
+                    strokeOpacity: 0.8,
+                    strokeWeight: 3,
+                    fillColor: isInRange ? "#4CAF50" : "#FF4444",
+                    fillOpacity: 0.15,
+                    map: map,
+                    center: { lat: hubLat, lng: hubLng },
+                    radius: proximityResult.radius
+                });
+
+                // Add distance line between user and hub
+                const distanceLine = new google.maps.Polyline({
+                    path: [
+                        { lat: userLocation.latitude, lng: userLocation.longitude },
+                        { lat: hubLat, lng: hubLng }
+                    ],
+                    geodesic: true,
+                    strokeColor: isInRange ? '#4CAF50' : '#FF8800',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    icons: [{
+                        icon: {
+                            path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
+                            scale: 3,
+                            fillColor: isInRange ? '#4CAF50' : '#FF8800',
+                            fillOpacity: 1
+                        },
+                        offset: '50%'
+                    }]
+                });
+
+                distanceLine.setMap(map);
+
+                // Add distance label at midpoint
+                const midLat = (userLocation.latitude + hubLat) / 2;
+                const midLng = (userLocation.longitude + hubLng) / 2;
+
+                const distanceLabel = new google.maps.InfoWindow({
+                    content: `
+                        <div style="padding: 4px; background: rgba(0,0,0,0.8); color: white; font-size: 11px; border-radius: 4px; text-align: center;">
+                            <strong>${distance}m</strong><br>
+                            ${!isInRange && distanceToMove > 0 ? 
+                                `<span style="color: #FFD700;">Move ${distanceToMove}m closer</span>` : 
+                                `<span style="color: #90EE90;">✅ In range</span>`
+                            }
+                        </div>
+                    `,
+                    position: { lat: midLat, lng: midLng },
+                    disableAutoPan: true,
+                    pixelOffset: new google.maps.Size(0, -10)
+                });
+
+                distanceLabel.open(map);
+
+                // Adjust map bounds to show both markers and circles
+                const bounds = new google.maps.LatLngBounds();
+                bounds.extend(new google.maps.LatLng(userLocation.latitude, userLocation.longitude));
+                bounds.extend(new google.maps.LatLng(hubLat, hubLng));
+                
+                // Extend bounds to include the warning circle
+                const earthRadius = 6371000;
+                const latOffset = (proximityResult.radius + 10) / earthRadius * (180 / Math.PI);
+                const lngOffset = (proximityResult.radius + 10) / earthRadius * (180 / Math.PI) / Math.cos(hubLat * Math.PI / 180);
+                
+                bounds.extend(new google.maps.LatLng(hubLat - latOffset, hubLng - lngOffset));
+                bounds.extend(new google.maps.LatLng(hubLat + latOffset, hubLng + lngOffset));
+                
+                map.fitBounds(bounds);
+                
+                // Set minimum zoom to avoid being too zoomed out
+                const listener = google.maps.event.addListener(map, "idle", function() { 
+                    if (map.getZoom() > 19) map.setZoom(19); 
+                    if (map.getZoom() < 15) map.setZoom(15);
+                    google.maps.event.removeListener(listener); 
+                });
+            }
+        }
+    });
+}
+
+// Main trigger
+async function checkLocationAndShowAlert() {
+    try {
+        const userLocation = await getAccurateLocation();
+        const proximityResult = {
+            isNearHub: false,
+            radius: 10,
+            assignedHub: {
+                latitude: "14.599512",
+                longitude: "120.984222",
+                name: "Main Hub",
+                code: "HUB001",
+                distance: 150,
+                status: "Open",
+                address: "Sample Street, Manila"
+            },
+            nearbyHubs: []
+        };
+
+        await showLocationSweetAlert(userLocation, proximityResult);
+    } catch (err) {
+        Swal.fire("Error", "Could not get your location: " + err.message, "error");
+    }
+}
+
+// Add CSS styles for the location SweetAlert
+const locationAlertStyles = `
+<style>
+.location-sweet-alert {
+    font-family: inherit;
+}
+
+.location-sweet-alert-content {
+    text-align: left;
+}
+
+.location-sweet-alert .location-info,
+.location-sweet-alert .proximity-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+.location-sweet-alert ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.location-sweet-alert li {
+    margin-bottom: 8px;
+    list-style-type: disc;
+}
+
+.location-sweet-alert .alert {
+    padding: 10px;
+    border-radius: 5px;
+    margin: 0;
+}
+
+.location-sweet-alert .alert-success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.location-sweet-alert .alert-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+}
+
+.location-sweet-alert .alert-info {
+    background-color: #d1ecf1;
+    border: 1px solid #bee5eb;
+    color: #0c5460;
+}
+
+.location-sweet-alert .alert-danger {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+</style>
+`;
+
+// Add styles to document head
+if (!document.querySelector('#location-alert-styles')) {
+    const styleElement = document.createElement('div');
+    styleElement.id = 'location-alert-styles';
+    styleElement.innerHTML = locationAlertStyles;
+    document.head.appendChild(styleElement);
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    const timeInBtn = document.querySelector('[data-target="#timeIn"]');
+    const timeOutBtn = document.querySelector('[data-target="#timeOut"]');
+    
+    if (timeInBtn) timeInBtn.setAttribute('data-attendance-btn', 'true');
+    if (timeOutBtn) timeOutBtn.setAttribute('data-attendance-btn', 'true');
+    
+    disableAttendanceButtons();
+    
+    checkLocationProximity();
+    
+    window.showDetailedLocationCheck = showDetailedLocationCheck;
+    window.getLocation = getLocation;
+    window.checkLocationProximity = checkLocationProximity;
+    
+    console.log('✅ All functions loaded and accessible globally');
+    console.log('Available functions:', {
+        showDetailedLocationCheck: typeof window.showDetailedLocationCheck,
+        getLocation: typeof window.getLocation,
+        checkLocationProximity: typeof window.checkLocationProximity
+    });
+});
+
+setInterval(() => {
+    if (locationCheckPassed) {
+        checkLocationProximity();
+    }
+}, 300000);
+</script>
 
 <script>
 

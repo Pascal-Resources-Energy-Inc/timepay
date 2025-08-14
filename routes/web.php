@@ -41,6 +41,10 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/', 'HomeController@index');
     Route::get('/home', 'HomeController@index')->name('home');
 
+    Route::post('/check-location-proximity', [App\Http\Controllers\HomeController::class, 'checkUserLocationProximity'])
+    ->name('check.location.proximity')
+    ->middleware('auth');
+
     Route::get('/dashboard/get-employees', 'HomeController@getEmployees')->name('dashboard.getEmployees');
     Route::get('/dashboard/get-present-employees', 'HomeController@getPresentEmployees')->name('dashboard.get-present-employees');
     Route::get('/dashboard/get-absent-employees', 'HomeController@getAbsentEmployees')->name('dashboard.get-absent-employees');
@@ -545,9 +549,7 @@ Route::group(['middleware' => 'auth'], function () {
     // Perfect Attendance
     Route::get('perfect_attendance', 'PerfectAttendanceController@index');
 
-   Route::get('hub_per_location', 'HubPerLocationController@index');
-   Route::get('hub_per_location/data', 'HubPerLocationController@getData');
-   Route::get('hub_per_location/export', 'HubPerLocationController@export');
+
 
     // Leave Calendar
     Route::get('leave_calendar', 'LeaveCalendarController@index');
@@ -556,8 +558,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('delete_plan_leave/{id}', 'LeaveCalendarController@destroy');
 
     // Hub Location
-    Route::get('/hub-per-location', [HubPerLocationController::class, 'index'])->name('hub-per-location.index');
-    Route::get('/hub-per-location/export', [HubPerLocationController::class, 'export'])->name('hub-per-location.export');
+    Route::get('hub_per_location', 'HubPerLocationController@index');
+    Route::get('hub_per_location/data', 'HubPerLocationController@getData');
+    Route::post('/create-user-for-hub', 'HubPerLocationController@createUserForHub')->name('create-user-for-hub');
+    Route::post('/hub/remove-user-by-id', 'HubPerLocationController@removeUserFromHubById')->name('remove-user-from-hub-by-id');
+    // Route::get('/hub-per-location/export', [HubPerLocationController::class, 'export'])->name('hub-per-location.export');
     Route::get('/hub-per-location/territories', [HubPerLocationController::class, 'getTerritoriesByRegion'])->name('hub-per-location.territories');
     Route::get('/hub-per-location/areas', [HubPerLocationController::class, 'getAreasByTerritory'])->name('hub-per-location.areas');
 

@@ -20,6 +20,7 @@ use App\EmployeeOb;
 use App\EmployeeDtr;
 use App\EmployeeLeaveCredit;
 use App\Leave;
+use App\HubPerLocation;
 use Carbon\Carbon;
 use App\LeavePlan;
 use stdClass;
@@ -188,6 +189,27 @@ class HomeController extends Controller
             ->pluck('location');
         
         $adminStats['locations'] = $locations;
+
+        $hubLocations = HubPerLocation::whereNotNull('lat')
+    ->whereNotNull('long')
+    ->where('hub_status', 'Open')
+    ->get(['id', 'hub_name', 'hub_code', 'lat', 'long', 'retail_hub_address']);
+
+// If you want to get only the hubs assigned to the current user, use this instead:
+$userId = auth()->id();
+if ($userId) {
+    $assignedHubIds = DB::table('hub_per_location_id')
+        ->where('user_id', $userId)
+        ->pluck('hub_per_location_id');
+
+    $hubLocations = HubPerLocation::whereIn('id', $assignedHubIds)
+        ->whereNotNull('lat')
+        ->whereNotNull('long')
+        ->where('hub_status', 'Open')
+        ->get(['id', 'hub_name', 'hub_code', 'lat', 'long', 'retail_hub_address']);
+} else {
+    $hubLocations = collect(); // Empty collection if no user
+}
         
         return view('dashboards.home', array_merge([
             'header' => '',
@@ -214,9 +236,220 @@ class HomeController extends Controller
             'latePerDay' => $latePerDay,
             'leave_plans_per_month' => $leave_plans_per_month,
             'leave_plan_array' => $leave_plan_array,
+            'hubLocations' => $hubLocations,
         ], $adminStats));
     }
+    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371000; // Earth's radius in meters
+        
+        $lat1Rad = deg2rad($lat1);
+        $lat2Rad = deg2rad($lat2);
+        $deltaLatRad = deg2rad($lat2 - $lat1);
+        $deltaLonRad = deg2rad($lon2 - $lon1);
+        
+        $a = sin($deltaLatRad/2) * sin($deltaLatRad/2) +
+             cos($lat1Rad) * cos($lat2Rad) *
+             sin($deltaLonRad/2) * sin($deltaLonRad/2);
+        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+        
+        return $earthRadius * $c; // Distance in meters
+    }
+    
+    /**
+     * Check if user is near any hub location
+     */
+  public function checkUserLocationProximity(Request $request)
+    {
+        $userLat = $request->input('latitude');
+        $userLon = $request->input('longitude');
+        $radiusMeters = 10;
 
+        if (!$userLat || !$userLon) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Location coordinates are required',
+                'debug' => 'No coordinates provided'
+            ]);
+        }
+
+        $userId = auth()->id();
+        $user = auth()->user();
+
+        if (!$userId || !$user) {
+            return response()->json([
+                'success' => false,
+                'isNearHub' => false,
+                'message' => 'User not authenticated.'
+            ]);
+        }
+
+        // Check if user has login == 1
+        $hasGeneralAccess = ($user->login == 1);
+
+        // Get assigned hub IDs for this user
+        $assignedHubIds = \DB::table('hub_per_location_id')
+            ->where('user_id', $userId)
+            ->pluck('hub_per_location_id');
+
+        // Determine access type and camera availability
+        if ($assignedHubIds->isEmpty()) {
+            if ($hasGeneralAccess) {
+                // User has login==1 but no assigned hub - ALLOW CAMERA ANYWHERE
+                // Get all hubs for map display only
+                $hubLocations = \App\HubPerLocation::whereNotNull('lat')
+                    ->whereNotNull('long')
+                    ->get(['id', 'hub_name', 'hub_code', 'lat', 'long', 'retail_hub_address', 'hub_status']);
+
+                $allHubsInfo = [];
+                foreach ($hubLocations as $hub) {
+                    $distance = $this->calculateDistance($userLat, $userLon, $hub->lat, $hub->long);
+                    $allHubsInfo[] = [
+                        'id' => $hub->id,
+                        'name' => $hub->hub_name,
+                        'code' => $hub->hub_code,
+                        'address' => $hub->retail_hub_address,
+                        'status' => $hub->hub_status,
+                        'distance' => round($distance),
+                        'latitude' => (float) $hub->lat,
+                        'longitude' => (float) $hub->long,
+                        'isInRange' => false, // Not relevant for unrestricted access
+                        'distanceToMove' => 0, // No restriction
+                        'estimatedWalkTime' => 0
+                    ];
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'isNearHub' => true, // ALWAYS TRUE for unrestricted access
+                    'nearbyHubs' => [], // No specific nearby hubs
+                    'assignedHub' => null,
+                    'allHubs' => $allHubsInfo, // All hubs for map display
+                    'radius' => 0, // No radius restriction
+                    'userLocation' => [
+                        'lat' => (float) $userLat, 
+                        'lon' => (float) $userLon,
+                        'formatted' => $userLat . '°, ' . $userLon . '°'
+                    ],
+                    'totalHubsChecked' => $hubLocations->count(),
+                    'assignedHubIds' => [],
+                    'accessType' => 'unrestricted_access',
+                    'hasGeneralAccess' => true,
+                    'message' => 'You have unrestricted access. Camera attendance is available from anywhere. Hub locations shown for reference only.',
+                    'debug' => [
+                        'user_login' => $user->login,
+                        'unrestricted_access' => true,
+                        'assigned_hubs_count' => 0,
+                        'available_hubs_count' => $hubLocations->count()
+                    ]
+                ]);
+            } else {
+                return response()->json([
+                    'success' => true,
+                    'isNearHub' => false,
+                    'nearbyHubs' => [],
+                    'assignedHub' => null,
+                    'radius' => $radiusMeters,
+                    'userLocation' => ['lat' => $userLat, 'lon' => $userLon],
+                    'message' => '',
+                    'accessType' => 'no_access',
+                    'showLocationStatus' => false
+                ]);
+            }
+        } else {
+            // User has assigned hubs - APPLY 10M RESTRICTION
+            $hubLocations = \App\HubPerLocation::whereIn('id', $assignedHubIds)
+                ->whereNotNull('lat')
+                ->whereNotNull('long')
+                ->get(['id', 'hub_name', 'hub_code', 'lat', 'long', 'retail_hub_address', 'hub_status']);
+
+            $nearbyHubs = [];
+            $isNearHub = false;
+            $allDistances = [];
+            $closestHubInfo = null;
+            $minDistance = PHP_FLOAT_MAX;
+
+            foreach ($hubLocations as $hub) {
+                $distance = $this->calculateDistance($userLat, $userLon, $hub->lat, $hub->long);
+
+                $hubInfo = [
+                    'id' => $hub->id,
+                    'name' => $hub->hub_name,
+                    'code' => $hub->hub_code,
+                    'address' => $hub->retail_hub_address,
+                    'status' => $hub->hub_status,
+                    'distance' => round($distance),
+                    'latitude' => (float) $hub->lat,
+                    'longitude' => (float) $hub->long,
+                    'isInRange' => $distance <= $radiusMeters && $hub->hub_status === 'Open',
+                    'distanceToMove' => max(0, $distance - $radiusMeters),
+                    'estimatedWalkTime' => ceil(max(0, $distance - $radiusMeters) / 80)
+                ];
+
+                // Track closest hub for reference
+                if ($distance < $minDistance) {
+                    $minDistance = $distance;
+                    $closestHubInfo = $hubInfo;
+                }
+
+                $allDistances[] = [
+                    'hub_name' => $hub->hub_name,
+                    'hub_status' => $hub->hub_status,
+                    'hub_lat' => (float) $hub->lat,
+                    'hub_long' => (float) $hub->long,
+                    'distance' => round($distance),
+                    'distance_formatted' => round($distance) . 'm',
+                    'is_in_range' => $distance <= $radiusMeters && $hub->hub_status === 'Open',
+                    'is_assigned' => true
+                ];
+
+                // Check if within range and hub is open
+                if ($distance <= $radiusMeters && $hub->hub_status === 'Open') {
+                    $isNearHub = true;
+                    $nearbyHubs[] = $hubInfo;
+                }
+            }
+
+            // Generate message for assigned hub users
+            $message = '';
+            if ($isNearHub) {
+                $message = 'You are within 10m of your assigned hub(s). Attendance is available.';
+            } else if ($closestHubInfo) {
+                if ($closestHubInfo['status'] !== 'Open') {
+                    $message = 'Your assigned hub "' . $closestHubInfo['name'] . '" is currently closed.';
+                } else {
+                    $distanceToMove = $closestHubInfo['distanceToMove'];
+                    $walkTime = $closestHubInfo['estimatedWalkTime'];
+                    $message = 'Move ' . $distanceToMove . 'm closer to your assigned hub "' . $closestHubInfo['name'] . '" (≈' . $walkTime . ' min walk). Current distance: ' . $closestHubInfo['distance'] . 'm.';
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'isNearHub' => $isNearHub,
+                'nearbyHubs' => $nearbyHubs,
+                'assignedHub' => $closestHubInfo,
+                'radius' => $radiusMeters,
+                'userLocation' => [
+                    'lat' => (float) $userLat, 
+                    'lon' => (float) $userLon,
+                    'formatted' => $userLat . '°, ' . $userLon . '°'
+                ],
+                'allDistances' => $allDistances,
+                'totalHubsChecked' => $hubLocations->count(),
+                'assignedHubIds' => $assignedHubIds->toArray(),
+                'accessType' => 'assigned_hubs',
+                'hasGeneralAccess' => $hasGeneralAccess,
+                'message' => $message,
+                'debug' => [
+                    'user_login' => $user->login,
+                    'unrestricted_access' => false,
+                    'assigned_hubs_count' => $assignedHubIds->count(),
+                    'available_hubs_count' => $hubLocations->count()
+                ]
+            ]);
+        }
+    }
 
     public function filterByLocation(Request $request)
     {

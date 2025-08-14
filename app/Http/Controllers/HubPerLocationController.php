@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\User;
 use Illuminate\Http\Request;
 use App\HubPerLocation;
 use Illuminate\Support\Facades\DB;
 use RealRashid\SweetAlert\Facades\Alert;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class HubPerLocationController extends Controller
@@ -80,6 +80,12 @@ class HubPerLocationController extends Controller
         
         $hubs = $query->orderBy('region')->orderBy('territory')->orderBy('area')->orderBy('hub_name')->get();
 
+        $users = User::where('login', 1)->with('employee')->get();
+
+        foreach ($hubs as $hub) {
+            $hub->hubAssignments = $this->getHubAssignmentsByHubId($hub->id);
+        }
+
         return view('hubs.hub_per_location', compact(
             'header',
             'regions',
@@ -90,273 +96,46 @@ class HubPerLocationController extends Controller
             'territory',
             'area',
             'hub_status',
-            'hubs'
+            'hubs',
+            'users'
         ));
     }
-    
-    
-    private function extractLatLongFromGoogleMapsUrl($url)
+
+    private function getHubAssignmentsByHubId($hubId)
     {
-        if (empty($url)) {
-            return ['lat' => null, 'lng' => null, 'accuracy' => 'no_url'];
-        }
-
-        $url = trim($url);
-        
-        if (preg_match('/(?:maps\.app\.goo\.gl|goo\.gl\/maps|g\.page)/', $url)) {
-            $expandedUrl = $this->expandShortenedUrl($url);
-            if ($expandedUrl) {
-                $url = $expandedUrl;
-            }
-        }
-
-        $lat = null;
-        $lng = null;
-        $accuracy = 'not_found';
-
-        if (preg_match('/@(-?\d+\.?\d*),(-?\d+\.?\d*),(\d+\.?\d*[a-z]?)/', $url, $matches)) {
-            $lat = (float) $matches[1];
-            $lng = (float) $matches[2];
-            $accuracy = 'standard_precise';
-        }
-        elseif (preg_match('/@(-?\d+\.?\d*),(-?\d+\.?\d*)/', $url, $matches)) {
-            $lat = (float) $matches[1];
-            $lng = (float) $matches[2];
-            $accuracy = 'standard';
-        }
-        elseif (preg_match('/\/place\/[^\/]+\/@(-?\d+\.?\d*),(-?\d+\.?\d*),(\d+\.?\d*[a-z]?)/', $url, $matches)) {
-            $lat = (float) $matches[1];
-            $lng = (float) $matches[2];
-            $accuracy = 'place_precise';
-        }
-        elseif (preg_match('/\/place\/[^\/]+\/@(-?\d+\.?\d*),(-?\d+\.?\d*)/', $url, $matches)) {
-            $lat = (float) $matches[1];
-            $lng = (float) $matches[2];
-            $accuracy = 'place';
-        }
-        elseif (preg_match('/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/', $url, $matches)) {
-            $lat = (float) $matches[1];
-            $lng = (float) $matches[2];
-            $accuracy = 'query';
-        }
-        elseif (preg_match('/[?&]ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/', $url, $matches)) {
-            $lat = (float) $matches[1];
-            $lng = (float) $matches[2];
-            $accuracy = 'll_param';
-        }
-        elseif (preg_match('/[?&]center=(-?\d+\.?\d*),(-?\d+\.?\d*)/', $url, $matches)) {
-            $lat = (float) $matches[1];
-            $lng = (float) $matches[2];
-            $accuracy = 'center_param';
-        }
-        elseif (preg_match('/[?&]destination=(-?\d+\.?\d*),(-?\d+\.?\d*)/', $url, $matches)) {
-            $lat = (float) $matches[1];
-            $lng = (float) $matches[2];
-            $accuracy = 'destination';
-        }
-        elseif (preg_match('/\/search\/([^\/\?&]+)/', $url, $matches)) {
-            $accuracy = 'place_name_only';
-        }
-
-        if ($lat !== null && $lng !== null) {
-            if ($lat >= -90 && $lat <= 90 && $lng >= -180 && $lng <= 180) {
-
-                if ($this->isWithinPhilippines($lat, $lng)) {
-                    $accuracy .= '_validated_ph';
-                } else {
-                    $accuracy .= '_validated_global';
-                }
-            } else {
-                $lat = null;
-                $lng = null;
-                $accuracy = 'invalid_coordinates';
-            }
-        }
-
-        return [
-            'lat' => $lat, 
-            'lng' => $lng, 
-            'accuracy' => $accuracy,
-            'processed_url' => $url
-        ];
+        return DB::table('hub_per_location_id as hpl')
+            ->join('hub_per_location as h', 'hpl.hub_per_location_id', '=', 'h.id')
+            ->join('users as u', 'hpl.user_id', '=', 'u.id')
+            ->join('employees as e', 'u.id', '=', 'e.user_id')
+            ->select(
+                'h.hub_name',
+                'e.employee_number',
+                'u.name as employee_name',
+                'hpl.user_id',
+                'hpl.hub_per_location_id'
+            )
+            ->where('hpl.hub_per_location_id', $hubId)
+            ->get();
     }
 
-    private function isWithinPhilippines($lat, $lng)
+    public function getHubAssignments()
     {
-        return ($lat >= 4.0 && $lat <= 22.0 && $lng >= 116.0 && $lng <= 127.0);
-    }
+        $hubAssignments = DB::table('hub_per_location_id as hpl')
+            ->join('hub_per_location as hub', 'hpl.hub_per_location_id', '=', 'hub.id')
+            ->join('users as u', 'hpl.user_id', '=', 'u.id')
+            ->join('employees as emp', 'hpl.user_id', '=', 'emp.user_id')
+            ->select(
+                'hub.hub_name',
+                'emp.employee_number',
+                'u.name as employee_name',
+                'hpl.created_at as assigned_date',
+                'u.id as user_id'
+            )
+            ->orderBy('hub.hub_name')
+            ->orderBy('emp.employee_number')
+            ->get();
 
-
-    private function expandShortenedUrl($url)
-    {
-        try {
-            if (class_exists('Illuminate\Support\Facades\Http')) {
-                $response = Http::timeout(15)
-                    ->withOptions([
-                        'allow_redirects' => [
-                            'max' => 10,
-                            'strict' => true,
-                            'referer' => true,
-                            'track_redirects' => true
-                        ],
-                        'verify' => false,
-                    ])
-                    ->head($url);
-                
-                if ($response->successful()) {
-                    $finalUrl = $response->effectiveUri();
-                    if ($finalUrl && $finalUrl !== $url) {
-                        return $finalUrl;
-                    }
-                }
-            }
-
-            return $this->expandUrlWithCurl($url);
-
-        } catch (\Exception $e) {
-            Log::warning('Failed to expand shortened Google Maps URL', [
-                'url' => $url,
-                'error' => $e->getMessage()
-            ]);
-            return null;
-        }
-    }
-
-    private function expandUrlWithCurl($url)
-    {
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL => $url,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_RETURNTRANSFER => false,
-            CURLOPT_NOBODY => true,
-            CURLOPT_TIMEOUT => 15,
-            CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            CURLOPT_HTTPHEADER => [
-                'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language: en-US,en;q=0.5',
-                'Accept-Encoding: gzip, deflate',
-                'Connection: keep-alive',
-            ],
-        ]);
-        
-        curl_exec($ch);
-        $finalUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
-        
-        if ($error) {
-            Log::warning('cURL error when expanding URL', [
-                'url' => $url,
-                'error' => $error
-            ]);
-            return null;
-        }
-        
-        if ($httpCode >= 200 && $httpCode < 400 && $finalUrl && $finalUrl !== $url) {
-            return $finalUrl;
-        }
-        
-        return null;
-    }
-
-    private function getCoordinatesFromAddress($address, $apiKey = null)
-    {
-        if (!$apiKey) {
-            $apiKey = config('services.google.maps_api_key');
-        }
-        
-        if (!$apiKey) {
-            return ['lat' => null, 'lng' => null, 'accuracy' => 'no_api_key'];
-        }
-        
-        try {
-            $response = Http::get('https://maps.googleapis.com/maps/api/geocode/json', [
-                'address' => $address,
-                'key' => $apiKey,
-                'region' => 'ph',
-            ]);
-            
-            $data = $response->json();
-            
-            if ($data['status'] === 'OK' && !empty($data['results'])) {
-                $result = $data['results'][0];
-                $location = $result['geometry']['location'];
-                
-                return [
-                    'lat' => $location['lat'],
-                    'lng' => $location['lng'],
-                    'accuracy' => 'geocoding_api',
-                    'formatted_address' => $result['formatted_address'],
-                    'place_id' => $result['place_id'] ?? null
-                ];
-            }
-            
-        } catch (\Exception $e) {
-            Log::error('Geocoding API error', [
-                'address' => $address,
-                'error' => $e->getMessage()
-            ]);
-        }
-        
-        return ['lat' => null, 'lng' => null, 'accuracy' => 'geocoding_failed'];
-    }
-    
-    public function edit(Request $request, $id)
-    {
-        $request->validate([
-            'region' => 'required|string|max:255',
-            'territory' => 'required|string|max:255',
-            'area' => 'required|string|max:255',
-            'hub_name' => 'required|string|max:255',
-            'hub_code' => 'required|string|max:50|unique:hub_per_location,hub_code,' . $id,
-            'retail_hub_address' => 'required|string',
-            'hub_status' => 'required|string|max:50',
-            'google_map_location_link' => 'nullable|url',
-        ]);
-
-        $hub = HubPerLocation::findOrFail($id);
-
-        $coordinates = $this->extractLatLongFromGoogleMapsUrl($request->google_map_location_link);
-        
-        if (!$coordinates['lat'] && !$coordinates['lng'] && $request->retail_hub_address) {
-            $addressCoordinates = $this->getCoordinatesFromAddress($request->retail_hub_address);
-            if ($addressCoordinates['lat'] && $addressCoordinates['lng']) {
-                $coordinates = $addressCoordinates;
-            }
-        }
-
-        $hub->region = $request->region;
-        $hub->territory = $request->territory;
-        $hub->area = $request->area;
-        $hub->hub_name = $request->hub_name;
-        $hub->hub_code = $request->hub_code;
-        $hub->retail_hub_address = $request->retail_hub_address;
-        $hub->hub_status = $request->hub_status;
-        $hub->google_map_location_link = $request->google_map_location_link;
-        $hub->lat = $coordinates['lat'];
-        $hub->long = $coordinates['lng'];
-        $hub->updated_at = now();
-
-        $hub->save();
-
-        $message = 'Hub updated successfully';
-        if ($coordinates['lat'] && $coordinates['lng']) {
-            $accuracyInfo = $this->getAccuracyMessage($coordinates['accuracy']);
-            $message .= " with coordinates extracted ({$accuracyInfo})!";
-        } else if ($request->google_map_location_link) {
-            $message .= ', but coordinates could not be extracted from the Google Maps link.';
-        } else {
-            $message .= '!';
-        }
-
-        Alert::success($message)->persistent('Dismiss');
-        return back();
+        return $hubAssignments;
     }
     
     public function store(Request $request)
@@ -370,18 +149,11 @@ class HubPerLocationController extends Controller
             'retail_hub_address' => 'required|string',
             'hub_status' => 'required|string|max:50',
             'google_map_location_link' => 'nullable|url',
+            'lat' => 'nullable|numeric|between:-90,90',
+            'long' => 'nullable|numeric|between:-180,180',
         ]);
 
         $id = $request->input('id');
-
-        $coordinates = $this->extractLatLongFromGoogleMapsUrl($request->google_map_location_link);
-        
-        if (!$coordinates['lat'] && !$coordinates['lng'] && $request->retail_hub_address) {
-            $addressCoordinates = $this->getCoordinatesFromAddress($request->retail_hub_address);
-            if ($addressCoordinates['lat'] && $addressCoordinates['lng']) {
-                $coordinates = $addressCoordinates;
-            }
-        }
 
         if ($id) {
             $request->validate([
@@ -407,52 +179,171 @@ class HubPerLocationController extends Controller
         $hub->retail_hub_address = $request->retail_hub_address;
         $hub->hub_status = $request->hub_status;
         $hub->google_map_location_link = $request->google_map_location_link;
-        $hub->lat = $coordinates['lat'];
-        $hub->long = $coordinates['lng'];
+        $hub->lat = $request->lat;
+        $hub->long = $request->long;
+        $hub->updated_at = now();
 
         $hub->save();
 
-        $message = "Hub {$action} successfully";
-        if ($coordinates['lat'] && $coordinates['lng']) {
-            $accuracyInfo = $this->getAccuracyMessage($coordinates['accuracy']);
-            $message .= " with coordinates extracted ({$accuracyInfo})!";
-        } else if ($request->google_map_location_link) {
-            $message .= ', but coordinates could not be extracted from the Google Maps link.';
-        } else {
-            $message .= '!';
-        }
-
+        $message = 'Hub updated successfully!';
         Alert::success($message)->persistent('Dismiss');
         return back();
     }
-
-    private function getAccuracyMessage($accuracy)
+    
+    public function createUserForHub(Request $request)
     {
-        $messages = [
-            'standard_precise' => 'High precision from Maps URL',
-            'standard' => 'Good precision from Maps URL',
-            'place_precise' => 'High precision from Place URL',
-            'place' => 'Good precision from Place URL',
-            'geocoding_api' => 'Maximum precision via Geocoding API',
-            'query' => 'Moderate precision from query parameters',
-            'll_param' => 'Good precision from coordinates',
-            'center_param' => 'Moderate precision from center point',
-            'destination' => 'Good precision from destination',
-        ];
-        
-        foreach ($messages as $key => $message) {
-            if (strpos($accuracy, $key) !== false) {
-                if (strpos($accuracy, '_validated_ph') !== false) {
-                    return $message . ' - Philippines validated';
-                } elseif (strpos($accuracy, '_validated_global') !== false) {
-                    return $message . ' - globally validated';
+        try {
+            $request->validate([
+                'hub_id' => 'required|exists:hub_per_location,id',
+                'employee' => 'required|array|min:1',
+                'employee.*' => 'exists:users,id' 
+            ]);
+
+            $hubId = $request->hub_id;
+            $employeeIds = $request->employee; // This is now an array
+
+            $successCount = 0;
+            $errors = [];
+
+            foreach ($employeeIds as $userId) {
+                $user = User::with('employee')->find($userId);
+                
+                if (!$user || !$user->employee || !$user->employee->employee_number) {
+                    $errors[] = "Employee with ID {$userId} does not have a valid employee number";
+                    continue;
                 }
-                return $message;
+
+                // Check if this user is already assigned to this hub
+                $existingAssignment = DB::table('hub_per_location_id')
+                    ->where('hub_per_location_id', $hubId)
+                    ->where('user_id', $userId)
+                    ->exists();
+
+                if ($existingAssignment) {
+                    $errors[] = "Employee {$user->name} is already assigned to this hub";
+                    continue;
+                }
+
+                // Check if this user is already assigned to ANY hub
+                $existingGlobalAssignment = DB::table('hub_per_location_id')
+                    ->where('user_id', $userId)
+                    ->exists();
+
+                if ($existingGlobalAssignment) {
+                    $errors[] = "Employee {$user->name} is already assigned to another hub";
+                    continue;
+                }
+
+                // Get next ID and insert
+                $nextId = (DB::table('hub_per_location_id')->max('id') ?? 0) + 1;
+
+                DB::table('hub_per_location_id')->insert([
+                    'id' => $nextId,
+                    'hub_per_location_id' => $hubId,
+                    'user_id' => $userId,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+
+                $successCount++;
             }
+
+            // Show appropriate messages
+            if ($successCount > 0 && empty($errors)) {
+                Alert::success("Successfully assigned {$successCount} employee(s) to hub!")->persistent('Dismiss');
+            } elseif ($successCount > 0 && !empty($errors)) {
+                $errorMessage = implode('. ', $errors);
+                Alert::warning("Assigned {$successCount} employee(s) successfully, but encountered issues: {$errorMessage}")->persistent('Dismiss');
+            } else {
+                $errorMessage = implode('. ', $errors);
+                Alert::error("No employees were assigned. Issues: {$errorMessage}")->persistent('Dismiss');
+            }
+
+            return back();
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Alert::error('Validation failed: ' . implode(', ', $e->validator->errors()->all()))->persistent('Dismiss');
+            return back();
+        } catch (\Exception $e) {
+            Log::error('Error creating user for hub', [
+                'hub_id' => $request->hub_id ?? null,
+                'employee' => $request->employee ?? null,
+                'error' => $e->getMessage()
+            ]);
+
+            Alert::error('An error occurred while assigning user to hub. Please try again.')->persistent('Dismiss');
+            return back();
         }
-        
-        return 'coordinates extracted';
     }
+
+    public function removeUserFromHubById(Request $request)
+{
+    try {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+            'hub_id' => 'required|integer|exists:hub_per_location,id'
+        ]);
+
+        $userId = $request->user_id;
+        $hubId = $request->hub_id;
+
+        // Get user and hub info for the success message
+        $userInfo = DB::table('users as u')
+            ->join('employees as e', 'u.id', '=', 'e.user_id')
+            ->select('u.name as employee_name', 'e.employee_number')
+            ->where('u.id', $userId)
+            ->first();
+
+        $hubInfo = DB::table('hub_per_location')
+            ->select('hub_name')
+            ->where('id', $hubId)
+            ->first();
+
+        if (!$userInfo || !$hubInfo) {
+            Alert::error('User or Hub not found!')->persistent('Dismiss');
+            return back();
+        }
+
+        // Check if assignment exists
+        $assignmentExists = DB::table('hub_per_location_id')
+            ->where('user_id', $userId)
+            ->where('hub_per_location_id', $hubId)
+            ->exists();
+
+        if (!$assignmentExists) {
+            Alert::error('Assignment does not exist!')->persistent('Dismiss');
+            return back();
+        }
+
+        // Delete the assignment
+        $deleted = DB::table('hub_per_location_id')
+            ->where('user_id', $userId)
+            ->where('hub_per_location_id', $hubId)
+            ->delete();
+
+        if ($deleted) {
+            Alert::success("Employee {$userInfo->employee_name} ({$userInfo->employee_number}) has been successfully removed from {$hubInfo->hub_name}!")->persistent('Dismiss');
+        } else {
+            Alert::error('Failed to remove assignment. Please try again.')->persistent('Dismiss');
+        }
+
+        return back();
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        Alert::error('Validation failed: ' . implode(', ', $e->validator->errors()->all()))->persistent('Dismiss');
+        return back();
+    } catch (\Exception $e) {
+        Log::error('Error removing user from hub by ID', [
+            'user_id' => $request->user_id ?? null,
+            'hub_id' => $request->hub_id ?? null,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        Alert::error('An error occurred while removing the assignment. Please try again.')->persistent('Dismiss');
+        return back();
+    }
+}
     
     public function getTerritoriesByRegion(Request $request)
     {
@@ -484,23 +375,49 @@ class HubPerLocationController extends Controller
         return response()->json($areas);
     }
 
+    public function edit(Request $request, $id)
+{
+    $request->validate([
+        'region' => 'required|string|max:255',
+        'territory' => 'required|string|max:255',
+        'area' => 'required|string|max:255',
+        'hub_name' => 'required|string|max:255',
+        'hub_code' => 'required|string|max:50|unique:hub_per_location,hub_code,' . $id,
+        'retail_hub_address' => 'required|string',
+        'hub_status' => 'required|string|max:50',
+        'google_map_location_link' => 'nullable|url',
+        'lat' => 'nullable|numeric|between:-90,90',
+        'long' => 'nullable|numeric|between:-180,180',
+    ]);
 
-    public function validateCoordinates(Request $request)
-    {
-        $url = $request->input('url');
-        $address = $request->input('address');
-        
-        $result = [];
-        
-        if ($url) {
-            $result['url_extraction'] = $this->extractLatLongFromGoogleMapsUrl($url);
-        }
-        
-        if ($address) {
-            $result['address_geocoding'] = $this->getCoordinatesFromAddress($address);
-        }
-        
-        return response()->json($result);
+    try {
+        $hub = HubPerLocation::findOrFail($id);
+
+        $hub->region = $request->region;
+        $hub->territory = $request->territory;
+        $hub->area = $request->area;
+        $hub->hub_name = $request->hub_name;
+        $hub->hub_code = $request->hub_code;
+        $hub->retail_hub_address = $request->retail_hub_address;
+        $hub->hub_status = $request->hub_status;
+        $hub->google_map_location_link = $request->google_map_location_link;
+        $hub->lat = $request->lat;
+        $hub->long = $request->long;
+        $hub->updated_at = now();
+
+        $hub->save();
+
+        Alert::success('Hub updated successfully!')->persistent('Dismiss');
+        return back();
+    } catch (\Exception $e) {
+        Log::error('Error updating hub', [
+            'hub_id' => $id,
+            'error' => $e->getMessage()
+        ]);
+
+        Alert::error('An error occurred while updating the hub. Please try again.')->persistent('Dismiss');
+        return back();
     }
-    
+}
+
 }

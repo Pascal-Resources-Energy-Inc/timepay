@@ -513,22 +513,25 @@ if ($userId) {
     }
     
    private function calculateLateRecords($employeeNumber, $expectedTimeIn)
-        {
-            return DB::select("
-                SELECT 
-                    DATE(time_in) as date,
-                    DATE_FORMAT(MIN(time_in), '%h:%i %p') as time,
-                    FLOOR((TIME_TO_SEC(MIN(time_in)) - TIME_TO_SEC(?)) / 60) as late_minutes
-                FROM attendances 
-                WHERE employee_code = ? 
-                    AND MONTH(time_in) = MONTH(NOW()) 
-                    AND YEAR(time_in) = YEAR(NOW())
-                    AND TIME(time_in) > ADDTIME(TIME(?), '00:01:00')  -- More than 1 min late
-                    AND time_in IS NOT NULL
-                GROUP BY DATE(time_in)
-                ORDER BY DATE(time_in) ASC
-            ", [$expectedTimeIn, $employeeNumber, $expectedTimeIn]);
-        }
+    {
+        $normalnyangtimein = date('H:i:s', strtotime($expectedTimeIn));
+        
+        return DB::select("
+            SELECT 
+                DATE(time_in) as date,
+                DATE_FORMAT(MIN(time_in), '%h:%i %p') as time,
+                GREATEST(0, FLOOR((TIME_TO_SEC(TIME(MIN(time_in))) - TIME_TO_SEC(?)) / 60)) as late_minutes
+            FROM attendances 
+            WHERE employee_code = ? 
+                AND MONTH(time_in) = MONTH(NOW()) 
+                AND YEAR(time_in) = YEAR(NOW())
+                AND time_in IS NOT NULL
+            GROUP BY DATE(time_in)
+            HAVING TIME(MIN(time_in)) > ADDTIME(?, '00:01:00')
+                AND late_minutes > 0 
+            ORDER BY DATE(time_in) ASC
+        ", [$normalnyangtimein, $employeeNumber, $normalnyangtimein]);
+    }
     
     /**
      * Optimized absent dates calculation
@@ -879,110 +882,115 @@ if ($userId) {
     }
 
     public function getLateEmployees(Request $request)
-        {
-            try {
-                $location = $request->input('location');
-                $today = \Carbon\Carbon::today()->toDateString();
-                
-                $query = DB::table('employees')
-                    ->join('schedule_datas', 'employees.schedule_id', '=', 'schedule_datas.schedule_id')
-                    ->join('attendances', 'employees.employee_number', '=', 'attendances.employee_code')
-                    ->whereIn('employees.status', ['Active', 'HBU'])
-                    ->whereDate('attendances.time_in', $today)
-                    ->where('company_id',"!=",2)
-                    ->whereRaw('TIME(attendances.time_in) > TIME( 
-                                CASE 
-                                    WHEN LENGTH(TRIM(schedule_datas.time_in_from)) = 5 
-                                    THEN ADDTIME(CONCAT(TRIM(schedule_datas.time_in_from), ":00"), "00:01:00")
-                                    ELSE ADDTIME(TRIM(schedule_datas.time_in_from), "00:01:00") 
-                                END
-                            )')
-                    ->select([
-                        'employees.employee_number',
-                        'employees.first_name',
-                        'employees.middle_name', 
-                        'employees.last_name',
-                        'employees.location',
-                        'schedule_datas.time_in_from as expected_time',
-                        DB::raw('MIN(attendances.time_in) as actual_time_in')
-                    ])
-                    ->groupBy([
-                        'employees.employee_number',
-                        'employees.first_name', 
-                        'employees.middle_name',
-                        'employees.last_name',
-                        'employees.location',
-                        'schedule_datas.time_in_from'
-                    ]);
-                
-                if ($location) {
-                    $query->where('employees.location', $location);
-                }
-                
-                $lateEmployees = $query->orderBy('employees.first_name')
-    ->orderBy('employees.last_name')
-    ->get()
-    ->map(function($employee) use ($today) {
-
-        // 🔄 Priority: Check if DailySchedule exists for this employee
-        $dailySchedule = DailySchedule::where('employee_code', $employee->employee_number)
-            ->where('log_date', $today)
-            ->orderBy('id', 'DESC')
-            ->first();
-
-        // 🕒 Get expected_time from DailySchedule if available, else use schedule_datas
-        if ($dailySchedule && $dailySchedule->time_in_from) {
-            $expectedTimeStr = $dailySchedule->time_in_from;
-        } else {
-            $expectedTimeStr = $employee->expected_time;
-        }
-
-        // ⏱ Normalize expected time to full time format
-        $expectedTimeFormattedRaw = strlen(trim($expectedTimeStr)) === 5 
-            ? $expectedTimeStr . ':00'
-            : $expectedTimeStr;
-
-        $expectedTime = \Carbon\Carbon::parse($today . ' ' . $expectedTimeFormattedRaw);
-        $actualTime = \Carbon\Carbon::parse($employee->actual_time_in);
-
-        // 🕓 Late calculation
-        $lateMinutes = $actualTime->diffInMinutes($expectedTime);
-
-        $expectedTimeFormatted = $expectedTime->format('h:i A');
-        $actualTimeFormatted = $actualTime->format('h:i A');
-
-        $lateDuration = $lateMinutes >= 60
-            ? floor($lateMinutes / 60) . 'h ' . ($lateMinutes % 60) . 'm late'
-            : $lateMinutes . 'm late';
-
-        return [
-            'employee_number' => $employee->employee_number,
-            'first_name' => $employee->first_name,
-            'middle_name' => $employee->middle_name,
-            'last_name' => $employee->last_name,
-            'location' => $employee->location,
-            'expected_time' => $expectedTimeFormatted,
-            'actual_time_in' => $actualTimeFormatted,
-            'late_minutes' => $lateMinutes,
-            'late_duration' => $lateDuration,
-        ];
-    });
+    {
+        try {
+            $location = $request->input('location');
+            $today = \Carbon\Carbon::today()->toDateString();
             
-                return response()->json([
-                    'success' => true,
-                    'employees' => $lateEmployees,
-                    'total' => $lateEmployees->count()
+            $earliestTimeIns = DB::table('attendances')
+                ->select('employee_code', DB::raw('MIN(time_in) as earliest_time_in'))
+                ->whereDate('time_in', $today)
+                ->whereNotNull('time_in')
+                ->groupBy('employee_code');
+
+            $query = DB::table('employees')
+                ->join('schedule_datas', 'employees.schedule_id', '=', 'schedule_datas.schedule_id')
+                ->joinSub($earliestTimeIns, 'earliest_times', function($join) {
+                    $join->on('employees.employee_number', '=', 'earliest_times.employee_code');
+                })
+                ->whereIn('employees.status', ['Active', 'HBU'])
+                ->where('company_id', "!=", 2)
+                ->whereRaw('TIME(earliest_times.earliest_time_in) > TIME( 
+                            CASE 
+                                WHEN LENGTH(TRIM(schedule_datas.time_in_from)) = 5 
+                                THEN ADDTIME(CONCAT(TRIM(schedule_datas.time_in_from), ":00"), "00:01:00")
+                                ELSE ADDTIME(TRIM(schedule_datas.time_in_from), "00:01:00") 
+                            END
+                        )')
+                ->select([
+                    'employees.employee_number',
+                    'employees.first_name',
+                    'employees.middle_name', 
+                    'employees.last_name',
+                    'employees.location',
+                    'schedule_datas.time_in_from as expected_time',
+                    'earliest_times.earliest_time_in as actual_time_in'
+                ])
+                ->groupBy([
+                    'employees.employee_number',
+                    'employees.first_name', 
+                    'employees.middle_name',
+                    'employees.last_name',
+                    'employees.location',
+                    'schedule_datas.time_in_from',
+                    'earliest_times.earliest_time_in'
                 ]);
-                
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'employees' => collect(),
-                    'total' => 0,
-                    'error' => $e
-                ], 500);
+            
+            if ($location) {
+                $query->where('employees.location', $location);
             }
+            
+            $lateEmployees = $query->orderBy('employees.first_name')
+                ->orderBy('employees.last_name')
+                ->get()
+                ->map(function($employee) use ($today) {
+
+                    $dailySchedule = DailySchedule::where('employee_code', $employee->employee_number)
+                        ->where('log_date', $today)
+                        ->orderBy('id', 'DESC')
+                        ->first();
+
+                    if ($dailySchedule && $dailySchedule->time_in_from) {
+                        $expectedTimeStr = $dailySchedule->time_in_from;
+                    } else {
+                        $expectedTimeStr = $employee->expected_time;
+                    }
+
+                    $expectedTimeFormattedRaw = strlen(trim($expectedTimeStr)) === 5 
+                        ? $expectedTimeStr . ':00'
+                        : $expectedTimeStr;
+
+                    $expectedTime = \Carbon\Carbon::parse($today . ' ' . $expectedTimeFormattedRaw);
+                    
+                    $actualTime = \Carbon\Carbon::parse($employee->actual_time_in);
+
+                    $lateMinutes = $actualTime->diffInMinutes($expectedTime);
+
+                    $expectedTimeFormatted = $expectedTime->format('h:i A');
+                    $actualTimeFormatted = $actualTime->format('h:i A');
+
+                    $lateDuration = $lateMinutes >= 60
+                        ? floor($lateMinutes / 60) . 'h ' . ($lateMinutes % 60) . 'm late'
+                        : $lateMinutes . 'm late';
+
+                    return [
+                        'employee_number' => $employee->employee_number,
+                        'first_name' => $employee->first_name,
+                        'middle_name' => $employee->middle_name,
+                        'last_name' => $employee->last_name,
+                        'location' => $employee->location,
+                        'expected_time' => $expectedTimeFormatted,
+                        'actual_time_in' => $actualTimeFormatted,
+                        'late_minutes' => $lateMinutes,
+                        'late_duration' => $lateDuration,
+                    ];
+                });
+            
+            return response()->json([
+                'success' => true,
+                'employees' => $lateEmployees,
+                'total' => $lateEmployees->count()
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'employees' => collect(),
+                'total' => 0,
+                'error' => $e
+            ], 500);
         }
+    }
 
     public function absenteesPie(Request $request)
     {

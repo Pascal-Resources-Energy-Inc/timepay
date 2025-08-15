@@ -53,6 +53,22 @@ class EmployeeNumberEnrollmentController extends Controller
         ]);
     }
 
+    private function generateNeNumber()
+    {
+        $lastNe = EmployeeNe::whereNotNull('ne_no')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if (!$lastNe || empty($lastNe->ne_no)) {
+            return 'CENF-001';
+        }
+
+        $lastNumber = (int) substr($lastNe->ne_no, 5);
+        $nextNumber = $lastNumber + 1;
+
+        return 'CENF-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+    }
+
     public function new(Request $request)
         {
             $request->validate([
@@ -86,11 +102,14 @@ class EmployeeNumberEnrollmentController extends Controller
                 return back();
             }
 
+            $neNumber = $this->generateNeNumber();
+
             $ne = new EmployeeNe;
             $ne->user_id = $user->id;
+            $ne->ne_no = $neNumber;
             $ne->location = $user->employee->location;
             $ne->enrollment_type = $request->enrollment_type;
-            $ne->other = $request->other; // This will be null if not provided
+            $ne->other = $request->other;
             $ne->comment = $request->comment;
             $ne->employee_number = $request->employee_number;
             $ne->position_designation = $request->position_designation;
@@ -105,7 +124,7 @@ class EmployeeNumberEnrollmentController extends Controller
             
             try {
                 $ne->save();
-                Alert::success('Number enrollment request submitted successfully')->persistent('Dismiss');
+                Alert::success("Number enrollment request submitted successfully. Reference Number: {$neNumber}")->persistent('Dismiss');
                 return redirect()->back();
             } catch (\Exception $e) {
                 \Log::error('Number enrollment save failed: ' . $e->getMessage());
@@ -116,7 +135,6 @@ class EmployeeNumberEnrollmentController extends Controller
 
     public function edit_ne(Request $request, $id)
         {
-            // Validate the incoming request
             $request->validate([
                 'enrollment_type' => 'required|string|in:new_employee,lost_sim,allowance_based,other',
                 'other' => 'nullable|string|max:255',
@@ -126,22 +144,18 @@ class EmployeeNumberEnrollmentController extends Controller
             ]);
 
             try {
-                // Find the existing enrollment record
                 $ne = EmployeeNe::findOrFail($id);
                 
-                // Check if the current user owns this record
                 if ($ne->user_id !== auth()->user()->id) {
                     Alert::error('You are not authorized to edit this enrollment')->persistent('Dismiss');
                     return back();
                 }
 
-                // Check if the enrollment can still be edited (only if status is Pending or Rejected)
                 if (!in_array($ne->status, ['Pending', 'Rejected'])) {
                     Alert::error('This enrollment cannot be edited as it has already been processed')->persistent('Dismiss');
                     return back();
                 }
 
-                // Check for existing enrollment with the same cellphone number (excluding current record)
                 $existingEnrollment = EmployeeNe::where('cellphone_number', $request->cellphone_number)
                     ->where('status', '!=', 'Rejected')
                     ->where('id', '!=', $id)
@@ -152,25 +166,21 @@ class EmployeeNumberEnrollmentController extends Controller
                     return back();
                 }
 
-                // Update only the editable fields
                 $ne->enrollment_type = $request->enrollment_type;
                 $ne->other = $request->other;
                 $ne->comment = $request->comment;
                 $ne->cellphone_number = $request->cellphone_number;
                 $ne->network_provider = $request->network_provider;
                 
-                // Reset status to Pending if it was previously Rejected
                 if ($ne->status === 'Rejected') {
                     $ne->status = 'Pending';
                 }
                 
-                // Update the applied date to current date
                 $ne->applied_date = now();
                 
-                // Save the changes
                 $ne->save();
 
-                Alert::success('Number enrollment request updated successfully')->persistent('Dismiss');
+                Alert::success("Number enrollment request updated successfully. Reference Number: {$ne->ne_no}")->persistent('Dismiss');
                 return redirect()->back();
 
             } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {

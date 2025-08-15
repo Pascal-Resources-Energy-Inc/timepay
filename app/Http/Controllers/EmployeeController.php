@@ -143,7 +143,7 @@ class EmployeeController extends Controller
                                                 ->orderBy('gender','ASC')
                                                 ->get();
 
-
+        $entries = $request->get('entries', 10);
         $employees = Employee::select('id','user_id','employee_number','first_name','last_name','department_id','company_id','immediate_sup','classification','status', 'employee_code','avatar', 'location')
                                 ->with('department', 'immediate_sup_data', 'user_info', 'company','classification_info')
                                 ->when($search,function($q) use($search){
@@ -188,7 +188,8 @@ class EmployeeController extends Controller
                                 ->where('status',$status)
                                 ->orderBy('employee_number')
                                 ->orderBy('last_name')
-                                ->paginate(10);
+                                ->paginate($entries)
+                                ->appends(request()->all());
 
         $employees_active = Employee::select('id','user_id')     
                                 ->when($allowed_locations,function($q) use($allowed_locations){

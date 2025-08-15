@@ -100,7 +100,7 @@
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Employees 
+                        <h4 class="card-title">Employees Filter
                             @if (checkUserPrivilege('employees_add',auth()->user()->id) == 'yes')
                                 <button type="button" class="btn btn-outline-success btn-icon-text btn-sm text-center" data-toggle="modal" data-target="#newEmployee"><i class="ti-plus btn-icon-prepend"></i></button>
                                 @if(auth()->user()->id == '353' || auth()->user()->id == '1')
@@ -121,7 +121,6 @@
                             @endif
                         </h4>
 
-                        <h4 class="card-title">Filter</h4>
 						<p class="card-description">
 						<form method='get' onsubmit='show();' enctype="multipart/form-data">
 							<div class=row>
@@ -168,14 +167,29 @@
 										
 									</div>
 								</div>
-								<div class='col-md-2'>
-									<button type="submit" class="btn btn-primary">Filter</button>
-                                    <a href="/employees" class="btn btn-warning">Reset Filter</a>
-								</div>
+								<div class="col-md-2 d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary" style="height: 43px;">Filter</button>
+                                    &nbsp;
+                                    <a href="/employees" class="btn btn-warning" style="height: 43px;">Reset</a>
+                                </div>
 							</div>
 							
 						</form>
 						</p>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label>Show 
+                                    <select id="entriesSelect" class="form-control form-control-sm d-inline-block" style="width: auto;" onchange="updateEntries()">
+                                        <option value="10" {{ request('entries') == 10 ? 'selected' : '' }}>10</option>
+                                        <option value="25" {{ request('entries') == 25 ? 'selected' : '' }}>25</option>
+                                        <option value="50" {{ request('entries') == 50 ? 'selected' : '' }}>50</option>
+                                        <option value="100" {{ request('entries') == 100 ? 'selected' : '' }}>100</option>
+                                        <option value="500" {{ request('entries') == 500 ? 'selected' : '' }}>500</option>
+                                        <option value="1000" {{ request('entries') == 1000 ? 'selected' : '' }}>1000</option>
+                                    </select> entries
+                                </label>
+                            </div>
+                        </div>
 
                         <div class="table-responsive">
                             <table class="table table-hover table-bordered" id="">
@@ -224,9 +238,10 @@
                                     @endforeach
                                 </tbody>
                             </table>
-                        </div>
-                        <div class="mt-3">
-                            {{ $employees->appends(request()->only(['department', 'company', 'status','search']))->links() }} <!-- This will display the pagination links -->
+                            <div class="mt-3">
+                                {{ $employees->links() }}
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -245,4 +260,13 @@
 <script src="{{ asset('body_css/vendors/inputmask/jquery.inputmask.bundle.js') }}"></script>
 <script src="{{ asset('body_css/vendors/inputmask/jquery.inputmask.bundle.js') }}"></script>
 <script src="{{ asset('body_css/js/inputmask.js') }}"></script>
+<script>
+    function updateEntries() {
+        const entries = document.getElementById('entriesSelect').value;
+        const url = new URL(window.location.href);
+        url.searchParams.set('entries', entries);
+        window.location.href = url.toString();
+    }
+</script>
+
 @endsection

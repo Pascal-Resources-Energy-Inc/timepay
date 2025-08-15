@@ -179,6 +179,9 @@
                         </div>
 
                     <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="printModalContentSameWindow('view-coe-{{ $coe->id }}')">
+                            <i class="bi bi-printer"></i> Print
+                        </button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">
                             Close
                         </button>
@@ -188,3 +191,5 @@
             </div>
         </div>
     </div>
+
+@include('for-approval.print-coe') 

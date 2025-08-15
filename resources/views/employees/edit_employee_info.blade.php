@@ -199,7 +199,7 @@
                 </div>
 
                 <div class='col-md-4'>
-                  Date Resigned
+                  Seperation Date
                   <input type="date" name="date_resigned" value="{{ $user->employee->date_resigned }}" class='form-control form-control-sm' placeholder="Date"/>
                 </div>
 

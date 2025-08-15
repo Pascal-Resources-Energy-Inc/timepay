@@ -261,6 +261,25 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+        .sidebar .nav li h5 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #8e8e93;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 15px 0 5px 0;
+            padding: 0 1rem;
+        }
+        
+        .sidebar.sidebar-offcanvas.minimized .nav li h5,
+        .sidebar-icon-only .nav li h5 {
+            font-size: 7px !important;
+            margin: 10px 0 5px 0 !important;
+            padding: 0 0.5rem !important;
+            text-align: center !important;
+            line-height: 1.2 !important;
+        }
+        
 
     </style>
 </head>
@@ -368,7 +387,7 @@
                         </a>
                         <div class="collapse @if ($header == 'forms') show @endif" id="forms">
                             <ul class="nav flex-column sub-menu @if ($header == 'forms') show @endif">
-                                {{-- <li class="nav-item "> <a class="nav-link active" href="{{ url('/file-leave') }}">Leave</a></li> --}}
+                                <!-- <li class="nav-item "> <a class="nav-link active" href="{{ url('/file-leave') }}">Leave</a></li> -->
                                 <!-- @php
                                     $user_allowed_overtime = auth()->user()->allowed_overtime ? auth()->user()->allowed_overtime->allowed_overtime : "";
                                 @endphp
@@ -376,9 +395,9 @@
                                     <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li>
                                 @endif -->
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li> -->
-                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/work-from-home') }}">Work from home</a></li> --}}
+                               {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/work-from-home') }}">Work from home</a></li> --}}
 
-                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li> --}}
+                                <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li> -->
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> -->
@@ -801,27 +820,27 @@
         @endif
         @if (checkUserPrivilege('upload_daily_schedule',auth()->user()->id) == 'yes')
         <li class="nav-item">
-          <a href="{{url('daily-schedule')}}" class="nav-link">
-            <i class="fa fa-calendar menu-icon"></i>
-            Daily Schedule
+          <a href="{{url('daily-schedule')}}" class="nav-link" onclick='show()'>
+            <i class="fa fa-calendar menu-icon"></i> 
+            <span class="menu-title">Daily Schedule</span>
           </a>
         <li>
         <li class="nav-item @if($header == 'upload') active @endif">
           <a href="{{url('upload')}}" class="nav-link">
             <i class="ti-upload menu-icon"></i>
-            Upload OB/OT/Leaves
+            <span class="menu-title">Upload OB/OT/Leaves</span>
           </a>
         <li>
         <li class="nav-item">
             <a href="{{url('perfect_attendance')}}" class="nav-link">
                 <i class="ti-calendar menu-icon"></i>
-                Perfect Attendance
+                <span class="menu-title">Perfect Attendance</span>
             </a>
         </li>
         <li class="nav-item">
             <a href="{{ url('hub_per_location') }}" class="nav-link">
                 <i class="ti-location-pin menu-icon"></i>
-                Hub Per Location
+                <span class="menu-title">Hub Per Location</span>
             </a>
         </li>
         @endif

@@ -8,6 +8,7 @@ use App\EmployeeCoe;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
+use App\ApproverSetting;
 
 class EmployeeCoeController extends Controller
 {
@@ -22,7 +23,9 @@ class EmployeeCoeController extends Controller
 
         $coes = EmployeeCoe::with('user')
             ->where('user_id', auth()->user()->id)
-            ->where('status', $status)
+            ->when($status, function($query, $status) {
+                return $query->where('status', $status);
+            })
             ->whereDate('applied_date', '>=', $from)
             ->whereDate('created_at', '<=', $to)
             ->orderBy('created_at', 'DESC')
@@ -31,8 +34,28 @@ class EmployeeCoeController extends Controller
         $coes_all = EmployeeCoe::with('user')
             ->where('user_id', auth()->user()->id)
             ->get();
-            
+
         $all_approvers = $get_approvers->get_approvers(auth()->user()->id);
+
+        $coe_approvers = ApproverSetting::with('user.employee')
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->get();
+
+        $getApproverForEmployee = function ($employee) use ($coe_approvers) {
+            $employee_company = $employee->company_code ?? $employee->company_id ?? null;
+
+            if ($employee_company) {
+                foreach ($coe_approvers as $approver) {
+                    $approver_company = $approver->user->employee->company_code ?? $approver->user->employee->company_id ?? null;
+                    if ($approver_company == $employee_company) {
+                        return $approver;
+                    }
+                }
+            }
+
+            return $coe_approvers->first();
+        };
 
         return view('forms.coerequest.coerequest', [
             'header' => 'forms',
@@ -42,6 +65,8 @@ class EmployeeCoeController extends Controller
             'from' => $from,
             'to' => $to,
             'status' => $status,
+            'coe_approvers' => $coe_approvers,
+            'getApproverForEmployee' => $getApproverForEmployee,
         ]);
     }
 

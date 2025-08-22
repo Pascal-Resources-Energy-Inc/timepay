@@ -44,6 +44,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/check-location-proximity', [App\Http\Controllers\HomeController::class, 'checkUserLocationProximity'])
     ->name('check.location.proximity')
     ->middleware('auth');
+    Route::post('/check-user-access', [HomeController::class, 'checkUserAccess'])->name('check.user.access');
 
     Route::get('/dashboard/get-employees', 'HomeController@getEmployees')->name('dashboard.getEmployees');
     Route::get('/dashboard/get-present-employees', 'HomeController@getPresentEmployees')->name('dashboard.get-present-employees');

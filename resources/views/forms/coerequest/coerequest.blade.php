@@ -138,20 +138,20 @@
                         <td>{{ $coe->purpose ?? 'N/A' }}</td>
                         <td>{{ $coe->receive_method ?? 'N/A' }}</td>
                         <td>
-                            @if($coe->approver && $coe->approver->count() > 0)
-                                @foreach ($coe->approver as $approver)
-                                    @if ($approver->approver_info && 
-                                        $approver->approver_info->user_privilege && 
-                                        $approver->approver_info->user_privilege->payroll_view === 'on')
-                                        <div class="mb-1">
-                                            {{ $approver->approver_info->name }}
-                                        </div>
-                                    @endif
-                                @endforeach
-                            @else
-                                <span class="text-muted">No approvers assigned</span>
+                          @php
+                            $approver = $getApproverForEmployee($coe->user->employee);
+                            $employee_company = $coe->user->employee->company_code ?? $coe->user->employee->company_id ?? null;
+                          @endphp
+
+                          @if($approver)
+                            <div>{{ $approver->user->name }}</div>
+                            @if(!$employee_company)
+                              <small class="text-muted">(Default - No company assigned)</small>
                             @endif
-                        </td>
+                          @else
+                            <div class="text-danger">No COE approver available</div>
+                          @endif
+                          </td>
                         <td>
                           @if ($coe->status == 'Pending')
                             <label class="badge badge-warning">{{ $coe->status }}</label>

@@ -255,10 +255,45 @@ if ($userId) {
         
         return $earthRadius * $c; // Distance in meters
     }
-    
-    /**
-     * Check if user is near any hub location
-     */
+
+    public function checkUserAccess()
+    {
+        $userId = auth()->id();
+        $user = auth()->user();
+
+        if (!$userId || !$user) {
+            return response()->json([
+                'success' => false,
+                'hasImmediateAccess' => false,
+                'message' => 'User not authenticated.'
+            ]);
+        }
+
+        $hasGeneralAccess = ($user->login == 1);
+
+        $assignedHubIds = \DB::table('hub_per_location_id')
+            ->where('user_id', $userId)
+            ->pluck('hub_per_location_id');
+
+        if ($assignedHubIds->isEmpty() && $hasGeneralAccess) {
+            return response()->json([
+                'success' => true,
+                'hasImmediateAccess' => true,
+                'accessType' => 'unrestricted_access',
+                'message' => 'You have unrestricted camera access.',
+                'requiresLocation' => false
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'hasImmediateAccess' => false,
+            'accessType' => $assignedHubIds->isEmpty() ? 'no_access' : 'assigned_hubs',
+            'message' => 'Location verification required.',
+            'requiresLocation' => true
+        ]);
+    }
+  
   public function checkUserLocationProximity(Request $request)
     {
         $userLat = $request->input('latitude');
@@ -514,88 +549,109 @@ if ($userId) {
     
    private function calculateLateRecords($employeeNumber, $expectedTimeIn)
     {
-        $normalnyangtimein = date('H:i:s', strtotime($expectedTimeIn));
-        
+        $companyId = DB::table('employees')
+            ->where('employee_number', $employeeNumber)
+            ->value('company_id');
+
+        if ($companyId == 2) {
+            return [];
+        }
+
+        $timeInSeconds = date('H:i:s', strtotime($expectedTimeIn));
+
         return DB::select("
             SELECT 
-                DATE(time_in) as date,
-                DATE_FORMAT(MIN(time_in), '%h:%i %p') as time,
-                GREATEST(0, FLOOR((TIME_TO_SEC(TIME(MIN(time_in))) - TIME_TO_SEC(?)) / 60)) as late_minutes
+                DATE(time_in) AS date,
+                DATE_FORMAT(MIN(time_in), '%h:%i %p') AS time,
+                GREATEST(0, FLOOR((TIME_TO_SEC(TIME(MIN(time_in))) - TIME_TO_SEC(?)) / 60)) AS late_minutes
             FROM attendances 
-            WHERE employee_code = ? 
-                AND MONTH(time_in) = MONTH(NOW()) 
-                AND YEAR(time_in) = YEAR(NOW())
+            WHERE employee_code = ?
                 AND time_in IS NOT NULL
+                AND MONTH(time_in) = MONTH(CURDATE())
+                AND YEAR(time_in) = YEAR(CURDATE())
             GROUP BY DATE(time_in)
             HAVING TIME(MIN(time_in)) > ADDTIME(?, '00:01:00')
-                AND late_minutes > 0 
-            ORDER BY DATE(time_in) ASC
-        ", [$normalnyangtimein, $employeeNumber, $normalnyangtimein]);
+                AND late_minutes > 0
+            ORDER BY DATE(time_in)
+        ", [$timeInSeconds, $employeeNumber, $timeInSeconds]);
     }
+
     
-    /**
-     * Optimized absent dates calculation
-     */
     private function calculateAbsentDates($employeeNumber, $userId)
-        {
-            $start = Carbon::now()->startOfMonth()->toDateString();
-            $today = Carbon::now()->startOfDay()->toDateString();
+    {
+        $companyId = DB::table('employees')
+            ->where('employee_number', $employeeNumber)
+            ->value('company_id');
 
-            $workingDays = [];
-            $period = CarbonPeriod::create($start, $today);
-
-            foreach ($period as $date) {
-                if (!$date->isWeekend()) {
-                    $workingDays[] = $date->toDateString();
-                }
-            }
-
-            if (empty($workingDays)) return [];
-
-            $holidays = Holiday::selectRaw('DATE(holiday_date) as holiday_date_only')
-                ->whereIn(DB::raw('DATE(holiday_date)'), $workingDays)
-                ->get()
-                ->pluck('holiday_date_only')
-                ->toArray();
-
-            $attendanceDays = Attendance::selectRaw('DATE(time_in) as attendance_date')
-                ->where('employee_code', $employeeNumber)
-                ->whereIn(DB::raw('DATE(time_in)'), $workingDays)
-                ->get()
-                ->pluck('attendance_date')
-                ->toArray();
-
-            $leaveDays = EmployeeLeave::where('user_id', $userId)
-                ->where('status', 'Approved')
-                ->where(function($query) use ($start, $today) {
-                    $query->whereBetween('date_from', [$start, $today])
-                        ->orWhereBetween('date_to', [$start, $today])
-                        ->orWhere(function($q) use ($start, $today) {
-                            $q->where('date_from', '<=', $start)
-                                ->where('date_to', '>=', $today);
-                        });
-                })
-                ->get()
-                ->flatMap(function($leave) {
-                    return CarbonPeriod::create($leave->date_from, $leave->date_to)->toArray();
-                })
-                ->map(function($date) {
-                    return $date->toDateString();
-                })
-                ->toArray();
-
-            $presentOrExcused = array_unique(array_merge($attendanceDays, $leaveDays, $holidays));
-
-            return collect(array_values(array_diff($workingDays, $presentOrExcused)))
-                ->map(fn($date) => \Carbon\Carbon::parse($date)->format('M d, Y'))
-                ->toArray();
-                
+        if ($companyId == 2) {
+            return [];
         }
-        
 
+        $start = Carbon::now()->startOfMonth()->toDateString();
+        $today = Carbon::now()->toDateString();
+
+        $workingDays = collect(CarbonPeriod::create($start, $today))
+            ->filter(fn($date) => !$date->isWeekend())
+            ->map->toDateString()
+            ->values()
+            ->all();
+
+        if (empty($workingDays)) return [];
+
+        $holidays = Holiday::whereIn(DB::raw('DATE(holiday_date)'), $workingDays)
+            ->get()
+            ->map(function($holiday) {
+                return Carbon::parse($holiday->holiday_date)->toDateString();
+            })
+            ->toArray();
+
+        $attendanceDays = Attendance::where('employee_code', $employeeNumber)
+            ->whereIn(DB::raw('DATE(time_in)'), $workingDays)
+            ->whereNotNull('time_in')
+            ->get(['time_in'])
+            ->map(function($attendance) {
+                return Carbon::parse($attendance->time_in)->toDateString();
+            })
+            ->unique()
+            ->toArray();
+
+        $leaveDays = EmployeeLeave::where('user_id', $userId)
+            ->where('status', 'Approved')
+            ->where(function ($query) use ($start, $today) {
+                $query->whereBetween('date_from', [$start, $today])
+                    ->orWhereBetween('date_to', [$start, $today])
+                    ->orWhere(function ($q) use ($start, $today) {
+                        $q->where('date_from', '<=', $start)
+                            ->where('date_to', '>=', $today);
+                    });
+            })
+            ->get()
+            ->flatMap(function($leave) {
+                return collect(CarbonPeriod::create($leave->date_from, $leave->date_to))
+                    ->map->toDateString();
+            })
+            ->unique()
+            ->toArray();
+
+        $presentOrExcused = array_unique(array_merge($attendanceDays, $leaveDays, $holidays));
+
+        return collect(array_diff($workingDays, $presentOrExcused))
+            ->sort()
+            ->map(fn($date) => Carbon::parse($date)->format('M d, Y'))
+            ->values()
+            ->toArray();
+    }
 
     private function calculateLatePerDay($employeeNumber, $expectedTimeString, $userId)
     {
+        $companyId = DB::table('employees')
+            ->where('employee_number', $employeeNumber)
+            ->value('company_id');
+
+        if ($companyId == 2) {
+            return [];
+        }
+
         $today = Carbon::today();
         $year = $today->year;
         $month = $today->month;
@@ -633,7 +689,7 @@ if ($userId) {
 
         $hasSaturdayAttendance = DB::table('attendances')
             ->where('employee_code', $employeeNumber)
-            ->whereRaw('DAYOFWEEK(created_at) = 7') // Saturday = 7
+            ->whereRaw('DAYOFWEEK(created_at) = 7')
             ->exists();
 
         $latePerDay = [];
@@ -641,21 +697,14 @@ if ($userId) {
 
         while ($current->lte($endDate)) {
             $dateStr = $current->toDateString();
-            $dayOfWeek = $current->dayOfWeek; // 0=Sunday, 6=Saturday
+            $dayOfWeek = $current->dayOfWeek;
 
             $status = 'Present';
             $lateMinutes = 0;
             $actualTimeIn = '';
             $isWorkingDay = true;
 
-            // Sunday: always show label, never show data
-            if ($dayOfWeek === 0) {
-                $status = 'Skip';
-                $isWorkingDay = false;
-            }
-
-            // Saturday: show label; include data only if they’ve worked Saturdays
-            if ($dayOfWeek === 6 && !$hasSaturdayAttendance) {
+            if ($dayOfWeek === 0 || ($dayOfWeek === 6 && !$hasSaturdayAttendance)) {
                 $status = 'Skip';
                 $isWorkingDay = false;
             }

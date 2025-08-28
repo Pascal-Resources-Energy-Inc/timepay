@@ -350,45 +350,42 @@
                 <div class="d-flex align-items-center justify-content-between">
                     <h3 class="card-title mb-0">{{ date('M d, Y') }}</h3>
 
-                    <div class="attendance-buttons" data-attendance-container>
-                        {{-- Location status will be inserted here by JavaScript --}}
-
-                        @if(($user_travel_orders_today) || (auth()->user()->login == 1))
-                            @if($attendance_now != null)
-                                <button style="height: 40px; width: 40px;" onclick="getLocation()" 
-                                        type="button" 
-                                        title="Time Out" 
-                                        class="btn btn-danger btn-rounded btn-icon" 
-                                        data-toggle="modal" 
-                                        data-target="#timeOut"
-                                        data-attendance-btn="true"
-                                        disabled>
-                                    <i class="ti-control-pause"></i>
-                                </button>
-                            @else
-                                <button style="height: 40px; width: 40px;" onclick="getLocation()" 
-                                        type="button" 
-                                        title="Time In" 
-                                        class="btn btn-success btn-rounded btn-icon" 
-                                        data-toggle="modal" 
-                                        data-target="#timeIn"
-                                        data-attendance-btn="true"
-                                        disabled>
-                                    <i class="ti-control-play"></i>
-                                </button>
-                            @endif
-
-                            {{-- Optional: Manual location refresh button --}}
-                            <button style="height: 40px; width: 40px;" onclick="showDetailedLocationCheck()"
-                                    type="button"
-                                    title="Check Location Details"
-                                    class="btn btn-info btn-rounded btn-icon"
-                                    data-attendance-btn="true">
-                                <i class="fas fa-map-marker-alt"></i>
-                            </button>
-                        @endif
+                    <div class="attendance-buttons d-flex flex-wrap align-items-center gap-2" data-attendance-container>
+                                {{-- Location status will be inserted here by JavaScript --}}
+                                @if(($user_travel_orders_today) || (auth()->user()->login == 1))
+                                    @if($attendance_now != null)
+                                        <button style="height: 40px; width: 40px;" onclick="getLocation()" 
+                                                type="button" 
+                                                title="Time Out" 
+                                                class="btn btn-danger btn-rounded btn-icon" 
+                                                data-toggle="modal" 
+                                                data-target="#timeOut"
+                                                data-attendance-btn="true"
+                                                disabled>
+                                            <i class="ti-control-pause"></i>
+                                        </button>
+                                    @else
+                                        <button style="height: 40px; width: 40px;" onclick="getLocation()" 
+                                                type="button" 
+                                                title="Time In" 
+                                                class="btn btn-success btn-rounded btn-icon" 
+                                                data-toggle="modal" 
+                                                data-target="#timeIn"
+                                                data-attendance-btn="true"
+                                                disabled>
+                                            <i class="ti-control-play"></i>
+                                        </button>
+                                    @endif
+                                    
+                                    <button style="height: 40px; width: 40px;" onclick="showDetailedLocationCheck()"
+                                                type="button"
+                                                title="Check Location Details"
+                                                class="btn btn-info btn-rounded btn-icon">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </button>
+                                @endif
+                            </div>
                     </div>
-                </div>
 
                   <div class="media">
                       <i class="ti-time icon-md text-info d-flex align-self-center mr-3"></i>
@@ -1802,10 +1799,18 @@ function enableAttendanceButtons() {
         
         const playIcon = button.querySelector('i');
         if (playIcon) {
-            playIcon.className = 'ti-control-play';
+            if (button.getAttribute('title') === 'Time In') {
+                playIcon.className = 'ti-control-play';
+                button.classList.add('btn-success');
+                button.classList.remove('btn-danger');
+            }
+            else if (button.getAttribute('title') === 'Time Out') {
+                playIcon.className = 'ti-control-pause';
+                button.classList.add('btn-danger');
+                button.classList.remove('btn-success');
+            }
         }
         
-        button.classList.add('btn-success');
         button.classList.remove('btn-secondary', 'btn-disabled', 'btn-info');
     });
     

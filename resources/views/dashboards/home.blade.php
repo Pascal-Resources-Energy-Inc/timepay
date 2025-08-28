@@ -1518,6 +1518,9 @@ $(document).ready(function() {
 <script>
 let userLocation = null;
 let locationCheckPassed = false;
+let cachedLocation = null;
+let lastLocationTime = null;
+const LOCATION_CACHE_DURATION = 5 * 60 * 1000;
 
 function getCurrentLocation() {
     return new Promise((resolve, reject) => {
@@ -1551,21 +1554,96 @@ function getCurrentLocation() {
             },
             {
                 enableHighAccuracy: true,
-                timeout: 15000,
+                timeout: 8000,
                 maximumAge: 60000
             }
         );
     });
 }
 
-// Silent location proximity check
+function getCachedLocation() {
+    if (cachedLocation && lastLocationTime) {
+        const timeSinceCache = Date.now() - lastLocationTime;
+        if (timeSinceCache < LOCATION_CACHE_DURATION) {
+            console.log('Using cached location from', Math.round(timeSinceCache / 1000), 'seconds ago');
+            return cachedLocation;
+        }
+    }
+    return null;
+}
+
+function setCachedLocation(location) {
+    cachedLocation = location;
+    lastLocationTime = Date.now();
+}
+
+function showAttendanceLoading(message = '') {
+    const attendanceButtons = document.querySelectorAll('[data-attendance-btn]');
+    attendanceButtons.forEach(button => {
+        button.disabled = true;
+        button.style.opacity = '0.7';
+        button.style.cursor = 'wait';
+        
+        const originalText = button.textContent;
+        button.setAttribute('data-original-text', originalText);
+        button.innerHTML = `
+            <i class="fas fa-spinner fa-spin"></i> 
+            <span>${message}</span>
+        `;
+        
+        button.classList.add('btn-info');
+        button.classList.remove('btn-success', 'btn-secondary');
+    });
+}
+
+function showLocationCheckFeedback() {
+    const existingFeedback = document.getElementById('location-check-feedback');
+    if (existingFeedback) existingFeedback.remove();
+
+    const feedbackDiv = document.createElement('div');
+    feedbackDiv.id = 'location-check-feedback';
+    feedbackDiv.className = 'alert alert-info alert-dismissible fade show';
+    feedbackDiv.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-location-arrow fa-spin mr-2"></i>
+            <div>
+                <strong>Location Check:</strong> Verifying your proximity to assigned hubs...
+                <div class="progress mt-2" style="height: 4px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                         style="width: 100%; background-color: #17a2b8;"></div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const attendanceContainer = document.querySelector('.attendance-buttons') || document.querySelector('[data-attendance-container]');
+    if (attendanceContainer) {
+        attendanceContainer.insertBefore(feedbackDiv, attendanceContainer.firstChild);
+    }
+}
+
 async function checkLocationProximity() {
     try {
-        console.log('Checking location proximity silently...');
+        console.log('Starting location proximity check...');
+        
+        showLocationCheckFeedback();
+        showAttendanceLoading('');
 
-        const location = await getCurrentLocation();
+        let location;
+        
+        const cached = getCachedLocation();
+        if (cached) {
+            location = cached;
+            console.log('Using cached location');
+            showAttendanceLoading('Checking proximity...');
+        } else {
+            console.log('Getting fresh location...');
+            location = await getCurrentLocation();
+            setCachedLocation(location);
+            showAttendanceLoading('');
+        }
+        
         userLocation = location;
-
         console.log('User location obtained:', location);
 
         const response = await fetch('{{ route("check.location.proximity") }}', {
@@ -1582,6 +1660,9 @@ async function checkLocationProximity() {
 
         const result = await response.json();
         console.log('Location check result:', result);
+
+        const feedbackDiv = document.getElementById('location-check-feedback');
+        if (feedbackDiv) feedbackDiv.remove();
 
         if (result.success) {
             locationCheckPassed = result.isNearHub;
@@ -1602,7 +1683,7 @@ async function checkLocationProximity() {
                 }
 
                 if (result.accessType === 'unrestricted_access') {
-                    console.log('✅ User has unrestricted camera access');
+                    console.log('User has unrestricted camera access');
                 }
             } else {
                 if (shouldShowStatus && result.message) {
@@ -1627,6 +1708,9 @@ async function checkLocationProximity() {
     } catch (error) {
         console.error('Location check failed:', error);
 
+        const feedbackDiv = document.getElementById('location-check-feedback');
+        if (feedbackDiv) feedbackDiv.remove();
+
         const attendanceButtons = document.querySelectorAll('[data-attendance-btn]');
         if (attendanceButtons.length > 0) {
             showLocationStatus('Location check failed: ' + error.message, 'error');
@@ -1637,7 +1721,34 @@ async function checkLocationProximity() {
     }
 }
 
-// Show location-related status messages (respects silent mode)
+async function checkForImmediateAccess() {
+    try {
+        const response = await fetch('{{ route("check.user.access") }}', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+
+        const result = await response.json();
+        console.log('User access check result:', result);
+
+        if (result.success && result.hasImmediateAccess) {
+            console.log('User has unrestricted access - enabling buttons immediately');
+            locationCheckPassed = true;
+            enableAttendanceButtons();
+            showLocationStatus('You have unrestricted access. Camera attendance is available.', 'success');
+            return true;
+        }
+        
+        return false;
+    } catch (error) {
+        console.error('User access check failed:', error);
+        return false;
+    }
+}
+
 function showLocationStatus(message, type) {
     if (!message?.trim()) return;
 
@@ -1683,11 +1794,42 @@ function enableAttendanceButtons() {
         button.style.opacity = '1';
         button.style.cursor = 'pointer';
         
+        const originalText = button.getAttribute('data-original-text');
+        if (originalText) {
+            button.innerHTML = originalText;
+            button.removeAttribute('data-original-text');
+        }
+        
+        const playIcon = button.querySelector('i');
+        if (playIcon) {
+            playIcon.className = 'ti-control-play';
+        }
+        
         button.classList.add('btn-success');
-        button.classList.remove('btn-secondary', 'btn-disabled');
+        button.classList.remove('btn-secondary', 'btn-disabled', 'btn-info');
     });
     
-    console.log('✅ Camera attendance buttons enabled - ready to use!');
+    console.log('Camera attendance buttons enabled - ready to use!');
+}
+
+function showAttendanceLoading(message = '') {
+    const attendanceButtons = document.querySelectorAll('[data-attendance-btn]');
+    attendanceButtons.forEach(button => {
+        button.disabled = true;
+        button.style.opacity = '0.7';
+        button.style.cursor = 'wait';
+        
+        const originalContent = button.innerHTML;
+        button.setAttribute('data-original-text', originalContent);
+        
+        button.innerHTML = `
+            <i class="fas fa-spinner fa-spin"></i> 
+            <span>${message}</span>
+        `;
+        
+        button.classList.add('btn-success');
+        button.classList.remove('btn-secondary', 'btn-info');
+    });
 }
 
 function disableAttendanceButtons() {
@@ -1696,12 +1838,23 @@ function disableAttendanceButtons() {
         button.disabled = true;
         button.style.opacity = '0.5';
         button.style.cursor = 'not-allowed';
+
+       const originalText = button.getAttribute('data-original-text');
+        if (originalText) {
+            button.innerHTML = originalText;
+            button.removeAttribute('data-original-text');
+        }
+        
+        const playIcon = button.querySelector('i');
+        if (playIcon) {
+            playIcon.className = 'ti-control-play';
+        }
         
         button.classList.add('btn-secondary');
-        button.classList.remove('btn-success');
+        button.classList.remove('btn-success', 'btn-info');
     });
     
-    console.log('❌ Camera attendance buttons disabled');
+    console.log('Camera attendance buttons disabled');
 }
 
 function getLocation() {
@@ -1709,7 +1862,7 @@ function getLocation() {
         const attendanceButtons = document.querySelectorAll('[data-attendance-btn]');
         if (attendanceButtons.length > 0) {
             Swal.fire({
-                title: '❌ Not in Range',
+                title: 'Not in Range',
                 text: 'You need to be within hub range to use attendance features.',
                 icon: 'error',
                 confirmButtonText: 'OK',
@@ -1722,7 +1875,6 @@ function getLocation() {
     proceedWithAttendance();
 }
 
-// Direct proceed to camera
 function proceedWithAttendance() {
     console.log('Opening camera directly - location verified');
     
@@ -1736,7 +1888,7 @@ function proceedWithAttendance() {
 async function showDetailedLocationCheck() {
     try {
         Swal.fire({
-            title: '📍 Getting Your Location',
+            title: 'Getting Your Location',
             html: 'Please wait while we determine your current location...',
             allowOutsideClick: false,
             showConfirmButton: false,
@@ -1745,13 +1897,17 @@ async function showDetailedLocationCheck() {
             }
         });
         
-        const location = await getCurrentLocation();
+        let location = getCachedLocation();
+        if (!location) {
+            location = await getCurrentLocation();
+            setCachedLocation(location);
+        }
         userLocation = location;
         
         console.log('User location obtained for detailed check:', location);
         
         Swal.update({
-            title: '🔍 Checking Hub Proximity',
+            title: 'Checking Hub Proximity',
             html: 'Checking if you are near any hub locations...'
         });
         
@@ -1775,8 +1931,6 @@ async function showDetailedLocationCheck() {
         
         if (result.success) {
             await showLocationSweetAlert(location, result);
-            
-            
         } else {
             throw new Error(result.message);
         }
@@ -1787,7 +1941,7 @@ async function showDetailedLocationCheck() {
         Swal.close();
 
         await Swal.fire({
-            title: '❌ Location Error',
+            title: 'Location Error',
             html: `
                 <div class="text-center">
                     <div class="mb-3">
@@ -1823,7 +1977,7 @@ function getAccurateLocation() {
             error => reject(error),
             {
                 enableHighAccuracy: true,
-                timeout: 15000,
+                timeout: 8000,
                 maximumAge: 0
             }
         );
@@ -1849,31 +2003,31 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
 
     if (proximityResult.isNearHub && proximityResult.nearbyHubs.length > 0) {
         alertType = 'success';
-        alertTitle = '✅ Location Verified!';
+        alertTitle = 'Location Verified!';
         alertText = 'You are within range of your assigned hub location. Attendance is available.';
-        hubsHtml = '<div class="mt-3"><strong>🏢 Your Assigned Hub (In Range):</strong><ul class="text-left mt-2">';
+        hubsHtml = '<div class="mt-3"><strong>Your Assigned Hub (In Range):</strong><ul class="text-left mt-2">';
         proximityResult.nearbyHubs.forEach(hub => {
             hubsHtml += `<li><strong>${hub.name}</strong> (${hub.code})<br>
-                         <small class="text-success">✅ ${hub.distance}m away • Status: ${hub.status}</small><br>
-                         <small class="text-info">📍 Coordinates: ${proximityResult.assignedHub?.latitude || 'N/A'}°, ${proximityResult.assignedHub?.longitude || 'N/A'}°</small></li>`;
+                         <small class="text-success">✓ ${hub.distance}m away • Status: ${hub.status}</small><br>
+                         <small class="text-info">Coordinates: ${proximityResult.assignedHub?.latitude || 'N/A'}°, ${proximityResult.assignedHub?.longitude || 'N/A'}°</small></li>`;
         });
         hubsHtml += '</ul></div>';
     } else if (proximityResult.assignedHub) {
         const hub = proximityResult.assignedHub;
         if (hub.status !== 'Open') {
             alertType = 'warning';
-            alertTitle = '🔒 Hub Closed';
+            alertTitle = 'Hub Closed';
             alertText = 'Your assigned hub is currently closed.';
         } else {
             alertType = 'warning';
-            alertTitle = '📍 Move Closer to Hub';
+            alertTitle = 'Move Closer to Hub';
             alertText = `You need to move within ${proximityResult.radius}m of your assigned hub to use attendance features.`;
         }
-        hubsHtml = '<div class="mt-3"><strong>🏢 Your Assigned Hub:</strong><ul class="text-left mt-2">';
+        hubsHtml = '<div class="mt-3"><strong>Your Assigned Hub:</strong><ul class="text-left mt-2">';
         hubsHtml += `<li><strong>${hub.name}</strong> (${hub.code})<br>
-                     <small class="text-warning">⚠️ ${hub.distance}m away • Status: ${hub.status}</small><br>
+                     <small class="text-warning">⚠ ${hub.distance}m away • Status: ${hub.status}</small><br>
                      <small class="text-muted">${hub.address}</small><br>
-                     <small class="text-info">📍 Hub Coordinates: ${hub.latitude || 'N/A'}°, ${hub.longitude || 'N/A'}°</small></li>`;
+                     <small class="text-info">Hub Coordinates: ${hub.latitude || 'N/A'}°, ${hub.longitude || 'N/A'}°</small></li>`;
         hubsHtml += '</ul></div>';
         hubsHtml += `<div class="mt-2 alert alert-info">
                         <i class="fas fa-info-circle"></i> 
@@ -1883,9 +2037,9 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
                      </div>`;
     } else {
         alertType = 'success';
-        alertTitle = '✅ No Assigned Hub';
+        alertTitle = 'No Assigned Hub';
         alertText = 'No hub has been assigned to your account.';
-        hubsHtml = '<div class="mt-3 alert alert-danger">⚠️ Please contact HR to assign a hub location to your account.</div>';
+        hubsHtml = '<div class="mt-3 alert alert-danger">⚠ Please contact HR to assign a hub location to your account.</div>';
     }
 
     const htmlContent = `
@@ -1961,10 +2115,10 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
         </div>
 
         ${proximityResult.isNearHub ? 
-            `<div class="alert alert-success text-center" style="border-radius: 8px;">✅ Camera attendance is now accessible!</div>` : 
+            `<div class="alert alert-success text-center" style="border-radius: 8px;">✓ Camera attendance is now accessible!</div>` : 
             proximityResult.assignedHub ? 
-            `<div class="alert alert-warning text-center" style="border-radius: 8px;">⚠️ Move closer to your assigned hub for camera access.</div>` :
-            `<div class="alert alert-danger text-center" style="border-radius: 8px;">❌ No hub assigned to your account.</div>`}
+            `<div class="alert alert-warning text-center" style="border-radius: 8px;">⚠ Move closer to your assigned hub for camera access.</div>` :
+            `<div class="alert alert-danger text-center" style="border-radius: 8px;">✗ No hub assigned to your account.</div>`}
         </div>
 
     `;
@@ -2077,7 +2231,7 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
                                 ${!isInRange && distanceToMove > 0 ? 
                                     `<span style="color: #FF8800;"><strong>Move closer:</strong> ${distanceToMove}m<br><strong>Walk time:</strong> ~${Math.ceil(distanceToMove / 80)} min</span>` : 
                                     isInRange ? 
-                                        `<span style="color: #4CAF50;"><strong>✅ Within range!</strong> Attendance enabled</span>` :
+                                        `<span style="color: #4CAF50;"><strong>✓ Within range!</strong> Attendance enabled</span>` :
                                         `<span style="color: #f44336;">Hub is closed</span>`
                                 }<br>
                                 <hr style="margin: 8px 0;">
@@ -2134,7 +2288,7 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
                             <strong>${distance}m</strong><br>
                             ${!isInRange && distanceToMove > 0 ? 
                                 `<span style="color: #FFD700;">Move ${distanceToMove}m closer</span>` : 
-                                `<span style="color: #90EE90;">✅ In range</span>`
+                                `<span style="color: #90EE90;">✓ In range</span>`
                             }
                         </div>
                     `,
@@ -2170,7 +2324,6 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
     });
 }
 
-// Main trigger
 async function checkLocationAndShowAlert() {
     try {
         const userLocation = await getAccurateLocation();
@@ -2195,7 +2348,6 @@ async function checkLocationAndShowAlert() {
     }
 }
 
-// Add CSS styles for the location SweetAlert
 const locationAlertStyles = `
 <style>
 .location-sweet-alert {
@@ -2256,7 +2408,6 @@ const locationAlertStyles = `
 </style>
 `;
 
-// Add styles to document head
 if (!document.querySelector('#location-alert-styles')) {
     const styleElement = document.createElement('div');
     styleElement.id = 'location-alert-styles';
@@ -2264,23 +2415,26 @@ if (!document.querySelector('#location-alert-styles')) {
     document.head.appendChild(styleElement);
 }
 
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     const timeInBtn = document.querySelector('[data-target="#timeIn"]');
     const timeOutBtn = document.querySelector('[data-target="#timeOut"]');
     
     if (timeInBtn) timeInBtn.setAttribute('data-attendance-btn', 'true');
     if (timeOutBtn) timeOutBtn.setAttribute('data-attendance-btn', 'true');
     
-    disableAttendanceButtons();
+    showAttendanceLoading('');
     
-    checkLocationProximity();
+    const hasImmediateAccess = await checkForImmediateAccess();
+    
+    if (!hasImmediateAccess) {
+        await checkLocationProximity();
+    }
     
     window.showDetailedLocationCheck = showDetailedLocationCheck;
     window.getLocation = getLocation;
     window.checkLocationProximity = checkLocationProximity;
     
-    console.log('✅ All functions loaded and accessible globally');
+    console.log('All functions loaded and accessible globally');
     console.log('Available functions:', {
         showDetailedLocationCheck: typeof window.showDetailedLocationCheck,
         getLocation: typeof window.getLocation,
@@ -2288,9 +2442,36 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-setInterval(() => {
+setInterval(async () => {
     if (locationCheckPassed) {
-        checkLocationProximity();
+        const cached = getCachedLocation();
+        if (cached) {
+            try {
+                const response = await fetch('{{ route("check.location.proximity") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        latitude: cached.latitude,
+                        longitude: cached.longitude
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (!result.isNearHub && locationCheckPassed) {
+                    locationCheckPassed = false;
+                    disableAttendanceButtons();
+                    showLocationStatus('You have moved out of range. Please return to your assigned hub.', 'warning');
+                }
+            } catch (error) {
+                console.error('Periodic location check failed:', error);
+            }
+        } else {
+            checkLocationProximity();
+        }
     }
 }, 300000);
 </script>

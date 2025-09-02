@@ -2040,15 +2040,17 @@ class FormApprovalController extends Controller
 
     }
 
-    public function approveDtr(Request $request,$id){
+    public function approveDtr(Request $request, $id){
         $employee_dtr = EmployeeDtr::where('id', $id)->first();
         if($employee_dtr){
-            $level = '';
             if($employee_dtr->level == 0){
-                $employee_approver = EmployeeApprover::where('user_id', $employee_dtr->user_id)->where('approver_id', auth()->user()->id)->first();
-                if($employee_approver->as_final == 'on'){
-
-                    
+                $employee_approver = EmployeeApprover::where('user_id', $employee_dtr->user_id)
+                                                ->where('approver_id', auth()->user()->id)
+                                                ->first();
+                
+                $total_approvers = EmployeeApprover::where('user_id', $employee_dtr->user_id)->count();
+                
+                if($employee_approver->as_final == 'on' || $total_approvers == 1){
                     EmployeeDtr::Where('id', $id)->update([
                         'approved_date' => date('Y-m-d'),
                         'status' => 'Approved',
@@ -2056,35 +2058,33 @@ class FormApprovalController extends Controller
                         'level' => 1,
                     ]);
 
-                     $employee_data = EmployeeDtr::with('employee')->findOrfail($id);
-                     
-                    // dd($employee_data->time_in);
-                    if($employee_data->time_in)
-                    {
-                         $attendance = new AttendanceLog;
-                    $attendance->emp_code = $employee_data->employee->employee_code;
-                    $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
-                    $attendance->location = "DTR Correction";
-                    $attendance->ip_address ="DTR Correction";
-                        $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
+                    $employee_data = EmployeeDtr::with('employee')->findOrfail($id);
+                    
+                    if($employee_data->time_in) {
+                        $attendance = new AttendanceLog;
+                        $attendance->emp_code = $employee_data->employee->employee_code;
+                        $attendance->date = date('Y-m-d', strtotime($employee_data->dtr_date));
+                        $attendance->location = "DTR Correction";
+                        $attendance->ip_address = "DTR Correction";
                         $attendance->datetime = $employee_data->time_in;
                         $attendance->type = "0";
                         $attendance->save();
                     }
-                    if($employee_data->time_out)
-                    {
-                         $attendance = new AttendanceLog;
+                    
+                    if($employee_data->time_out) {
+                        $attendance = new AttendanceLog;
                         $attendance->emp_code = $employee_data->employee->employee_code;
-                        $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
+                        $attendance->date = date('Y-m-d', strtotime($employee_data->dtr_date));
                         $attendance->location = "DTR Correction";
-                        $attendance->ip_address ="DTR Correction";
+                        $attendance->ip_address = "DTR Correction";
                         $attendance->datetime = $employee_data->time_out;
                         $attendance->type = "1";
                         $attendance->save();
                     }
-                    $this->syncAttendance($employee_data->dtr_date,$employee_data->employee->employee_code);
                     
-                }else{
+                    $this->syncAttendance($employee_data->dtr_date, $employee_data->employee->employee_code);
+                    
+                } else {
                     EmployeeDtr::Where('id', $id)->update([
                         'approval_remarks' => $request->approval_remarks,
                         'level' => 1
@@ -2098,10 +2098,40 @@ class FormApprovalController extends Controller
                     'approval_remarks' => $request->approval_remarks,
                     'level' => 2,
                 ]);
+
+                $employee_data = EmployeeDtr::with('employee')->findOrfail($id);
+                
+                if($employee_data->time_in) {
+                    $attendance = new AttendanceLog;
+                    $attendance->emp_code = $employee_data->employee->employee_code;
+                    $attendance->date = date('Y-m-d', strtotime($employee_data->dtr_date));
+                    $attendance->location = "DTR Correction";
+                    $attendance->ip_address = "DTR Correction";
+                    $attendance->datetime = $employee_data->time_in;
+                    $attendance->type = "0";
+                    $attendance->save();
+                }
+                
+                if($employee_data->time_out) {
+                    $attendance = new AttendanceLog;
+                    $attendance->emp_code = $employee_data->employee->employee_code;
+                    $attendance->date = date('Y-m-d', strtotime($employee_data->dtr_date));
+                    $attendance->location = "DTR Correction";
+                    $attendance->ip_address = "DTR Correction";
+                    $attendance->datetime = $employee_data->time_out;
+                    $attendance->type = "1";
+                    $attendance->save();
+                }
+                
+                $this->syncAttendance($employee_data->dtr_date, $employee_data->employee->employee_code);
             }
+            
             Alert::success('DTR has been approved.')->persistent('Dismiss');
             return back();
         }
+        
+        Alert::error('DTR record not found.')->persistent('Dismiss');
+        return back();
     }
 
     public function declineDtr(Request $request,$id){

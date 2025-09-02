@@ -1246,12 +1246,16 @@ class EmployeeController extends Controller
                     $new_approver->user_id = $employee->user_id;
                     $new_approver->approver_id = $approver_item['approver_id'];
                     $new_approver->level = $level;
-
+                   
                     // Set second approver
                     if ($k == 1) {
                         $new_approver->as_final = "on";
                     } else {
                         $new_approver->as_final = "";
+                    }
+                     if(count($request->approver) == 1 )
+                    {
+                        $new_approver->as_final = "on";
                     }
 
                     $new_approver->save();

@@ -140,41 +140,47 @@
     }
     
     function success(position) {
-        userPosition = position;
-        
-        // Get address from coordinates
-        var geocodeUrl = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + 
-            position.coords.latitude + "," + position.coords.longitude + 
-            "&key=AIzaSyBZw51f1ZyJIjCbkNH2rU0Ze5nOiOBsIuE";
-            
-        fetch(geocodeUrl)
+    userPosition = position;
+    
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+    
+    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+    
+        fetch(nominatimUrl, {
+            headers: {
+                'User-Agent': 'YourAppName/1.0'
+            }
+        })
         .then(response => response.json())
         .then(data => {
-            if (data.results && data.results.length > 0) {
-                document.getElementById("location_mo").value = data.results[0].formatted_address;
-                document.getElementById("map_reference").innerHTML = data.results[0].formatted_address;
+            if (data && data.display_name) {
+                document.getElementById("location_mo").value = data.display_name;
+                document.getElementById("map_reference").innerHTML = data.display_name;
+                document.getElementById("map_reference").className = "";
+            } else {
+                const coordString = `Lat: ${lat.toFixed(6)}, Long: ${lng.toFixed(6)}`;
+                document.getElementById("location_mo").value = coordString;
+                document.getElementById("map_reference").innerHTML = coordString;
+                document.getElementById("map_reference").className = "";
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Geocoding error:', error);
+            const coordString = `Lat: ${lat.toFixed(6)}, Long: ${lng.toFixed(6)}`;
+            document.getElementById("location_mo").value = coordString;
+            document.getElementById("map_reference").innerHTML = "Address lookup failed - using coordinates";
+            document.getElementById("map_reference").className = "";
         });
 
-        document.getElementById("location_lat").value = position.coords.latitude;
-        document.getElementById("location_long").value = position.coords.longitude;
+        document.getElementById("location_lat").value = lat;
+        document.getElementById("location_long").value = lng;
 
-        // Enable capture button when location is available
-        const locationLatElement = document.getElementById("location_lat");
-        if (locationLatElement && locationLatElement.value.trim() !== "") {
-            document.getElementById("captureButton").disabled = false;
-        } else {
-            document.getElementById("captureButton").disabled = true;
-        }
+        document.getElementById("captureButton").disabled = false;
 
-        // Update hub info display
-        updateHubInfo(position.coords.latitude, position.coords.longitude);
+        updateHubInfo(lat, lng);
 
-        // Initialize map with user location and hubs
-        initializeMapWithHubs(position.coords.latitude, position.coords.longitude);
+        initializeMapWithHubs(lat, lng);
     }
 
     function updateHubInfo(userLat, userLon) {
@@ -441,4 +447,5 @@
 
   </script>
   
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZw51f1ZyJIjCbkNH2rU0Ze5nOiOBsIuE&callback=getLocation"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDXeIzjHN5haDfX4BckC7u-jzc8fok1MtA
+&callback=getLocation"></script>

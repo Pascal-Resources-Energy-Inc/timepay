@@ -86,7 +86,7 @@ class AttendanceController extends Controller
         $attendance = new Attendance;
         $attendance->employee_code  = auth()->user()->employee->employee_code;   
         $attendance->time_in = date('Y-m-d H:i:s');
-        $attendance->device_in = $request->location;
+        $attendance->device_in = preg_replace('/[^\x20-\x7E]/', '', $request->location);
         $attendance->save();
         Alert::success("Successfully Store")->persistent('Dismiss');
         return back();
@@ -120,7 +120,7 @@ class AttendanceController extends Controller
         $time_in_before = date('Y-m-d H:i:s', strtotime ( '-16 hour' , strtotime ( date('Y-m-d H:i:s') ) )) ;
         $update = [
             'time_out' =>  date('Y-m-d H:i:s'),
-            'device_out' => $request->location,
+            'device_out' => preg_replace('/[^\x20-\x7E]/', '', $request->location),
         ];
 
         $attendance_in = Attendance::where('employee_code',auth()->user()->employee->employee_code)

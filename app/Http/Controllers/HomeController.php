@@ -191,25 +191,44 @@ class HomeController extends Controller
         $adminStats['locations'] = $locations;
 
         $hubLocations = HubPerLocation::whereNotNull('lat')
-    ->whereNotNull('long')
-    ->where('hub_status', 'Open')
-    ->get(['id', 'hub_name', 'hub_code', 'lat', 'long', 'retail_hub_address']);
+            ->whereNotNull('long')
+            ->where('hub_status', 'Open')
+            ->get(['id', 'hub_name', 'hub_code', 'lat', 'long', 'retail_hub_address']);
+        $userId = auth()->id();
+        if ($userId) {
+            $assignedHubIds = DB::table('hub_per_location_id')
+                ->where('user_id', $userId)
+                ->pluck('hub_per_location_id');
 
-// If you want to get only the hubs assigned to the current user, use this instead:
-$userId = auth()->id();
-if ($userId) {
-    $assignedHubIds = DB::table('hub_per_location_id')
-        ->where('user_id', $userId)
-        ->pluck('hub_per_location_id');
+            $hubLocations = HubPerLocation::whereIn('id', $assignedHubIds)
+                ->whereNotNull('lat')
+                ->whereNotNull('long')
+                ->where('hub_status', 'Open')
+                ->get(['id', 'hub_name', 'hub_code', 'lat', 'long', 'retail_hub_address']);
+        } else {
+            $hubLocations = collect();
+        }
 
-    $hubLocations = HubPerLocation::whereIn('id', $assignedHubIds)
-        ->whereNotNull('lat')
-        ->whereNotNull('long')
-        ->where('hub_status', 'Open')
-        ->get(['id', 'hub_name', 'hub_code', 'lat', 'long', 'retail_hub_address']);
-} else {
-    $hubLocations = collect(); // Empty collection if no user
-}
+        $vl_balance = 0;
+        $sl_balance = 0;
+
+        if ($currentEmployee) {
+            $vl_leave = $currentEmployee->employee_leave_credits()->where('leave_type', 1)->first();
+            if ($vl_leave) {
+                $earned_vl = checkEarnedLeave($currentUser->id, 1, $currentEmployee->original_date_hired);
+                $used_vl = checkUsedSLVLSILLeave($currentUser->id, 1, $currentEmployee->original_date_hired, $currentEmployee->ScheduleData);
+                $vl_beginning_balance = $vl_leave->count;
+                $vl_balance = ($vl_beginning_balance + $earned_vl) - $used_vl;
+            }
+            
+            $sl_leave = $currentEmployee->employee_leave_credits()->where('leave_type', 2)->first();
+            if ($sl_leave) {
+                $earned_sl = checkEarnedLeave($currentUser->id, 2, $currentEmployee->original_date_hired);
+                $used_sl = checkUsedSLVLSILLeave($currentUser->id, 2, $currentEmployee->original_date_hired, $currentEmployee->ScheduleData);
+                $sl_beginning_balance = $sl_leave->count;
+                $sl_balance = ($sl_beginning_balance + $earned_sl) - $used_sl;
+            }
+        }
         
         return view('dashboards.home', array_merge([
             'header' => '',
@@ -237,8 +256,75 @@ if ($userId) {
             'leave_plans_per_month' => $leave_plans_per_month,
             'leave_plan_array' => $leave_plan_array,
             'hubLocations' => $hubLocations,
+            'vl_balance' => $vl_balance,
+            'sl_balance' => $sl_balance,
         ], $adminStats));
     }
+
+    public function uploadEmployeeImage(Request $request)
+    {
+        try {
+            $request->validate([
+                'employee_id' => 'required|integer|exists:employees,id',
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+
+            $employee = Employee::findOrFail($request->employee_id);
+            
+            if (auth()->user()->role !== 'Admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized access'
+                ], 403);
+            }
+
+            if ($request->hasFile('image')) {
+                if ($employee->image && $employee->image !== '/images/no_image.png') {
+                    $oldImagePath = public_path($employee->image);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+                }
+
+                $image = $request->file('image');
+                $imageName = time() . '_' . $employee->id . '_' . $image->getClientOriginalName();
+                $image->move(public_path('/images/employees'), $imageName);
+                $imagePath = '/images/employees/' . $imageName;
+
+                $employee->image = $imagePath;
+                $employee->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Employee image updated successfully',
+                    'image_url' => asset($imagePath),
+                    'employee_id' => $employee->id
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No image file uploaded'
+            ], 400);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Employee image upload error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while uploading the image'
+            ], 500);
+        }
+    }
+
+    
+    
     private function calculateDistance($lat1, $lon1, $lat2, $lon2)
     {
         $earthRadius = 6371000; // Earth's radius in meters

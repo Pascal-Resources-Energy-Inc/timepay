@@ -303,9 +303,319 @@
     background: #5dade2;
 }
 
+.birthday-item:hover {
+  background: #bbdefb !important;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
 
+.calendar-day:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: box-shadow 0.2s ease;
+}
 
+.birthday-detail-item:hover {
+  background: #f5f5f5;
+}
+
+@media (max-width: 768px) {
+  .calendar-grid {
+    font-size: 10px !important;
+  }
+  
+  .calendar-day {
+    min-height: 50px !important;
+  }
+  
+  .birthday-item span {
+    font-size: 8px !important;
+  }
+}
+
+.employee-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
+}
+
+.edit-image-btn:hover {
+    background: rgba(0,0,0,0.9) !important;
+    transform: scale(1.1);
+}
+
+.new-hires-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.new-hires-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.new-hires-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.new-hires-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+@media (max-width: 768px) {
+    .employee-card {
+        width: 150px !important;
+        height: 240px !important;
+    }
+    
+    .photo-section {
+        height: 150px !important;
+        padding: 15px !important;
+    }
+    
+    .photo-section img {
+        width: 120px !important;
+        height: 120px !important;
+    }
+    
+    .edit-image-btn {
+        width: 28px !important;
+        height: 28px !important;
+        top: 8px !important;
+        right: 8px !important;
+    }
+    
+    .edit-image-btn svg {
+        width: 12px !important;
+        height: 12px !important;
+    }
+}
 </style>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+   .employee-card {
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    transition: all 0.2s ease;
+    width: 240px;
+    height: 320px;
+    flex-shrink: 0;
+    position: relative;
+    border: 1px solid #f1f5f9;
+}
+
+.employee-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.new-hires-carousel-wrapper {
+    position: relative;
+    padding: 20px 50px;
+}
+
+.new-hires-container {
+    display: flex;
+    gap: 20px;
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    justify-content: center;
+    min-width: 100%;
+}
+
+.new-hires-container:has(.employee-card:nth-child(-n+3)) {
+    justify-content: center;
+}
+
+@supports not selector(:has(*)) {
+    .new-hires-container {
+        justify-content: center;
+    }
+    
+    .new-hires-container:hover {
+        justify-content: flex-start;
+    }
+}
+
+.new-hires-container::-webkit-scrollbar {
+    display: none;
+}
+
+.photo-section {
+    background: #f8fafc;
+    height: 160px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    padding: 12px;
+}
+
+.photo-section img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    border-radius: 6px;
+}
+
+.employee-card:hover .photo-section img {
+    transform: scale(1.02);
+}
+
+.edit-image-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255,255,255,0.95);
+    border: none;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.edit-image-btn:hover {
+    background: white;
+    color: #3b82f6;
+    transform: scale(1.05);
+}
+
+.initials-banner {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+    color: white;
+    text-align: center;
+    padding: 12px 0;
+    margin: 0;
+    position: relative;
+    width: 100%;
+}
+
+.initials-banner::before {
+    display: none;
+}
+
+.initials-banner div {
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+
+.details-section {
+    background: white;
+    padding: 16px 16px 20px 16px;
+    text-align: center;
+}
+
+.employee-name {
+    font-size: 15px;
+    color: #1a202c;
+    font-weight: 600;
+    margin-bottom: 6px;
+    line-height: 1.3;
+}
+
+.employee-position {
+    font-size: 11px;
+    color: #3b82f6;
+    font-weight: 500;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.employee-department {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 6px;
+    font-weight: 400;
+}
+
+.employee-hired-date {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 400;
+}
+
+.carousel-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.carousel-nav-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-50%) scale(1.05);
+}
+
+.carousel-prev {
+    left: 10px;
+}
+
+.carousel-next {
+    right: 10px;
+}
+
+.carousel-nav-btn i {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.carousel-nav-btn:hover i {
+    color: #3b82f6;
+}
+
+@media (max-width: 768px) {
+    .new-hires-carousel-wrapper {
+        padding: 20px 40px;
+    }
+    
+    .carousel-nav-btn {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .carousel-nav-btn i {
+        font-size: 12px;
+    }
+    
+    .employee-card {
+        width: 220px;
+    }
+}
+</style>
+@endsection
+
+@section('head')
+<meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
 
 @section('content')
@@ -1249,7 +1559,7 @@
                           </div>
                         </div> -->
                         @if(count(auth()->user()->subbordinates) > 0)
-                        <div class="card mt-2">
+                        <div class="card">
                           <div class="card-body">
                             <p class="card-title ">Subordinates </p>
                               <div class="table-responsive" >
@@ -1372,33 +1682,107 @@
               </div>
            
 
-              <div class="col-md-5">
+              <div class="col-md-8">
                 <div class='row'>
                   <div class="col-md-12">
-                    <div class="card mt-2">
-                      <div class="card-body " >
-                        <p class="card-title">Birthday Celebrants</p>
-                        <ul class="icon-data-list w-100"  style="overflow-y: scroll; height:300px;">
-                          @foreach($employee_birthday_celebrants as $celebrant)
-                          <li>
-                            <div class="d-flex">
-                              <img src="{{URL::asset($celebrant->avatar)}}"  onerror="this.src='{{URL::asset('/images/no_image.png')}}';" alt="user">
-                              <div>
-                                <p class="text-info mb-1"><small>{{$celebrant->first_name}} {{$celebrant->last_name}} - ({{$celebrant->location}})</small></p>
-                                
-                                <p class="mb-0"><small>{{$celebrant->position}}</small> - 
-                                  <small>{{date('M d',strtotime($celebrant->birth_date))}}</small></p>
-                              </div>
+                    <div class="card">
+                        <div class="card-body">
+                        <!-- Header with title and current month -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <p class="card-title" style="margin: 0;">Birthday Celebrants</p>
+                            <div style="font-size: 14px; color: #666; font-weight: 500;">
+                                @php echo date('F Y'); @endphp
                             </div>
-                          </li>
-                          @endforeach
-                        </ul>
-                      </div>
-                    </div>
+                        </div>
+                        
+                        <div class="birthday-calendar" style="overflow-y: scroll; height:300px;">
+                            <div class="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: 11px;">
+                            
+                            <div class="calendar-header" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 5px;">
+                                <div style="text-align: center; font-weight: bold; padding: 5px; background: #f8f9fa; border-radius: 3px;">Sun</div>
+                                <div style="text-align: center; font-weight: bold; padding: 5px; background: #f8f9fa; border-radius: 3px;">Mon</div>
+                                <div style="text-align: center; font-weight: bold; padding: 5px; background: #f8f9fa; border-radius: 3px;">Tue</div>
+                                <div style="text-align: center; font-weight: bold; padding: 5px; background: #f8f9fa; border-radius: 3px;">Wed</div>
+                                <div style="text-align: center; font-weight: bold; padding: 5px; background: #f8f9fa; border-radius: 3px;">Thu</div>
+                                <div style="text-align: center; font-weight: bold; padding: 5px; background: #f8f9fa; border-radius: 3px;">Fri</div>
+                                <div style="text-align: center; font-weight: bold; padding: 5px; background: #f8f9fa; border-radius: 3px;">Sat</div>
+                            </div>
+
+                            @php
+                                $currentMonth = date('n');
+                                $currentYear = date('Y');
+                                $daysInMonth = date('t');
+                                $firstDayOfMonth = date('w', mktime(0, 0, 0, $currentMonth, 1, $currentYear));
+                                
+                                // Group birthdays by day
+                                $birthdaysByDay = [];
+                                foreach($employee_birthday_celebrants as $celebrant) {
+                                $day = date('j', strtotime($celebrant->birth_date));
+                                if (!isset($birthdaysByDay[$day])) {
+                                    $birthdaysByDay[$day] = [];
+                                }
+                                $birthdaysByDay[$day][] = $celebrant;
+                                }
+                            @endphp
+
+                            @for($i = 0; $i < $firstDayOfMonth; $i++)
+                                <div class="calendar-day" style="min-height: 60px; border: 1px solid #e9ecef; background: #f8f9fa; border-radius: 3px;"></div>
+                            @endfor
+
+                            @for($day = 1; $day <= $daysInMonth; $day++)
+                                @php $isToday = ($day == date('j') && $currentMonth == date('n') && $currentYear == date('Y')); @endphp
+                                <div class="calendar-day" style="min-height: 60px; border: 1px solid #e9ecef; border-radius: 3px; padding: 2px; position: relative; background: {{ $isToday ? '#e8f5e8' : '#fff' }}; {{ $isToday ? 'border-color: #4caf50; box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);' : '' }}">
+                                <div style="font-weight: bold; margin-bottom: 2px; font-size: 10px; {{ $isToday ? 'color: #2e7d32;' : '' }}">{{ $day }}</div>
+                                
+                                @if(isset($birthdaysByDay[$day]))
+                                    @foreach($birthdaysByDay[$day] as $celebrant)
+                                    <div class="birthday-item" style="background: #e3f2fd; border-radius: 2px; padding: 1px 2px; margin: 1px 0; position: relative; cursor: pointer;" 
+                                        title="{{$celebrant->first_name}} {{$celebrant->last_name}} - {{$celebrant->position}} ({{$celebrant->location}})">
+                                        <div style="display: flex; align-items: center; gap: 2px;">
+                                        <img src="{{URL::asset($celebrant->avatar)}}" 
+                                            onerror="this.src='{{URL::asset('/images/no_image.png')}}';" 
+                                            alt="user" 
+                                            style="width: 12px; height: 12px; border-radius: 50%; object-fit: cover;">
+                                        <span style="font-size: 9px; color: #1976d2; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            {{substr($celebrant->first_name, 0, 8)}}{{strlen($celebrant->first_name) > 8 ? '...' : ''}}
+                                        </span>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                @endif
+                                </div>
+                            @endfor
+                            </div>
+
+                            <div class="birthday-details mt-3" style="border-top: 1px solid #e9ecef; padding-top: 10px;">
+                            <h6 style="margin-bottom: 10px; font-size: 12px; color: #666;">This Month's Celebrants</h6>
+                            <div style="max-height: 120px; overflow-y: auto;">
+                                @foreach($employee_birthday_celebrants as $celebrant)
+                                <div class="birthday-detail-item" style="display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid #f0f0f0;">
+                                    <img src="{{URL::asset($celebrant->avatar)}}" 
+                                        onerror="this.src='{{URL::asset('/images/no_image.png')}}';" 
+                                        alt="user" 
+                                        style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;">
+                                    <div style="flex: 1;">
+                                    <div style="font-size: 11px; color: #333; font-weight: 500;">
+                                        {{$celebrant->first_name}} {{$celebrant->last_name}}
+                                    </div>
+                                    <div style="font-size: 10px; color: #666;">
+                                        {{$celebrant->position}} - {{$celebrant->location}} | {{date('M d', strtotime($celebrant->birth_date))}}
+                                    </div>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                            </div>
+                          </div>
+                        </div>
+                     </div>
                   </div>
                 </div>
+            </div>
 
-              </div>
+            </div>
             <div class="col-md-3 ">
               {{-- <div class="row">
                 <div class="col-md-12">
@@ -1438,34 +1822,112 @@
                   </div>
                 </div>
               </div> --}}
-              
-              <div class='row'>
-                <div class="col-md-12">
-                  <div class="card mt-2">
-                    <div class="card-body " >
-                      <p class="card-title">Welcome new Hires</p>
-                      <ul class="icon-data-list w-100"  style="overflow-y: scroll; height:300px;">
-                        @foreach($employees_new_hire as $employee)
-                        <li>
-                          <div class="d-flex">
-                            <img src="{{URL::asset($employee->avatar)}}"  onerror="this.src='{{URL::asset('/images/no_image.png')}}';" alt="user">
-                            <div>
-                              <p class="text-info mb-1"><small>{{$employee->first_name}} {{$employee->last_name}}</small> <i>(<small>{{date('M. d',strtotime($employee->original_date_hired))}}</small>)</i> - <small>{{$employee->company->company_code}}</small></p>
-                          
-                              <p class="mb-0"><small>{{$employee->position}}</small> - <small>{{ optional($employee->department)->name ?? 'N/A' }}</small></p>
-                             
-                            </div>
-                          </div>
-                        </li>
-                        @endforeach
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
                 
             
             </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card mt-4">
+                            <div class="card-body">
+                                <p class="card-title">Welcome New Hires</p>
+                                
+                                <div class="new-hires-carousel-wrapper position-relative">
+                                    <button class="carousel-nav-btn carousel-prev" onclick="scrollNewHires('left')">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    
+                                    <button class="carousel-nav-btn carousel-next" onclick="scrollNewHires('right')">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                    
+                                    <div class="new-hires-container" id="newHiresContainer">
+                                        @foreach($employees_new_hire as $employee)
+                                            <div class="employee-card">
+                                                
+                                                <div class="photo-section">
+                                                    <img src="{{ $employee->image ? URL::asset($employee->image) : URL::asset('/images/no_image.png') }}" 
+                                                        onerror="this.src='{{ URL::asset('/images/no_image.png') }}';" 
+                                                        alt="employee-{{ $employee->id }}" 
+                                                        id="employee-img-{{ $employee->id }}">
+                                                    
+                                                    @if (auth()->user()->role == 'Admin')
+                                                    <button type="button" 
+                                                            class="edit-image-btn" 
+                                                            onclick="openImageModal({{ $employee->id }})"
+                                                            title="Edit Image">
+                                                        <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                                            <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                                                        </svg>
+                                                    </button>
+                                                    @endif
+                                                </div>
+                                                
+                                                <div class="initials-banner">
+                                                    <div>
+                                                        @php
+                                                            $firstName = $employee->first_name;
+                                                            $lastName = $employee->last_name;
+                                                            $initials = strtoupper(substr($firstName, 0, 1) . substr($lastName, 0, 1));
+                                                        @endphp
+                                                        {{ $initials }}
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="details-section">
+                                                    <div class="employee-name">
+                                                        {{ $employee->first_name }} {{ $employee->last_name }}
+                                                    </div>
+                                                    <div class="employee-position">
+                                                        {{ $employee->position }}
+                                                    </div>
+                                                    <div class="employee-department">
+                                                        {{ optional($employee->department)->name ?? 'N/A' }}
+                                                    </div>
+                                                    <div class="employee-hired-date">
+                                                        Hired: {{ date('M d, Y', strtotime($employee->original_date_hired)) }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image Upload Modal -->
+                <div class="modal fade" id="imageUploadModal" tabindex="-1" aria-labelledby="imageUploadModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="imageUploadModalLabel">Upload Employee Image</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form id="imageUploadForm" enctype="multipart/form-data">
+                                @csrf
+                                <div class="modal-body">
+                                    <input type="hidden" id="employee_id" name="employee_id">
+                                    <div class="mb-3">
+                                        <label for="employee_image" class="form-label">Select New Image</label>
+                                        <input type="file" class="form-control" id="employee_image" name="image" accept="image/*" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <small class="text-muted">Accepted formats: JPG, PNG, GIF. Max size: 2MB</small>
+                                    </div>
+                                    <div id="imagePreview" style="display: none; text-align: center; margin-top: 10px;">
+                                        <img id="previewImg" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #ddd;">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Upload Image</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
           </div>    
        </div>
     @endif
@@ -1504,13 +1966,158 @@
 
 <script>
 $(document).ready(function() {
-    // Force clean up modal backdrops
     $('.modal').on('hidden.bs.modal', function () {
         $('.modal-backdrop').remove();
         $('body').removeClass('modal-open').css('padding-right', '');
     });
 });
 </script>
+
+<script>
+function scrollNewHires(direction) {
+    const container = document.getElementById('newHiresContainer');
+    const scrollAmount = 250;
+         
+    if (direction === 'left') {
+        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    } else if (direction === 'right') {
+        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+}
+
+function centerCards() {
+    const container = document.getElementById('newHiresContainer');
+    const cards = container.querySelectorAll('.employee-card');
+    
+    if (cards.length <= 3) {
+        container.style.justifyContent = 'center';
+        const prevBtn = document.querySelector('.carousel-prev');
+        const nextBtn = document.querySelector('.carousel-next');
+        
+        if (prevBtn && nextBtn) {
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
+        }
+    } else {
+        container.style.justifyContent = 'flex-start';
+        const prevBtn = document.querySelector('.carousel-prev');
+        const nextBtn = document.querySelector('.carousel-next');
+        
+        if (prevBtn && nextBtn) {
+            prevBtn.style.display = 'flex';
+            nextBtn.style.display = 'flex';
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('newHiresContainer');
+    const prevBtn = document.querySelector('.carousel-prev');
+    const nextBtn = document.querySelector('.carousel-next');
+         
+    function updateNavigationButtons() {
+        const isAtStart = container.scrollLeft <= 0;
+        const isAtEnd = container.scrollLeft >= (container.scrollWidth - container.clientWidth);
+                 
+        prevBtn.style.opacity = isAtStart ? '0.5' : '1';
+        nextBtn.style.opacity = isAtEnd ? '0.5' : '1';
+        prevBtn.style.pointerEvents = isAtStart ? 'none' : 'auto';
+        nextBtn.style.pointerEvents = isAtEnd ? 'none' : 'auto';
+    }
+         
+    container.addEventListener('scroll', updateNavigationButtons);
+    
+    updateNavigationButtons();
+    centerCards();
+    
+    const observer = new MutationObserver(centerCards);
+    observer.observe(container, { childList: true });
+});
+</script>
+
+<script>
+function openImageModal(employeeId) {
+    console.log('Opening image modal for employee ID:', employeeId);
+    
+    document.getElementById('employee_id').value = employeeId;
+    
+    document.getElementById('imageUploadForm').reset();
+    document.getElementById('imagePreview').style.display = 'none';
+    
+    const modal = new bootstrap.Modal(document.getElementById('imageUploadModal'));
+    modal.show();
+}
+
+document.getElementById('employee_image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+document.getElementById('imageUploadForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const submitButton = this.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    
+    submitButton.disabled = true;
+    submitButton.textContent = 'Uploading...';
+    
+    fetch('{{ route("upload.employee.image") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const employeeImg = document.getElementById(`employee-img-${data.employee_id}`);
+            if (employeeImg) {
+                employeeImg.src = data.image_url;
+            }
+            
+            showAlert('success', data.message);
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('imageUploadModal'));
+            modal.hide();
+        } else {
+            showAlert('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('error', 'An error occurred while uploading the image');
+    })
+    .finally(() => {
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+    });
+});
+
+function showAlert(type, message) {
+    if (typeof Swal !== 'undefined') {
+        if (type === 'success') {
+            Swal.fire('Success!', message, 'success');
+        } else {
+            Swal.fire('Error!', message, 'error');
+        }
+    } else {
+        alert(message);
+    }
+}
+</script>
+
 
 <script>
 let userLocation = null;
@@ -1604,7 +2211,6 @@ function showLocationCheckFeedback() {
         <div class="d-flex align-items-center">
             <i class="fas fa-location-arrow fa-spin mr-2"></i>
             <div>
-                <strong>Location Check:</strong> Verifying your proximity to assigned hubs...
                 <div class="progress mt-2" style="height: 4px;">
                     <div class="progress-bar progress-bar-striped progress-bar-animated" 
                          style="width: 100%; background-color: #17a2b8;"></div>
@@ -1616,6 +2222,41 @@ function showLocationCheckFeedback() {
     const attendanceContainer = document.querySelector('.attendance-buttons') || document.querySelector('[data-attendance-container]');
     if (attendanceContainer) {
         attendanceContainer.insertBefore(feedbackDiv, attendanceContainer.firstChild);
+    }
+}
+
+async function checkForImmediateAccess() {
+    try {
+        console.log('Checking for immediate access...');
+        
+        const response = await fetch('{{ route("check.user.access") }}', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+
+        const result = await response.json();
+        console.log('User access check result:', result);
+
+        if (result.success && result.hasImmediateAccess) {
+            console.log('User has unrestricted access - enabling buttons immediately');
+            locationCheckPassed = true;
+            enableAttendanceButtons();
+            showLocationStatus('You have unrestricted access. Camera attendance is available.', 'success');
+            return true;
+        } else if (result.success && result.accessType === 'no_access') {
+            console.log('User has no camera access');
+            disableAttendanceButtons();
+            showLocationStatus('Camera access not available for your account.', 'error');
+            return false;
+        }
+        
+        return false;
+    } catch (error) {
+        console.error('User access check failed:', error);
+        return false;
     }
 }
 
@@ -1632,12 +2273,17 @@ async function checkLocationProximity() {
         if (cached) {
             location = cached;
             console.log('Using cached location');
-            showAttendanceLoading('Checking proximity...');
+            showAttendanceLoading('');
         } else {
             console.log('Getting fresh location...');
-            location = await getCurrentLocation();
-            setCachedLocation(location);
-            showAttendanceLoading('');
+            try {
+                location = await getCurrentLocation();
+                setCachedLocation(location);
+                showAttendanceLoading('');
+            } catch (locationError) {
+                console.error('Location access failed:', locationError);
+                throw new Error('Could not access your location. Please enable location services.');
+            }
         }
         
         userLocation = location;
@@ -1665,7 +2311,16 @@ async function checkLocationProximity() {
             locationCheckPassed = result.isNearHub;
             const shouldShowStatus = result.showLocationStatus !== false && result.accessType !== 'no_access';
 
-            if (result.isNearHub) {
+            if (result.accessType === 'unrestricted_access') {
+                // User has unrestricted access - always enable
+                console.log('User has unrestricted camera access');
+                locationCheckPassed = true;
+                enableAttendanceButtons();
+                if (shouldShowStatus) {
+                    showLocationStatus(result.message || 'You have unrestricted access. Camera attendance is available.', 'success');
+                }
+            } else if (result.isNearHub) {
+                // User is near assigned hub
                 if (shouldShowStatus) {
                     showLocationStatus(result.message, 'success');
                 }
@@ -1678,11 +2333,8 @@ async function checkLocationProximity() {
                     });
                     console.log(hubInfo);
                 }
-
-                if (result.accessType === 'unrestricted_access') {
-                    console.log('User has unrestricted camera access');
-                }
             } else {
+                // User is not near hub or has no access
                 if (shouldShowStatus && result.message) {
                     showLocationStatus(result.message, 'error');
                 }
@@ -1696,10 +2348,11 @@ async function checkLocationProximity() {
             if (result.accessType === 'no_access') {
                 console.log('User has no camera access');
                 disableAttendanceButtons();
+                showLocationStatus('Camera access not available for your account.', 'error');
             }
 
         } else {
-            throw new Error(result.message);
+            throw new Error(result.message || 'Location verification failed');
         }
 
     } catch (error) {
@@ -1718,33 +2371,53 @@ async function checkLocationProximity() {
     }
 }
 
-async function checkForImmediateAccess() {
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('=== PAGE LOAD START ===');
+    
+    const timeInBtn = document.querySelector('[data-target="#timeIn"]');
+    const timeOutBtn = document.querySelector('[data-target="#timeOut"]');
+    
+    if (timeInBtn) timeInBtn.setAttribute('data-attendance-btn', 'true');
+    if (timeOutBtn) timeOutBtn.setAttribute('data-attendance-btn', 'true');
+    
+    console.log('Buttons found:', { timeInBtn: !!timeInBtn, timeOutBtn: !!timeOutBtn });
+    
+    // Initial loading state
+    showAttendanceLoading('Checking access...');
+    
     try {
-        const response = await fetch('{{ route("check.user.access") }}', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        });
-
-        const result = await response.json();
-        console.log('User access check result:', result);
-
-        if (result.success && result.hasImmediateAccess) {
-            console.log('User has unrestricted access - enabling buttons immediately');
-            locationCheckPassed = true;
-            enableAttendanceButtons();
-            showLocationStatus('You have unrestricted access. Camera attendance is available.', 'success');
-            return true;
+        console.log('Step 1: Checking for immediate access...');
+        const hasImmediateAccess = await checkForImmediateAccess();
+        
+        console.log('Step 1 Result:', hasImmediateAccess);
+        
+        if (!hasImmediateAccess) {
+            console.log('Step 2: No immediate access, checking location proximity...');
+            await checkLocationProximity();
+        } else {
+            console.log('Step 2: Skipped - user has immediate access');
         }
         
-        return false;
+        console.log('=== PAGE LOAD COMPLETE ===');
+        console.log('Final locationCheckPassed state:', locationCheckPassed);
+        
     } catch (error) {
-        console.error('User access check failed:', error);
-        return false;
+        console.error('=== PAGE LOAD ERROR ===', error);
+        disableAttendanceButtons();
+        showLocationStatus('Initialization failed: ' + error.message, 'error');
     }
-}
+    
+    // Make functions globally available
+    window.showDetailedLocationCheck = showDetailedLocationCheck;
+    window.getLocation = getLocation;
+    window.checkLocationProximity = checkLocationProximity;
+    
+    console.log('Global functions registered:', {
+        showDetailedLocationCheck: typeof window.showDetailedLocationCheck,
+        getLocation: typeof window.getLocation,
+        checkLocationProximity: typeof window.checkLocationProximity
+    });
+});
 
 function showLocationStatus(message, type) {
     if (!message?.trim()) return;
@@ -1785,8 +2458,14 @@ function showLocationStatus(message, type) {
 }
 
 function enableAttendanceButtons() {
+    console.log('=== ENABLING ATTENDANCE BUTTONS ===');
+    
     const attendanceButtons = document.querySelectorAll('[data-attendance-btn]');
-    attendanceButtons.forEach(button => {
+    console.log('Found attendance buttons:', attendanceButtons.length);
+    
+    attendanceButtons.forEach((button, index) => {
+        console.log(`Enabling button ${index + 1}:`, button);
+        
         button.disabled = false;
         button.style.opacity = '1';
         button.style.cursor = 'pointer';
@@ -1802,12 +2481,12 @@ function enableAttendanceButtons() {
             if (button.getAttribute('title') === 'Time In') {
                 playIcon.className = 'ti-control-play';
                 button.classList.add('btn-success');
-                button.classList.remove('btn-danger');
+                button.classList.remove('btn-danger', 'btn-secondary', 'btn-info');
             }
             else if (button.getAttribute('title') === 'Time Out') {
                 playIcon.className = 'ti-control-pause';
                 button.classList.add('btn-danger');
-                button.classList.remove('btn-success');
+                button.classList.remove('btn-success', 'btn-secondary', 'btn-info');
             }
         }
         
@@ -1838,13 +2517,19 @@ function showAttendanceLoading(message = '') {
 }
 
 function disableAttendanceButtons() {
+    console.log('=== DISABLING ATTENDANCE BUTTONS ===');
+    
     const attendanceButtons = document.querySelectorAll('[data-attendance-btn]');
-    attendanceButtons.forEach(button => {
+    console.log('Found attendance buttons to disable:', attendanceButtons.length);
+    
+    attendanceButtons.forEach((button, index) => {
+        console.log(`Disabling button ${index + 1}:`, button);
+        
         button.disabled = true;
         button.style.opacity = '0.5';
         button.style.cursor = 'not-allowed';
 
-       const originalText = button.getAttribute('data-original-text');
+        const originalText = button.getAttribute('data-original-text');
         if (originalText) {
             button.innerHTML = originalText;
             button.removeAttribute('data-original-text');
@@ -1856,7 +2541,7 @@ function disableAttendanceButtons() {
         }
         
         button.classList.add('btn-secondary');
-        button.classList.remove('btn-success', 'btn-info');
+        button.classList.remove('btn-success', 'btn-info', 'btn-danger');
     });
     
     console.log('Camera attendance buttons disabled');
@@ -4386,45 +5071,85 @@ setInterval(async () => {
     <script>
 
     document.addEventListener('DOMContentLoaded', function () {
-      document.querySelector('.show-used-leave-days').addEventListener('click', function () {
-        Swal.fire({
-          title: 'Used Leave Details',
-          html: `
-            <div style="font-size: 13px; max-height: 300px; overflow-y: auto;">
-              <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-                <thead>
-                  <tr>
-                    <th style="border: 1px solid #ccc; padding: 6px; background-color: #f2f2f2;">Number of Leaves</th>
-                    <th style="border: 1px solid #ccc; padding: 6px; background-color: #f2f2f2;">Date From</th>
-                    <th style="border: 1px solid #ccc; padding: 6px; background-color: #f2f2f2;">Date To</th>
-                    <th style="border: 1px solid #ccc; padding: 6px; background-color: #f2f2f2;">Reason</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @forelse ($usedLeaves as $index => $leave)
-                    <tr>
-                      <td style="border: 1px solid #ccc; padding: 6px;">{{ $index + 1 }}</td>
-                      <td style="border: 1px solid #ccc; padding: 6px;">{{ \Carbon\Carbon::parse($leave->date_from)->format('M d, Y') }}</td>
-                      <td style="border: 1px solid #ccc; padding: 6px;">{{ \Carbon\Carbon::parse($leave->date_to)->format('M d, Y') }}</td>
-                      <td style="border: 1px solid #ccc; padding: 6px;">{{ $leave->reason ?? 'No reason provided' }}</td>
-                    </tr>
-                  @empty
-                    <tr>
-                      <td colspan="4" style="padding: 6px; text-align: center;">No used leaves</td>
-                    </tr>
-                  @endforelse
-                </tbody>
-              </table>
+  document.querySelector('.show-used-leave-days').addEventListener('click', function () {
+    // Get leave balances from PHP variables (passed from controller)
+    const vlBalance = {{ $vl_balance ?? 0 }};
+    const slBalance = {{ $sl_balance ?? 0 }};
+    
+    // Show the modal with leave details
+    Swal.fire({
+      title: 'Leave Details',
+      html: `
+        <div style="font-size: 13px; max-height: 400px; overflow-y: auto;">
+          <!-- Available Leave Balances Section -->
+          <div style="margin-bottom: 20px;">
+            <h4 style="color: #333; margin-bottom: 10px; font-size: 14px;">Available Leave Balances</h4>
+            <div style="display: flex; justify-content: space-around; background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+              <div style="text-align: center;">
+                <strong style="color: #28a745;">VL (Vacation Leave)</strong>
+                <div style="font-size: 16px; font-weight: bold; color: #28a745;" id="vl-balance">${vlBalance}</div>
+              </div>
+              <div style="text-align: center;">
+                <strong style="color: #007bff;">SL (Sick Leave)</strong>
+                <div style="font-size: 16px; font-weight: bold; color: #007bff;" id="sl-balance">${slBalance}</div>
+              </div>
             </div>
-          `,
-          icon: 'info',
-          confirmButtonText: 'Close',
-          customClass: {
-            icon: 'custom-swal-icon-spacing'
-          }
-        });
-      });
+          </div>
+
+          <!-- Used Leave Details Section -->
+          <div>
+            <h4 style="color: #333; margin-bottom: 10px; font-size: 14px;">Used Leave History</h4>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+              <thead>
+                <tr>
+                  <th style="border: 1px solid #ccc; padding: 6px; background-color: #f2f2f2; font-size: 12px;">No.</th>
+                  <th style="border: 1px solid #ccc; padding: 6px; background-color: #f2f2f2; font-size: 12px;">Type</th>
+                  <th style="border: 1px solid #ccc; padding: 6px; background-color: #f2f2f2; font-size: 12px;">Date From</th>
+                  <th style="border: 1px solid #ccc; padding: 6px; background-color: #f2f2f2; font-size: 12px;">Date To</th>
+                  <th style="border: 1px solid #ccc; padding: 6px; background-color: #f2f2f2; font-size: 12px;">Days</th>
+                  <th style="border: 1px solid #ccc; padding: 6px; background-color: #f2f2f2; font-size: 12px;">Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                @forelse ($usedLeaves as $index => $leave)
+                  <tr>
+                    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 11px;">{{ $index + 1 }}</td>
+                    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 11px;">
+                      @if($leave->leave_type == 1)
+                        <span style="color: #28a745; font-weight: bold;">VL</span>
+                      @elseif($leave->leave_type == 2)
+                        <span style="color: #007bff; font-weight: bold;">SL</span>
+                      @else
+                        <span style="color: #6c757d;">Other</span>
+                      @endif
+                    </td>
+                    <td style="border: 1px solid #ccc; padding: 6px; font-size: 11px;">{{ \Carbon\Carbon::parse($leave->date_from)->format('M d, Y') }}</td>
+                    <td style="border: 1px solid #ccc; padding: 6px; font-size: 11px;">{{ \Carbon\Carbon::parse($leave->date_to)->format('M d, Y') }}</td>
+                    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 11px;">
+                      {{ \Carbon\Carbon::parse($leave->date_from)->diffInDays(\Carbon\Carbon::parse($leave->date_to)) + 1 }}
+                    </td>
+                    <td style="border: 1px solid #ccc; padding: 6px; font-size: 11px;">{{ $leave->reason ?? 'No reason provided' }}</td>
+                  </tr>
+                @empty
+                  <tr>
+                    <td colspan="6" style="padding: 10px; text-align: center; color: #6c757d; font-style: italic;">No used leaves found</td>
+                  </tr>
+                @endforelse
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      icon: 'info',
+      confirmButtonText: 'Close',
+      width: '800px',
+      customClass: {
+        icon: 'custom-swal-icon-spacing',
+        popup: 'custom-swal-popup'
+      }
     });
+  });
+});
 
 
     const lateRecords = @json($lateRecords);

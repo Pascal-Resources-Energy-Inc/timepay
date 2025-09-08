@@ -40,6 +40,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('', 'HomeController@index');
     Route::get('/', 'HomeController@index');
     Route::get('/home', 'HomeController@index')->name('home');
+    Route::post('/upload-employee-image', [App\Http\Controllers\HomeController::class, 'uploadEmployeeImage'])->name('upload.employee.image');
 
     Route::post('/check-location-proximity', [App\Http\Controllers\HomeController::class, 'checkUserLocationProximity'])
     ->name('check.location.proximity')
@@ -232,6 +233,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('account-setting-hr/getBeneficiariesHR/{id}', 'EmployeeController@getBeneficiariesHR');
     Route::post('account-setting-hr/uploadAvatarHr/{id}', 'EmployeeController@uploadAvatarHr');
     Route::post('account-setting-hr/uploadSignatureHr/{id}', 'EmployeeController@uploadSignatureHr');
+
 
     Route::get('associate-employees-export','EmployeeController@export_employee_associates');
 

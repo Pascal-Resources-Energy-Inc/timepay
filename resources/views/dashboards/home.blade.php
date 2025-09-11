@@ -388,13 +388,7 @@
         height: 12px !important;
     }
 }
-</style>
-      </div>
-    </div>
-  </div>
-</div>
 
-<style>
    .employee-card {
     background: #ffffff;
     border-radius: 12px;
@@ -611,6 +605,262 @@
         width: 220px;
     }
 }
+
+    .birthday-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        display: none;
+        cursor: pointer;
+    }
+
+    .birthday-popup {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px;
+        border-radius: 25px;
+        text-align: center;
+        color: white;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        animation: popupAppear 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        max-width: 90vw;
+        max-height: 90vh;
+        overflow: hidden;
+    }
+
+    @keyframes popupAppear {
+        0% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.3) rotate(-10deg);
+        }
+        100% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        }
+    }
+
+    .birthday-title {
+        font-size: 3em;
+        margin-bottom: 20px;
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+        animation: titleBounce 2s ease-in-out infinite;
+    }
+
+    @keyframes titleBounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+
+    .cake-container {
+        margin: 30px 0;
+        animation: cakeFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes cakeFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .cake {
+        font-size: 8em;
+        animation: cakeSpin 4s linear infinite;
+    }
+
+    @keyframes cakeSpin {
+        0% { transform: rotate(0deg); }
+        25% { transform: rotate(5deg); }
+        50% { transform: rotate(0deg); }
+        75% { transform: rotate(-5deg); }
+        100% { transform: rotate(0deg); }
+    }
+
+    .birthday-message {
+        font-size: 1.5em;
+        margin-bottom: 20px;
+        opacity: 0;
+        animation: messageAppear 1s ease-out 0.5s forwards;
+    }
+
+    @keyframes messageAppear {
+        0% {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .confetti {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: #ff6b6b;
+        animation: fall 3s linear infinite;
+        border-radius: 2px;
+    }
+
+    .confetti:nth-child(2n) { background: #4ecdc4; }
+    .confetti:nth-child(3n) { background: #ffe66d; }
+    .confetti:nth-child(4n) { background: #ff8b94; }
+    .confetti:nth-child(5n) { background: #a8e6cf; }
+    .confetti:nth-child(6n) { background: #ffd93d; }
+    .confetti:nth-child(7n) { background: #6bcf7f; }
+
+    @keyframes fall {
+        0% {
+            transform: translateY(-100vh) rotate(0deg);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(100vh) rotate(720deg);
+            opacity: 0;
+        }
+    }
+
+    /* Fireworks */
+    .firework {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        animation: explode 2s ease-out infinite;
+    }
+
+    .firework::before,
+    .firework::after {
+        content: '';
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: currentColor;
+        top: -2px;
+        left: -2px;
+    }
+
+    @keyframes explode {
+        0% {
+            opacity: 0;
+            transform: scale(0);
+        }
+        15% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        100% {
+            opacity: 0;
+            transform: scale(4);
+            filter: brightness(1.5);
+        }
+    }
+
+    .firework-1 {
+        top: 20%;
+        left: 20%;
+        color: #ff6b6b;
+        animation-delay: 0s;
+    }
+
+    .firework-2 {
+        top: 30%;
+        right: 20%;
+        color: #4ecdc4;
+        animation-delay: 0.5s;
+    }
+
+    .firework-3 {
+        bottom: 30%;
+        left: 30%;
+        color: #ffe66d;
+        animation-delay: 1s;
+    }
+
+    .firework-4 {
+        bottom: 20%;
+        right: 30%;
+        color: #ff8b94;
+        animation-delay: 1.5s;
+    }
+
+    .firework-5 {
+        top: 40%;
+        left: 50%;
+        color: #a8e6cf;
+        animation-delay: 2s;
+    }
+
+    .dismiss-hint {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.9em;
+        opacity: 0.7;
+        animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+        0%, 50%, 100% { opacity: 0.7; }
+        25%, 75% { opacity: 0.3; }
+    }
+
+    .countdown {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255,255,255,0.2);
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.9em;
+        animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 0.7; }
+        50% { opacity: 1; }
+    }
+
+    .birthday-user-name {
+        font-size: 1.2em;
+        margin-bottom: 10px;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+        .birthday-popup {
+            padding: 20px;
+        }
+        
+        .birthday-title {
+            font-size: 2em;
+        }
+        
+        .cake {
+            font-size: 5em;
+        }
+        
+        .birthday-message {
+            font-size: 1.2em;
+        }
+    }
 </style>
 @endsection
 
@@ -1865,12 +2115,7 @@
                                                 
                                                 <div class="initials-banner">
                                                     <div>
-                                                        @php
-                                                            $firstName = $employee->first_name;
-                                                            $lastName = $employee->last_name;
-                                                            $initials = strtoupper(substr($firstName, 0, 1) . substr($lastName, 0, 1));
-                                                        @endphp
-                                                        {{ $initials }}
+                                                        {{ $employee->nick_name ?? '' }}
                                                     </div>
                                                 </div>
                                                 
@@ -1953,6 +2198,69 @@
   </div>
 </div>
 
+@if(auth()->user()->employee && auth()->user()->employee->birth_date)
+    @php
+        $today = date('m-d');
+        $birthday = date('m-d', strtotime(auth()->user()->employee->birth_date));
+        $isBirthdayToday = $today === $birthday;
+    @endphp
+    
+    @if($isBirthdayToday)
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() {
+                    showBirthdayPopup();
+                }, 1500);
+            });
+        </script>
+    @endif
+@endif
+
+<div class="birthday-overlay" id="birthdayOverlay">
+    <div class="birthday-popup">
+        <div class="countdown" id="countdown">20</div>
+        
+        {{-- Fireworks --}}
+        <div class="firework firework-1"></div>
+        <div class="firework firework-2"></div>
+        <div class="firework firework-3"></div>
+        <div class="firework firework-4"></div>
+        <div class="firework firework-5"></div>
+        
+        {{-- Confetti --}}
+        <div class="confetti" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="confetti" style="left: 15%; animation-delay: 0.1s;"></div>
+        <div class="confetti" style="left: 25%; animation-delay: 0.2s;"></div>
+        <div class="confetti" style="left: 35%; animation-delay: 0.3s;"></div>
+        <div class="confetti" style="left: 45%; animation-delay: 0.4s;"></div>
+        <div class="confetti" style="left: 55%; animation-delay: 0.5s;"></div>
+        <div class="confetti" style="left: 65%; animation-delay: 0.6s;"></div>
+        <div class="confetti" style="left: 75%; animation-delay: 0.7s;"></div>
+        <div class="confetti" style="left: 85%; animation-delay: 0.8s;"></div>
+        <div class="confetti" style="left: 95%; animation-delay: 0.9s;"></div>
+        
+        <h1 class="birthday-title">🎉 Happy Birthday! 🎉</h1>
+        
+        @if(auth()->user()->employee)
+        <div class="birthday-user-name">
+            {{ auth()->user()->employee->first_name }} {{ auth()->user()->employee->last_name }}! 🥳
+        </div>
+        @endif
+        
+        <div class="cake-container">
+            <div class="cake">🎂</div>
+        </div>
+        
+        <div class="birthday-message">
+            Wishing you a fantastic year ahead!<br>
+            May all your dreams come true! 🌟✨<br>
+            <small>From all of us at Gaz Lite</small>
+        </div>
+        
+        <div class="dismiss-hint">Click anywhere to dismiss</div>
+    </div>
+</div>
+
 @endsection
 @section('footer')
 <script src="{{asset('./body_css/vendors/owl-carousel-2/owl.carousel.min.js')}}"></script>
@@ -1972,6 +2280,60 @@ $(document).ready(function() {
     });
 });
 </script>
+
+<script>
+    function showBirthdayPopup() {
+        const overlay = document.getElementById('birthdayOverlay');
+        const countdown = document.getElementById('countdown');
+        
+        if (!overlay) return;
+        
+        overlay.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        
+        let timeLeft = 20;
+        
+        const timer = setInterval(() => {
+            timeLeft--;
+            if (countdown) {
+                countdown.textContent = timeLeft;
+            }
+            
+            if (timeLeft <= 0) {
+                hideBirthdayPopup();
+                clearInterval(timer);
+            }
+        }, 1000);
+        
+        overlay.addEventListener('click', function() {
+            hideBirthdayPopup();
+            clearInterval(timer);
+        });
+        
+        const popupContent = overlay.querySelector('.birthday-popup');
+        if (popupContent) {
+            popupContent.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideBirthdayPopup();
+                clearInterval(timer);
+            }
+        });
+    }
+    
+    function hideBirthdayPopup() {
+        const overlay = document.getElementById('birthdayOverlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+</script>
+
 
 <script>
 function scrollNewHires(direction) {
@@ -2249,7 +2611,7 @@ async function checkForImmediateAccess() {
         } else if (result.success && result.accessType === 'no_access') {
             console.log('User has no camera access');
             disableAttendanceButtons();
-            showLocationStatus('Camera access not available for your account.', 'error');
+            showLocationStatus('error');
             return false;
         }
         
@@ -2312,7 +2674,6 @@ async function checkLocationProximity() {
             const shouldShowStatus = result.showLocationStatus !== false && result.accessType !== 'no_access';
 
             if (result.accessType === 'unrestricted_access') {
-                // User has unrestricted access - always enable
                 console.log('User has unrestricted camera access');
                 locationCheckPassed = true;
                 enableAttendanceButtons();
@@ -2320,7 +2681,6 @@ async function checkLocationProximity() {
                     showLocationStatus(result.message || 'You have unrestricted access. Camera attendance is available.', 'success');
                 }
             } else if (result.isNearHub) {
-                // User is near assigned hub
                 if (shouldShowStatus) {
                     showLocationStatus(result.message, 'success');
                 }
@@ -2334,7 +2694,6 @@ async function checkLocationProximity() {
                     console.log(hubInfo);
                 }
             } else {
-                // User is not near hub or has no access
                 if (shouldShowStatus && result.message) {
                     showLocationStatus(result.message, 'error');
                 }
@@ -2348,7 +2707,7 @@ async function checkLocationProximity() {
             if (result.accessType === 'no_access') {
                 console.log('User has no camera access');
                 disableAttendanceButtons();
-                showLocationStatus('Camera access not available for your account.', 'error');
+                showLocationStatus();
             }
 
         } else {
@@ -2382,7 +2741,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     console.log('Buttons found:', { timeInBtn: !!timeInBtn, timeOutBtn: !!timeOutBtn });
     
-    // Initial loading state
     showAttendanceLoading('Checking access...');
     
     try {
@@ -2407,7 +2765,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         showLocationStatus('Initialization failed: ' + error.message, 'error');
     }
     
-    // Make functions globally available
     window.showDetailedLocationCheck = showDetailedLocationCheck;
     window.getLocation = getLocation;
     window.checkLocationProximity = checkLocationProximity;

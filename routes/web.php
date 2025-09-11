@@ -11,15 +11,15 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-   use App\Http\Controllers\EmployeeObController;
-use App\HikAttLog2;
-Route::get('get-location','AttendanceController@getLocation');
-Auth::routes();
-Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
-Route::get('/upload-pay-reg', 'PayslipController@uploadpayreg');
-Route::post('/upload-pay-reg', 'PayslipController@postuploadpayreg');
-Route::get('get-devices','AttendanceController@devices');
-Route::group(['middleware' => 'auth'], function () {
+    use App\Http\Controllers\EmployeeObController;
+    use App\HikAttLog2;
+    Route::get('get-location','AttendanceController@getLocation');
+    Auth::routes();
+    Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
+    Route::get('/upload-pay-reg', 'PayslipController@uploadpayreg');
+    Route::post('/upload-pay-reg', 'PayslipController@postuploadpayreg');
+    Route::get('get-devices','AttendanceController@devices');
+    Route::group(['middleware' => 'auth'], function () {
 
     Route::post('timein-capture','AttendanceController@storeTimeIn');
     Route::post('timeout-capture','AttendanceController@storeTimeOut');

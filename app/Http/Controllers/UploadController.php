@@ -124,11 +124,22 @@ class UploadController extends Controller
                         if ($row[6] == "Bereavement Leave" || $row[6] == 'BL') {
                             $types = 11;
                         }
+                         if ($row[6] == "Paternity Leave" || $row[6] == 'PL') {
+                            $types = 4;
+                        }
+                        if ($row[6] == "Maternity Leave" || $row[6] == 'ML') {
+                            $types = 3;
+                             $pay =0;
+                        }
+                        if ($row[6] == "Magna Carta" || $row[6] == 'MC') {
+                            $types = 3;
+                        }
                         if (str_contains($row[6],"without") || $row[6] == "LWOP"){
                             $types = 13;
                             $pay =0;
 
                         }
+                        
                         if($row[5] == .5)
                         {
                             $halfday = 1;

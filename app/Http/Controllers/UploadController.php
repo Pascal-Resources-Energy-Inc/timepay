@@ -167,6 +167,7 @@ class UploadController extends Controller
                             $leaves->halfday = $halfday;
                             $leaves->approved_date = $approved_date;
                             $leaves->status = $row[10];
+                            $leaves->reason = $row[9];
                             $leaves->created_by = auth()->user()->id;
                             $leaves->save();
                         }

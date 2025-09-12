@@ -710,6 +710,7 @@
                                                         $abs =0;
                                                         $leave_count =0;
                                                         $previous_abs = $abs;
+                                                        
                                                     @endphp
                                                 @endif
                                                 @php
@@ -1136,9 +1137,14 @@
                                                 @endphp
                                                 <td>@if($break_out) {{date('h:i A',strtotime($break_out->datetime))}} @endif</td>
                                                 <td>@if($break_in) {{date('h:i A',strtotime($break_in->datetime))}} @endif</td>
+                                                @if($rest == "RESTDAY")
+                                                <td>
+                                                </td>
+                                                @else
                                                    <td><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][remarks]" value="{{$if_leave}} {{$if_has_ob ? 'OB' : ''}}">
                                                     {{$if_leave}} {{$if_has_ob ? 'OB' : ''}}
                                                 </td>
+                                                @endif
                                                 <td @if($abs-$leave_count>0) class='bg-danger'@endif ><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][abs]" value="{{$abs}}">{{number_format($abs,2)}}</td>
                                                 <td ><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][lv_w_pay]" value="{{$leave_count}}">{{$leave_count}}</td>
                                                 <td><input type="hidden" name="employees[{{ $emp->employee_code }}][{{$date_r}}][reg_hrs]" value="{{$work}}">{{$work}}</td>

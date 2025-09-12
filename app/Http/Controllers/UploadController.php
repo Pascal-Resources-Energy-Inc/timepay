@@ -109,7 +109,7 @@ class UploadController extends Controller
                             }
                         }
                     } else if ($request->type == "VL/SL") {
-                        $types = 0;
+                        $types = 13;
                         $pay =1;
                         $halfday =0;
                         if ($row[6] == "Vacation Leave" || $row[6] == "VL") {
@@ -134,10 +134,9 @@ class UploadController extends Controller
                         if ($row[6] == "Magna Carta" || $row[6] == 'MC') {
                             $types = 3;
                         }
-                        if (str_contains($row[6],"without") || $row[6] == "LWOP"){
+                        if (str_contains(strtolower($row[6]), "without") || strtolower($row[6]) == "lwop") {
                             $types = 13;
-                            $pay =0;
-
+                            $pay = 0;
                         }
                         
                         if($row[5] == .5)

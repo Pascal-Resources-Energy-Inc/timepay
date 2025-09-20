@@ -6,9 +6,9 @@ use Illuminate\Http\Request;
 use Carbon\CarbonPeriod;
 use App\Attendance;
 use App\DailySchedule;
-use App\Handbook;
+// use App\Handbook;
 use App\Employee;
-use App\Announcement;
+// use App\Announcement;
 use App\Classification;
 use App\ScheduleData;
 use App\Holiday;
@@ -41,13 +41,13 @@ class HomeController extends Controller
     /**
      * Show the application dashboard.
      */
-    public function index()
+    public function prepareDashboardData()
     {
         // Cache current user data to avoid repeated database calls
         $currentUser = auth()->user();
         $currentEmployee = $currentUser->employee;
         
-        $documents = Document::get();
+        // $documents = Document::get();
         $schedules = [];
         $attendance_controller = new AttendanceController;
         $current_day = date('d');
@@ -79,12 +79,12 @@ class HomeController extends Controller
         }
         
         $date_ranges = $attendance_controller->dateRange($sevendays,date('Y-m-d',strtotime("-1 day")));
-        $handbook = Handbook::orderBy('id','desc')->first();
+        // $handbook = Handbook::orderBy('id','desc')->first();
         $employees_under = auth()->user()->subbordinates;
         $attendance_employees = $attendance_controller->get_attendances_employees(date('Y-m-d'),date('Y-m-d'),$employees_under->pluck('employee_number')->toArray());
         $attendance_employees->load('employee.approved_leaves_with_pay');
-        $announcements = Announcement::with('user')->where('expired',null)
-        ->orWhere('expired',">=",date('Y-m-d'))->get();
+        // $announcements = Announcement::with('user')->where('expired',null)
+        // ->orWhere('expired',">=",date('Y-m-d'))->get();
         
 
         $holidays = Holiday::where('status','Permanent')
@@ -95,13 +95,13 @@ class HomeController extends Controller
         })
         ->orderBy('holiday_date','asc')->get();
 
-        $employee_anniversaries = Employee::with('department', 'company') ->where(function($query) {
-            $query->where('status', 'Active');
-        })
-        ->whereHas('company')
-        ->whereYear('original_date_hired','!=',date('Y'))
-        ->whereMonth('original_date_hired', date('m'))
-        ->get();
+        // $employee_anniversaries = Employee::with('department', 'company') ->where(function($query) {
+        //     $query->where('status', 'Active');
+        // })
+        // ->whereHas('company')
+        // ->whereYear('original_date_hired','!=',date('Y'))
+        // ->whereMonth('original_date_hired', date('m'))
+        // ->get();
 
         $probationary_employee = Employee::with('department', 'company', 'user_info', 'classification_info')
             ->whereHas('company') 
@@ -230,24 +230,24 @@ class HomeController extends Controller
             }
         }
         
-        return view('dashboards.home', array_merge([
+        return  array_merge([
             'header' => '',
             'emp' => $emp,
             'date_ranges' => $date_ranges,
-            'handbook' => $handbook,
+            // 'handbook' => $handbook,
             'attendance_now' => $attendance_now,
             'attendances' => $attendances,
             'schedules' => $schedules,
-            'announcements' => $announcements,
+            // 'announcements' => $announcements,
             'attendance_employees' => $attendance_employees,
             'holidays' => $holidays,
             'employee_birthday_celebrants' => $employee_birthday_celebrants,
             'employees_new_hire' => $employees_new_hire,
-            'employee_anniversaries' => $employee_anniversaries,
+            // 'employee_anniversaries' => $employee_anniversaries,
             'probationary_employee' => $probationary_employee,
             'classifications' => $classifications,
             'leaveTypes' => $leaveTypes,
-            'documents' => $documents,
+            // 'documents' => $documents,
             'usedLeaves' => $usedLeaves ?? collect(),
             'totalUsedLeaveDays' => $totalUsedLeaveDays,
             'lateRecords' => $lateRecords,
@@ -258,7 +258,22 @@ class HomeController extends Controller
             'hubLocations' => $hubLocations,
             'vl_balance' => $vl_balance,
             'sl_balance' => $sl_balance,
-        ], $adminStats));
+        ], $adminStats);
+    }
+
+     public function index()
+    {
+        $data = $this->prepareDashboardData();
+        return view('dashboards.home', $data);
+    }
+
+    /**
+     * Show the admin dashboard.
+     */
+    public function dashboardAdmin()
+    {
+        $data = $this->prepareDashboardData();
+        return view('dashboards.dashboard_admin', $data);
     }
 
     public function uploadEmployeeImage(Request $request)
@@ -342,39 +357,25 @@ class HomeController extends Controller
 
     public function checkUserAccess()
     {
-        $userId = auth()->id();
         $user = auth()->user();
-
-        if (!$userId || !$user) {
-            return response()->json([
-                'success' => false,
-                'hasImmediateAccess' => false,
-                'message' => 'User not authenticated.'
-            ]);
-        }
-
-        $hasGeneralAccess = ($user->login == 1);
-
-        $assignedHubIds = \DB::table('hub_per_location_id')
-            ->where('user_id', $userId)
-            ->pluck('hub_per_location_id');
-
-        if ($assignedHubIds->isEmpty() && $hasGeneralAccess) {
+        
+        if (!$user || $user->login != 1) {
             return response()->json([
                 'success' => true,
-                'hasImmediateAccess' => true,
-                'accessType' => 'unrestricted_access',
-                'message' => 'You have unrestricted camera access.',
-                'requiresLocation' => false
+                'hasImmediateAccess' => false,
+                'accessType' => 'no_access',
+                'message' => 'Location verification required.',
+                'requiresLocation' => true
             ]);
         }
 
+        // User has login = 1, give immediate access
         return response()->json([
             'success' => true,
-            'hasImmediateAccess' => false,
-            'accessType' => $assignedHubIds->isEmpty() ? 'no_access' : 'assigned_hubs',
-            'message' => 'Location verification required.',
-            'requiresLocation' => true
+            'hasImmediateAccess' => true,
+            'accessType' => 'unrestricted_access',
+            'message' => 'You have unrestricted camera access.',
+            'requiresLocation' => false
         ]);
     }
   
@@ -1310,111 +1311,111 @@ class HomeController extends Controller
     }
 
     public function latePie(Request $request)
-{
-    $location = $request->input('location');
-    $today = Carbon::today();
+    {
+        $location = $request->input('location');
+        $today = Carbon::today();
 
-    $dates = collect();
-    $day = $today->copy();
-    while ($dates->count() < 7) {
-        if (!$day->isWeekend()) {
-            $dates->push($day->format('Y-m-d'));
+        $dates = collect();
+        $day = $today->copy();
+        while ($dates->count() < 7) {
+            if (!$day->isWeekend()) {
+                $dates->push($day->format('Y-m-d'));
+            }
+            $day->subDay();
         }
-        $day->subDay();
-    }
-    $dates = $dates->reverse()->values();
+        $dates = $dates->reverse()->values();
 
-    $employeesQuery = Employee::select('user_id', 'employee_number', 'schedule_id')
-        ->whereIn('status', ['Active', 'HBU'])
-        ->whereNotNull('employee_number')
-        ->whereNotNull('schedule_id')
-        ->where('company_id', '!=', 2); // Exclude employees with company_id = 2
-    
-    if ($location) {
-        $employeesQuery->where('location', $location);
-    }
-    
-    $employees = $employeesQuery->get();
-    
-    if ($employees->isEmpty()) {
+        $employeesQuery = Employee::select('user_id', 'employee_number', 'schedule_id')
+            ->whereIn('status', ['Active', 'HBU'])
+            ->whereNotNull('employee_number')
+            ->whereNotNull('schedule_id')
+            ->where('company_id', '!=', 2); // Exclude employees with company_id = 2
+        
+        if ($location) {
+            $employeesQuery->where('location', $location);
+        }
+        
+        $employees = $employeesQuery->get();
+        
+        if ($employees->isEmpty()) {
+            return response()->json([
+                'labels' => $dates->map(fn($date) => Carbon::parse($date)->format('M d')),
+                'counts' => array_fill(0, 7, 0),
+            ]);
+        }
+
+        $employeeCodes = $employees->pluck('employee_number')->toArray();
+        $scheduleIds = $employees->pluck('schedule_id')->unique()->toArray();
+
+        $scheduleData = DB::table('schedule_datas')
+            ->select('schedule_id', 'time_in_from')
+            ->whereIn('schedule_id', $scheduleIds)
+            ->get()
+            ->keyBy('schedule_id');
+
+        $employeeToScheduleMap = $employees->pluck('schedule_id', 'employee_number')->toArray();
+
+        $attendanceData = DB::table('attendances')
+            ->select(
+                DB::raw('DATE(time_in) as date'), 
+                'employee_code', 
+                DB::raw('MIN(TIME(time_in)) as earliest_time_in')
+            )
+            ->whereIn('employee_code', $employeeCodes)
+            ->whereDate('time_in', '>=', $dates->first())
+            ->whereDate('time_in', '<=', $dates->last())
+            ->groupBy(DB::raw('DATE(time_in)'), 'employee_code') 
+            ->get()
+            ->groupBy('date');
+
+        $lateCounts = [];
+        foreach ($dates as $date) {
+            $dayAttendance = $attendanceData->get($date, collect());
+            $lateCount = 0;
+
+            foreach ($dayAttendance as $attendance) {
+                $employeeCode = $attendance->employee_code;
+                $timeIn = $attendance->earliest_time_in;
+                
+                $scheduleId = $employeeToScheduleMap[$employeeCode] ?? null;
+                if (!$scheduleId) continue;
+                
+                $schedule = $scheduleData->get($scheduleId);
+                if (!$schedule) continue;
+                
+                $timeInFrom = trim($schedule->time_in_from);
+                if (strlen($timeInFrom) === 5) {
+                    $timeInFrom .= ':00';
+                }
+                
+                try {
+                    $scheduleTime = Carbon::createFromFormat('H:i:s', $timeInFrom)->addMinute();
+                    $attendanceTime = Carbon::createFromFormat('H:i:s', $timeIn);
+                    
+                    if ($attendanceTime->gt($scheduleTime)) {
+                        $lateCount++;
+                    }
+                } catch (Exception $e) {
+                    continue;
+                }
+            }
+            
+            $lateCounts[] = $lateCount;
+        }
+
         return response()->json([
             'labels' => $dates->map(fn($date) => Carbon::parse($date)->format('M d')),
-            'counts' => array_fill(0, 7, 0),
+            'counts' => $lateCounts,
         ]);
     }
 
-    $employeeCodes = $employees->pluck('employee_number')->toArray();
-    $scheduleIds = $employees->pluck('schedule_id')->unique()->toArray();
-
-    $scheduleData = DB::table('schedule_datas')
-        ->select('schedule_id', 'time_in_from')
-        ->whereIn('schedule_id', $scheduleIds)
-        ->get()
-        ->keyBy('schedule_id');
-
-    $employeeToScheduleMap = $employees->pluck('schedule_id', 'employee_number')->toArray();
-
-    $attendanceData = DB::table('attendances')
-        ->select(
-            DB::raw('DATE(time_in) as date'), 
-            'employee_code', 
-            DB::raw('MIN(TIME(time_in)) as earliest_time_in')
-        )
-        ->whereIn('employee_code', $employeeCodes)
-        ->whereDate('time_in', '>=', $dates->first())
-        ->whereDate('time_in', '<=', $dates->last())
-        ->groupBy(DB::raw('DATE(time_in)'), 'employee_code') 
-        ->get()
-        ->groupBy('date');
-
-    $lateCounts = [];
-    foreach ($dates as $date) {
-        $dayAttendance = $attendanceData->get($date, collect());
-        $lateCount = 0;
-
-        foreach ($dayAttendance as $attendance) {
-            $employeeCode = $attendance->employee_code;
-            $timeIn = $attendance->earliest_time_in;
-            
-            $scheduleId = $employeeToScheduleMap[$employeeCode] ?? null;
-            if (!$scheduleId) continue;
-            
-            $schedule = $scheduleData->get($scheduleId);
-            if (!$schedule) continue;
-            
-            $timeInFrom = trim($schedule->time_in_from);
-            if (strlen($timeInFrom) === 5) {
-                $timeInFrom .= ':00';
-            }
-            
-            try {
-                $scheduleTime = Carbon::createFromFormat('H:i:s', $timeInFrom)->addMinute();
-                $attendanceTime = Carbon::createFromFormat('H:i:s', $timeIn);
-                
-                if ($attendanceTime->gt($scheduleTime)) {
-                    $lateCount++;
-                }
-            } catch (Exception $e) {
-                continue;
-            }
-        }
-        
-        $lateCounts[] = $lateCount;
-    }
-
-    return response()->json([
-        'labels' => $dates->map(fn($date) => Carbon::parse($date)->format('M d')),
-        'counts' => $lateCounts,
-    ]);
-}
-
     public function managerDashboard()
     { 
-        $handbook = Handbook::orderBy('id','desc')->first();
+        // $handbook = Handbook::orderBy('id','desc')->first();
         return view('dashboards.dashboard_manager',
         array(
             'header' => 'dashboard-manager',
-            'handbook' => $handbook,
+            // 'handbook' => $handbook,
         ));
     }
 

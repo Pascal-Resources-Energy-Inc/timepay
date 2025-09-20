@@ -553,6 +553,13 @@
                         <hr>
                         <h5>Super Admin</h5>
                     </li>
+
+                   <li class="nav-item @if ($header == 'Admindashboard') active @endif">
+                        <a class="nav-link" href="{{ url('/Admindashboard') }}" onclick='show()'>
+                            <i class="icon-head menu-icon"></i>
+                            <span class="menu-title">Dashboard Admin</span>
+                        </a>
+                    </li>
                     
                     @if (checkUserPrivilege('timekeeping_dashboard',auth()->user()->id) == 'yes')
                     {{-- @if(request()->getHost() != "hris.gazlite.com.ph") --}}

@@ -134,8 +134,8 @@
                           <td> {{(isset($form_approval->time_in)) ? date('h:i A', strtotime($form_approval->time_in)) : '----'}}</td>
                           <td> {{(isset($form_approval->time_out)) ? date('h:i A', strtotime($form_approval->time_out)) : '----'}}</td>
                           <td>
-                            <p title="{{$form_approval->remarks}}" style="width: 250px;white-space: nowrap; overflow: hidden;text-overflow: ellipsis;">
-                              {{$form_approval->remarks}}
+                            <p >
+                              {!!$form_approval->remarks!!}
                             </p>
                           </td>
                           <td id="tdStatus{{ $form_approval->id }}">
@@ -192,7 +192,7 @@
         </div>
     </div>
 </div>
-
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 <script>
   $(document).ready(function() {
       // "Select All" checkbox click event
@@ -239,7 +239,7 @@
 
       // Submit button click event to perform the POST request
       $('#approveAllBtn').on('click', function() {
-          swal({
+          Swal.fire({
             title: "Are you sure?",
             text: "You want to approve this DTR?",
             icon: "warning",
@@ -271,7 +271,7 @@
                   success: function(response) {
                     console.log(response)
                     document.getElementById("loader").style.display = "none";
-                    swal(" DTR has been Approved " + "("+response+")", {
+                    Swal.fire(" DTR has been Approved " + "("+response+")", {
                       icon: "success",
                     }).then(function() {
                       location.reload();
@@ -287,7 +287,7 @@
 
       // Submit button click event to perform the POST request
       $('#disApproveAllBtn').on('click', function() {
-          swal({
+          Swal.fire({
             title: "Are you sure?",
             text: "You want to disapprove this DTR?",
             icon: "warning",
@@ -319,7 +319,7 @@
                   success: function(response) {
                     console.log(response)
                     document.getElementById("loader").style.display = "none";
-                    swal(" DTR has been Disapproved " + "("+response+")", {
+                    Swal.fire(" DTR has been Disapproved " + "("+response+")", {
                       icon: "success",
                     }).then(function() {
                       location.reload();

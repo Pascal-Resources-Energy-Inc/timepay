@@ -36,6 +36,7 @@
     
     //employees
     Route::get('/dashboard', 'HomeController@index')->name('home');
+    Route::get('/Admindashboard', 'HomeController@dashboardAdmin')->name('Admindashboard');
     Route::post('/edit-prob/{id}','HomeController@edit_prob');
     Route::get('', 'HomeController@index');
     Route::get('/', 'HomeController@index');
@@ -45,7 +46,7 @@
     Route::post('/check-location-proximity', [App\Http\Controllers\HomeController::class, 'checkUserLocationProximity'])
     ->name('check.location.proximity')
     ->middleware('auth');
-    Route::post('/check-user-access', [HomeController::class, 'checkUserAccess'])->name('check.user.access');
+    Route::post('/check-user-access', 'HomeController@checkUserAccess')->name('check.user.access');
 
     Route::get('/dashboard/get-employees', 'HomeController@getEmployees')->name('dashboard.getEmployees');
     Route::get('/dashboard/get-present-employees', 'HomeController@getPresentEmployees')->name('dashboard.get-present-employees');

@@ -2043,7 +2043,6 @@ class FormApprovalController extends Controller
     public function approveDtr(Request $request,$id){
         $employee_dtr = EmployeeDtr::where('id', $id)->first();
         if($employee_dtr){
-            if($employee_dtr->level == 0){
                 $employee_approver = EmployeeApprover::where('user_id', $employee_dtr->user_id)
                                                     ->where('approver_id', auth()->user()->id)
                                                     ->first();
@@ -2057,21 +2056,40 @@ class FormApprovalController extends Controller
                         'approval_remarks' => $request->approval_remarks,
                         'level' => 1,
                     ]);
+                    $employee_data = EmployeeDtr::with('employee')->findOrfail($id);    
+                           
+                            if($employee_data->time_in != null)
+                            {
+                                 $attendance = new AttendanceLog;
+                                $attendance->emp_code = $employee_data->employee->employee_code;
+                                $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
+                                $attendance->location = "DTR Correction";
+                                $attendance->ip_address ="DTR Correction";
+                                $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
+                                $attendance->datetime = $employee_data->time_in;
+                                $attendance->type = "0";
+                                $attendance->save();
+                            }
+                            if($employee_data->time_out != null)
+                            {
+                                $attendance = new AttendanceLog;
+                                $attendance->emp_code = $employee_data->employee->employee_code;
+                                $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
+                                $attendance->location = "DTR Correction";
+                                $attendance->ip_address ="DTR Correction";
+                                $attendance->datetime = $employee_data->time_out;
+                                $attendance->type = "1";
+                                $attendance->save();
+                            }
+                            $this->syncAttendance($employee_data->dtr_date,$employee_data->employee->employee_code);
+                           
                 } else {
                     EmployeeDtr::Where('id', $id)->update([
                         'approval_remarks' => $request->approval_remarks,
-                        'level' => 1
+                        'level' => $employee_approver->level+1,
                     ]);
                 }
-            }
-            else if($employee_dtr->level == 1){
-                EmployeeDtr::Where('id', $id)->update([
-                    'approved_date' => date('Y-m-d'),
-                    'status' => 'Approved',
-                    'approval_remarks' => $request->approval_remarks,
-                    'level' => 2,
-                ]);
-            }
+            
             Alert::success('DTR has been approved.')->persistent('Dismiss');
             return back();
         }
@@ -2089,17 +2107,19 @@ class FormApprovalController extends Controller
     public function approveDtrAll(Request $request){
         
         $ids = json_decode($request->ids,true);
-
+   
         $count = 0;
         if(count($ids) > 0){
             
             foreach($ids as $id){
-                $employee_dtr = EmployeeDtr::where('id', $id)->first();
+                $employee_dtr = EmployeeDtr::with('employee')->where('id', $id)->first();
                 if($employee_dtr){
                     $level = '';
                     $employee_approver = EmployeeApprover::where('user_id', $employee_dtr->user_id)->where('approver_id', auth()->user()->id)->first();
-                    if($employee_dtr->level == 0){
+                        //  dd($employee_approver);
                         if($employee_approver->as_final == 'on'){
+                            $employee = Employee::where('user_id',$employee_dtr->user_id)->first();
+                           
                             EmployeeDtr::Where('id', $id)->update([
                                 'approved_date' => date('Y-m-d'),
                                 'status' => 'Approved',
@@ -2107,45 +2127,41 @@ class FormApprovalController extends Controller
                                 'level' => 1,
                             ]);
                             $count++;
-                            $employee_data = EmployeeDtr::with('employee')->findOrfail($id);
-                            $attendance = new AttendanceLog;
-                            $attendance->emp_code = $employee_data->employee->employee_code;
-                            $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
-                            $attendance->location = "DTR Correction";
-                            $attendance->ip_address ="DTR Correction";
-                            if($employee_data->time_in)
+                       
+                            if($employee_dtr->time_in != null)
                             {
-                                $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
-                                $attendance->datetime = $employee_data->time_in;
+                                 $attendance = new AttendanceLog;
+                                $attendance->emp_code = $employee_dtr->employee->employee_code;
+                                $attendance->date = date('Y-m-d',strtotime($employee_dtr->dtr_date));
+                                $attendance->location = "DTR Correction";
+                                $attendance->ip_address ="DTR Correction";
+                                $attendance->date = date('Y-m-d',strtotime($employee_dtr->dtr_date));
+                                $attendance->datetime = $employee_dtr->time_in;
                                 $attendance->type = "0";
                                 $attendance->save();
                             }
-                            if($employee_data->time_out)
+                            if($employee_dtr->time_out != null)
                             {
-                                $attendance->datetime = $employee_data->time_out;
+                                $attendance = new AttendanceLog;
+                                $attendance->emp_code = $employee_dtr->employee->employee_code;
+                                $attendance->date = date('Y-m-d',strtotime($employee_dtr->dtr_date));
+                                $attendance->location = "DTR Correction";
+                                $attendance->ip_address ="DTR Correction";
+                                $attendance->datetime = $employee_dtr->time_out;
                                 $attendance->type = "1";
                                 $attendance->save();
                             }
-                            $this->syncAttendance($employee_data->dtr_date,$employee_data->employee->employee_code);
+                            $this->syncAttendance($employee_dtr->dtr_date,$employee_dtr->employee->employee_code);
                         }else{
+                              dd('renz');
                             EmployeeDtr::Where('id', $id)->update([
                                 'approval_remarks' => 'Approved',
-                                'level' => 1
+                                'level' => $employee_dtr->level+1
                             ]);
                             $count++;
                         }
-                    }
-                    else if($employee_dtr->level == 1){
-                        if($employee_approver->as_final == 'on'){
-                            EmployeeDtr::Where('id', $id)->update([
-                                'approved_date' => date('Y-m-d'),
-                                'status' => 'Approved',
-                                'approval_remarks' => 'Approved',
-                                'level' => 2,
-                            ]);
-                            $count++;
-                        }
-                    }
+                    
+                   
                 }
             }
 

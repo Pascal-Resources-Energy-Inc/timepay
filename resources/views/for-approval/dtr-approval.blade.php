@@ -114,7 +114,7 @@
                           @if(empty($status) || $status == 'Pending')
                             <td align="center">
                               @foreach($form_approval->approver as $k => $approver)
-                                @if($approver->approver_id == $approver_id && $form_approval->level == $k && $form_approval->status == 'Pending')
+                                @if($approver->approver_id == $approver_id && $form_approval->level == $approver->level && $form_approval->status == 'Pending')
                                   
                                     <input type="checkbox" class="checkbox-item" data-id="{{$form_approval->id}}">
                                   </td>
@@ -141,8 +141,10 @@
                           <td id="tdStatus{{ $form_approval->id }}">
                             @foreach($form_approval->approver as $approver)
                               @if($form_approval->level >= $approver->level)
-                                  @if ($form_approval->level == 0 && $form_approval->status == 'Declined')
+                                  @if ($form_approval->status == 'Declined')
                                   {{$approver->approver_info->name}} -  <label class="badge badge-danger mt-1">Declined</label>
+                                  @elseif($form_approval->level == $approver->level)
+                                   {{$approver->approver_info->name}} -  <label class="badge badge-warning mt-1">Pending</label>
                                   @else
                                     {{$approver->approver_info->name}} -  <label class="badge badge-success mt-1">Approved</label>
                                   @endif

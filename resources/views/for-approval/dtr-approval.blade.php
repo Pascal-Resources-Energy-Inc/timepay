@@ -143,7 +143,7 @@
                               @if($form_approval->level >= $approver->level)
                                   @if ($form_approval->status == 'Declined')
                                   {{$approver->approver_info->name}} -  <label class="badge badge-danger mt-1">Declined</label>
-                                  @elseif($form_approval->level == $approver->level)
+                                  @elseif(($form_approval->level == $approver->level) && ($form_approval->status == 'Pending'))
                                    {{$approver->approver_info->name}} -  <label class="badge badge-warning mt-1">Pending</label>
                                   @else
                                     {{$approver->approver_info->name}} -  <label class="badge badge-success mt-1">Approved</label>

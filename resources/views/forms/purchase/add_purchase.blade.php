@@ -13,9 +13,11 @@
             <form method="POST" id="purchaseForm">
                 @csrf
                 <div class="modal-body">
-                    <!-- Limit Warning -->
+                    <!-- Dynamic Limit Warning -->
                     <div class="alert alert-info" role="alert">
-                        <i class="ti-info-alt"></i> <strong>Note:</strong> Maximum total of 10 items combined for both products.
+                        <i class="ti-info-alt"></i> <strong>Note:</strong> 
+                        You have <strong id="itemsAlreadyPurchased">{{ $stats['total_items_sum'] ?? 0 }}</strong> items already purchased. 
+                        You can order up to <strong id="remainingLimit">{{ 10 - ($stats['total_items_sum'] ?? 0) }}</strong> more items.
                     </div>
 
                     <!-- Cart Items -->
@@ -23,7 +25,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="mb-0"><i class="ti-shopping-cart"></i> Cart Items</h6>
-                                <span class="badge badge-primary" id="totalItems">0/10 items</span>
+                                <span class="badge badge-primary" id="totalItems">0/{{ 10 - ($stats['total_items_sum'] ?? 0) }} items</span>
                             </div>
 
                             <!-- Product 1: 330g LPG Cylinder -->
@@ -149,7 +151,10 @@
 </style>
 
 <script>
+// Get the already purchased items count from the server
+const ITEMS_ALREADY_PURCHASED = {{ $stats['total_items_sum'] ?? 0 }};
 const MAX_TOTAL_ITEMS = 10;
+const MAX_ALLOWED_ITEMS = MAX_TOTAL_ITEMS - ITEMS_ALREADY_PURCHASED;
 
 function increaseQty(inputId) {
     const input = document.getElementById(inputId);
@@ -157,11 +162,13 @@ function increaseQty(inputId) {
     const qty230 = parseInt(document.getElementById('qty230').value) || 0;
     const currentTotal = qty330 + qty230;
     
-    if (currentTotal >= MAX_TOTAL_ITEMS) {
+    // Check against remaining limit
+    if (currentTotal >= MAX_ALLOWED_ITEMS) {
         Swal.fire({
             icon: 'warning',
             title: 'Maximum Limit Reached',
-            text: `You can only order a total of ${MAX_TOTAL_ITEMS} items combined for both products.`,
+            html: `You have already purchased <strong>${ITEMS_ALREADY_PURCHASED}</strong> items.<br>` +
+                  `You can only order <strong>${MAX_ALLOWED_ITEMS}</strong> more items to reach the limit of ${MAX_TOTAL_ITEMS} items.`,
             confirmButtonColor: '#4B49AC'
         });
         return;
@@ -200,16 +207,16 @@ function updateTotal() {
     document.getElementById('subtotal').textContent = '₱ ' + subtotal.toFixed(2);
     document.getElementById('totalAmount').textContent = '₱ ' + totalAmount.toFixed(2);
     
-    // Update total items
+    // Update total items with dynamic limit
     const totalItems = qty330 + qty230;
-    document.getElementById('totalItems').textContent = totalItems + '/' + MAX_TOTAL_ITEMS + ' item' + (totalItems !== 1 ? 's' : '');
+    document.getElementById('totalItems').textContent = totalItems + '/' + MAX_ALLOWED_ITEMS + ' item' + (totalItems !== 1 ? 's' : '');
     
     // Change badge color based on limit
     const badge = document.getElementById('totalItems');
-    if (totalItems >= MAX_TOTAL_ITEMS) {
-        badge.classList.remove('badge-primary');
+    if (totalItems >= MAX_ALLOWED_ITEMS) {
+        badge.classList.remove('badge-primary', 'badge-warning');
         badge.classList.add('badge-danger');
-    } else if (totalItems >= MAX_TOTAL_ITEMS * 0.8) {
+    } else if (totalItems >= MAX_ALLOWED_ITEMS * 0.8) {
         badge.classList.remove('badge-primary', 'badge-danger');
         badge.classList.add('badge-warning');
     } else {
@@ -219,7 +226,7 @@ function updateTotal() {
     
     // Enable/disable place order button
     const placeOrderBtn = document.getElementById('placeOrderBtn');
-    if (totalItems > 0) {
+    if (totalItems > 0 && totalItems <= MAX_ALLOWED_ITEMS) {
         placeOrderBtn.disabled = false;
     } else {
         placeOrderBtn.disabled = true;
@@ -244,6 +251,18 @@ document.getElementById('purchaseForm').addEventListener('submit', function(e) {
         return;
     }
     
+    // Validate against remaining limit
+    if (totalItems > MAX_ALLOWED_ITEMS) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Limit Exceeded',
+            html: `You have already purchased <strong>${ITEMS_ALREADY_PURCHASED}</strong> items.<br>` +
+                  `You can only order <strong>${MAX_ALLOWED_ITEMS}</strong> more items.`,
+            confirmButtonColor: '#4B49AC'
+        });
+        return;
+    }
+    
     const totalAmount = document.getElementById('totalAmount').textContent;
     
     let itemsHtml = '<div class="text-left"><ul style="list-style: none; padding-left: 0;">';
@@ -255,7 +274,8 @@ document.getElementById('purchaseForm').addEventListener('submit', function(e) {
     }
     itemsHtml += '</ul>';
     itemsHtml += `<p><strong>Total Items:</strong> ${totalItems}</p>`;
-    itemsHtml += `<p><strong>Total Amount:</strong> ${totalAmount}</p></div>`;
+    itemsHtml += `<p><strong>Total Amount:</strong> ${totalAmount}</p>`;
+    itemsHtml += `<p class="text-muted" style="font-size: 0.9em;">After this order, you will have <strong>${ITEMS_ALREADY_PURCHASED + totalItems}</strong> out of ${MAX_TOTAL_ITEMS} items.</p></div>`;
     
     Swal.fire({
         title: 'Confirm Order',
@@ -333,4 +353,14 @@ document.getElementById('purchaseForm').addEventListener('submit', function(e) {
 $('#addPurchaseModal').on('shown.bs.modal', function () {
     updateTotal();
 });
+
+// Check if user has reached the limit on page load
+if (MAX_ALLOWED_ITEMS <= 0) {
+    // Disable the add purchase button if it exists
+    const addPurchaseBtn = document.querySelector('[data-target="#addPurchaseModal"]');
+    if (addPurchaseBtn) {
+        addPurchaseBtn.disabled = true;
+        addPurchaseBtn.title = 'You have reached the maximum limit of 10 items';
+    }
+}
 </script>

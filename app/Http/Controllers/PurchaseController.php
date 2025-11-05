@@ -13,39 +13,49 @@ class PurchaseController extends Controller
     {
         $header = 'purchase';
         
-        // Get filter parameters
         $from = $request->input('from', date('Y-m-d'));
         $to = $request->input('to', date('Y-m-d'));
         $status = $request->input('status');
         
-        // Base query
+        $userId = Auth::id();
+        
         $query = DB::table('purchases')
+            ->where('user_id', $userId)
             ->whereBetween('created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
             ->orderBy('created_at', 'desc');
         
-        // Apply status filter if provided
         if ($status) {
             $query->where('status', $status);
         }
         
         $purchases = $query->get();
         
-        // Get statistics
-        $totalPurchase = DB::table('purchases')->count();
+        $totalPurchase = DB::table('purchases')
+            ->where('user_id', $userId)
+            ->sum('total_items');
         
         $totalThisMonth = DB::table('purchases')
+            ->where('user_id', $userId)
             ->whereYear('created_at', date('Y'))
             ->whereMonth('created_at', date('m'))
             ->count();
         
         $remaining = DB::table('purchases')
+            ->where('user_id', $userId)
             ->where('status', 'Processing')
             ->count();
+        
+        $totalItemsThisMonth = DB::table('purchases')
+            ->where('user_id', $userId)
+            ->whereYear('created_at', date('Y'))
+            ->whereMonth('created_at', date('m'))
+            ->sum('total_items');
         
         $stats = [
             'total_purchase' => $totalPurchase,
             'total_this_month' => $totalThisMonth,
-            'remaining' => $remaining
+            'remaining' => $remaining,
+            'total_items_sum' => $totalItemsThisMonth
         ];
         
         return view('forms.purchase.purchase', compact('header', 'purchases', 'stats', 'from', 'to', 'status'));
@@ -71,6 +81,9 @@ class PurchaseController extends Controller
             // Generate unique QR code (10 characters)
             $qrCode = $this->generateUniqueQRCode();
             
+            // Generate the full claim URL for QR code
+            $claimUrl = route('purchase.claim', ['qr_code' => $qrCode]);
+            
             DB::table('purchases')->insert([
                 'order_number' => $orderNumber,
                 'user_id' => Auth::id(),
@@ -91,7 +104,8 @@ class PurchaseController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Purchase order created successfully!',
-                'qr_code' => $qrCode
+                'qr_code' => $qrCode,
+                'claim_url' => $claimUrl
             ]);
             
         } catch (\Exception $e) {
@@ -140,7 +154,7 @@ class PurchaseController extends Controller
             ], 500);
         }
     }
-
+    
     public function claimPage($qr_code)
     {
         try {

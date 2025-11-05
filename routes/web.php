@@ -97,8 +97,12 @@
 
     Route::get('show','EmployeeObController@ob');
 
+    //Purchase
+    Route::get('purchase','PurchaseController@index')->name('purchase');
+    Route::post('/purchases', 'PurchaseController@store')->name('purchases.store');
+    Route::post('/purchases/{id}/approve', 'PurchaseController@approve')->name('purchases.approve');
 
-
+    Route::get('/claim/{qr_code}', 'PurchaseController@claimPage')->name('purchases.claim');
 
 
     Route::get('overtime','EmployeeOvertimeController@overtime');
@@ -160,6 +164,13 @@
     Route::post('new-dtr','EmployeeDtrController@new');
     Route::post('edit-dtr/{id}', 'EmployeeDtrController@edit_dtr');
     Route::get('disable-dtr/{id}', 'EmployeeDtrController@disable_dtr');     
+
+    //Planning 
+    Route::get('planning', 'EmployeePlanningController@index');
+
+    //Dar 
+    Route::get('dar', 'DarController@index');
+
 
     //FOR APPROVAL
     Route::get('for-leave','FormApprovalController@form_leave_approval');

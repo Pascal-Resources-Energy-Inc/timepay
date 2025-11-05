@@ -8,43 +8,61 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 <div class="main-panel">
     <div class="content-wrapper">
         <div class='row grid-margin'>
-            <div class='col-lg-2 '>
+            <div class='col-lg-3'>
                 <div class="card card-tale">
                     <div class="card-body">
                         <div class="media">                
                             <div class="media-body">
-                                <h4 class="mb-4">Total Purchase</h4>
+                                <h4 class="mb-4">Total Items Purchased</h4>
                                 <h2 class="card-text">{{ $stats['total_purchase'] ?? 0 }}</h2>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div> 
-            <div class='col-lg-2'>
-                <div class="card card-light-danger">
-                    <div class="card-body">
-                        <div class="media">
-                            <div class="media-body">
-                                <h5 class="mb-4">Total This Month</h5>
-                                <h2 class="card-text">{{ $stats['total_this_month'] ?? 0 }}</h2>
+                                <small class="text-muted">All time</small>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class='col-lg-2'>
-                <div class="card text-success">
+            <div class='col-lg-3'>
+                <div class="card text-info">
                     <div class="card-body">
                         <div class="media">                
                             <div class="media-body">
-                                <h4 class="mb-4">Remaining</h4>
-                                <h2 class="card-text">{{ $stats['remaining'] ?? 0 }}</h2>
+                                <h4 class="mb-4">Items This Month</h4>
+                                <h2 class="card-text">{{ $stats['total_items_sum'] ?? 0 }}/10</h2>
+                                <small class="text-muted">{{ date('F Y') }}</small>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div> 
+            </div>
         </div>
+        
+        {{-- Monthly Limit Alert --}}
+        @if(($stats['total_items_sum'] ?? 0) >= 10)
+        <div class='row'>
+            <div class='col-lg-12'>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong><i class="ti-alert"></i> Monthly Limit Reached!</strong> 
+                    You have purchased {{ $stats['total_items_sum'] }} items this month. The limit will reset on {{ date('F 1, Y', strtotime('first day of next month')) }}.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        @elseif(($stats['total_items_sum'] ?? 0) >= 8)
+        <div class='row'>
+            <div class='col-lg-12'>
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <strong><i class="ti-info"></i> Almost at Limit!</strong> 
+                    You have {{ 10 - ($stats['total_items_sum'] ?? 0) }} items remaining for this month.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        @endif
+
         {{-- Place Order Section --}}
         <div class='row'>
             <div class="col-lg-12 grid-margin stretch-card">
@@ -52,9 +70,17 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                     <div class="card-body">
                         <h4 class="card-title">Place Order</h4>
                         <p class="card-description">
-                            <button type="button" class="btn btn-outline-success btn-icon-text" data-toggle="modal" data-target="#addPurchaseModal">
+                            <button type="button" 
+                                    class="btn btn-outline-success btn-icon-text" 
+                                    data-toggle="modal" 
+                                    data-target="#addPurchaseModal" 
+                                    id="addPurchaseBtn"
+                                    @if(($stats['total_items_sum'] ?? 0) >= 10) disabled @endif>
                                 <i class="ti-plus btn-icon-prepend"></i> Add Purchase
                             </button>
+                            @if(($stats['total_items_sum'] ?? 0) >= 10)
+                                <span class="badge badge-danger ml-2">Monthly Limit Reached</span>
+                            @endif
                         </p>
 
                         <form method='get' action="{{ route('purchase') }}" enctype="multipart/form-data">
@@ -98,7 +124,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                     <tr>
                                         <th>Date Filed</th>
                                         <th>Order #</th>
-                                        <th>Employee #</th>
+                                        <th>SKU</th>
                                         <th>Employee Name</th>
                                         <th>Total Items</th>
                                         <th>Total Amount</th>
@@ -128,10 +154,9 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                         </td>
                                         <td>
                                             @if($purchase->qr_code)
-                                                <div class="qr-code-container" style="text-align: center;">
-                                                    {!! QrCode::size(80)->generate($purchase->qr_code) !!}
-                                                    <br>
-                                                </div>
+                                                <button type="button" class="btn btn-sm btn-info" onclick="viewQRCode('{{ $purchase->order_number }}', '{{ route('purchase.claim', $purchase->qr_code) }}', {{ $purchase->total_items }})">
+                                                    <i class="ti-eye"></i> View QR
+                                                </button>
                                             @else
                                                 <span class="text-muted">-</span>
                                             @endif
@@ -139,7 +164,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="9" class="text-center">No purchase orders found</td>
+                                        <td colspan="8" class="text-center">No purchase orders found</td>
                                     </tr>
                                     @endforelse
                                 </tbody>
@@ -151,12 +176,82 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
         </div>
 
         @include('forms.purchase.add_purchase')
+        
+        {{-- QR Code Modal --}}
+        <div class="modal fade" id="qrCodeModal" tabindex="-1" role="dialog" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="qrCodeModalLabel">QR Code - <span id="orderNumberDisplay"></span></h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div id="qrCodeDisplay" class="mb-3"></div>
+                        <div class="alert alert-info">
+                            <strong>Total Items Purchased:</strong> <span id="totalItemsDisplay"></span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
 
 @section('obScript')
 <script>
+// Check purchase limit before opening Add Purchase modal
+document.addEventListener('DOMContentLoaded', function() {
+    const addPurchaseBtn = document.getElementById('addPurchaseBtn');
+    const totalItemsThisMonth = {{ $stats['total_items_sum'] ?? 0 }};
+    const itemLimit = 10;
+    
+    if (addPurchaseBtn && !addPurchaseBtn.disabled) {
+        addPurchaseBtn.addEventListener('click', function(e) {
+            if (totalItemsThisMonth >= itemLimit) {
+                e.preventDefault();
+                e.stopPropagation();
+                Swal.fire({
+                    title: "Monthly Limit Reached!",
+                    html: `You have purchased <strong>${totalItemsThisMonth}</strong> items this month.<br>` +
+                          `The limit will reset on <strong>{{ date('F 1, Y', strtotime('first day of next month')) }}</strong>.`,
+                    icon: "warning",
+                    confirmButtonColor: '#d33',
+                });
+            }
+        });
+    }
+});
+
+function viewQRCode(orderNumber, qrUrl, totalItems) {
+    
+    // Generate QR code
+    document.getElementById('qrCodeDisplay').innerHTML = '';
+    const qrCodeDiv = document.createElement('div');
+    
+    // Use a QR code library or API to generate the QR code
+    // For simplicity, using a third-party API
+    const qrCodeImg = document.createElement('img');
+    qrCodeImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}`;
+    qrCodeImg.alt = 'QR Code';
+    qrCodeImg.style.maxWidth = '200px';
+    
+    qrCodeDiv.appendChild(qrCodeImg);
+    document.getElementById('qrCodeDisplay').appendChild(qrCodeDiv);
+    
+    // Update modal content
+    document.getElementById('orderNumberDisplay').textContent = orderNumber;
+    document.getElementById('totalItemsDisplay').textContent = totalItems;
+    
+    // Show modal
+    $('#qrCodeModal').modal('show');
+}
+
 function approvePurchase(id) {
     Swal.fire({
         title: "Approve Purchase?",
@@ -193,49 +288,6 @@ function approvePurchase(id) {
                     });
                 }
             });
-        }
-    });
-}
-
-function cancelPurchase(id) {
-    Swal.fire({
-        title: "Are you sure?",
-        text: "You want to cancel this purchase?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: 'Yes, cancel it!',
-        cancelButtonText: 'No, keep it',
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-    }).then((result) => { 
-        if (result.isConfirmed) {
-            const loader = document.getElementById("loader");
-            if (loader) loader.style.display = "block";
-            
-            $.ajax({
-                url: "{{ url('disable-planning') }}/" + id,
-                method: "GET",
-                data: { id: id },
-                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                success: function(data) {
-                    if (loader) loader.style.display = "none";
-                    Swal.fire({
-                        title: "Cancelled!",
-                        text: "Purchase has been cancelled!",
-                        icon: "success"
-                    }).then(function() { location.reload(); });
-                },
-                error: function(xhr, status, error) {
-                    if (loader) loader.style.display = "none";
-                    Swal.fire({
-                        title: "Error!",
-                        text: "Failed to cancel purchase. Please try again.",
-                        icon: "error"
-                    });
-                }
-            });
-        } else {
-            Swal.fire({ text: "Purchase cancellation was stopped.", icon: "info" });
         }
     });
 }

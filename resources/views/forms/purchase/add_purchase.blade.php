@@ -2,7 +2,7 @@
 <div class="modal fade" id="addPurchaseModal" tabindex="-1" role="dialog" aria-labelledby="addPurchaseModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header text-black">
                 <h5 class="modal-title" id="addPurchaseModalLabel">
                     <i class="ti-shopping-cart"></i> Confirm Order
                 </h5>
@@ -33,7 +33,7 @@
                                 <div class="row align-items-center">
                                     <div class="col-md-2 text-center">
                                         <div class="product-image bg-light rounded p-2">
-                                            <i class="ti-package" style="font-size: 40px; color: #4B49AC;"></i>
+                                            <img src="{{ asset('images/330g.png') }}" alt="330g LPG Cylinder" style="width: 55px; height: auto;">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -67,7 +67,7 @@
                                 <div class="row align-items-center">
                                     <div class="col-md-2 text-center">
                                         <div class="product-image bg-light rounded p-2">
-                                            <i class="ti-package" style="font-size: 40px; color: #57B657;"></i>
+                                            <img src="{{ asset('images/230g.png') }}" alt="230g LPG Cylinder" style="width: 55px; height: auto;">
                                         </div>
                                     </div>
                                     <div class="col-md-6">

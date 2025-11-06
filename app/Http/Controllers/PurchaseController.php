@@ -20,9 +20,11 @@ class PurchaseController extends Controller
         $userId = Auth::id();
         
         $query = DB::table('purchases')
-            ->where('user_id', $userId)
-            ->whereBetween('created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
-            ->orderBy('created_at', 'desc');
+        ->leftJoin('users', 'purchases.user_id', '=', 'users.id')
+        ->select('purchases.*', 'users.name as purchaser_name')
+        ->where('purchases.user_id', $userId)
+        ->whereBetween('purchases.created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
+        ->orderBy('purchases.created_at', 'desc');
         
         if ($status) {
             $query->where('status', $status);
@@ -67,6 +69,8 @@ class PurchaseController extends Controller
             $validated = $request->validate([
                 'employee_number' => 'nullable|string|max:50',
                 'employee_name' => 'nullable|string|max:255',
+                'qty_330g' => 'nullable|integer|min:0',
+                'qty_230g' => 'nullable|integer|min:0',
                 'total_items' => 'required|integer|min:1',
                 'subtotal' => 'required|numeric|min:0',
                 'discount' => 'nullable|numeric|min:0',
@@ -89,6 +93,8 @@ class PurchaseController extends Controller
                 'user_id' => Auth::id(),
                 'employee_number' => $validated['employee_number'] ?? null,
                 'employee_name' => $validated['employee_name'] ?? null,
+                'qty_330g' => $validated['qty_330g'] ?? 0,
+                'qty_230g' => $validated['qty_230g'] ?? 0,
                 'total_items' => $validated['total_items'],
                 'subtotal' => $validated['subtotal'],
                 'discount' => $validated['discount'] ?? 0,
@@ -158,9 +164,11 @@ class PurchaseController extends Controller
     public function claimPage($qr_code)
     {
         try {
-            // Find purchase by QR code
+            // Find purchase by QR code and join with users table to get purchaser name
             $purchase = DB::table('purchases')
-                ->where('qr_code', $qr_code)
+                ->leftJoin('users', 'purchases.user_id', '=', 'users.id')
+                ->select('purchases.*', 'users.name as purchaser_name')
+                ->where('purchases.qr_code', $qr_code)
                 ->first();
             
             // If purchase not found
@@ -179,6 +187,67 @@ class PurchaseController extends Controller
                 'error' => 'System Error',
                 'message' => 'An error occurred while retrieving your order. Please try again later.'
             ]);
+        }
+    }
+    
+    public function processClaim(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'purchase_id' => 'required|integer|exists:purchases,id',
+                'latitude' => 'required|numeric',
+                'longitude' => 'required|numeric',
+                'address' => 'required|string',
+                'giver_name' => 'required|string|max:255',
+                'giver_position' => 'required|string|max:255',
+            ]);
+            
+            // Check if purchase is still in Processing status
+            $purchase = DB::table('purchases')->where('id', $validated['purchase_id'])->first();
+            
+            if (!$purchase) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Purchase order not found.'
+                ], 404);
+            }
+            
+            if ($purchase->status !== 'Processing') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This order has already been claimed or is no longer available.'
+                ], 400);
+            }
+            
+            // Update purchase with claim information
+            DB::table('purchases')
+                ->where('id', $validated['purchase_id'])
+                ->update([
+                    'status' => 'Claimed',
+                    'claimed_at' => now(),
+                    'claim_latitude' => $validated['latitude'],
+                    'claim_longitude' => $validated['longitude'],
+                    'claim_address' => $validated['address'],
+                    'giver_name' => $validated['giver_name'],
+                    'giver_position' => $validated['giver_position'],
+                    'updated_at' => now()
+                ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Order claimed successfully!'
+            ]);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed: ' . implode(', ', $e->validator->errors()->all())
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to process claim: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

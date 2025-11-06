@@ -815,6 +815,7 @@
                     <li class="nav-item"> <a class="nav-link" href="{{ url('/attendance-report') }}">Attendance Reports</a></li>
                     {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/system-report') }}">Online In/Out Report</a></li> --}}
                     <li class="nav-item"><a class="nav-link" href="{{url('ob_files')}}">OB Uploaded Files</a></li>
+                     <li class="nav-item"><a class="nav-link" href="{{route('purchase.reports')}}">LPG Refill Reports</a></li>
                 </ul>
             </div>
         </li>

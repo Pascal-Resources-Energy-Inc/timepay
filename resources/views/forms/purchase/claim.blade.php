@@ -534,13 +534,6 @@
                             <div class="info-value">{{ $purchase->order_number }}</div>
                         </div>
 
-                        @if($purchase->purchaser_name)
-                        <div class="info-item">
-                            <div class="info-label">Purchased By</div>
-                            <div class="info-value">{{ $purchase->purchaser_name }}</div>
-                        </div>
-                        @endif
-
                         @if($purchase->employee_name)
                         <div class="info-item">
                             <div class="info-label">Employee Name</div>
@@ -552,6 +545,13 @@
                         <div class="info-item">
                             <div class="info-label">Employee Number</div>
                             <div class="info-value">{{ $purchase->employee_number }}</div>
+                        </div>
+                        @endif
+
+                        @if($purchase->employee_work_place)
+                        <div class="info-item">
+                            <div class="info-label">Work Location</div>
+                            <div class="info-value">{{ $purchase->employee_work_place }}</div>
                         </div>
                         @endif
 
@@ -668,7 +668,7 @@
                             {{-- Order has expired - should be forfeited --}}
                             <div class="alert-message alert-danger" style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
                                 <i class="fas fa-exclamation-circle"></i>
-                                <span>This order has expired and can no longer be claimed. Orders must be claimed within 3 business days (excluding weekends) of purchase.</span>
+                                <span>This order has expired and can no longer be claimed. Orders must be claimed within 3 business days (excluding weekends).</span>
                             </div>
                             
                             <div class="alert-message alert-info" style="margin-top: 15px;">
@@ -720,6 +720,11 @@
                                         <div class="address-display" id="addressDisplay">
                                             <p id="addressText">Fetching address...</p>
                                         </div>
+                                    </div>
+
+                                     <div class="form-group">
+                                        <label for="si">SI *</label>
+                                        <input type="text" id="si" name="si" placeholder="Name of staff giving the product">
                                     </div>
 
                                     <div class="form-group">

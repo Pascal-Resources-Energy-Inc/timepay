@@ -105,6 +105,9 @@
     Route::get('/claim/{qr_code}', 'PurchaseController@claimPage')->name('purchase.claim');
     Route::post('/claim/process', 'PurchaseController@processClaim')->name('purchase.processClaim');
 
+    Route::get('/purchase/reports', 'PurchaseController@reports')->name('purchase.reports');
+    Route::get('/purchase/export', 'PurchaseController@export')->name('purchase.export');
+
     Route::get('overtime','EmployeeOvertimeController@overtime');
     //Overtime
     Route::get('overtime','EmployeeOvertimeController@overtime');

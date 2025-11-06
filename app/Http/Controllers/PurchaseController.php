@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Purchase;
+use App\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\PurchaseExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PurchaseController extends Controller
 {
@@ -65,10 +69,8 @@ class PurchaseController extends Controller
     
     public function store(Request $request)
     {
-        try {
+        try {   
             $validated = $request->validate([
-                'employee_number' => 'nullable|string|max:50',
-                'employee_name' => 'nullable|string|max:255',
                 'qty_330g' => 'nullable|integer|min:0',
                 'qty_230g' => 'nullable|integer|min:0',
                 'total_items' => 'required|integer|min:1',
@@ -79,20 +81,21 @@ class PurchaseController extends Controller
                 'notes' => 'nullable|string'
             ]);
             
+            // Get employee info from logged-in user
+            $employee = Employee::where('user_id', Auth::id())->first();
+            
             $lastOrder = DB::table('purchases')->orderBy('id', 'desc')->first();
             $orderNumber = 'ON-' . ($lastOrder ? ($lastOrder->id + 1) : 1);
             
-            // Generate unique QR code (10 characters)
             $qrCode = $this->generateUniqueQRCode();
-            
-            // Generate the full claim URL for QR code
             $claimUrl = route('purchase.claim', ['qr_code' => $qrCode]);
             
             DB::table('purchases')->insert([
                 'order_number' => $orderNumber,
                 'user_id' => Auth::id(),
-                'employee_number' => $validated['employee_number'] ?? null,
-                'employee_name' => $validated['employee_name'] ?? null,
+                'employee_number' => $employee ? $employee->employee_number : null,
+                'employee_name' => $employee ? ($employee->first_name . ' ' . $employee->last_name) : null,
+                'employee_work_place' => $employee ? $employee->location : null,
                 'qty_330g' => $validated['qty_330g'] ?? 0,
                 'qty_230g' => $validated['qty_230g'] ?? 0,
                 'total_items' => $validated['total_items'],
@@ -197,6 +200,7 @@ class PurchaseController extends Controller
                 'purchase_id' => 'required|integer|exists:purchases,id',
                 'latitude' => 'required|numeric',
                 'longitude' => 'required|numeric',
+                'si' => 'nullable|string',
                 'address' => 'required|string',
                 'giver_name' => 'required|string|max:255',
                 'giver_position' => 'required|string|max:255',
@@ -250,6 +254,7 @@ class PurchaseController extends Controller
                     'claimed_at' => now(),
                     'claim_latitude' => $validated['latitude'],
                     'claim_longitude' => $validated['longitude'],
+                    'si' => $validated['si'] ?? 'N/A',
                     'claim_address' => $validated['address'],
                     'giver_name' => $validated['giver_name'],
                     'giver_position' => $validated['giver_position'],
@@ -291,5 +296,39 @@ class PurchaseController extends Controller
         }
         
         return $currentDate;
+    }
+
+    public function export(Request $request)
+    {
+        $from = $request->input('from', date('Y-m-d'));
+        $to = $request->input('to', date('Y-m-d'));
+        $userId = Auth::id();
+        
+        $filename = 'Discounted_LPG_Refill_' . $from . '_to_' . $to . '.xlsx';
+        
+        return Excel::download(new PurchaseExport($from, $to, $userId), $filename);
+    }
+
+    public function reports(Request $request)
+    {
+        $header ='reports';
+        $from = $request->input('from');
+        $to = $request->input('to');
+        
+        $purchases = null;
+        
+        if ($from && $to) {
+            $userId = Auth::id();
+            
+            $purchases = DB::table('purchases')
+                ->leftJoin('users', 'purchases.user_id', '=', 'users.id')
+                ->select('purchases.*', 'users.name as purchaser_name')
+                ->where('purchases.user_id', $userId)
+                ->whereBetween('purchases.created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
+                ->orderBy('purchases.created_at', 'desc')
+                ->get();
+        }
+        
+        return view('reports.discounted_refill_reports', compact('header', 'purchases'));
     }
 }

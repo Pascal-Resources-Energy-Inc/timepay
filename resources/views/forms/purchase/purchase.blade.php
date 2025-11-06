@@ -74,13 +74,9 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                     class="btn btn-outline-success btn-icon-text" 
                                     data-toggle="modal" 
                                     data-target="#addPurchaseModal" 
-                                    id="addPurchaseBtn"
-                                    @if(($stats['total_items_sum'] ?? 0) >= 10) disabled @endif>
+                                    id="addPurchaseBtn">
                                 <i class="ti-plus btn-icon-prepend"></i> Add Purchase
                             </button>
-                            @if(($stats['total_items_sum'] ?? 0) >= 10)
-                                <span class="badge badge-danger ml-2">Monthly Limit Reached</span>
-                            @endif
                         </p>
 
                         <form method='get' action="{{ route('purchase') }}" enctype="multipart/form-data">
@@ -125,7 +121,9 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                         <th>Date Filed</th>
                                         <th>Order #</th>
                                         <th>SKU</th>
+                                        <th>Employee Number</th>
                                         <th>Employee Name</th>
+                                        <th>Work Location</th>
                                         <th>Total Items</th>
                                         <th>Total Amount</th>
                                         <th>Status</th>
@@ -150,7 +148,9 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                         <td>{{ date('M. d, Y', strtotime($purchase->created_at)) }}</td>
                                         <td>{{ $purchase->order_number }}</td>
                                         <td>{{ 'N/A' }}</td>
+                                        <td>{{ $purchase->employee_number ?? 'N/A' }}</td>
                                         <td>{{ $purchase->purchaser_name ?? 'N/A' }}</td>
+                                        <td>{{ $purchase->employee_work_place ?? 'N/A' }}</td>
                                         <td>{{ $purchase->total_items }}</td>
                                         <td>₱ {{ number_format($purchase->total_amount, 2) }}</td>
                                         <td>
@@ -278,26 +278,19 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 @section('obScript')
 <script>
-// Check purchase limit before opening Add Purchase modal
+// Force button to always be enabled
 document.addEventListener('DOMContentLoaded', function() {
     const addPurchaseBtn = document.getElementById('addPurchaseBtn');
-    const totalItemsThisMonth = {{ $stats['total_items_sum'] ?? 0 }};
-    const itemLimit = 10;
-    
-    if (addPurchaseBtn && !addPurchaseBtn.disabled) {
-        addPurchaseBtn.addEventListener('click', function(e) {
-            if (totalItemsThisMonth >= itemLimit) {
-                e.preventDefault();
-                e.stopPropagation();
-                Swal.fire({
-                    title: "Monthly Limit Reached!",
-                    html: `You have purchased <strong>${totalItemsThisMonth}</strong> items this month.<br>` +
-                          `The limit will reset on <strong>{{ date('F 1, Y', strtotime('first day of next month')) }}</strong>.`,
-                    icon: "warning",
-                    confirmButtonColor: '#d33',
-                });
-            }
-        });
+    if (addPurchaseBtn) {
+        // Remove disabled attribute if it exists
+        addPurchaseBtn.removeAttribute('disabled');
+        // Ensure it's always clickable
+        addPurchaseBtn.style.pointerEvents = 'auto';
+        addPurchaseBtn.style.opacity = '1';
+        
+        // Re-attach the modal trigger
+        addPurchaseBtn.setAttribute('data-toggle', 'modal');
+        addPurchaseBtn.setAttribute('data-target', '#addPurchaseModal');
     }
 });
 

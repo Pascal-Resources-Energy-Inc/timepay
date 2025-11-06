@@ -578,7 +578,7 @@
                         @if($purchase->qty_330g > 0)
                         <div class="item-row">
                             <span class="item-label">
-                                330g LPG Cylinder - Refill
+                                <i class="fas fa-fire"></i> 330g LPG Cylinder - Refill
                             </span>
                             <span class="item-value">{{ $purchase->qty_330g }} pcs × ₱57.00 = ₱{{ number_format($purchase->qty_330g * 57, 2) }}</span>
                         </div>
@@ -587,7 +587,7 @@
                         @if($purchase->qty_230g > 0)
                         <div class="item-row">
                             <span class="item-label">
-                                230g LPG Cylinder - Refill
+                                <i class="fas fa-fire"></i> 230g LPG Cylinder - Refill
                             </span>
                             <span class="item-value">{{ $purchase->qty_230g }} pcs × ₱40.00 = ₱{{ number_format($purchase->qty_230g * 40, 2) }}</span>
                         </div>
@@ -642,59 +642,141 @@
                         </div>
                         @endif
                     @elseif($purchase->status == 'Processing')
-                        <!-- Claim Form -->
-                        <div class="form-section">
-                            <div class="form-header">
-                                <i class="fas fa-clipboard-check"></i>
-                                <span>Claim This Order</span>
+                        @php
+                            $createdAt = new \DateTime($purchase->created_at);
+                            $now = new \DateTime();
+                            
+                            // Calculate business days (excluding weekends)
+                            function getBusinessDays($startDate, $endDate) {
+                                $businessDays = 0;
+                                $currentDate = clone $startDate;
+                                
+                                while ($currentDate <= $endDate) {
+                                    $dayOfWeek = $currentDate->format('N'); // 1 (Monday) to 7 (Sunday)
+                                    if ($dayOfWeek < 6) { // 1-5 are weekdays (Mon-Fri)
+                                        $businessDays++;
+                                    }
+                                    $currentDate->modify('+1 day');
+                                }
+                                
+                                return $businessDays;
+                            }
+                            
+                            function addBusinessDays($date, $days) {
+                                $currentDate = clone $date;
+                                $addedDays = 0;
+                                
+                                while ($addedDays < $days) {
+                                    $currentDate->modify('+1 day');
+                                    $dayOfWeek = $currentDate->format('N');
+                                    if ($dayOfWeek < 6) { // Weekday
+                                        $addedDays++;
+                                    }
+                                }
+                                
+                                return $currentDate;
+                            }
+                            
+                            $businessDaysPassed = getBusinessDays($createdAt, $now);
+                            $expiresAt = addBusinessDays($createdAt, 3);
+                            $isExpired = $now > $expiresAt;
+                            
+                            // Calculate remaining time
+                            $remainingBusinessDays = 3 - $businessDaysPassed;
+                            $hoursUntilExpiry = null;
+                            
+                            if (!$isExpired) {
+                                $interval = $now->diff($expiresAt);
+                                $totalHours = ($interval->days * 24) + $interval->h;
+                                $hoursUntilExpiry = $totalHours;
+                            }
+                        @endphp
+                        
+                        @if($isExpired)
+                            {{-- Order has expired - should be forfeited --}}
+                            <div class="alert-message alert-danger" style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>This order has expired and can no longer be claimed. Orders must be claimed within 3 business days (excluding weekends) of purchase.</span>
                             </div>
+                            
+                            <div class="alert-message alert-info" style="margin-top: 15px;">
+                                <i class="fas fa-info-circle"></i>
+                                <span>This order was placed on {{ date('F d, Y - h:i A', strtotime($purchase->created_at)) }} and expired on {{ $expiresAt->format('F d, Y - h:i A') }}.</span>
+                            </div>
+                        @else
+                            {{-- Order is still valid - show claim form --}}
+                            
+                            <!-- Expiration Warning -->
+                            @if($remainingBusinessDays <= 0 && $hoursUntilExpiry <= 24)
+                                <div class="alert-message alert-danger" style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; margin-bottom: 20px;">
+                                    <i class="fas fa-clock"></i>
+                                    <span><strong>Urgent!</strong> This order will expire in approximately {{ max(0, (int)$hoursUntilExpiry) }} hour(s). Please claim it before {{ $expiresAt->format('F d, Y - h:i A') }}.</span>
+                                </div>
+                            @elseif($remainingBusinessDays == 1)
+                                <div class="alert-message alert-warning" style="margin-bottom: 20px;">
+                                    <i class="fas fa-clock"></i>
+                                    <span>This order will expire in 1 business day. Please claim it before {{ $expiresAt->format('F d, Y - h:i A') }}.</span>
+                                </div>
+                            @else
+                                <div class="alert-message alert-info" style="margin-bottom: 20px;">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>This order must be claimed by {{ $expiresAt->format('F d, Y - h:i A') }} (within 3 business days, excluding weekends).</span>
+                                </div>
+                            @endif
 
-                            <form id="claimForm">
-                                <input type="hidden" name="purchase_id" value="{{ $purchase->id }}">
-                                <input type="hidden" name="latitude" id="latitude">
-                                <input type="hidden" name="longitude" id="longitude">
-                                <input type="hidden" name="address" id="address">
+                            <!-- Claim Form -->
+                            <div class="form-section">
+                                <div class="form-header">
+                                    <i class="fas fa-clipboard-check"></i>
+                                    <span>Claim This Order</span>
+                                </div>
 
-                                <button type="button" class="btn btn-location" id="getLocationBtn">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>Get My Location</span>
-                                </button>
+                                <form id="claimForm">
+                                    <input type="hidden" name="purchase_id" value="{{ $purchase->id }}">
+                                    <input type="hidden" name="latitude" id="latitude">
+                                    <input type="hidden" name="longitude" id="longitude">
+                                    <input type="hidden" name="address" id="address">
 
-                                <div class="location-info" id="locationInfo" style="display: none;">
-                                    <p><strong><i class="fas fa-map-pin"></i> Location Details:</strong></p>
-                                    <p style="font-size: 12px; color: #6c757d;">Coordinates: <span id="coordsText"></span></p>
-                                    <div class="address-display" id="addressDisplay">
-                                        <p id="addressText">Fetching address...</p>
+                                    <button type="button" class="btn btn-location" id="getLocationBtn">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>Get My Location</span>
+                                    </button>
+
+                                    <div class="location-info" id="locationInfo" style="display: none;">
+                                        <p><strong><i class="fas fa-map-pin"></i> Location Details:</strong></p>
+                                        <p style="font-size: 12px; color: #6c757d;">Coordinates: <span id="coordsText"></span></p>
+                                        <div class="address-display" id="addressDisplay">
+                                            <p id="addressText">Fetching address...</p>
+                                        </div>
                                     </div>
+
+                                    <div class="form-group">
+                                        <label for="giver_name">Given By (Staff Name) *</label>
+                                        <input type="text" id="giver_name" name="giver_name" required placeholder="Name of staff giving the product">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="giver_position">Giver Job Position *</label>
+                                        <input type="text" id="giver_position" name="giver_position" required placeholder="Job title/position of staff">
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary" id="proceedBtn" disabled>
+                                        <i class="fas fa-check"></i>
+                                        <span>Proceed to Claim</span>
+                                    </button>
+                                </form>
+
+                                <div class="loading" id="loadingSpinner">
+                                    <div class="spinner"></div>
+                                    <p>Processing your claim...</p>
                                 </div>
-
-                                <div class="form-group">
-                                    <label for="giver_name">Given By (Staff Name) *</label>
-                                    <input type="text" id="giver_name" name="giver_name" required placeholder="Name of staff giving the product">
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="giver_position">Giver Job Position *</label>
-                                    <input type="text" id="giver_position" name="giver_position" required placeholder="Job title/position of staff">
-                                </div>
-
-                                <button type="submit" class="btn btn-primary" id="proceedBtn" disabled>
-                                    <i class="fas fa-check"></i>
-                                    <span>Proceed to Claim</span>
-                                </button>
-                            </form>
-
-                            <div class="loading" id="loadingSpinner">
-                                <div class="spinner"></div>
-                                <p>Processing your claim...</p>
                             </div>
-                        </div>
 
-                        <div class="alert-message alert-warning">
-                            <i class="fas fa-info-circle"></i>
-                            <span>Please capture your location and fill in all required information to claim this order.</span>
-                        </div>
-                    @endif
+                            <div class="alert-message alert-warning">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Please capture your location and fill in all required information to claim this order. <strong>Note:</strong> Weekends (Saturday & Sunday) are not counted in the 3-day claim period.</span>
+                            </div>
+                        @endif
 
                     <!-- Footer Info -->
                     <div class="footer-info">

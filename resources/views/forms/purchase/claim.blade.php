@@ -647,35 +647,7 @@
                             $now = new \DateTime();
                             
                             // Calculate business days (excluding weekends)
-                            function getBusinessDays($startDate, $endDate) {
-                                $businessDays = 0;
-                                $currentDate = clone $startDate;
-                                
-                                while ($currentDate <= $endDate) {
-                                    $dayOfWeek = $currentDate->format('N'); // 1 (Monday) to 7 (Sunday)
-                                    if ($dayOfWeek < 6) { // 1-5 are weekdays (Mon-Fri)
-                                        $businessDays++;
-                                    }
-                                    $currentDate->modify('+1 day');
-                                }
-                                
-                                return $businessDays;
-                            }
-                            
-                            function addBusinessDays($date, $days) {
-                                $currentDate = clone $date;
-                                $addedDays = 0;
-                                
-                                while ($addedDays < $days) {
-                                    $currentDate->modify('+1 day');
-                                    $dayOfWeek = $currentDate->format('N');
-                                    if ($dayOfWeek < 6) { // Weekday
-                                        $addedDays++;
-                                    }
-                                }
-                                
-                                return $currentDate;
-                            }
+                           
                             
                             $businessDaysPassed = getBusinessDays($createdAt, $now);
                             $expiresAt = addBusinessDays($createdAt, 3);
@@ -777,7 +749,7 @@
                                 <span>Please capture your location and fill in all required information to claim this order. <strong>Note:</strong> Weekends (Saturday & Sunday) are not counted in the 3-day claim period.</span>
                             </div>
                         @endif
-
+                    @endif
                     <!-- Footer Info -->
                     <div class="footer-info">
                         <p>HERA LPG Refill System • Keep this page for your records</p>
@@ -786,7 +758,23 @@
             </div>
         </div>
     </div>
-
+    @php
+     function getBusinessDays($startDate, $endDate) {
+                                $businessDays = 0;
+                                $currentDate = clone $startDate;
+                                
+                                while ($currentDate <= $endDate) {
+                                    $dayOfWeek = $currentDate->format('N'); // 1 (Monday) to 7 (Sunday)
+                                    if ($dayOfWeek < 6) { // 1-5 are weekdays (Mon-Fri)
+                                        $businessDays++;
+                                    }
+                                    $currentDate->modify('+1 day');
+                                }
+                                
+                                return $businessDays;
+    }
+   
+    @endphp
     <script>
         let locationCaptured = false;
         let currentAddress = '';

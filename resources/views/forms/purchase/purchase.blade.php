@@ -15,7 +15,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                             <div class="media-body">
                                 <h4 class="mb-4">Total Items Purchased</h4>
                                 <h2 class="card-text">{{ $stats['total_purchase'] ?? 0 }}</h2>
-                                <small class="text-muted">All time</small>
+                                <small class="mb-4">All time</small>
                             </div>
                         </div>
                     </div>
@@ -137,8 +137,8 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                     <tr>
                                         <td>{{ date('M. d, Y', strtotime($purchase->created_at)) }}</td>
                                         <td>{{ $purchase->order_number }}</td>
-                                        <td>{{ $purchase->employee_number ?? 'N/A' }}</td>
-                                        <td>{{ $purchase->employee_name ?? 'N/A' }}</td>
+                                        <td>{{ 'N/A' }}</td>
+                                        <td>{{ $purchase->purchaser_name ?? 'N/A' }}</td>
                                         <td>{{ $purchase->total_items }}</td>
                                         <td>₱ {{ number_format($purchase->total_amount, 2) }}</td>
                                         <td>
@@ -189,11 +189,15 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                     </div>
                     <div class="modal-body text-center">
                         <div id="qrCodeDisplay" class="mb-3"></div>
+                        <div class="mb-3">
+                            <span id="qrCodeText" class="badge" style="font-size: 14px;"></span>
+                        </div>
                         <div class="alert alert-info">
                             <strong>Total Items Purchased:</strong> <span id="totalItemsDisplay"></span>
                         </div>
                     </div>
                     <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Download</button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     </div>
                 </div>
@@ -229,23 +233,27 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function viewQRCode(orderNumber, qrUrl, totalItems) {
+    // Extract QR code from URL (last segment)
+    const qrCode = qrUrl.split('/').pop();
     
-    // Generate QR code
+    // Generate QR code image
     document.getElementById('qrCodeDisplay').innerHTML = '';
     const qrCodeDiv = document.createElement('div');
     
-    // Use a QR code library or API to generate the QR code
-    // For simplicity, using a third-party API
     const qrCodeImg = document.createElement('img');
-    qrCodeImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}`;
+    qrCodeImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrUrl)}`;
     qrCodeImg.alt = 'QR Code';
-    qrCodeImg.style.maxWidth = '200px';
+    qrCodeImg.style.maxWidth = '250px';
+    qrCodeImg.style.border = '2px solid #ddd';
+    qrCodeImg.style.padding = '10px';
+    qrCodeImg.style.borderRadius = '8px';
     
     qrCodeDiv.appendChild(qrCodeImg);
     document.getElementById('qrCodeDisplay').appendChild(qrCodeDiv);
     
     // Update modal content
     document.getElementById('orderNumberDisplay').textContent = orderNumber;
+    document.getElementById('qrCodeText').textContent = qrCode;
     document.getElementById('totalItemsDisplay').textContent = totalItems;
     
     // Show modal

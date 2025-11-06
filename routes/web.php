@@ -103,6 +103,7 @@
     Route::post('/purchases/{id}/approve', 'PurchaseController@approve')->name('purchases.approve');
 
     Route::get('/claim/{qr_code}', 'PurchaseController@claimPage')->name('purchase.claim');
+    Route::post('/claim/process', 'PurchaseController@processClaim')->name('purchase.processClaim');
 
     Route::get('overtime','EmployeeOvertimeController@overtime');
     //Overtime

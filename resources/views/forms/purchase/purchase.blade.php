@@ -129,11 +129,23 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                         <th>Total Items</th>
                                         <th>Total Amount</th>
                                         <th>Status</th>
+                                        <th>Expires At</th>
                                         <th>QR Code</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @forelse($purchases ?? [] as $purchase)
+                                    @php
+                                        $createdAt = new \DateTime($purchase->created_at);
+                                        $expiresAt = addBusinessDays($createdAt, 3);
+                                        $now = new \DateTime();
+                                        $isExpired = isOrderExpired($purchase->created_at);
+                                        
+                                        // Calculate remaining time
+                                        $interval = $now->diff($expiresAt);
+                                        $daysLeft = $interval->days;
+                                        $hoursLeft = ($daysLeft * 24) + $interval->h;
+                                    @endphp
                                     <tr>
                                         <td>{{ date('M. d, Y', strtotime($purchase->created_at)) }}</td>
                                         <td>{{ $purchase->order_number }}</td>
@@ -145,7 +157,13 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                             @if($purchase->status == 'Claimed')
                                                 <label class="badge badge-success">Claimed</label>
                                             @elseif($purchase->status == 'Processing')
-                                                <label class="badge badge-warning">Processing</label>
+                                                @if($isExpired)
+                                                    <label class="badge badge-danger" title="Expired - should be forfeited">
+                                                        <i class="ti-alert"></i> Expired
+                                                    </label>
+                                                @else
+                                                    <label class="badge badge-warning">Processing</label>
+                                                @endif
                                             @elseif($purchase->status == 'Forfeited')
                                                 <label class="badge badge-danger">Forfeited</label>
                                             @else
@@ -153,10 +171,57 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                             @endif
                                         </td>
                                         <td>
-                                            @if($purchase->qr_code)
-                                                <button type="button" class="btn btn-sm btn-info" onclick="viewQRCode('{{ $purchase->order_number }}', '{{ route('purchase.claim', $purchase->qr_code) }}', {{ $purchase->total_items }})">
-                                                    <i class="ti-eye"></i> View QR
-                                                </button>
+                                            @if($purchase->status == 'Processing')
+                                                @if($isExpired)
+                                                    <span class="text-danger" style="font-size: 12px;">
+                                                        <i class="ti-close"></i> Expired
+                                                    </span>
+                                                @elseif($hoursLeft <= 24)
+                                                    <span class="text-danger" style="font-size: 12px;">
+                                                        <i class="ti-time"></i> {{ max(0, $hoursLeft) }}h left
+                                                    </span>
+                                                @elseif($daysLeft <= 1)
+                                                    <span class="text-warning" style="font-size: 12px;">
+                                                        <i class="ti-time"></i> 1 day left
+                                                    </span>
+                                                @else
+                                                    <span class="text-muted" style="font-size: 12px;">
+                                                        {{ $expiresAt->format('M d, Y h:i A') }}
+                                                    </span>
+                                                @endif
+                                            @elseif($purchase->status == 'Claimed')
+                                                <span class="text-success" style="font-size: 12px;">
+                                                    <i class="ti-check"></i> Claimed
+                                                </span>
+                                            @elseif($purchase->status == 'Forfeited')
+                                                <span class="text-muted" style="font-size: 12px;">
+                                                    <i class="ti-na"></i> N/A
+                                                </span>
+                                            @else
+                                                <span class="text-muted" style="font-size: 12px;">-</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($purchase->status != 'Claimed' && !$isExpired)
+                                                @if($purchase->qr_code)
+                                                    <button type="button" class="btn btn-sm btn-info"
+                                                        onclick="viewQRCode(
+                                                            '{{ $purchase->order_number }}',
+                                                            '{{ route('purchase.claim', $purchase->qr_code) }}',
+                                                            {{ $purchase->total_items }},
+                                                            '{{ $purchase->status }}',
+                                                            {{ $isExpired ? 'true' : 'false' }},
+                                                            '{{ $expiresAt->format('M d, Y h:i A') }}'
+                                                        )">
+                                                        <i class="ti-eye"></i> View QR
+                                                    </button>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            @elseif($isExpired && $purchase->status == 'Processing')
+                                                <span class="text-danger"><i class="ti-alert"></i> Expired</span>
+                                            @elseif($purchase->status == 'Claimed')
+                                                <span class="text-success"><i class="ti-check"></i> Claimed</span>
                                             @else
                                                 <span class="text-muted">-</span>
                                             @endif
@@ -164,7 +229,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="8" class="text-center">No purchase orders found</td>
+                                        <td colspan="9" class="text-center">No purchase orders found</td>
                                     </tr>
                                     @endforelse
                                 </tbody>
@@ -190,14 +255,18 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                     <div class="modal-body text-center">
                         <div id="qrCodeDisplay" class="mb-3"></div>
                         <div class="mb-3">
-                            <span id="qrCodeText" class="badge" style="font-size: 14px;"></span>
+                            <span id="qrCodeText" class="badge badge-info" style="font-size: 14px;"></span>
                         </div>
                         <div class="alert alert-info">
                             <strong>Total Items Purchased:</strong> <span id="totalItemsDisplay"></span>
                         </div>
+                        <div id="statusAlert" style="display: none;"></div>
+                        <div id="expiryInfo" style="display: none;" class="alert alert-warning">
+                            <strong><i class="ti-time"></i> Expires At:</strong> <span id="expiryDate"></span><br>
+                            <small class="text-muted">Must be claimed within 3 business days (excluding weekends)</small>
+                        </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" data-dismiss="modal">Download</button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     </div>
                 </div>
@@ -232,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function viewQRCode(orderNumber, qrUrl, totalItems) {
+function viewQRCode(orderNumber, qrUrl, totalItems, status, isExpired, expiryDate) {
     // Extract QR code from URL (last segment)
     const qrCode = qrUrl.split('/').pop();
     
@@ -255,6 +324,31 @@ function viewQRCode(orderNumber, qrUrl, totalItems) {
     document.getElementById('orderNumberDisplay').textContent = orderNumber;
     document.getElementById('qrCodeText').textContent = qrCode;
     document.getElementById('totalItemsDisplay').textContent = totalItems;
+    
+    // Show status alerts
+    const statusAlert = document.getElementById('statusAlert');
+    const expiryInfo = document.getElementById('expiryInfo');
+    
+    if (status === 'Claimed') {
+        statusAlert.style.display = 'block';
+        statusAlert.className = 'alert alert-success';
+        statusAlert.innerHTML = '<strong><i class="ti-check"></i> This order has been claimed successfully!</strong>';
+        expiryInfo.style.display = 'none';
+    } else if (status === 'Forfeited' || isExpired) {
+        statusAlert.style.display = 'block';
+        statusAlert.className = 'alert alert-danger';
+        statusAlert.innerHTML = '<strong><i class="ti-close"></i> This order has expired/forfeited and can no longer be claimed.</strong>';
+        expiryInfo.style.display = 'none';
+    } else if (status === 'Processing') {
+        statusAlert.style.display = 'block';
+        statusAlert.className = 'alert alert-warning';
+        statusAlert.innerHTML = '<strong><i class="ti-time"></i> This order is pending claim.</strong>';
+        expiryInfo.style.display = 'block';
+        document.getElementById('expiryDate').textContent = expiryDate;
+    } else {
+        statusAlert.style.display = 'none';
+        expiryInfo.style.display = 'none';
+    }
     
     // Show modal
     $('#qrCodeModal').modal('show');

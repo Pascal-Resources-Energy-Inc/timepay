@@ -202,7 +202,7 @@ class PurchaseController extends Controller
                 'giver_position' => 'required|string|max:255',
             ]);
             
-            // Check if purchase is still in Processing status
+            // Check if purchase exists
             $purchase = DB::table('purchases')->where('id', $validated['purchase_id'])->first();
             
             if (!$purchase) {
@@ -210,6 +210,29 @@ class PurchaseController extends Controller
                     'success' => false,
                     'message' => 'Purchase order not found.'
                 ], 404);
+            }
+            
+            // Calculate business days (excluding weekends)
+            $createdAt = new \DateTime($purchase->created_at);
+            $now = new \DateTime();
+            
+            // Add 3 business days to creation date
+            $expiresAt = $this->addBusinessDays($createdAt, 3);
+            
+            // Check if expired
+            if ($now > $expiresAt) {
+                // Auto-forfeit expired order
+                DB::table('purchases')
+                    ->where('id', $validated['purchase_id'])
+                    ->update([
+                        'status' => 'Forfeited',
+                        'updated_at' => now()
+                    ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This order has expired. Orders must be claimed within 3 business days (excluding weekends) of purchase.'
+                ], 400);
             }
             
             if ($purchase->status !== 'Processing') {
@@ -249,5 +272,24 @@ class PurchaseController extends Controller
                 'message' => 'Failed to process claim: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Add business days to a date (excluding weekends)
+     */
+    private function addBusinessDays($date, $days)
+    {
+        $currentDate = clone $date;
+        $addedDays = 0;
+        
+        while ($addedDays < $days) {
+            $currentDate->modify('+1 day');
+            $dayOfWeek = (int)$currentDate->format('N'); // 1 (Mon) to 7 (Sun)
+            if ($dayOfWeek < 6) { // Monday to Friday
+                $addedDays++;
+            }
+        }
+        
+        return $currentDate;
     }
 }

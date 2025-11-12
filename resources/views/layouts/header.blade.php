@@ -400,8 +400,8 @@
 
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li> -->
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
-                                <li class="nav-item "> <a class="nav-link " href="{{ url('/planning') }}">Planning</a></li>
-                                <li class="nav-item "> <a class="nav-link " href="{{ url('/dar') }}">DAR</a></li>
+                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/planning') }}">Planning</a></li> --}}
+                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/dar') }}">DAR</a></li> --}}
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> -->
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/231380935515052">Authority to Deduct</a></li>
@@ -435,12 +435,12 @@
                             <span class="menu-title">Leave Calendar</span>
                         </a>
                     </li>
-                    <li class="nav-item @if ($header == 'purchase') active @endif">
+                    {{-- <li class="nav-item @if ($header == 'purchase') active @endif">
                         <a class="nav-link" href="{{ url('purchase') }}" onclick='show()'>
                             <i class="icon-bag menu-icon"></i>
                             <span class="menu-title">Discounted LPG Refill</span>
                         </a>
-                    </li>
+                    </li> --}}
 
                   @if(count(auth()->user()->employee->as_resign) > 0)
                     <li class="nav-item">
@@ -815,7 +815,7 @@
                     <li class="nav-item"> <a class="nav-link" href="{{ url('/attendance-report') }}">Attendance Reports</a></li>
                     {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/system-report') }}">Online In/Out Report</a></li> --}}
                     <li class="nav-item"><a class="nav-link" href="{{url('ob_files')}}">OB Uploaded Files</a></li>
-                     <li class="nav-item"><a class="nav-link" href="{{route('purchase.reports')}}">LPG Refill Reports</a></li>
+                     <li class="nav-item"><a class="nav-link" href="{{url('purchase-reports')}}">LPG Refill Reports</a></li>
                 </ul>
             </div>
         </li>

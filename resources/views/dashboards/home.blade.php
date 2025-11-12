@@ -739,6 +739,24 @@
     animation: blink 2s ease-in-out infinite;
 }
 
+.planning-item:hover {
+    background: #ffe0b2 !important;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+.birthday-item:hover {
+    background: #bbdefb !important;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+.leave-item:hover {
+    background: #f8bbd0 !important;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
 @keyframes blink {
     0%, 50%, 100% { opacity: 0.7; }
     25%, 75% { opacity: 0.3; }
@@ -946,108 +964,373 @@
                 </div>
             </div>
 
-            <div class="card shadow-sm mb-4 position-relative">
-                <div class="position-absolute bg-light text-dark px-2 py-1 rounded small fw-bold" style="top: 20px; left: 20px;">
-                    <strong>Late – Current Cutoff</strong>
+            <div class="row">
+                <div class="col-md-4 transparent">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <p class="card-title mb-0">Planning</p>
+                                    </div>
+                                    <div id="planning-content">
+                                        @if($plannings->count() > 0)
+                                            <div class="table-responsive">
+                                                <table class="table table-striped table-borderless">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="font-size: 11px;">Date</th>
+                                                            <th style="font-size: 11px;">Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($plannings as $planning)
+                                                        <tr>
+                                                            <td style="font-size: 10px;">{{ date('M d', strtotime($planning->date)) }} - {{ Str_limit($planning->destination, 20) }}</td>
+                                                            <td style="font-size: 10px;">
+                                                                <button class="btn btn-sm btn-info view-planning" 
+                                                                        data-id="{{ $planning->id }}"
+                                                                        data-date="{{ date('M d, Y', strtotime($planning->date)) }}"
+                                                                        data-destination="{{ $planning->destination }}"
+                                                                        data-activity="{{ $planning->activity }}"
+                                                                        data-timein="{{ $planning->est_timein }}"
+                                                                        data-timeout="{{ $planning->est_timeout }}"
+                                                                        data-status="{{ $planning->status }}">
+                                                                    View
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            
+                                            <!-- Pagination -->
+                                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                                <small class="text-muted">
+                                                    Showing {{ $plannings->firstItem() }} to {{ $plannings->lastItem() }} of {{ $plannings->total() }}
+                                                </small>
+                                                <div>
+                                                    {{ $plannings->links('pagination::bootstrap-4') }}
+                                                </div>
+                                            </div>
+                                        @else
+                                            <p class="text-center text-muted py-3">No planning records found</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            <br>
+                        </div>
+                    </div>
                 </div>
-                <br><br>
-                <div class="card-body">
-                    <div class="chart-container" style="position: relative; width: 100%; height: 350px; overflow-x: auto; overflow-y: hidden;">
-                       <div style="min-width: 600px; height: 335px;">
-                          <canvas id="userLateChart"></canvas>
+
+                <!-- Planning Details Modal -->
+                <div class="modal fade" id="planningModal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Planning Details</h5>
+                                <button type="button" class="close" data-dismiss="modal">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-12 mb-2">
+                                        <strong>Date:</strong> <span id="modal-date"></span>
+                                    </div>
+                                    <div class="col-md-12 mb-2">
+                                        <strong>Destination:</strong> <span id="modal-destination"></span>
+                                    </div>
+                                    <div class="col-md-12 mb-2">
+                                        <strong>Activity:</strong> <span id="modal-activity"></span>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <strong>Est. Time In:</strong> <span id="modal-timein"></span>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <strong>Est. Time Out:</strong> <span id="modal-timeout"></span>
+                                    </div>
+                                    <div class="col-md-12 mb-2">
+                                        <strong>Status:</strong> <span id="modal-status" class="badge"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class='row'>
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <p class="card-title" style="margin: 0;">Calendar</p>
+                                        <div style="font-size: 14px; color: #666; font-weight: 500;">
+                                            @php echo date('F Y'); @endphp
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="display: flex; gap: 15px; margin-bottom: 10px; font-size: 10px; flex-wrap: wrap;">
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            <div style="width: 12px; height: 12px; background: #e3f2fd; border-radius: 2px;"></div>
+                                            <span>Birthday</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            <div style="width: 12px; height: 12px; background: #fff3e0; border-radius: 2px;"></div>
+                                            <span>Planning</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            <div style="width: 12px; height: 12px; background: #fce4ec; border-radius: 2px;"></div>
+                                            <span>On Leave</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            <div style="width: 12px; height: 12px; background: #f3e5f5; border-radius: 2px;"></div>
+                                            <span>Holiday</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            <div style="width: 12px; height: 12px; background: #e8f5e8; border: 2px solid #4caf50; border-radius: 2px;"></div>
+                                            <span>Today</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="birthday-calendar" style="overflow-y: visible; height: auto;">
+                                        <div class="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: 11px;">
+                                        
+                                        <div class="calendar-header" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 5px;">
+                                            <div style="text-align: center; font-weight: bold; padding: 5px; background: #f8f9fa; border-radius: 3px;">Sun</div>
+                                            <div style="text-align: center; font-weight: bold; padding: 5px; background: #f8f9fa; border-radius: 3px;">Mon</div>
+                                            <div style="text-align: center; font-weight: bold; padding: 5px; background: #f8f9fa; border-radius: 3px;">Tue</div>
+                                            <div style="text-align: center; font-weight: bold; padding: 5px; background: #f8f9fa; border-radius: 3px;">Wed</div>
+                                            <div style="text-align: center; font-weight: bold; padding: 5px; background: #f8f9fa; border-radius: 3px;">Thu</div>
+                                            <div style="text-align: center; font-weight: bold; padding: 5px; background: #f8f9fa; border-radius: 3px;">Fri</div>
+                                            <div style="text-align: center; font-weight: bold; padding: 5px; background: #f8f9fa; border-radius: 3px;">Sat</div>
+                                        </div>
+
+                                        @php
+                                            $currentMonth = date('n');
+                                            $currentYear = date('Y');
+                                            $daysInMonth = date('t');
+                                            $firstDayOfMonth = date('w', mktime(0, 0, 0, $currentMonth, 1, $currentYear));
+                                            
+                                            $birthdaysByDay = [];
+                                            foreach($employee_birthday_celebrants as $celebrant) {
+                                                $day = date('j', strtotime($celebrant->birth_date));
+                                                if (!isset($birthdaysByDay[$day])) {
+                                                    $birthdaysByDay[$day] = [];
+                                                }
+                                                $birthdaysByDay[$day][] = $celebrant;
+                                            }
+                                            
+                                            $planningsByDay = [];
+                                            if(isset($plannings) && auth()->user()->employee) {
+                                                $currentUserPlannings = \App\Planning::where('name', auth()->user()->employee->id)
+                                                    ->whereMonth('date', $currentMonth)
+                                                    ->whereYear('date', $currentYear)
+                                                    ->where('status', '!=', 'Cancelled')
+                                                    ->get();
+                                                    
+                                                foreach($currentUserPlannings as $planning) {
+                                                    $day = date('j', strtotime($planning->date));
+                                                    if (!isset($planningsByDay[$day])) {
+                                                        $planningsByDay[$day] = [];
+                                                    }
+                                                    $planningsByDay[$day][] = $planning;
+                                                }
+                                            }
+                                            
+                                            $leavesByDay = [];
+                                            if(isset($userLeaves)) {
+                                                foreach($userLeaves as $leave) {
+                                                    $startDate = \Carbon\Carbon::parse($leave->date_from);
+                                                    $endDate = \Carbon\Carbon::parse($leave->date_to);
+                                                    
+                                                    $period = \Carbon\CarbonPeriod::create($startDate, $endDate);
+                                                    foreach ($period as $date) {
+                                                        if ($date->month == $currentMonth && $date->year == $currentYear) {
+                                                            $day = $date->day;
+                                                            if (!isset($leavesByDay[$day])) {
+                                                                $leavesByDay[$day] = [];
+                                                            }
+                                                            $leavesByDay[$day][] = $leave;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            
+                                            $holidaysByDay = [];
+                                            if(isset($holidays)) {
+                                                foreach($holidays as $holiday) {
+                                                    $holidayDate = \Carbon\Carbon::parse($holiday->holiday_date);
+                                                    if ($holidayDate->month == $currentMonth && $holidayDate->year == $currentYear) {
+                                                        $day = $holidayDate->day;
+                                                        if (!isset($holidaysByDay[$day])) {
+                                                            $holidaysByDay[$day] = [];
+                                                        }
+                                                        $holidaysByDay[$day][] = $holiday;
+                                                    }
+                                                }
+                                            }
+                                        @endphp
+
+                                        @for($i = 0; $i < $firstDayOfMonth; $i++)
+                                            <div class="calendar-day" style="min-height: 60px; border: 1px solid #e9ecef; background: #f8f9fa; border-radius: 3px;"></div>
+                                        @endfor
+
+                                        @for($day = 1; $day <= $daysInMonth; $day++)
+                                            @php 
+                                                $isToday = ($day == date('j') && $currentMonth == date('n') && $currentYear == date('Y'));
+                                                $hasBirthday = isset($birthdaysByDay[$day]);
+                                                $hasPlanning = isset($planningsByDay[$day]);
+                                                $hasLeave = isset($leavesByDay[$day]);
+                                                $hasHoliday = isset($holidaysByDay[$day]);
+                                            @endphp
+                                            <div class="calendar-day" style="min-height: 60px; border: 1px solid #e9ecef; border-radius: 3px; padding: 2px; position: relative; background: {{ $isToday ? '#e8f5e8' : '#fff' }}; {{ $isToday ? 'border-color: #4caf50; box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);' : '' }}">
+                                                <div style="font-weight: bold; margin-bottom: 2px; font-size: 10px; {{ $isToday ? 'color: #2e7d32;' : '' }}">
+                                                    {{ $day }}
+                                                    @if($hasPlanning)
+                                                        <span style="color: #ff9800; font-size: 8px; margin-left: 2px;" title="You have planning on this day"></span>
+                                                    @endif
+                                                    @if($hasLeave)
+                                                        <span style="color: #e91e63; font-size: 8px; margin-left: 2px;" title="You are on leave this day"></span>
+                                                    @endif
+                                                    @if($hasHoliday)
+                                                        <span style="color: #9c27b0; font-size: 8px; margin-left: 2px;" title="Holiday"></span>
+                                                    @endif
+                                                </div>
+                                                
+                                                @if($hasHoliday)
+                                                    @foreach($holidaysByDay[$day] as $holiday)
+                                                    <div class="holiday-item" style="background: #f3e5f5; border-left: 2px solid #9c27b0; border-radius: 2px; padding: 1px 2px; margin: 1px 0; position: relative; cursor: pointer;" 
+                                                        title="Holiday: {{$holiday->holiday_name}}">
+                                                        <div style="display: flex; align-items: center; gap: 2px;">
+                                                            <span style="font-size: 8px;">🎉</span>
+                                                            <span style="font-size: 9px; color: #6a1b9a; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                {{substr($holiday->holiday_name, 0, 10)}}{{strlen($holiday->holiday_name) > 10 ? '...' : ''}}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    @endforeach
+                                                @endif
+                                                
+                                                @if($hasBirthday)
+                                                    @foreach($birthdaysByDay[$day] as $celebrant)
+                                                    <div class="birthday-item" style="background: #e3f2fd; border-radius: 2px; padding: 1px 2px; margin: 1px 0; position: relative; cursor: pointer;" 
+                                                        title="{{$celebrant->first_name}} {{$celebrant->last_name}} - {{$celebrant->position}} ({{$celebrant->location}})">
+                                                        <div style="display: flex; align-items: center; gap: 2px;">
+                                                            <img src="{{URL::asset($celebrant->avatar)}}" 
+                                                                onerror="this.src='{{URL::asset('/images/no_image.png')}}';" 
+                                                                alt="user" 
+                                                                style="width: 12px; height: 12px; border-radius: 50%; object-fit: cover;">
+                                                            <span style="font-size: 9px; color: #1976d2; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                {{substr($celebrant->first_name, 0, 8)}}{{strlen($celebrant->first_name) > 8 ? '...' : ''}}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    @endforeach
+                                                @endif
+                                                
+                                                @if($hasPlanning)
+                                                    @foreach($planningsByDay[$day] as $planning)
+                                                    <div class="planning-item" 
+                                                        style="background: #fff3e0; border-left: 2px solid #ff9800; border-radius: 2px; padding: 1px 2px; margin: 1px 0; position: relative; cursor: pointer;" 
+                                                        title="Planning: {{$planning->destination}} - {{$planning->activity}}"
+                                                        onclick="openPlanningModal({{$planning->id}}, '{{$planning->destination}}', '{{$planning->activity}}', '{{date('F j, Y', strtotime($planning->date))}}')">
+                                                        <div style="display: flex; align-items: center; gap: 2px;">
+                                                            <span style="font-size: 8px;">📋</span>
+                                                            <span style="font-size: 9px; color: #e65100; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                {{substr($planning->destination, 0, 10)}}{{strlen($planning->destination) > 10 ? '...' : ''}}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    @endforeach
+                                                @endif
+                                                
+                                                @if($hasLeave)
+                                                    @foreach($leavesByDay[$day] as $leave)
+                                                    <div class="leave-item" style="background: #fce4ec; border-left: 2px solid #e91e63; border-radius: 2px; padding: 1px 2px; margin: 1px 0; position: relative; cursor: pointer;" 
+                                                        title="Leave: {{$leave->leave->leave_type ?? 'Leave'}} ({{$leave->halfday ? 'Half Day' : 'Whole Day'}})">
+                                                        <div style="display: flex; align-items: center; gap: 2px;">
+                                                            <span style="font-size: 8px;">🏖️</span>
+                                                            <span style="font-size: 9px; color: #c2185b; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                {{$leave->halfday ? 'Half Day' : substr($leave->leave->leave_type ?? 'Leave', 0, 8)}}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    @endforeach
+                                                @endif
+                                            </div>
+                                        @endfor
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Planning Upload Modal -->
+                <div class="modal fade" id="planningUploadModal" tabindex="-1" role="dialog" aria-labelledby="planningUploadModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="planningUploadModalLabel">Upload Planning Documents</h5>
+                                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form id="planningUploadForm" enctype="multipart/form-data">
+                                @csrf
+                                <input type="hidden" id="planning_id" name="planning_id">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <h6 id="planningDetailsTitle" class="text-primary"></h6>
+                                        <p id="planningDetailsInfo" class="text-muted mb-0"></p>
+                                    </div>
+                                    <hr>
+                                    
+                                    <div class="form-group">
+                                        <label for="planning_image">Upload Image</label>
+                                        <input type="file" class="form-control" id="planning_image" name="image" accept="image/*">
+                                        <small class="form-text text-muted">Accepted formats: JPG, PNG, GIF (Max: 5MB)</small>
+                                        
+                                        <div id="imagePreview" class="mt-2" style="display: none;">
+                                            <img id="previewImg" src="" alt="Preview" style="max-width: 200px; max-height: 200px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+                                            <button type="button" class="btn btn-sm btn-danger ml-2" onclick="removeImage()">Remove</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="planning_documents">Upload Documents</label>
+                                        <input type="file" class="form-control" id="planning_documents" name="documents[]" accept=".pdf,.doc,.docx,.xls,.xlsx" multiple>
+                                        <small class="form-text text-muted">Accepted formats: PDF, Word, Excel (Max: 10MB per file)</small>
+                                        
+                                        <div id="documentsList" class="mt-2"></div>
+                                    </div>
+                                    
+                                    <div id="existingFiles" class="mt-3" style="display: none;">
+                                        <h6>Previously Uploaded Files:</h6>
+                                        <div id="existingFilesList"></div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Upload</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
+            
 
             <div class="row">
-                <div class="col-md-4 transparent">
-                    <div class="row">
-                        <div class="col-md-12 transparent">
-                            @if(count(auth()->user()->subbordinates) > 0)
-                            <div class="card">
-                                <div class="card-body">
-                                    <p class="card-title ">Subordinates </p>
-                                    <div class="table-responsive" >
-                                        <table class="table table-hover table-bordered tablewithSearchonly" >
-                                            <thead>
-                                                <tr>
-                                                    <th>Name</th>
-                                                    <th>In</th>
-                                                    <th>Out</th>
-                                                    <th>Leave Balances</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach(auth()->user()->subbordinates as $emp)
-                                                <tr>
-                                                    <td>{{$emp->first_name}} {{$emp->last_name}} </td>
-                                                    @php
-                                                        $time_in = $attendance_employees->where('employee_code',$emp->employee_number)->where('time_in','!=',null)->first();
-                                                        $leave_with_pay = $emp ? $emp->approved_leaves_with_pay->where('date_from', date('Y-m-d'))->first() : null;
-                                                    @endphp
-                                                    <td>
-                                                        @if($leave_with_pay)
-                                                            Leave-With-Pay
-                                                        @elseif($time_in && $time_in->time_in)
-                                                            {{ date('h:i A', strtotime($time_in->time_in)) }}
-                                                        @else
-                                                            No Data
-                                                        @endif
-                                                    </td>
-                                                    <td>
-                                                        @if($time_in)
-                                                            @if($time_in->time_out)
-                                                                {{ date('h:i a', strtotime($time_in->time_out)) }}
-                                                            @else
-                                                                No Data
-                                                            @endif
-                                                        @else
-                                                            No Data
-                                                        @endif
-                                                    </td> 
-                                                    <td>
-                                                        @php
-                                                            $vl_balance = 0;
-                                                            $sl_balance = 0;
-                                                            
-                                                            $vl_leave = ($emp->employee_leave_credits)->where('leave_type', 1)->first();
-
-                                                            if(!empty($vl_leave))
-                                                            {
-                                                                $earned_vl = checkEarnedLeave($emp->user_id,1,$emp->original_date_hired);
-                                                                $used_vl = checkUsedSLVLSILLeave($emp->user_id,1,$emp->original_date_hired,$emp->ScheduleData);
-                                                                $vl_beginning_balance =  $vl_leave->count;
-        
-                                                                $vl_balance = ($vl_beginning_balance + $earned_vl) - $used_vl;
-                                                            }
-
-                                                            $sl_leave = ($emp->employee_leave_credits)->where('leave_type', 2)->first();
-                                                            if (!empty($sl_leave))
-                                                            {
-                                                                $earned_sl = checkEarnedLeave($emp->user_id,2,$emp->original_date_hired);
-                                                                $used_sl = checkUsedSLVLSILLeave($emp->user_id,2,$emp->original_date_hired,$emp->ScheduleData);
-
-                                                                $sl_beginning_balance = $sl_leave->count;
-                                                                $sl_balance = ($sl_beginning_balance + $earned_sl) - $used_sl;
-                                                            }
-                                                        @endphp
-                                                        VL = {{$vl_balance}}
-                                                        <br>
-                                                        SL = {{$sl_balance}}
-                                                    </td>
-                                                </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                            @endif
-                        </div>
-                    </div>
-                    
-                    @if (auth()->user()->role != 'Admin')
+                {{-- <div class="col-md-4 transparent">
                     <div class="row">
                         <div class="col-md-12">
                             <div class="card">
@@ -1082,10 +1365,48 @@
                             <br>
                         </div>
                     </div>
-                    @endif
+                </div> --}}
+
+                <!-- Planning Details Modal -->
+                <div class="modal fade" id="planningModal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Planning Details</h5>
+                                <button type="button" class="close" data-dismiss="modal">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-12 mb-2">
+                                        <strong>Date:</strong> <span id="modal-date"></span>
+                                    </div>
+                                    <div class="col-md-12 mb-2">
+                                        <strong>Destination:</strong> <span id="modal-destination"></span>
+                                    </div>
+                                    <div class="col-md-12 mb-2">
+                                        <strong>Activity:</strong> <span id="modal-activity"></span>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <strong>Est. Time In:</strong> <span id="modal-timein"></span>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <strong>Est. Time Out:</strong> <span id="modal-timeout"></span>
+                                    </div>
+                                    <div class="col-md-12 mb-2">
+                                        <strong>Status:</strong> <span id="modal-status" class="badge"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="col-md-8">
+                {{-- <div class="col-md-8">
                     <div class='row'>
                         <div class="col-md-12">
                             <div class="card">
@@ -1183,7 +1504,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> --}}
             </div>
 
             <div class="row">
@@ -1380,6 +1701,197 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+{{-- Planning function --}}
+<script>
+$(document).on('click', '.view-planning', function() {
+        $('#modal-date').text($(this).data('date'));
+        $('#modal-destination').text($(this).data('destination'));
+        $('#modal-activity').text($(this).data('activity'));
+        $('#modal-timein').text($(this).data('timein'));
+        $('#modal-timeout').text($(this).data('timeout'));
+        
+        var status = $(this).data('status');
+        var badge = $('#modal-status');
+        badge.text(status);
+        badge.removeClass('badge-success badge-warning badge-danger');
+        
+        if(status === 'Approved') {
+            badge.addClass('badge-success');
+        } else if(status === 'Pending') {
+            badge.addClass('badge-warning');
+        } else {
+            badge.addClass('badge-danger');
+        }
+        
+        $('#planningModal').modal('show');
+});
+</script>
+
+<script>
+function openPlanningModal(planningId, destination, activity, date) {
+    $('#planning_id').val(planningId);
+    $('#planningDetailsTitle').text(destination);
+    $('#planningDetailsInfo').text(`Activity: ${activity} | Date: ${date}`);
+    
+    // Reset form
+    $('#planningUploadForm')[0].reset();
+    $('#imagePreview').hide();
+    $('#documentsList').empty();
+    
+    // Load existing files
+    loadExistingFiles(planningId);
+    
+    $('#planningUploadModal').modal('show');
+}
+
+// Image preview
+$('#planning_image').on('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            $('#previewImg').attr('src', e.target.result);
+            $('#imagePreview').show();
+        }
+        reader.readAsDataURL(file);
+    }
+});
+
+function removeImage() {
+    $('#planning_image').val('');
+    $('#imagePreview').hide();
+}
+
+// Documents preview
+$('#planning_documents').on('change', function(e) {
+    const files = e.target.files;
+    const docList = $('#documentsList');
+    docList.empty();
+    
+    if (files.length > 0) {
+        let html = '<div class="list-group mt-2">';
+        Array.from(files).forEach((file, index) => {
+            const icon = getFileIcon(file.name);
+            html += `
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>${icon} ${file.name}</span>
+                    <small class="text-muted">${formatFileSize(file.size)}</small>
+                </div>
+            `;
+        });
+        html += '</div>';
+        docList.html(html);
+    }
+});
+
+function getFileIcon(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    const icons = {
+        'pdf': '📄',
+        'doc': '📝',
+        'docx': '📝',
+        'xls': '📊',
+        'xlsx': '📊'
+    };
+    return icons[ext] || '📎';
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function loadExistingFiles(planningId) {
+    $.ajax({
+        url: `/planning/${planningId}/files`,
+        method: 'GET',
+        success: function(response) {
+            if (response.success && (response.image || response.documents.length > 0)) {
+                let html = '';
+                
+                if (response.image) {
+                    html += `
+                        <div class="mb-2">
+                            <strong>Image:</strong><br>
+                            <img src="${response.image}" alt="Planning Image" style="max-width: 150px; max-height: 150px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+                        </div>
+                    `;
+                }
+                
+                if (response.documents.length > 0) {
+                    html += '<strong>Documents:</strong><div class="list-group mt-1">';
+                    response.documents.forEach(doc => {
+                        html += `
+                            <a href="${doc.url}" target="_blank" class="list-group-item list-group-item-action">
+                                ${getFileIcon(doc.name)} ${doc.name}
+                            </a>
+                        `;
+                    });
+                    html += '</div>';
+                }
+                
+                $('#existingFilesList').html(html);
+                $('#existingFiles').show();
+            } else {
+                $('#existingFiles').hide();
+            }
+        }
+    });
+}
+
+// Form submission
+$('#planningUploadForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    const loader = document.getElementById("loader");
+    if (loader) {
+        loader.style.display = "block";
+    }
+    
+    let formData = new FormData(this);
+    
+    $.ajax({
+        url: "{{ route('planning.upload-files') }}",
+        method: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (loader) {
+                loader.style.display = "none";
+            }
+            
+            $('#planningUploadModal').modal('hide');
+            
+            Swal.fire({
+                title: "Success!",
+                text: response.message,
+                icon: "success"
+            });
+        },
+        error: function(xhr) {
+            if (loader) {
+                loader.style.display = "none";
+            }
+            
+            let errorMessage = "Failed to upload files. Please try again.";
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            
+            Swal.fire({
+                title: "Error!",
+                text: errorMessage,
+                icon: "error"
+            });
+        }
+    });
+});
+</script>
 
 <script>
 $(document).ready(function() {

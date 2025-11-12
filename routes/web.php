@@ -105,7 +105,7 @@
     Route::get('/claim/{qr_code}', 'PurchaseController@claimPage')->name('purchase.claim');
     Route::post('/claim/process', 'PurchaseController@processClaim')->name('purchase.processClaim');
 
-    Route::get('/purchase/reports', 'PurchaseController@reports')->name('purchase.reports');
+    Route::get('purchase-reports', 'PurchaseController@reports')->name('purchase.reports');
     Route::get('/purchase/export', 'PurchaseController@export')->name('purchase.export');
 
     Route::get('overtime','EmployeeOvertimeController@overtime');
@@ -170,6 +170,10 @@
 
     //Planning 
     Route::get('planning', 'EmployeePlanningController@index');
+    Route::post('/planning/import', 'EmployeePlanningController@import')->name('planning.import');
+    Route::post('/planning/upload-files', 'EmployeePlanningController@uploadFiles')->name('planning.upload-files');
+    Route::get('/planning/{id}/files', 'EmployeePlanningController@getFiles')->name('planning.get-files');
+    Route::get('/disable-planning/{id}', 'EmployeePlanningController@disablePlanning')->name('planning.disable');
 
     //Dar 
     Route::get('dar', 'DarController@index');

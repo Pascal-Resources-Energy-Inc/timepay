@@ -120,7 +120,6 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                     <tr>
                                         <th>Date Filed</th>
                                         <th>Order #</th>
-                                        <th>SKU</th>
                                         <th>Employee Number</th>
                                         <th>Employee Name</th>
                                         <th>Work Location</th>
@@ -147,7 +146,6 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                     <tr>
                                         <td>{{ date('M. d, Y', strtotime($purchase->created_at)) }}</td>
                                         <td>{{ $purchase->order_number }}</td>
-                                        <td>{{ 'N/A' }}</td>
                                         <td>{{ $purchase->employee_number ?? 'N/A' }}</td>
                                         <td>{{ $purchase->purchaser_name ?? 'N/A' }}</td>
                                         <td>{{ $purchase->employee_work_place ?? 'N/A' }}</td>

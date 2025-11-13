@@ -785,6 +785,113 @@
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
+.calendar-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+    .calendar-grid {
+        font-size: 9px !important;
+    }
+    
+    .calendar-day {
+        min-height: 50px !important;
+        padding: 1px !important;
+    }
+    
+    .calendar-header div {
+        padding: 3px !important;
+        font-size: 9px !important;
+    }
+    
+    .birthday-item, .planning-item, .leave-item, .holiday-item {
+        padding: 1px 2px !important;
+        margin: 0.5px 0 !important;
+    }
+    
+    .birthday-item span, .planning-item span, .leave-item span, .holiday-item span {
+        font-size: 8px !important;
+    }
+    
+    .legend-container {
+        gap: 8px !important;
+        font-size: 9px !important;
+    }
+    
+    .legend-item {
+        gap: 3px !important;
+    }
+    
+    .legend-box {
+        width: 10px !important;
+        height: 10px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .calendar-grid {
+        font-size: 8px !important;
+        gap: 1px !important;
+    }
+    
+    .calendar-day {
+        min-height: 45px !important;
+        padding: 1px !important;
+    }
+    
+    .calendar-header {
+        gap: 1px !important;
+        margin-bottom: 3px !important;
+    }
+    
+    .calendar-header div {
+        padding: 2px !important;
+        font-size: 8px !important;
+    }
+    
+    .day-number {
+        font-size: 9px !important;
+        margin-bottom: 1px !important;
+    }
+    
+    .birthday-item, .planning-item, .leave-item, .holiday-item {
+        padding: 0.5px 1px !important;
+        margin: 0.5px 0 !important;
+    }
+    
+    .birthday-item span, .planning-item span, .leave-item span, .holiday-item span {
+        font-size: 7px !important;
+    }
+    
+    .emoji-icon {
+        font-size: 6px !important;
+    }
+    
+    .legend-container {
+        gap: 6px !important;
+        font-size: 8px !important;
+        margin-bottom: 20px !important;
+    }
+    
+    .legend-item {
+        gap: 2px !important;
+    }
+    
+    .legend-box {
+        width: 8px !important;
+        height: 8px !important;
+    }
+    
+    .card-title {
+        font-size: 14px !important;
+    }
+    
+    .calendar-month {
+        font-size: 12px !important;
+    }
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
     .birthday-popup {
@@ -1069,14 +1176,14 @@
                         <div class="col-md-12">
                             <div class="card">
                                 <div class="card-body">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
                                         <p class="card-title" style="margin: 0;">Calendar</p>
-                                        <div style="font-size: 14px; color: #666; font-weight: 500;">
+                                        <div style="font-size: 14px; color: #615f5fef; font-weight: 500;">
                                             @php echo date('F Y'); @endphp
                                         </div>
                                     </div>
                                     
-                                    <div style="display: flex; gap: 15px; margin-bottom: 10px; font-size: 10px; flex-wrap: wrap;">
+                                    <div style="display: flex; gap: 15px; margin-bottom: 37px; font-size: 10px; flex-wrap: wrap;">
                                         <div style="display: flex; align-items: center; gap: 5px;">
                                             <div style="width: 12px; height: 12px; background: #e3f2fd; border-radius: 2px;"></div>
                                             <span>Birthday</span>
@@ -1117,6 +1224,7 @@
                                             $currentYear = date('Y');
                                             $daysInMonth = date('t');
                                             $firstDayOfMonth = date('w', mktime(0, 0, 0, $currentMonth, 1, $currentYear));
+                                            $today = date('Y-m-d');
                                             
                                             $birthdaysByDay = [];
                                             foreach($employee_birthday_celebrants as $celebrant) {
@@ -1189,6 +1297,10 @@
                                                 $hasPlanning = isset($planningsByDay[$day]);
                                                 $hasLeave = isset($leavesByDay[$day]);
                                                 $hasHoliday = isset($holidaysByDay[$day]);
+                                                $birthdayCount = $hasBirthday ? count($birthdaysByDay[$day]) : 0;
+                                                
+                                                $dayDate = sprintf('%04d-%02d-%02d', $currentYear, $currentMonth, $day);
+                                                $isPastDate = $dayDate < $today;
                                             @endphp
                                             <div class="calendar-day" style="min-height: 60px; border: 1px solid #e9ecef; border-radius: 3px; padding: 2px; position: relative; background: {{ $isToday ? '#e8f5e8' : '#fff' }}; {{ $isToday ? 'border-color: #4caf50; box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);' : '' }}">
                                                 <div style="font-weight: bold; margin-bottom: 2px; font-size: 10px; {{ $isToday ? 'color: #2e7d32;' : '' }}">
@@ -1219,31 +1331,37 @@
                                                 @endif
                                                 
                                                 @if($hasBirthday)
-                                                    @foreach($birthdaysByDay[$day] as $celebrant)
-                                                    <div class="birthday-item" style="background: #e3f2fd; border-radius: 2px; padding: 1px 2px; margin: 1px 0; position: relative; cursor: pointer;" 
-                                                        title="{{$celebrant->first_name}} {{$celebrant->last_name}} - {{$celebrant->position}} ({{$celebrant->location}})">
-                                                        <div style="display: flex; align-items: center; gap: 2px;">
-                                                            <img src="{{URL::asset($celebrant->avatar)}}" 
-                                                                onerror="this.src='{{URL::asset('/images/no_image.png')}}';" 
-                                                                alt="user" 
-                                                                style="width: 12px; height: 12px; border-radius: 50%; object-fit: cover;">
-                                                            <span style="font-size: 9px; color: #1976d2; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                                {{substr($celebrant->first_name, 0, 8)}}{{strlen($celebrant->first_name) > 8 ? '...' : ''}}
-                                                            </span>
+                                                    <div class="birthday-item" 
+                                                        style="background: #e3f2fd; border-radius: 2px; padding: 2px 4px; margin: 1px 0; cursor: pointer; transition: all 0.2s;" 
+                                                        onclick="openBirthdayModal({{ $day }}, '{{ date('F', mktime(0, 0, 0, $currentMonth, 1)) }}')"
+                                                        onmouseover="this.style.background='#bbdefb'; this.style.transform='translateY(-1px)'"
+                                                        onmouseout="this.style.background='#e3f2fd'; this.style.transform='translateY(0)'">
+                                                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 2px;">
+                                                            <div style="display: flex; align-items: center; gap: 2px;">
+                                                                <span style="font-size: 8px;">🎂</span>
+                                                                <span style="font-size: 9px; color: #1976d2; font-weight: 500;">
+                                                                    {{ $birthdayCount }} Birthday{{ $birthdayCount > 1 ? 's' : '' }}
+                                                                </span>
+                                                            </div>
+                                                            <span style="font-size: 8px; color: #1976d2;">›</span>
                                                         </div>
                                                     </div>
-                                                    @endforeach
                                                 @endif
                                                 
                                                 @if($hasPlanning)
                                                     @foreach($planningsByDay[$day] as $planning)
-                                                    <div class="planning-item" 
-                                                        style="background: #fff3e0; border-left: 2px solid #ff9800; border-radius: 2px; padding: 1px 2px; margin: 1px 0; position: relative; cursor: pointer;" 
-                                                        title="Planning: {{$planning->destination}} - {{$planning->activity}}"
-                                                        onclick="openPlanningModal({{$planning->id}}, '{{$planning->destination}}', '{{$planning->activity}}', '{{date('F j, Y', strtotime($planning->date))}}')">
+                                                    <div class="planning-item {{ $isPastDate ? 'planning-disabled' : '' }}" 
+                                                        style="background: {{ $isPastDate ? '#e0e0e0' : '#fff3e0' }}; border-left: 2px solid {{ $isPastDate ? '#9e9e9e' : '#ff9800' }}; border-radius: 2px; padding: 1px 2px; margin: 1px 0; position: relative; cursor: {{ $isPastDate ? 'not-allowed' : 'pointer' }}; {{ $isPastDate ? 'opacity: 0.6;' : '' }}" 
+                                                        title="{{ $isPastDate ? 'Cannot submit files for past dates' : 'Planning: '.$planning->destination.' - '.$planning->activity }}"
+                                                        data-planning-id="{{$planning->id}}"
+                                                        data-destination="{{$planning->destination}}"
+                                                        data-activity="{{$planning->activity}}"
+                                                        data-date="{{date('F j, Y', strtotime($planning->date))}}"
+                                                        data-is-past="{{ $isPastDate ? 'true' : 'false' }}"
+                                                        onclick="handlePlanningClick(this)">
                                                         <div style="display: flex; align-items: center; gap: 2px;">
-                                                            <span style="font-size: 8px;">📋</span>
-                                                            <span style="font-size: 9px; color: #e65100; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                            <span style="font-size: 8px;">{{ $isPastDate ? '🔒' : '📋' }}</span>
+                                                            <span style="font-size: 9px; color: {{ $isPastDate ? '#757575' : '#e65100' }}; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                                                 {{substr($planning->destination, 0, 10)}}{{strlen($planning->destination) > 10 ? '...' : ''}}
                                                             </span>
                                                         </div>
@@ -1323,6 +1441,26 @@
                                     <button type="submit" class="btn btn-primary">Upload</button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Birthday Modal -->
+            <div class="modal fade" id="birthdayModal" tabindex="-1" role="dialog" aria-labelledby="birthdayModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content" style="border-radius: 10px; border: none; box-shadow: 0 5px 20px rgba(0,0,0,0.15); margin-top: -170px;">
+                        <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px 10px 0 0; border: none;">
+                            <h5 class="modal-title" id="birthdayModalLabel" style="font-weight: 600;">
+                                <span style="font-size: 20px; margin-right: 8px;">🎂</span>
+                                <span id="birthdayModalTitle">Birthday Celebrants</span>
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="color: rgb(255, 255, 255) !important;">
+                                <span aria-hidden="true"></span>
+                            </button>
+                        </div>
+                        <div class="modal-body" style="padding: 20px; max-height: 400px; overflow-y: auto;">
+                            <div id="birthdayCelebrantsList"></div>
                         </div>
                     </div>
                 </div>
@@ -1726,26 +1864,21 @@ $(document).on('click', '.view-planning', function() {
         
         $('#planningModal').modal('show');
 });
-</script>
 
-<script>
 function openPlanningModal(planningId, destination, activity, date) {
     $('#planning_id').val(planningId);
     $('#planningDetailsTitle').text(destination);
     $('#planningDetailsInfo').text(`Activity: ${activity} | Date: ${date}`);
     
-    // Reset form
     $('#planningUploadForm')[0].reset();
     $('#imagePreview').hide();
     $('#documentsList').empty();
     
-    // Load existing files
     loadExistingFiles(planningId);
     
     $('#planningUploadModal').modal('show');
 }
 
-// Image preview
 $('#planning_image').on('change', function(e) {
     const file = e.target.files[0];
     if (file) {
@@ -1763,7 +1896,6 @@ function removeImage() {
     $('#imagePreview').hide();
 }
 
-// Documents preview
 $('#planning_documents').on('change', function(e) {
     const files = e.target.files;
     const docList = $('#documentsList');
@@ -1843,7 +1975,6 @@ function loadExistingFiles(planningId) {
     });
 }
 
-// Form submission
 $('#planningUploadForm').on('submit', function(e) {
     e.preventDefault();
     
@@ -1891,6 +2022,72 @@ $('#planningUploadForm').on('submit', function(e) {
         }
     });
 });
+
+function handlePlanningClick(element) {
+    const isPast = element.dataset.isPast === 'true';
+    
+    if (isPast) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Cannot Submit Files',
+            text: 'You cannot submit files for past planning dates.',
+            confirmButtonColor: '#ff9800',
+            confirmButtonText: 'Understood'
+        });
+        return;
+    }
+    
+    const planningId = element.dataset.planningId;
+    const destination = element.dataset.destination;
+    const activity = element.dataset.activity;
+    const date = element.dataset.date;
+    
+    openPlanningModal(planningId, destination, activity, date);
+}
+</script>
+
+{{-- Birthday --}}
+<script>
+function openBirthdayModal(day, month) {
+    document.getElementById('birthdayModalTitle').textContent = `Birthday Celebrants - ${month} ${day}`;
+    
+    const celebrantsData = @json($birthdaysByDay ?? []);
+    const celebrants = celebrantsData[day] || [];
+    
+    let html = '';
+    if (celebrants.length > 0) {
+        celebrants.forEach((celebrant, index) => {
+            html += `
+                <div style="display: flex; align-items: center; padding: 12px; margin-bottom: 10px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea; transition: all 0.2s;" 
+                     onmouseover="this.style.background='#e9ecef'; this.style.transform='translateX(5px)'" 
+                     onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateX(0)'">
+                    <img src="${celebrant.avatar}" 
+                         onerror="this.src='/images/no_image.png';" 
+                         alt="user" 
+                         style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea; margin-right: 15px;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 16px; color: #333; margin-bottom: 4px;">
+                            ${celebrant.first_name} ${celebrant.last_name}
+                        </div>
+                        <div style="font-size: 13px; color: #666; margin-bottom: 2px;">
+                            <span style="font-weight: 500;">Position:</span> ${celebrant.position || 'N/A'}
+                        </div>
+                        <div style="font-size: 13px; color: #666;">
+                            <span style="font-weight: 500;">Location:</span> ${celebrant.location || 'N/A'}
+                        </div>
+                    </div>
+                    <div style="font-size: 30px; opacity: 0.3;">🎉</div>
+                </div>
+            `;
+        });
+    } else {
+        html = '<p style="text-align: center; color: #999; padding: 20px;">No birthday celebrants for this day.</p>';
+    }
+    
+    document.getElementById('birthdayCelebrantsList').innerHTML = html;
+    
+    $('#birthdayModal').modal('show');
+}
 </script>
 
 <script>

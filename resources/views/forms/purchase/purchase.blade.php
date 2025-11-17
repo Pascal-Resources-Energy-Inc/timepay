@@ -174,17 +174,13 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                                     <span class="text-danger" style="font-size: 12px;">
                                                         <i class="ti-close"></i> Expired
                                                     </span>
-                                                @elseif($hoursLeft <= 24)
-                                                    <span class="text-danger" style="font-size: 12px;">
-                                                        <i class="ti-time"></i> {{ max(0, $hoursLeft) }}h left
-                                                    </span>
                                                 @elseif($daysLeft <= 1)
                                                     <span class="text-warning" style="font-size: 12px;">
                                                         <i class="ti-time"></i> 1 day left
                                                     </span>
                                                 @else
                                                     <span class="text-muted" style="font-size: 12px;">
-                                                        {{ $expiresAt->format('M d, Y h:i A') }}
+                                                        {{ $expiresAt->format('M d, Y') }}
                                                     </span>
                                                 @endif
                                             @elseif($purchase->status == 'Claimed')

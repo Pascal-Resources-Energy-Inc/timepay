@@ -398,9 +398,9 @@
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li> -->
                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/work-from-home') }}">Work from home</a></li> --}}
 
-                                <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li> -->
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
-                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/planning') }}">Planning</a></li> --}}
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/planning') }}">Planning</a></li>
                                 {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/dar') }}">DAR</a></li> --}}
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> -->
@@ -438,7 +438,7 @@
                     <li class="nav-item @if ($header == 'purchase') active @endif">
                         <a class="nav-link" href="{{ url('purchase') }}" onclick='show()'>
                             <i class="icon-bag menu-icon"></i>
-                            <span class="menu-title">Discounted LPG Refill</span>
+                            <span class="menu-title">Employee Discounted</span>
                         </a>
                     </li>
 

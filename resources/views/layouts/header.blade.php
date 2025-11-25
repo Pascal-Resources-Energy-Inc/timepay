@@ -438,7 +438,7 @@
                     <li class="nav-item @if ($header == 'purchase') active @endif">
                         <a class="nav-link" href="{{ url('purchase') }}" onclick='show()'>
                             <i class="icon-bag menu-icon"></i>
-                            <span class="menu-title">Employee Discounted</span>
+                            <span class="menu-title">Employee PO</span>
                         </a>
                     </li>
 

@@ -68,7 +68,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Place Order</h4>
+                        <h4 class="card-title">Employee Purchase Order | CEO-OOP-FOR-003-000</h4>
                         <p class="card-description">
                             <button type="button" 
                                     class="btn btn-outline-success btn-icon-text" 

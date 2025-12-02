@@ -125,8 +125,8 @@
                       @foreach ($tos as $to)
                       <tr>
                       <td id="tdActionId{{ $to->id }}" data-id="{{ $to->id }}">
-                          @if ($to->status == 'Pending' and $to->level == 0)
-                            <button type="button" class="btn btn-info btn-rounded btn-icon" data-toggle="modal" data-target="#to-view-approved-{{ $to->id }}" title="View Approved">
+                          @if ($to->status == 'Pending' and $to->level == 1)
+                            <button type="button" class="btn btn-info btn-rounded btn-icon" data-toggle="modal" data-target="#view-modal-{{ $to->id }}" title="View Approved">
                               <i class="ti-eye btn-icon-prepend"></i>
                             </button>          
                             <button type="button" id="edit{{ $to->id }}" class="btn btn-primary btn-rounded btn-icon"
@@ -137,17 +137,16 @@
                               class="btn btn-rounded btn-danger btn-icon">
                               <i class="fa fa-ban"></i>
                             </button>
-                          @elseif ($to->status == 'Pending' and $to->level > 0)
-                            <button type="button" id="view{{ $to->id }}" class="btn btn-primary btn-rounded btn-icon"
-                              data-target="#to-view-approved-{{ $to->id }}" data-toggle="modal" title='View'>
-                              <i class="ti-eye"></i>
-                            </button>       
+                          @elseif ($to->isPendingAndLevelUp())
+                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#view-modal-{{ $to->id }}" title="View Approved">
+                              <i class="ti-eye btn-icon-prepend"></i> View
+                            </button>   
                           @elseif ($to->status == 'Approved')   
-                          <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#to-view-approved{{ $to->id }}" title="View Approved">
+                          <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#view-modal-{{ $to->id }}" title="View Approved">
                             <i class="ti-eye btn-icon-prepend"></i> View
                           </button>
                           @else
-                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#to-view-declined-{{ $to->id }}" title="View Declined Remarks">
+                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#view-modal-{{ $to->id }}" title="View Declined Remarks">
                             <i class="ti-eye btn-icon-prepend"></i> View
                           </button>                                                                                  
                           @endif
@@ -159,107 +158,113 @@
                         <td> {{$to->destination}}</td>
                         <td> {{$to->purpose}}</td>
                         @if ($to->status == 'Approved' || $to->status == 'Declined')
-                                <td>
-                                    {{-- Display first approver with status badge --}}
-                                    @if($to->approvedBy)
+                            <td id="tdStatus{{ $to->id }}">
+                                @if($to->approver && $to->approver->count() > 0)
+                                    @foreach($to->approver as $approver)
                                         @php
-                                            $firstName = $to->approvedBy->name ?? $to->approvedBy->full_name ?? 'Unknown';
-                                            $firstStatusLabel = '';
-                                            $firstBadgeClass = '';
+                                            $name = $approver->approver_info->name ?? 'N/A';
+                                            $statusLabel = '';
+                                            $badgeClass = '';
 
-                                            if ($to->level >= 1) {
-                                                if ($to->level == 0 && $to->status == 'Declined') {
-                                                    $firstStatusLabel = 'Declined';
-                                                    $firstBadgeClass = 'danger';
+                                            if ($to->level > $approver->level) {
+                                                $statusLabel = 'Approved';
+                                                $badgeClass = 'success';
+                                            } 
+                                            elseif ($to->level == $approver->level) {
+                                                if ($to->status == 'Declined') {
+                                                    $statusLabel = 'Declined';
+                                                    $badgeClass = 'danger';
                                                 } else {
-                                                    $firstStatusLabel = 'Approved';
-                                                    $firstBadgeClass = 'success';
+                                                    $statusLabel = 'Approved';
+                                                    $badgeClass = 'success';
                                                 }
-                                            } else {
+                                            }
+                                            else {
                                                 if ($to->status == 'Approved') {
-                                                    $firstStatusLabel = 'Approved';
-                                                    $firstBadgeClass = 'success';
+                                                    $statusLabel = 'Approved';
+                                                    $badgeClass = 'success';
                                                 } elseif ($to->status == 'Declined') {
-                                                    $firstStatusLabel = 'Declined';
-                                                    $firstBadgeClass = 'danger';
-                                                } else {
-                                                    $firstStatusLabel = 'Pending';
-                                                    $firstBadgeClass = 'warning';
+                                                    $statusLabel = 'Skipped';
+                                                    $badgeClass = 'secondary';
                                                 }
                                             }
                                         @endphp
-                                        <div>{{ $firstName }} - <label class="badge badge-{{ $firstBadgeClass }} mt-1">{{ $firstStatusLabel }}</label></div>
-                                    @endif
+
+                                        <div>
+                                            {{ $name }}
+                                            @if(($approver->as_final ?? '') === 'on')
+                                                <small class="text-muted">(Final)</small>
+                                            @endif
+                                            - <label class="badge badge-{{ $badgeClass }}">{{ $statusLabel }}</label>
+                                        </div>
+                                    @endforeach
                                     
-                                    {{-- Display last approver with status badge --}}
-                                    @if($to->last_approver)
-                                        @php
-                                            $lastName = $to->last_approver->name ?? $to->last_approver->full_name ?? 'Unknown';
-                                            $lastStatusLabel = '';
-                                            $lastBadgeClass = '';
-
-                                            // Assuming last approver is level 2 or higher
-                                            if ($to->level >= 2) {
-                                                if ($to->level == 0 && $to->status == 'Declined') {
-                                                    $lastStatusLabel = 'Declined';
-                                                    $lastBadgeClass = 'danger';
-                                                } else {
-                                                    $lastStatusLabel = 'Approved';
-                                                    $lastBadgeClass = 'success';
-                                                }
-                                            } else {
-                                                if ($to->status == 'Approved') {
-                                                    $lastStatusLabel = 'Approved';
-                                                    $lastBadgeClass = 'success';
-                                                } elseif ($to->status == 'Declined') {
-                                                    $lastStatusLabel = 'Declined';
-                                                    $lastBadgeClass = 'danger';
-                                                } else {
-                                                    $lastStatusLabel = 'Pending';
-                                                    $lastBadgeClass = 'warning';
-                                                }
-                                            }
-                                        @endphp
-                                        <div>{{ $lastName }} - <label class="badge badge-{{ $lastBadgeClass }} mt-1">{{ $lastStatusLabel }}</label></div>
+                                    @if($to->approver->count() == 1 && isset($approvalThreshold))
+                                        <small class="text-muted d-block mt-2">
+                                            <i class="ti-info-alt"></i> <em>Amount below threshold</em>
+                                        </small>
+                                    @elseif($to->show_final_approver && isset($approvalThreshold))
+                                        <small class="text-success d-block mt-2">
+                                            <i class="ti-check"></i> <em>Multi-level approval completed</em>
+                                        </small>
                                     @endif
-                                </td>
+                                @else
+                                    @if($to->approvedBy)
+                                        <div>{{ $to->approvedBy->name ?? 'Unknown' }} - <label class="badge badge-success">Approved</label></div>
+                                    @endif
+                                    @if($to->last_approver && (!$to->approvedBy || $to->last_approver->id != $to->approvedBy->id))
+                                        <div>{{ $to->last_approver->name ?? 'Unknown' }} <small class="text-muted">(Final)</small> - <label class="badge badge-success">Approved</label></div>
+                                    @endif
+                                @endif
+                            </td>
                         @endif
-                         @if ($to->status == 'Pending' || $to->status == 'Cancelled')
-                        <td id="tdStatus{{ $to->id }}">
-                            @foreach($to->approver as $approver)
-                                @php
-                                    $name = $approver->approver_info->name;
-                                    $statusLabel = '';
-                                    $badgeClass = '';
+                        @if ($to->status == 'Pending' || $to->status == 'Cancelled')
+                            <td id="tdStatus{{ $to->id }}">
+                                @foreach($to->approver as $approver)
+                                    @php
+                                        $name = $approver->approver_info->name ?? 'N/A';
+                                        $statusLabel = '';
+                                        $badgeClass = '';
 
-                                    if ($to->status === 'Cancelled') {
-                                        $statusLabel = 'Cancelled';
-                                        $badgeClass = 'danger';
-                                    } elseif ($to->level >= $approver->level) {
-                                        if ($to->level == 0 && $to->status == 'Declined') {
-                                            $statusLabel = 'Declined';
+                                        if ($to->status === 'Cancelled') {
+                                            $statusLabel = 'Cancelled';
                                             $badgeClass = 'danger';
-                                        } else {
+                                        } elseif ($to->level > $approver->level) {
                                             $statusLabel = 'Approved';
                                             $badgeClass = 'success';
-                                        }
-                                    } else {
-                                        if ($to->status == 'Approved') {
-                                            $statusLabel = 'Approved';
-                                            $badgeClass = 'success';
-                                        } elseif ($to->status == 'Declined') {
-                                            $statusLabel = 'Declined';
-                                            $badgeClass = 'danger';
+                                        } elseif ($to->level == $approver->level) {
+                                            if ($to->status == 'Declined') {
+                                                $statusLabel = 'Declined';
+                                                $badgeClass = 'danger';
+                                            } else {
+                                                $statusLabel = 'Pending';
+                                                $badgeClass = 'warning';
+                                            }
                                         } else {
                                             $statusLabel = 'Pending';
                                             $badgeClass = 'warning';
                                         }
-                                    }
-                                @endphp
+                                    @endphp
 
-                                <div>{{ $name }} - <label class="badge badge-{{ $badgeClass }} mt-1">{{ $statusLabel }}</label></div>
-                            @endforeach
-                        </td>
+                                    <div>
+                                        {{ $name }}
+                                        @if(($approver->as_final ?? '') === 'on')
+                                            <small class="text-muted">(Final)</small>
+                                        @endif
+                                        - <label class="badge badge-{{ $badgeClass }}">{{ $statusLabel }}</label>
+                                    </div>
+                                @endforeach
+                                
+                                @if($to->approver->count() == 1 && isset($approvalThreshold))
+                                    <small class="text-muted d-block mt-2">
+                                        <i class="ti-info-alt"></i> <em>Amount below threshold</em>
+                                    </small>
+                                @elseif($to->show_final_approver && isset($approvalThreshold))
+                                    <small class="text-info d-block mt-2">
+                                        <i class="ti-info-alt"></i> <em>Multi-level approval required</em>
+                                    </small>
+                                @endif
+                            </td>
                         @endif
                         <td id="tdStatus{{ $to->id }}">
                           @if ($to->status == 'Pending')
@@ -324,7 +329,6 @@
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 success: function(data) {
-                    // Hide loader
                     if (loader) {
                         loader.style.display = "none";
                     }
@@ -336,14 +340,12 @@
                     }).then(function() {
                         location.reload();
                         
-                        // Find the status cell and update it
                         const statusCell = document.querySelector(`tr:has(button[onclick="cancel(${id})"]) .badge`);
                         if (statusCell) {
                             statusCell.className = "badge badge-danger";
                             statusCell.textContent = "Cancelled";
                         }
                         
-                        // Hide the cancel button
                         const cancelButton = document.querySelector(`button[onclick="cancel(${id})"]`);
                         if (cancelButton) {
                             cancelButton.style.display = "none";
@@ -351,7 +353,6 @@
                     });
                 },
                 error: function(xhr, status, error) {
-                    // Hide loader on error
                     if (loader) {
                         loader.style.display = "none";
                     }
@@ -378,7 +379,6 @@
 @foreach ($tos as $to)
   @include('for-approval.remarks.view-toapproved')
   @include('for-approval.remarks.view-todeclined')
-  @include('for-approval.view-toManager') 
 @endforeach
 
 @endsection

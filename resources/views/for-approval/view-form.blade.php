@@ -459,7 +459,7 @@
                     </div>
                 </div>
                 <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
-                  <div class="border-dark p-3 text-center">RC CODE</div>
+                  <div class="border-dark p-3 text-center">Cost Center</div>
                   <div class="p-1 text-center"> 
                     <input type="text"
                       class="text-center"
@@ -472,6 +472,7 @@
                 <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
                   <div class="border-dark p-3 text-center">REQUESTED BY</div>
                   <div class="p-1 text-center"> 
+                    <input type="hidden" name="show_final_approver" value="{{ $form_approval->show_final_approver ? '1' : '0' }}">
                     @if($form_approval->sig_image)
                        @php
                             try {
@@ -540,7 +541,10 @@
                   </div>
                 </div>
               </div>
-             <small>Distribution: 1 Copy attached to RFP upon liquidation.</small>
+             <div style="display: flex; justify-content: space-between;">
+                  <small>Distribution: 1 Copy attached to RFP upon liquidation.</small>
+                  <small>Travel Order Form | OOP-HRD-FOR-016-001</small>
+               </div>
         </div>
       </div>
       <div class="modal-footer">

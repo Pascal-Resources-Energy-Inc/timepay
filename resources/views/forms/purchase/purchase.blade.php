@@ -36,7 +36,6 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
             </div>
         </div>
         
-        {{-- Monthly Limit Alert --}}
         @if(($stats['total_items_sum'] ?? 0) >= 10)
         <div class='row'>
             <div class='col-lg-12'>
@@ -63,7 +62,6 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
         </div>
         @endif
 
-        {{-- Place Order Section --}}
         <div class='row'>
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">
@@ -138,7 +136,6 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                         $now = new \DateTime();
                                         $isExpired = isOrderExpired($purchase->created_at);
                                         
-                                        // Calculate remaining time
                                         $interval = $now->diff($expiresAt);
                                         $daysLeft = $interval->days;
                                         $hoursLeft = ($daysLeft * 24) + $interval->h;
@@ -223,7 +220,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="9" class="text-center">No purchase orders found</td>
+                                        <td colspan="10" class="text-center">No purchase orders found</td>
                                     </tr>
                                     @endforelse
                                 </tbody>
@@ -236,7 +233,6 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
         @include('forms.purchase.add_purchase')
         
-        {{-- QR Code Modal --}}
         <div class="modal fade" id="qrCodeModal" tabindex="-1" role="dialog" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
@@ -272,27 +268,21 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 @section('obScript')
 <script>
-// Force button to always be enabled
 document.addEventListener('DOMContentLoaded', function() {
     const addPurchaseBtn = document.getElementById('addPurchaseBtn');
     if (addPurchaseBtn) {
-        // Remove disabled attribute if it exists
         addPurchaseBtn.removeAttribute('disabled');
-        // Ensure it's always clickable
         addPurchaseBtn.style.pointerEvents = 'auto';
         addPurchaseBtn.style.opacity = '1';
         
-        // Re-attach the modal trigger
         addPurchaseBtn.setAttribute('data-toggle', 'modal');
         addPurchaseBtn.setAttribute('data-target', '#addPurchaseModal');
     }
 });
 
 function viewQRCode(orderNumber, qrUrl, totalItems, status, isExpired, expiryDate) {
-    // Extract QR code from URL (last segment)
     const qrCode = qrUrl.split('/').pop();
     
-    // Generate QR code image
     document.getElementById('qrCodeDisplay').innerHTML = '';
     const qrCodeDiv = document.createElement('div');
     
@@ -307,12 +297,10 @@ function viewQRCode(orderNumber, qrUrl, totalItems, status, isExpired, expiryDat
     qrCodeDiv.appendChild(qrCodeImg);
     document.getElementById('qrCodeDisplay').appendChild(qrCodeDiv);
     
-    // Update modal content
     document.getElementById('orderNumberDisplay').textContent = orderNumber;
     document.getElementById('qrCodeText').textContent = qrCode;
     document.getElementById('totalItemsDisplay').textContent = totalItems;
     
-    // Show status alerts
     const statusAlert = document.getElementById('statusAlert');
     const expiryInfo = document.getElementById('expiryInfo');
     
@@ -337,7 +325,6 @@ function viewQRCode(orderNumber, qrUrl, totalItems, status, isExpired, expiryDat
         expiryInfo.style.display = 'none';
     }
     
-    // Show modal
     $('#qrCodeModal').modal('show');
 }
 
@@ -381,7 +368,6 @@ function approvePurchase(id) {
     });
 }
 
-// Date validation
 document.addEventListener('DOMContentLoaded', function() {
     const fromDate = document.querySelector('input[name="from"]');
     const toDate = document.querySelector('input[name="to"]');

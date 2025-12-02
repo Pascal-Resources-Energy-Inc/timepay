@@ -23,12 +23,12 @@ class PurchaseController extends Controller
         
         $userId = Auth::id();
         
-        $query = DB::table('purchases')
-        ->leftJoin('users', 'purchases.user_id', '=', 'users.id')
-        ->select('purchases.*', 'users.name as purchaser_name')
-        ->where('purchases.user_id', $userId)
-        ->whereBetween('purchases.created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
-        ->orderBy('purchases.created_at', 'desc');
+        $currentEmployee = Employee::where('user_id', $userId)->first();
+        
+        $query = Purchase::with(['employee', 'items'])
+            ->where('user_id', $userId)
+            ->whereBetween('created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
+            ->orderBy('created_at', 'desc');
         
         if ($status) {
             $query->where('status', $status);
@@ -36,11 +36,29 @@ class PurchaseController extends Controller
         
         $purchases = $query->get();
         
-        $totalPurchase = DB::table('purchases')
-            ->where('user_id', $userId)
-            ->sum('total_items');
+        foreach ($purchases as $purchase) {
+            if ($purchase->employee) {
+                $purchase->purchaser_name = trim(
+                    ($purchase->employee->first_name ?? '') . ' ' . 
+                    ($purchase->employee->middle_name ?? '') . ' ' . 
+                    ($purchase->employee->last_name ?? '')
+                );
+                $purchase->purchaser_name = preg_replace('/\s+/', ' ', $purchase->purchaser_name);
+                $purchase->employee_work_place = $purchase->employee->location ?? 'N/A';
+            } else {
+                $purchase->purchaser_name = 'N/A';
+                $purchase->employee_work_place = 'N/A';
+            }
+        }
         
-        $totalThisMonth = DB::table('purchases')
+        $totalMainProductsAllTime = DB::table('purchase_items')
+            ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
+            ->join('products', 'purchase_items.product_id', '=', 'products.id')
+            ->where('products.main', 'on')
+            ->where('purchases.user_id', $userId)
+            ->sum('purchase_items.quantity') ?? 0;
+        
+        $totalOrdersThisMonth = DB::table('purchases')
             ->where('user_id', $userId)
             ->whereYear('created_at', date('Y'))
             ->whereMonth('created_at', date('m'))
@@ -51,76 +69,207 @@ class PurchaseController extends Controller
             ->where('status', 'Processing')
             ->count();
         
-        $totalItemsThisMonth = DB::table('purchases')
-            ->where('user_id', $userId)
-            ->whereYear('created_at', date('Y'))
-            ->whereMonth('created_at', date('m'))
-            ->sum('total_items');
+        $totalMainProductsThisMonth = DB::table('purchase_items')
+            ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
+            ->join('products', 'purchase_items.product_id', '=', 'products.id')
+            ->where('products.main', 'on')
+            ->where('purchases.user_id', $userId)
+            ->whereYear('purchases.created_at', date('Y'))
+            ->whereMonth('purchases.created_at', date('m'))
+            ->sum('purchase_items.quantity') ?? 0;
         
         $stats = [
-            'total_purchase' => $totalPurchase,
-            'total_this_month' => $totalThisMonth,
+            'total_purchase' => $totalMainProductsAllTime,
+            'total_this_month' => $totalOrdersThisMonth,
             'remaining' => $remaining,
-            'total_items_sum' => $totalItemsThisMonth
+            'total_items_sum' => $totalMainProductsThisMonth
         ];
         
-        return view('forms.purchase.purchase', compact('header', 'purchases', 'stats', 'from', 'to', 'status'));
+        $products = DB::table('products')
+            ->select('id', 'product_name', 'price', 'product_image', 'main')
+            ->orderBy('id', 'asc')
+            ->get();
+        
+        return view('forms.purchase.purchase', compact('header', 'purchases', 'stats', 'from', 'to', 'status', 'products'));
     }
-    
+
     public function store(Request $request)
     {
-        try {   
+        try {
+            \Log::info('Store Purchase Request:', $request->all());
+            
             $validated = $request->validate([
-                'qty_330g' => 'nullable|integer|min:0',
-                'qty_230g' => 'nullable|integer|min:0',
+                'products' => 'required|array|min:1',
+                'products.*.product_id' => 'required|integer|exists:products,id',
+                'products.*.quantity' => 'required|integer|min:1',
                 'total_items' => 'required|integer|min:1',
                 'subtotal' => 'required|numeric|min:0',
                 'discount' => 'nullable|numeric|min:0',
                 'total_amount' => 'required|numeric|min:0',
-                'payment_method' => 'nullable|string|max:50',
-                'notes' => 'nullable|string'
+                'payment_method' => 'required|string'
+            ]);
+
+            $userId = Auth::id();
+            \Log::info('User ID:', ['user_id' => $userId]);
+            
+            $mainProductsThisMonth = DB::table('purchase_items')
+                ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
+                ->join('products', 'purchase_items.product_id', '=', 'products.id')
+                ->where('products.main', 'on')
+                ->where('purchases.user_id', $userId)
+                ->whereYear('purchases.created_at', date('Y'))
+                ->whereMonth('purchases.created_at', date('m'))
+                ->sum('purchase_items.quantity');
+            
+            \Log::info('Main products this month:', ['count' => $mainProductsThisMonth]);
+            
+            $newMainProducts = 0;
+            foreach ($validated['products'] as $item) {
+                $product = DB::table('products')->where('id', $item['product_id'])->first();
+                if ($product && $product->main == 'on') {
+                    $newMainProducts += $item['quantity'];
+                }
+            }
+            
+            \Log::info('New main products:', ['count' => $newMainProducts]);
+            
+            if (($mainProductsThisMonth + $newMainProducts) > 10) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "You can only order " . (10 - $mainProductsThisMonth) . " more main product items this month."
+                ], 400);
+            }
+
+            DB::beginTransaction();
+            
+            $employee = DB::table('employees')
+                ->where('user_id', $userId)
+                ->orWhere('id', $userId)
+                ->first();
+            
+            \Log::info('Employee Found:', [
+                'employee' => $employee ? [
+                    'id' => $employee->id,
+                    'user_id' => $employee->user_id,
+                    'employee_number' => $employee->employee_number,
+                    'name' => $employee->first_name . ' ' . $employee->last_name
+                ] : 'NOT FOUND'
             ]);
             
-            // Get employee info from logged-in user
-            $employee = Employee::where('user_id', Auth::id())->first();
-            
-            $lastOrder = DB::table('purchases')->orderBy('id', 'desc')->first();
-            $orderNumber = 'ON-' . ($lastOrder ? ($lastOrder->id + 1) : 1);
+            if (!$employee) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Employee record not found. Please contact administrator.'
+                ], 404);
+            }
             
             $qrCode = $this->generateUniqueQRCode();
-            $claimUrl = route('purchase.claim', ['qr_code' => $qrCode]);
+            $orderNumber = 'EPO-' . strtoupper(substr(uniqid(), -6));
             
-            DB::table('purchases')->insert([
+            \Log::info('Creating purchase:', [
                 'order_number' => $orderNumber,
-                'user_id' => Auth::id(),
-                'employee_number' => $employee ? $employee->employee_number : null,
-                'employee_name' => $employee ? ($employee->first_name . ' ' . $employee->last_name) : null,
-                'employee_work_place' => $employee ? $employee->location : null,
-                'qty_330g' => $validated['qty_330g'] ?? 0,
-                'qty_230g' => $validated['qty_230g'] ?? 0,
+                'user_id' => $userId,
+                'employee_number' => $employee->employee_number
+            ]);
+            
+            $purchaseId = DB::table('purchases')->insertGetId([
+                'order_number' => $orderNumber,
+                'user_id' => $userId,
+                'employee_number' => $employee->employee_number,
                 'total_items' => $validated['total_items'],
                 'subtotal' => $validated['subtotal'],
                 'discount' => $validated['discount'] ?? 0,
                 'total_amount' => $validated['total_amount'],
-                'payment_method' => $validated['payment_method'] ?? null,
+                'payment_method' => $validated['payment_method'],
                 'status' => 'Processing',
                 'qr_code' => $qrCode,
-                'notes' => $validated['notes'] ?? null,
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
             
+            \Log::info('Purchase created:', ['purchase_id' => $purchaseId]);
+            
+            foreach ($validated['products'] as $item) {
+                $product = DB::table('products')
+                    ->where('id', $item['product_id'])
+                    ->first();
+                
+                if ($product) {
+                    $subtotal = $product->price * $item['quantity'];
+                    
+                    DB::table('purchase_items')->insert([
+                        'purchase_id' => $purchaseId,
+                        'product_id' => $product->id,
+                        'product_name' => $product->product_name,
+                        'quantity' => $item['quantity'],
+                        'price' => $product->price,
+                        'subtotal' => $subtotal,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
+            
+            DB::commit();
+            \Log::info('Purchase stored successfully');
+            
             return response()->json([
                 'success' => true,
-                'message' => 'Purchase order created successfully!',
+                'message' => 'Order placed successfully!',
+                'order_number' => $orderNumber,
                 'qr_code' => $qrCode,
-                'claim_url' => $claimUrl
+                'purchase_id' => $purchaseId
             ]);
             
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            \Log::error('Validation error:', ['errors' => $e->errors()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create purchase order: ' . $e->getMessage()
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Store purchase error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to place order: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    public function getProducts()
+    {
+        try {
+            $products = DB::table('products')->orderBy('id', 'asc')->get();
+            
+            $formatted = [];
+            
+            foreach($products as $p) {
+                $formatted[] = [
+                    'id' => $p->id,
+                    'name' => $p->product_name,
+                    'price' => $p->price,
+                    'image' => $p->product_image,
+                    'is_main' => $p->main == 'on'
+                ];
+            }
+            
+            return response()->json([
+                'success' => true,
+                'products' => $formatted,
+                'total' => count($formatted)
+            ]);
+        } catch(\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
             ], 500);
         }
     }
@@ -128,10 +277,7 @@ class PurchaseController extends Controller
     private function generateUniqueQRCode()
     {
         do {
-            // Generate random 10-character alphanumeric code
             $qrCode = strtoupper(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 10));
-            
-            // Check if QR code already exists
             $exists = DB::table('purchases')->where('qr_code', $qrCode)->exists();
         } while ($exists);
         
@@ -167,14 +313,10 @@ class PurchaseController extends Controller
     public function claimPage($qr_code)
     {
         try {
-            // Find purchase by QR code and join with users table to get purchaser name
-            $purchase = DB::table('purchases')
-                ->leftJoin('users', 'purchases.user_id', '=', 'users.id')
-                ->select('purchases.*', 'users.name as purchaser_name')
-                ->where('purchases.qr_code', $qr_code)
+            $purchase = Purchase::with(['employee', 'items.product'])
+                ->where('qr_code', $qr_code)
                 ->first();
             
-            // If purchase not found
             if (!$purchase) {
                 return view('forms.purchase.claim', [
                     'error' => 'Order Not Found',
@@ -182,10 +324,59 @@ class PurchaseController extends Controller
                 ]);
             }
             
-            // Return the claim page with purchase details
-            return view('forms.purchase.claim', compact('purchase'));
+            $currentUser = null;
+            if (Auth::check()) {
+                $currentUser = Auth::user();
+                $currentEmployee = Employee::where('user_id', $currentUser->id)->first();
+                
+                if ($currentEmployee) {
+                    $currentUser->employee_name = trim(
+                        ($currentEmployee->first_name ?? '') . ' ' . 
+                        ($currentEmployee->middle_name ?? '') . ' ' . 
+                        ($currentEmployee->last_name ?? '')
+                    );
+                    $currentUser->employee_name = preg_replace('/\s+/', ' ', $currentUser->employee_name);
+                    $currentUser->employee_number = $currentEmployee->employee_number ?? 'N/A';
+                    $currentUser->work_location = $currentEmployee->location ?? 'N/A';
+                    $currentUser->position = $currentEmployee->position ?? 'N/A';
+                }
+            }
+            
+            $claimerEmployee = null;
+            if ($purchase->claimed_by) {
+                $claimerEmployee = Employee::where('employee_number', $purchase->claimed_by)
+                    ->orWhere(DB::raw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name)"), 'LIKE', '%' . $purchase->claimed_by . '%')
+                    ->first();
+                
+                if ($claimerEmployee) {
+                    $purchase->claimer_name = trim(
+                        ($claimerEmployee->first_name ?? '') . ' ' . 
+                        ($claimerEmployee->middle_name ?? '') . ' ' . 
+                        ($claimerEmployee->last_name ?? '')
+                    );
+                    $purchase->claimer_name = preg_replace('/\s+/', ' ', $purchase->claimer_name);
+                    $purchase->claimer_position = $claimerEmployee->position ?? 'N/A';
+                    $purchase->claimer_location = $claimerEmployee->location ?? 'N/A';
+                }
+            }
+            
+            if ($purchase->employee) {
+                $purchase->employee_name = trim(
+                    ($purchase->employee->first_name ?? '') . ' ' . 
+                    ($purchase->employee->middle_name ?? '') . ' ' . 
+                    ($purchase->employee->last_name ?? '')
+                );
+                $purchase->employee_name = preg_replace('/\s+/', ' ', $purchase->employee_name);
+                $purchase->employee_work_place = $purchase->employee->location ?? 'N/A';
+            } else {
+                $purchase->employee_name = 'N/A';
+                $purchase->employee_work_place = 'N/A';
+            }
+            
+            return view('forms.purchase.claim', compact('purchase', 'currentUser'));
             
         } catch (\Exception $e) {
+            \Log::error('Claim page error: ' . $e->getMessage());
             return view('forms.purchase.claim', [
                 'error' => 'System Error',
                 'message' => 'An error occurred while retrieving your order. Please try again later.'
@@ -200,13 +391,12 @@ class PurchaseController extends Controller
                 'purchase_id' => 'required|integer|exists:purchases,id',
                 'latitude' => 'required|numeric',
                 'longitude' => 'required|numeric',
-                'si' => 'nullable|string',
+                'claimed_by' => 'nullable|string',
                 'address' => 'required|string',
                 'giver_name' => 'required|string|max:255',
                 'giver_position' => 'required|string|max:255',
             ]);
             
-            // Check if purchase exists
             $purchase = DB::table('purchases')->where('id', $validated['purchase_id'])->first();
             
             if (!$purchase) {
@@ -216,16 +406,11 @@ class PurchaseController extends Controller
                 ], 404);
             }
             
-            // Calculate business days (excluding weekends)
             $createdAt = new \DateTime($purchase->created_at);
             $now = new \DateTime();
-            
-            // Add 3 business days to creation date
             $expiresAt = $this->addBusinessDays($createdAt, 3);
             
-            // Check if expired
             if ($now > $expiresAt) {
-                // Auto-forfeit expired order
                 DB::table('purchases')
                     ->where('id', $validated['purchase_id'])
                     ->update([
@@ -246,7 +431,6 @@ class PurchaseController extends Controller
                 ], 400);
             }
             
-            // Update purchase with claim information
             DB::table('purchases')
                 ->where('id', $validated['purchase_id'])
                 ->update([
@@ -254,7 +438,7 @@ class PurchaseController extends Controller
                     'claimed_at' => now(),
                     'claim_latitude' => $validated['latitude'],
                     'claim_longitude' => $validated['longitude'],
-                    'si' => $validated['si'] ?? 'N/A',
+                    'claimed_by' => $validated['claimed_by'] ?? 'N/A',
                     'claim_address' => $validated['address'],
                     'giver_name' => $validated['giver_name'],
                     'giver_position' => $validated['giver_position'],
@@ -266,11 +450,6 @@ class PurchaseController extends Controller
                 'message' => 'Order claimed successfully!'
             ]);
             
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed: ' . implode(', ', $e->validator->errors()->all())
-            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -279,9 +458,6 @@ class PurchaseController extends Controller
         }
     }
 
-    /**
-     * Add business days to a date (excluding weekends)
-     */
     private function addBusinessDays($date, $days)
     {
         $currentDate = clone $date;
@@ -289,8 +465,8 @@ class PurchaseController extends Controller
         
         while ($addedDays < $days) {
             $currentDate->modify('+1 day');
-            $dayOfWeek = (int)$currentDate->format('N'); // 1 (Mon) to 7 (Sun)
-            if ($dayOfWeek < 6) { // Monday to Friday
+            $dayOfWeek = (int)$currentDate->format('N');
+            if ($dayOfWeek < 6) {
                 $addedDays++;
             }
         }
@@ -302,33 +478,49 @@ class PurchaseController extends Controller
     {
         $from = $request->input('from', date('Y-m-d'));
         $to = $request->input('to', date('Y-m-d'));
-        $userId = Auth::id();
         
         $filename = 'Discounted_LPG_Refill_' . $from . '_to_' . $to . '.xlsx';
         
-        return Excel::download(new PurchaseExport($from, $to, $userId), $filename);
+        return Excel::download(new PurchaseExport($from, $to, null), $filename);
     }
 
     public function reports(Request $request)
     {
-        $header ='reports';
+        $header = 'reports';
         $from = $request->input('from');
         $to = $request->input('to');
+        $status = $request->input('status');
         
         $purchases = null;
         
         if ($from && $to) {
-            $userId = Auth::id();
             
-            $purchases = DB::table('purchases')
-                ->leftJoin('users', 'purchases.user_id', '=', 'users.id')
-                ->select('purchases.*', 'users.name as purchaser_name')
-                ->where('purchases.user_id', $userId)
-                ->whereBetween('purchases.created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
-                ->orderBy('purchases.created_at', 'desc')
-                ->get();
+            $query = Purchase::with('employee')
+                ->whereBetween('created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
+                ->orderBy('created_at', 'desc');
+            
+            if ($status && $status != '') {
+                $query->where('status', $status);
+            }
+            
+            $purchases = $query->get();
+            
+            foreach ($purchases as $purchase) {
+                if ($purchase->employee) {
+                    $purchase->purchaser_name = trim(
+                        ($purchase->employee->first_name ?? '') . ' ' . 
+                        ($purchase->employee->middle_name ?? '') . ' ' . 
+                        ($purchase->employee->last_name ?? '')
+                    );
+                    $purchase->purchaser_name = preg_replace('/\s+/', ' ', $purchase->purchaser_name);
+                    $purchase->employee_work_place = $purchase->employee->location ?? 'N/A';
+                } else {
+                    $purchase->purchaser_name = 'N/A';
+                    $purchase->employee_work_place = 'N/A';
+                }
+            }
         }
         
-        return view('reports.discounted_refill_reports', compact('header', 'purchases'));
+        return view('reports.discounted_refill_reports', compact('header', 'purchases', 'from', 'to', 'status'));
     }
 }

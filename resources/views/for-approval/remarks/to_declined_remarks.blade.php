@@ -17,7 +17,7 @@
                         <input type="hidden" name="status" value="Declined">
                         <div class='col-md-12 form-group'>
                             Remarks:
-                            <textarea class="form-control" name="approval_remarks" id="" cols="30" rows="5" placeholder="Input Approval Remarks"></textarea>
+                            <textarea class="form-control" name="approval_remarks" id="" cols="30" rows="5" placeholder="Input Approval Remarks" required></textarea>
                         </div>
                     </div>
                 </div>

@@ -324,7 +324,7 @@
                     </div>
                   </div>
                   <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
-                    <div class="border-dark p-3 text-center">RC CODE</div>
+                    <div class="border-dark p-3 text-center">Cost Center</div>
                     <div class="p-1 text-center"> 
                       <input type="text"
                         style="height: 30px;" 
@@ -337,7 +337,7 @@
                   </div>
                 <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
                     <div class="border-dark p-3 text-center">
-                      REQUESTED
+                      REQUESTED BY
                     </div>
                     <div class="p-1 text-center">
                     <button type="button" id="openSignature" 
@@ -351,7 +351,7 @@
                           <input type="text"
                           class="text-center"
                           style="background: transparent; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
-                          value="{{ auth()->user()->employee->first_name }} @if(auth()->user()->employee->middle_initial){{ auth()->user()->employee->middle_initial }}.@endif{{ auth()->user()->employee->last_name }}"
+                          value="{{ auth()->user()->employee->first_name }} @if(auth()->user()->employee->middle_initial){{ auth()->user()->employee->middle_initial }}. @endif{{ auth()->user()->employee->last_name }}"
                           name="requestor_name"
                           readonly>
                         <small class="text-center d-block">(Requestor's Signature Over Printed Name)</small>
@@ -364,7 +364,7 @@
 
                         if ($supervisor) {
                             $supervisorName = $supervisor->first_name . ' ' .
-                                              ($supervisor->middle_initial ? $supervisor->middle_initial . '. ' : '') .
+                                              ($supervisor->middle_initial ? $supervisor->middle_initial . ' ' : '') .
                                               $supervisor->last_name;
                         }
                     @endphp
@@ -389,11 +389,15 @@
                     </script>
 
                   <div class="col-lg col-md-12 col-sm-12 p-1">
-                      <div class="border-dark p-3 text-center">APPROVED BY</div>
+                      <div class="border-dark p-3 text-center">
+                          APPROVED BY
+                          <span id="finalApproverTag" style="display: none; color: white; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: 5px;"></span>
+                      </div>
                       <div class="p-1">
                           <input type="text"
                               style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
                               name="approved_by_head"
+                              id="approved_by_head_input"
                               value=""
                               readonly>
                           <small class="text-center d-block">Division/Cluster Head</small>
@@ -413,7 +417,10 @@
                     </div>
                   </div>            
                 </div>
-              <small>Distribution: 1 Copy attached to RFP upon liquidation.</small>
+               <div style="display: flex; justify-content: space-between;">
+                  <small>Distribution: 1 Copy attached to RFP upon liquidation.</small>
+                  <small>Travel Order Form | OOP-HRD-FOR-016-001</small>
+               </div>
             </div>
           </div>
           <div class="modal-footer">
@@ -1168,6 +1175,8 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script>
+
+  
 document.addEventListener('DOMContentLoaded', function () {
     const liquidationDateInput = document.querySelector('input[name="liquidation_date"]');
 
@@ -1264,25 +1273,28 @@ function updateApproverDisplay(totalAmount) {
   const approvalThreshold = window.approvalThreshold || 0;
   const allApprovers = window.allApprovers || [];
   
-  const approverInput = $('input[name="approved_by_head"]');
+  const approverInput = $('#approved_by_head_input');
+  const finalTag = $('#finalApproverTag');
   
   if (!approverInput.length) return;
   
-  const firstApprover = allApprovers.find(approver => approver.position === 'division_head') || allApprovers[0];
-  const finalApprover = allApprovers.find(approver => approver.as_final === 'on');
+  approverInput.val('');
+  finalTag.hide().text('');
   
-  if (totalAmount > approvalThreshold) {
-    if (finalApprover && finalApprover.approver_info) {
-      approverInput.val(finalApprover.approver_info.name || finalApprover.approver_info.full_name);
-    }
+  const finalApprover = allApprovers.find(approver => 
+    approver.as_final === 'on' || approver.as_final === true
+  );
+  
+  if (finalApprover && finalApprover.approver_info) {
+    approverInput.val(finalApprover.approver_info.full_name || finalApprover.approver_info.name || '');
+    
+    
   } else {
-    if (firstApprover && firstApprover.approver_info) {
-      approverInput.val(firstApprover.approver_info.name || firstApprover.approver_info.full_name);
-      
-      approverInput.siblings('small').text('Division/Cluster Head');
-      
-      approverInput.css('background-color', 'transparent');
-      approverInput.siblings('small').css('color', '');
+    const sortedApprovers = allApprovers.sort((a, b) => (b.level || 1) - (a.level || 1));
+    const highestApprover = sortedApprovers[0];
+    
+    if (highestApprover && highestApprover.approver_info) {
+      approverInput.val(highestApprover.approver_info.full_name || highestApprover.approver_info.name || '');
     }
   }
 }
@@ -1297,10 +1309,12 @@ $(document).ready(function () {
     calculateTotals($this);
   });
   
-  $('input[name="totalamount_total"]').on('input', function() {
+  $('input[name="totalamount_total"]').on('input change', function() {
     const totalAmount = parseFloat($(this).val()) || 0;
     updateApproverDisplay(totalAmount);
   });
+  
+  triggerApproverUpdate();
 });
 
 function triggerApproverUpdate() {
@@ -1310,7 +1324,65 @@ function triggerApproverUpdate() {
 </script>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const approvalThreshold = window.approvalThreshold || 0;
+    const allApprovers = window.allApprovers || [];
+    
+    const totalAmountField = document.querySelector('input[name="totalamount_total"]');
+    const approvedByHeadInput = document.getElementById('approved_by_head_input');
+    const finalApproverTag = document.getElementById('finalApproverTag');
+    
+    function updateFinalApproverDisplay() {
+        const totalAmount = parseFloat(totalAmountField.value) || 0;
+        
+        approvedByHeadInput.value = '';
+        finalApproverTag.style.display = 'none';
+        
+        const finalApprover = allApprovers.find(approver => 
+            approver.as_final === 'on' || approver.as_final === true
+        );
+        
+        if (finalApprover && finalApprover.approver_info) {
+            approvedByHeadInput.value = finalApprover.approver_info.full_name || 
+                                       finalApprover.approver_info.name || '';
+            
+            finalApproverTag.style.display = 'inline-block';
+        } else {
+            const highestApprover = allApprovers
+                .sort((a, b) => (b.level || 1) - (a.level || 1))[0];
+            
+            if (highestApprover && highestApprover.approver_info) {
+                approvedByHeadInput.value = highestApprover.approver_info.full_name || 
+                                           highestApprover.approver_info.name || '';
+            }
+        }
+    }
+    
+    if (totalAmountField) {
+        totalAmountField.addEventListener('change', updateFinalApproverDisplay);
+        totalAmountField.addEventListener('input', updateFinalApproverDisplay);
+        
+        updateFinalApproverDisplay();
+    }
+    
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+                updateFinalApproverDisplay();
+            }
+        });
+    });
+    
+    if (totalAmountField) {
+        observer.observe(totalAmountField, { 
+            attributes: true,
+            attributeFilter: ['value']
+        });
+    }
+});
+</script>
 
+<script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form[action="new-to"]');
     const btnOb = document.getElementById('btnOb');

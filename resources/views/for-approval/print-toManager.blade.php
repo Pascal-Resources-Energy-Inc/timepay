@@ -332,6 +332,8 @@ function printModalContentSameWindow(modalId) {
                 padding: 8px;
                 border-right: 1px solid black;
                 font-size: 10px;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
             }
             
             .treasury-middle {
@@ -574,12 +576,12 @@ function printModalContentSameWindow(modalId) {
                 <div class="signature-line" style="margin-top: -8px;">${formData.departmentName}</div>
             </div>
             <div class="approval-box">
-                <div class="approval-title">RC CODE</div>
+                <div class="approval-title">Cost Center</div>
                 <div class="signature-line">${formData.costCenter}</div>
             </div>
             <div class="approval-box">
                 <div class="approval-title">REQUESTED BY</div>
-                   ${formData.sigImageUrl 
+                ${formData.sigImageUrl 
                     ? `<img src="data:image/png;base64,${formData.sigImageUrl}" style="position: absolute;" alt="Signature" class="signature-image" />`
                     : ''}
                 <div class="signature-line">${formData.requestorName}</div>
@@ -592,6 +594,16 @@ function printModalContentSameWindow(modalId) {
                         System Approved Date: ${formData.displayApprovedDate}
                     </span>
                 </div>
+                ${
+                    formData.showFinalApprover === false || formData.showFinalApprover === '0'
+                        ? (formData.status === 'Approved'
+                            ? `<img src="signed/APPROVED.png" alt="Approved" style="position: absolute; transform: translateX(-50%); top: 47%; width: 140px; opacity: 0.5; pointer-events: none; z-index: 10;">`
+                            : formData.status === 'Declined'
+                            ? `<img src="signed/DENIED.png" alt="Declined" style="position: absolute; transform: translateX(-50%); top: 47%; width: 140px; opacity: 0.5; pointer-events: none; z-index: 10;">`
+                            : ''
+                        )
+                        : ''
+                }
                 <div class="signature-line">${formData.checkedBy}</div>
                 <div class="signature-label">Immediate Supervisor</div>
             </div>
@@ -603,58 +615,60 @@ function printModalContentSameWindow(modalId) {
                     </span>
                 </div>
                 ${
-                parseFloat(formData.grandTotal)
-                    ? (formData.status === 'Approved'
-                        ? `<img src="signed/APPROVED.png" alt="Approved" style="position: absolute; transform: translateX(-50%); top: 47%; width: 140px; opacity: 0.5; pointer-events: none; z-index: 10;">`
-                        : formData.status === 'Declined'
-                        ? `<img src="signed/DENIED.png" alt="Declined" style="position: absolute; transform: translateX(-50%); top: 41%; width: 140px; opacity: 0.5; pointer-events: none; z-index: 10;">`
+                    formData.showFinalApprover === true || formData.showFinalApprover === '1'
+                        ? (formData.status === 'Approved'
+                            ? `<img src="signed/APPROVED.png" alt="Approved" style="position: absolute; transform: translateX(-50%); top: 47%; width: 140px; opacity: 0.5; pointer-events: none; z-index: 10;">`
+                            : formData.status === 'Declined'
+                            ? `<img src="signed/DENIED.png" alt="Declined" style="position: absolute; transform: translateX(-50%); top: 47%; width: 140px; opacity: 0.5; pointer-events: none; z-index: 10;">`
+                            : ''
+                        )
                         : ''
-                    )
-                    : ''
                 }
                 <div class="signature-line">${formData.approvedBy}</div>
                 <div class="signature-label">Division/Cluster Head</div>
             </div>
         </div>
 
-        <!-- Treasury Section (Always show liquidation section but adjust header text) -->
         <div class="treasury-section">
             <div class="treasury-header">REMARKS AND LIQUIDATION DETAILS</div>
             <div class="treasury-content">
-               <div class="treasury-left">
-                    <div style="margin-bottom: 8px;">
+                <div class="treasury-left">
+                    <div style="margin-bottom: 6px;">
                         <strong>REMARKS</strong>
                     </div>
-
-                    <div>
-                        <small>Remarks by Immediate Supervisor:</small>
-                        <small>(${formData.checkedBy} - ${formData.displayApprovedDate})</small>
-                    </div>
-                    <div>
-                        <small>${formData.approvalRemarks}</small>
-                    </div>
-
-                    ${formData.approvalRemarks2 ? `
-                        <div>
-                            <small>Remarks by Head Supervisor:</small>
-                            <small>(${formData.approvedBy} - ${formData.displayApprovedFinal})</small>
-                        </div>
-                        <div>
-                            <small>${formData.approvalRemarks2}</small>
-                        </div>
-                    ` : ''}
+                    ${formData.approvalRemarks.length > 0 
+                        ? formData.approvalRemarks.map(remark => `
+                            <div style="margin-bottom: 6px; padding: 4px 6px; background-color: #f5f5f5; border-left: 2px solid #3490dc;">
+                                <div style="font-size: 8px;">
+                                    <strong>${remark.approver}</strong>
+                                </div>
+                                <div style="font-size: 7px; color: #6c757d; margin-top: 2px;">
+                                    ${remark.date}
+                                </div>
+                                ${remark.remark ? `
+                                    <div style="font-size: 8px; margin-top: 3px;">
+                                        ${remark.remark}
+                                    </div>
+                                ` : '<div style="font-size: 7px; color: #999; margin-top: 3px;"><em>No remarks</em></div>'}
+                            </div>
+                        `).join('')
+                        : '<div style="padding: 4px;"><small style="color: #6c757d; font-size: 8px;"><em>No remarks yet</em></small></div>'
+                    }
                 </div>
                 <div class="treasury-middle">
-                    <div style="margin-bottom: 8px;">
+                    <div style="margin-bottom: 6px;">
                         <strong>LIQUIDATION DUE ON:</strong>
                     </div>
-                    <div>
-                    ${formData.liquidationDate || ''}
+                    <div style="margin-top: 10px; font-size: 9px;">
+                        ${formData.liquidationDate || ''}
                     </div>
                 </div>
             </div>
         </div>
-        <small>Distribution: 1 Copy attached to RFP upon liquidation.</small>
+        <div style="display: flex; justify-content: space-between;">
+            <small>Distribution: 1 Copy attached to RFP upon liquidation.</small>
+            <small>Travel Order Form | OOP-HRD-FOR-016-001</small>
+        </div>
        
         <div class="no-print" style="text-align: center; margin-top: 20px;">
             <button onclick="window.print()" style="padding: 10px 20px; font-size: 14px;">Print</button>
@@ -851,7 +865,6 @@ function setupPrintWindowClosingBehavior(printWindow) {
     return closePrintWindow;
 }
 
-
 function extractFormData(modal) {
     const getValue = (selector) => {
         const element = modal.querySelector(selector);
@@ -863,6 +876,37 @@ function extractFormData(modal) {
         return element ? element.value : '';
     };
 
+    const extractApprovalRemarks = () => {
+        const remarksContainer = modal.querySelector('.col-md-7.col-sm-12.border-right.border-dark.p-1');
+        if (!remarksContainer) return [];
+        
+        const remarkBlocks = remarksContainer.querySelectorAll('.mb-2.p-2');
+        const remarks = [];
+        
+        remarkBlocks.forEach(block => {
+            const approverName = block.querySelector('strong')?.textContent || 'N/A';
+            
+            const dateElement = block.querySelector('.text-muted');
+            const dateText = dateElement?.textContent?.replace(/\s+/g, ' ').trim() || 'N/A';
+            
+            const allSmalls = Array.from(block.querySelectorAll('small'));
+            const remarkText = allSmalls
+                .filter(el => !el.classList.contains('text-muted') && !el.querySelector('strong'))
+                .map(el => el.textContent.trim())
+                .join(' ') || '';
+            
+            remarks.push({
+                approver: approverName,
+                date: dateText,
+                remark: remarkText
+            });
+        });
+        
+        return remarks;
+    };
+
+    const showFinalApproverValue = getValue('input[name="show_final_approver"]');
+    
     return {
         appliedDate: getValue('input[name="applied_date"]'),
         destination: getValue('input[name="destination"]'),
@@ -918,11 +962,11 @@ function extractFormData(modal) {
         verifiedBy: getValue('input[name="verified_by"]'),
         status: getValue('input[name="status"]'),
         tonumber: getValue('input[name="to_number"]'),
-        approvalRemarks: getValue('textarea[name="approval_remarks"]'),
-        approvalRemarks2: getValue('textarea[name="approval_remarks2"]'),
         sigImageUrl: getValue('input[name="sig_image"]'),
         displayApprovedDate: getValue('input[name="display_approved_date"]'),
         displayApprovedFinal: getValue('input[name="display_approved_final"]'),
+        showFinalApprover: showFinalApproverValue === '1' || showFinalApproverValue === 'true' || showFinalApproverValue === true,
+        approvalRemarks: extractApprovalRemarks()
     };
 }
 </script>

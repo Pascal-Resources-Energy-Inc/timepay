@@ -16,6 +16,7 @@ use App\ApprovalByAmount;
 use App\AttendanceLog;
 use App\Attendance;
 use App\EmployeeApprover;
+use App\EmployeeToApprovalRemark;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -558,97 +559,114 @@ class FormApprovalController extends Controller
     }
 
     public function form_to_approval(Request $request)
-        {
-            $today = date('Y-m-d');
-            $from_date = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
-            $to_date = $request->to ?? date('Y-m-d');
-            $limit = $request->limit ?? 10;
+    {
+        $today = date('Y-m-d');
+        $from_date = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
+        $to_date = $request->to ?? date('Y-m-d');
+        $limit = $request->limit ?? 10;
 
-            $filter_status = $request->status ?? 'Pending';
-            $approver_id = auth()->user()->id;
+        $filter_status = $request->status ?? 'Pending';
+        $approver_id = auth()->user()->id;
 
-            $tos = EmployeeTo::with(['approver.approver_info', 'user'])
-                ->whereHas('approver', function ($q) use ($approver_id) {
-                    $q->where('approver_id', $approver_id);
-                })
-                ->whereDate('created_at', '>=', $from_date)
-                ->whereDate('created_at', '<=', $to_date);
+        $tos = EmployeeTo::with([
+                'approver.approver_info', 
+                'user.employee.department', 
+                'approvedBy', 
+                'approvedByHeadDivision',
+                'approvalRemarks.approver'
+            ])
+            ->whereHas('approver', function ($q) use ($approver_id) {
+                $q->where('approver_id', $approver_id);
+            })
+            ->whereDate('created_at', '>=', $from_date)
+            ->whereDate('created_at', '<=', $to_date);
 
-            if ($filter_status !== 'All') {
-                $tos->where('status', $filter_status);
-            } else {
-                $tos->where('status', '!=', 'Cancelled');
-            }
-
-            $tos = $tos->orderBy('created_at', 'DESC')->paginate($limit);
-
-            $approvalThreshold = ApprovalByAmount::orderBy('higher_than', 'desc')->first();
-
-            $tos->getCollection()->transform(function ($to) use ($approvalThreshold) {
-                $totalAmount = $to->totalamount_total;
-                $to->show_final_approver = false;
-                $to->final_approver = null;
-
-                $approvers = $to->approver ?? collect();
-                $first = $approvers->first();
-                $finalApprover = $approvers->filter(fn($a) => ($a->as_final ?? '') === 'on')->first();
-
-                if ($approvalThreshold && $totalAmount > $approvalThreshold->higher_than) {
-                    $to->approver = collect([$first, $finalApprover])->filter()->unique('id');
-
-                    if ($finalApprover && $finalApprover->approver_info) {
-                        $to->final_approver = $finalApprover->approver_info;
-                        $to->show_final_approver = true;
-                    }
-                } else {
-                    $to->approver = collect([$first])->filter()->unique('id');
-                }
-
-                return $to;
-            });
-            
-            $user_ids = EmployeeApprover::select('user_id')
-                ->where('approver_id', $approver_id)
-                ->pluck('user_id')
-                ->toArray();
-
-            $for_approval = EmployeeTo::whereIn('user_id', $user_ids)
-                ->where('status', 'Pending')
-                ->whereDate('created_at', '>=', $from_date)
-                ->whereDate('created_at', '<=', $to_date)
-                ->count();
-
-            $approved = EmployeeTo::whereIn('user_id', $user_ids)
-                ->where('status', 'Approved')
-                ->whereDate('created_at', '>=', $from_date)
-                ->whereDate('created_at', '<=', $to_date)
-                ->count();
-
-            $declined = EmployeeTo::whereIn('user_id', $user_ids)
-                ->where('status', 'Declined')
-                ->whereDate('created_at', '>=', $from_date)
-                ->whereDate('created_at', '<=', $to_date)
-                ->count();
-
-            session(['pending_to_count' => $for_approval]);
-
-            return view('for-approval.travelordermanager', [
-                'header' => 'for-approval',
-                'tos' => $tos,
-                'for_approval' => $for_approval,
-                'approved' => $approved,
-                'declined' => $declined,
-                'approver_id' => $approver_id,
-                'from' => $from_date,
-                'to' => $to_date,
-                'status' => $filter_status,
-                'limit' => $limit,
-                'approvalThreshold' => $approvalThreshold
-            ]);
+        if ($filter_status !== 'All') {
+            $tos->where('status', $filter_status);
+        } else {
+            $tos->where('status', '!=', 'Cancelled');
         }
 
+        $tos = $tos->orderBy('created_at', 'DESC')->paginate($limit);
 
-     public function approveTo(Request $request, $id)
+        $approvalThreshold = ApprovalByAmount::orderBy('higher_than', 'desc')->first();
+
+        $tos->getCollection()->transform(function ($to) use ($approvalThreshold) {
+            $totalAmount = $to->totalamount_total;
+            $to->show_final_approver = false;
+            $to->final_approver = null;
+
+            $approvers = $to->approver ?? collect();
+            
+            $approvers = $approvers->sortBy('level')->values();
+            
+            $lastApprover = $approvers->last();
+            if ($lastApprover) {
+                $to->final_approver = $lastApprover->approver_info;
+            }
+            
+            if ($approvalThreshold && $totalAmount > $approvalThreshold->higher_than) {
+                $finalApprover = $approvers->where('as_final', 'on')->first();
+                
+                if ($finalApprover) {
+                    $to->approver = $approvers->filter(function($a) use ($finalApprover) {
+                        return $a->level <= $finalApprover->level;
+                    })->values();
+                    
+                    $to->final_approver = $finalApprover->approver_info;
+                    $to->show_final_approver = true;
+                } else {
+                    $to->approver = $approvers;
+                }
+            } else {
+                $firstApprover = $approvers->sortBy('level')->first();
+                $to->approver = collect([$firstApprover])->filter()->values();
+            }
+
+            return $to;
+        });
+        
+        $user_ids = EmployeeApprover::select('user_id')
+            ->where('approver_id', $approver_id)
+            ->pluck('user_id')
+            ->toArray();
+
+        $for_approval = EmployeeTo::whereIn('user_id', $user_ids)
+            ->where('status', 'Pending')
+            ->whereDate('created_at', '>=', $from_date)
+            ->whereDate('created_at', '<=', $to_date)
+            ->count();
+
+        $approved = EmployeeTo::whereIn('user_id', $user_ids)
+            ->where('status', 'Approved')
+            ->whereDate('created_at', '>=', $from_date)
+            ->whereDate('created_at', '<=', $to_date)
+            ->count();
+
+        $declined = EmployeeTo::whereIn('user_id', $user_ids)
+            ->where('status', 'Declined')
+            ->whereDate('created_at', '>=', $from_date)
+            ->whereDate('created_at', '<=', $to_date)
+            ->count();
+
+        session(['pending_to_count' => $for_approval]);
+
+        return view('for-approval.travelordermanager', [
+            'header' => 'for-approval',
+            'tos' => $tos,
+            'for_approval' => $for_approval,
+            'approved' => $approved,
+            'declined' => $declined,
+            'approver_id' => $approver_id,
+            'from' => $from_date,
+            'to' => $to_date,
+            'status' => $filter_status,
+            'limit' => $limit,
+            'approvalThreshold' => $approvalThreshold
+        ]);
+    }
+
+    public function approveTo(Request $request, $id)
         {
             $employee_to = EmployeeTo::find($id);
 
@@ -663,57 +681,74 @@ class FormApprovalController extends Controller
             $thresholdAmount = $approvalThreshold ? $approvalThreshold->higher_than : 5000;
 
             $approvers = EmployeeApprover::where('user_id', $employee_to->user_id)
-                                ->orderBy('id')
+                                ->orderBy('level')
                                 ->get();
 
-            $approver_ids = $approvers->pluck('approver_id')->toArray();
             $current_level = $employee_to->level;
-            $current_approver_index = array_search($current_user_id, $approver_ids);
 
-            if ($current_approver_index === false) {
+            $current_approver = $approvers->firstWhere('approver_id', $current_user_id);
+            
+            if (!$current_approver) {
                 Alert::error('You are not in the approval flow.')->persistent('Dismiss');
+                return back();
+            }
+
+            $current_approver_level = $current_approver->level;
+
+            if ($current_level != $current_approver_level) {
+                Alert::error('This TO is not at your approval level.')->persistent('Dismiss');
                 return back();
             }
 
             $amount_over_threshold = $employee_to->totalamount_total > $thresholdAmount;
 
-            $final_approver_index = $approvers->search(function($a) {
-                return ($a->as_final ?? '') === 'on';
-            });
+            $final_approver = $approvers->firstWhere('as_final', 'on');
+            $is_final_approver = $final_approver && $final_approver->approver_id == $current_user_id;
+
+            EmployeeToApprovalRemark::updateOrCreate(
+                [
+                    'employee_to_id' => $employee_to->id,
+                    'approver_id' => $current_user_id,
+                    'level' => $current_level
+                ],
+                [
+                    'action' => 'Approved',
+                    'remarks' => $request->approval_remarks ?? 'Approved',
+                    'action_date' => now()
+                ]
+            );
 
             if (!$amount_over_threshold) {
-                if ($current_approver_index === 0 && $final_approver_index !== 0) {
+                $first_approver = $approvers->sortBy('level')->first();
+                
+                if ($current_user_id == $first_approver->approver_id) {
                     $employee_to->update([
                         'approved_date' => date('Y-m-d'),
                         'status' => 'Approved',
-                        'approval_remarks' => $request->approval_remarks,
                         'level' => $current_level + 1,
                         'approved_by' => $current_user_id
                     ]);
+                    Alert::success('TO has been approved.')->persistent('Dismiss');
                 } else {
                     Alert::error('Only the first approver can approve TOs under the threshold.')->persistent('Dismiss');
                 }
                 return back();
             }
 
-            if ($current_approver_index === 0 && $final_approver_index !== 0) {
-                $employee_to->update([
-                    'approved_date' => date('Y-m-d'),
-                    'level' => $final_approver_index,
-                    'approval_remarks' => $request->approval_remarks,
-                    'approved_by' => $current_user_id,
-                    'status' => 'Pending'
-                ]);
-            } elseif ($current_approver_index === $final_approver_index) {
+            if ($is_final_approver) {
                 $employee_to->update([
                     'approved_head_division' => date('Y-m-d'),
                     'status' => 'Approved',
-                    'approval_remarks2' => $request->approval_remarks,
                     'level' => $current_level + 1,
                     'approved_by_head_division' => $current_user_id
                 ]);
             } else {
-                Alert::error('You are not allowed to approve this TO.')->persistent('Dismiss');
+                $employee_to->update([
+                    'approved_date' => date('Y-m-d'),
+                    'level' => $current_level + 1,
+                    'approved_by' => $current_user_id,
+                    'status' => 'Pending'
+                ]);
             }
 
             Alert::success('TO has been approved.')->persistent('Dismiss');
@@ -721,135 +756,162 @@ class FormApprovalController extends Controller
         }
 
         public function approveToAll(Request $request)
-            {
-                $ids = json_decode($request->ids, true);
-                $count = 0;
-                $current_user_id = auth()->id();
+        {
+            $ids = json_decode($request->ids, true);
+            $count = 0;
+            $current_user_id = auth()->id();
 
-                $approvalThreshold = ApprovalByAmount::orderBy('higher_than', 'desc')->first();
-                $thresholdAmount = $approvalThreshold ? $approvalThreshold->higher_than : 5000;
+            $approvalThreshold = ApprovalByAmount::orderBy('higher_than', 'desc')->first();
+            $thresholdAmount = $approvalThreshold ? $approvalThreshold->higher_than : 5000;
 
-                if (!is_array($ids) || empty($ids)) {
-                    return 0;
-                }
-
-                foreach ($ids as $id) {
-                    $employee_to = EmployeeTo::find($id);
-                    if (!$employee_to) {
-                        continue;
-                    }
-
-                    $approvers = EmployeeApprover::where('user_id', $employee_to->user_id)
-                                    ->orderBy('id')
-                                    ->get();
-
-                    $approver_ids = $approvers->pluck('approver_id')->toArray();
-                    $current_level = $employee_to->level;
-                    $current_approver_index = array_search($current_user_id, $approver_ids);
-
-                    if ($current_approver_index === false) {
-                        continue;
-                    }
-
-                    $amount_over_threshold = $employee_to->totalamount_total > $thresholdAmount;
-
-                    $final_approver_index = $approvers->search(function($a) {
-                        return ($a->as_final ?? '') === 'on';
-                    });
-
-                    if (!$amount_over_threshold) {
-                        if ($current_approver_index === 0 && $final_approver_index !== 0) {
-                            $employee_to->update([
-                                'approved_date' => date('Y-m-d'),
-                                'status' => 'Approved',
-                                'approval_remarks' => 'Approved',
-                                'level' => $current_level + 1,
-                                'approved_by' => $current_user_id
-                            ]);
-                            $count++;
-                        }
-                        continue;
-                    }
-
-                    if ($current_approver_index === 0 && $final_approver_index !== 0) {
-                        $employee_to->update([
-                            'approved_date' => date('Y-m-d'),
-                            'level' => $final_approver_index,
-                            'approval_remarks' => 'Approved',
-                            'approved_by' => $current_user_id,
-                            'status' => 'Pending'
-                        ]);
-                        $count++;
-                    } elseif ($current_approver_index === $final_approver_index) {
-                        $employee_to->update([
-                            'approved_head_division' => date('Y-m-d'),
-                            'status' => 'Approved',
-                            'approval_remarks2' => 'Approved',
-                            'level' => $current_level + 1,
-                            'approved_by_head_division' => $current_user_id
-                        ]);
-                        $count++;
-                    }
-                }
-
-                return $count;
+            if (!is_array($ids) || empty($ids)) {
+                return 0;
             }
 
+            foreach ($ids as $id) {
+                $employee_to = EmployeeTo::find($id);
+                if (!$employee_to) {
+                    continue;
+                }
+
+                $approvers = EmployeeApprover::where('user_id', $employee_to->user_id)
+                                ->orderBy('level')
+                                ->get();
+
+                $current_level = $employee_to->level;
+
+                $current_approver = $approvers->firstWhere('approver_id', $current_user_id);
+                
+                if (!$current_approver || $current_level != $current_approver->level) {
+                    continue;
+                }
+
+                $amount_over_threshold = $employee_to->totalamount_total > $thresholdAmount;
+
+                $final_approver = $approvers->firstWhere('as_final', 'on');
+                $is_final_approver = $final_approver && $final_approver->approver_id == $current_user_id;
+
+                if (!$amount_over_threshold) {
+                    $first_approver = $approvers->sortBy('level')->first();
+                    
+                    if ($current_user_id == $first_approver->approver_id) {
+                        $employee_to->update([
+                            'approved_date' => date('Y-m-d'),
+                            'status' => 'Approved',
+                            'approval_remarks' => 'Approved',
+                            'level' => $current_level + 1,
+                            'approved_by' => $current_user_id
+                        ]);
+                        $count++;
+                    }
+                    continue;
+                }
+
+                if ($is_final_approver) {
+                    $employee_to->update([
+                        'approved_head_division' => date('Y-m-d'),
+                        'status' => 'Approved',
+                        'approval_remarks2' => 'Approved',
+                        'level' => $current_level + 1,
+                        'approved_by_head_division' => $current_user_id
+                    ]);
+                    $count++;
+                } else {
+                    $employee_to->update([
+                        'approved_date' => date('Y-m-d'),
+                        'level' => $current_level + 1,
+                        'approval_remarks' => 'Approved',
+                        'approved_by' => $current_user_id,
+                        'status' => 'Pending'
+                    ]);
+                    $count++;
+                }
+            }
+
+            return $count;
+        }
+
         public function declineTo(Request $request, $id)
-            {
-                $employee_to = EmployeeTo::findOrFail($id);
-                $user_id = auth()->id();
+        {
+            $employee_to = EmployeeTo::findOrFail($id);
+            $user_id = auth()->id();
+
+            $current_level = $employee_to->level;
+
+            EmployeeToApprovalRemark::updateOrCreate(
+                [
+                    'employee_to_id' => $employee_to->id,
+                    'approver_id' => $user_id,
+                    'level' => $current_level
+                ],
+                [
+                    'action' => 'Declined',
+                    'remarks' => $request->approval_remarks ?? 'Declined',
+                    'action_date' => now()
+                ]
+            );
+
+            $final_approver_id = EmployeeApprover::where('user_id', $employee_to->user_id)
+                ->where('as_final', 'on')
+                ->value('approver_id');
+
+            $approvedByField = $user_id == $final_approver_id ? 'approved_by_head_division' : 'approved_by';
+
+            $employee_to->update([
+                'status' => 'Declined',
+                $approvedByField => $user_id
+            ]);
+
+            Alert::success('TO has been declined.')->persistent('Dismiss');
+            return back();
+        }
+
+        public function disapproveToAll(Request $request)
+        {
+            $ids = json_decode($request->ids, true);
+            $user_id = auth()->id();
+            $count = 0;
+
+            if (!is_array($ids) || count($ids) === 0) {
+                return 'error';
+            }
+
+            foreach ($ids as $id) {
+                $employee_to = EmployeeTo::find($id);
+                if (!$employee_to) {
+                    continue;
+                }
+
+                $current_level = $employee_to->level;
+
+                EmployeeToApprovalRemark::updateOrCreate(
+                    [
+                        'employee_to_id' => $employee_to->id,
+                        'approver_id' => $user_id,
+                        'level' => $current_level
+                    ],
+                    [
+                        'action' => 'Declined',
+                        'remarks' => 'Declined',
+                        'action_date' => now()
+                    ]
+                );
 
                 $final_approver_id = EmployeeApprover::where('user_id', $employee_to->user_id)
                     ->where('as_final', 'on')
                     ->value('approver_id');
 
-                $remarksField = $user_id == $final_approver_id ? 'approval_remarks2' : 'approval_remarks';
                 $approvedByField = $user_id == $final_approver_id ? 'approved_by_head_division' : 'approved_by';
 
                 $employee_to->update([
                     'status' => 'Declined',
-                    $remarksField => $request->approval_remarks,
                     $approvedByField => $user_id
                 ]);
 
-                Alert::success('TO has been declined.')->persistent('Dismiss');
-                return back();
+                $count++;
             }
-
-        public function disapproveToAll(Request $request)
-            {
-                $ids = json_decode($request->ids, true);
-                $user_id = auth()->id();
-                $count = 0;
-
-                if (!is_array($ids) || count($ids) === 0) {
-                    return 'error';
-                }
-
-                foreach ($ids as $id) {
-                    $employee_to = EmployeeTo::find($id);
-                    if (!$employee_to) {
-                        continue;
-                    }
-
-                    $final_approver_id = EmployeeApprover::where('user_id', $employee_to->user_id)
-                        ->where('as_final', 'on')
-                        ->value('approver_id');
-
-                    $remarksField = $user_id == $final_approver_id ? 'approval_remarks2' : 'approval_remarks';
-                    $approvedByField = $user_id == $final_approver_id ? 'approved_by_head_division' : 'approved_by';
-
-                    $employee_to->update([
-                        'status' => 'Declined',
-                        $remarksField => 'Declined',
-                        $approvedByField => $user_id
-                    ]);
-
-                    $count++;
-                }
-                return $count;
-            }
+            return $count;
+        }
 
         private function generateAdNumber()
             {

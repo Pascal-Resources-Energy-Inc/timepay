@@ -43,7 +43,7 @@
     Route::get('/home', 'HomeController@index')->name('home');
     Route::post('/upload-employee-image', [App\Http\Controllers\HomeController::class, 'uploadEmployeeImage'])->name('upload.employee.image');
 
-    Route::post('/check-location-proximity', [App\Http\Controllers\HomeController::class, 'checkUserLocationProximity'])
+    Route::post('/check-location-proximity', [App\Http\Controllers\HomeController::class, 'checkUserLocationProximity'])    
     ->name('check.location.proximity')
     ->middleware('auth');
     Route::post('/check-user-access', 'HomeController@checkUserAccess')->name('check.user.access');
@@ -101,12 +101,21 @@
     Route::get('purchase','PurchaseController@index')->name('purchase');
     Route::post('/purchases', 'PurchaseController@store')->name('purchases.store');
     Route::post('/purchases/{id}/approve', 'PurchaseController@approve')->name('purchases.approve');
+    Route::get('products/get','PurchaseController@getProducts')->name('products.get');
 
     Route::get('/claim/{qr_code}', 'PurchaseController@claimPage')->name('purchase.claim');
     Route::post('/claim/process', 'PurchaseController@processClaim')->name('purchase.processClaim');
 
     Route::get('purchase-reports', 'PurchaseController@reports')->name('purchase.reports');
     Route::get('/purchase/export', 'PurchaseController@export')->name('purchase.export');
+
+    //TDS
+    Route::get('/tds', 'TDSController@index')->name('tds.index');
+    Route::post('/tds/store', 'TDSController@store')->name('tds.store');
+    Route::get('/tds/{id}', 'TDSController@show')->name('tds.show');
+    Route::put('/tds/{id}', 'TDSController@update')->name('tds.update');
+    Route::delete('/tds/{id}', 'TDSController@destroy')->name('tds.destroy');
+    Route::get('/tds/export', 'TDSController@export')->name('tds.export');
 
     Route::get('overtime','EmployeeOvertimeController@overtime');
     //Overtime

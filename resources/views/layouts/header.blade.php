@@ -442,6 +442,13 @@
                         </a>
                     </li>
 
+                    <li class="nav-item @if ($header == 'tds') active @endif">
+                        <a class="nav-link" href="{{ url('tds') }}" onclick='show()'>
+                            <i class="icon-bag menu-icon"></i>
+                            <span class="menu-title">TDS</span>
+                        </a>
+                    </li>
+
                   @if(count(auth()->user()->employee->as_resign) > 0)
                     <li class="nav-item">
                         <hr>
@@ -815,7 +822,7 @@
                     <li class="nav-item"> <a class="nav-link" href="{{ url('/attendance-report') }}">Attendance Reports</a></li>
                     {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/system-report') }}">Online In/Out Report</a></li> --}}
                     <li class="nav-item"><a class="nav-link" href="{{url('ob_files')}}">OB Uploaded Files</a></li>
-                     <li class="nav-item"><a class="nav-link" href="{{url('purchase-reports')}}">LPG Refill Reports</a></li>
+                     <li class="nav-item"><a class="nav-link" href="{{url('purchase-reports')}}">Purchase Order Report</a></li>
                 </ul>
             </div>
         </li>

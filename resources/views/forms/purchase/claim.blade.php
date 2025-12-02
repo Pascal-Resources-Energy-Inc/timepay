@@ -8,7 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
-        /* SweetAlert Button Center */
         .swal-button-container {
             text-align: center !important;
         }
@@ -494,8 +493,7 @@
                         <i class="fas fa-shopping-bag"></i>
                     </div>
                     <div class="header-text">
-                        <h1>LPG Order Details</h1>
-                        <p>HERA Discounted LPG Refill Program</p>
+                        <h1>Employee Order Details</h1>
                     </div>
                 </div>
             </div>
@@ -568,29 +566,29 @@
                         @endif
                     </div>
 
-                    <!-- Items Section -->
                     <div class="items-section">
                         <div class="items-header">
                             <i class="fas fa-box"></i>
                             <span>Order Items</span>
                         </div>
                         
-                        @if($purchase->qty_330g > 0)
-                        <div class="item-row">
-                            <span class="item-label">
-                                <i class="fas fa-fire"></i> 330g LPG Cylinder - Refill
-                            </span>
-                            <span class="item-value">{{ $purchase->qty_330g }} pcs × ₱57.00 = ₱{{ number_format($purchase->qty_330g * 57, 2) }}</span>
-                        </div>
-                        @endif
-                        
-                        @if($purchase->qty_230g > 0)
-                        <div class="item-row">
-                            <span class="item-label">
-                                <i class="fas fa-fire"></i> 230g LPG Cylinder - Refill
-                            </span>
-                            <span class="item-value">{{ $purchase->qty_230g }} pcs × ₱40.00 = ₱{{ number_format($purchase->qty_230g * 40, 2) }}</span>
-                        </div>
+                        @if($purchase->items && count($purchase->items) > 0)
+                            @foreach($purchase->items as $item)
+                            <div class="item-row">
+                                <span class="item-label">
+                                    <i class="fas fa-fire"></i> {{ $item->product_name }}
+                                </span>
+                                <span class="item-value">
+                                    {{ $item->quantity }} pcs × ₱{{ number_format($item->price, 2) }} = ₱{{ number_format($item->subtotal, 2) }}
+                                </span>
+                            </div>
+                            @endforeach
+                        @else
+                            <div class="item-row">
+                                <span class="item-label text-muted">
+                                    <i class="fas fa-info-circle"></i> No items found
+                                </span>
+                            </div>
                         @endif
                         
                         <div class="item-row" style="border-top: 2px solid #e9ecef; margin-top: 10px; padding-top: 15px;">
@@ -599,7 +597,6 @@
                         </div>
                     </div>
 
-                    <!-- Total Amount -->
                     <div class="total-section">
                         <div class="total-row">
                             <div class="total-label">Total Amount:</div>
@@ -625,7 +622,7 @@
                         @if($purchase->giver_name)
                         <div class="info-grid" style="margin-top: 20px;">
                             <div class="info-item">
-                                <div class="info-label">Given By</div>
+                                <div class="info-label">Issued By</div>
                                 <div class="info-value">{{ $purchase->giver_name }} ({{ $purchase->giver_position }})</div>
                             </div>
                             @if($purchase->claim_address)
@@ -723,18 +720,18 @@
                                     </div>
 
                                      <div class="form-group">
-                                        <label for="si">SI *</label>
-                                        <input type="text" id="si" name="si" placeholder="Name of staff giving the product">
+                                        <label for="claimed_by">claimed By</label>
+                                        <input type="text" id="claimed_by" name="claimed_by" value="{{ $purchase->employee_name }}" placeholder="Name of staff giving the product">
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="giver_name">Given By (Staff Name) *</label>
-                                        <input type="text" id="giver_name" name="giver_name" required placeholder="Name of staff giving the product">
+                                        <label for="giver_name">Issued By</label>
+                                        <input type="text" id="giver_name" name="giver_name" value="{{ $currentUser->name  }}" required placeholder="Name of staff giving the product">
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="giver_position">Giver Job Position *</label>
-                                        <input type="text" id="giver_position" name="giver_position" required placeholder="Job title/position of staff">
+                                        <label for="giver_position">Position *</label>
+                                        <input type="text" id="giver_position" name="giver_position" value="{{ $currentUser->position ?? 'N/A' }}" required placeholder="Job title/position of staff">
                                     </div>
 
                                     <button type="submit" class="btn btn-primary" id="proceedBtn" disabled>

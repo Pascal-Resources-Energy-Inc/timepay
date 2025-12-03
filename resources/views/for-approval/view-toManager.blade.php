@@ -24,7 +24,7 @@
                           <input type="" id="applied_date" name="applied_date"
                               class="form-control"
                               style="width: 100px; height: 40px; font-size: 0.7rem; padding: 0.25rem 0.5rem;"
-                              value="{{ $form_approval->applied_date ? \Carbon\Carbon::parse($form_approval->applied_date)->format('F j, Y') : '' }}">
+                              value="{{ $form_approval->applied_date ? \Carbon\Carbon::parse($form_approval->applied_date)->format('m-d-Y') : '' }}">
                         </div>
                       </div>
                       <div class="col-2 p-0 text-center">T.O. No.</div>
@@ -460,7 +460,7 @@
                     </div>
                 </div>
                 <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
-                  <div class="border-dark p-3 text-center">RC CODE</div>
+                  <div class="border-dark p-3 text-center">Cost Center</div>
                   <div class="p-1 text-center"> 
                     <input type="text"
                       class="text-center"
@@ -496,181 +496,188 @@
                       <small class="text-center d-block">(Requestor's Signature Over Printed Name)</small>
                   </div>
                 </div>
-                @if ($to->status == 'Pending' || $to->status == 'Cancelled')
+                @if ($to->status == 'Pending' || $to->status == "Cancelled")
                     <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
                       <div class="border-dark p-3 text-center">CHECKED BY</div>
-                      @php
-                          $finalDate = $form_approval->approved_immediate_sup 
-                              ? \Carbon\Carbon::parse($form_approval->approved_immediate_sup)->format('d-M-Y')
-                              : ($form_approval->approved_date 
-                                  ? \Carbon\Carbon::parse($form_approval->approved_date)->format('d-M-Y')
-                                  : '');
-                        
-                          $supervisor = auth()->user()->employee->immediateSupervisor;
-
-                          $supervisorName = null;
-
-                          if ($supervisor) {
-                              $supervisorName = $supervisor->first_name . ' ' .
-                                                ($supervisor->middle_initial ? $supervisor->middle_initial . '. ' : '') .
-                                                $supervisor->last_name;
-                          }
-                      @endphp
-                        <div style="position: relative;">
-                            <span style="position: absolute; top: -5px; right: 17px; font-size: 0.8rem;" name="approved">
-                                <small>System Approved Date: {{ $finalDate }}</small>
-                            </span>
-                            <input type="hidden" name="display_approved_date" value="{{ $finalDate }}">
-                        </div>
-                      <div class="p-1">
+                      <div class="p-1 text-center">
                         <input type="text" 
                           style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
-                          name="approved_by" 
-                          value="{{ $supervisorName }}" 
+                          name="checked_by" 
+                          value="{{ $form_approval->approver->first()->approver_info->name ?? ($form_approval->employee->immediateSupervisor->first_name . ($form_approval->employee->immediateSupervisor->middle_initial ? ' ' . $form_approval->employee->immediateSupervisor->middle_initial . '.' : '') . ' ' . $form_approval->employee->immediateSupervisor->last_name)}}"
                           readonly>
-                          <small class="text-center d-block">Immediate Supervisor</small>
+                        <small class="text-center d-block">Immediate Supervisor</small>
                       </div>
                     </div>
-                    <div class="col-lg col-md-12 col-sm-12 p-1">
-                      <div class="border-dark p-3 text-center">APPROVED BY</div>
-                      <div class="p-1">
-                        @php
-                            $approvedDateFormatted = $form_approval->approved_date 
-                                ? \Carbon\Carbon::parse($form_approval->approved_date)->format('d-M-Y') 
-                                : '';
-                        @endphp
-                        <div style="position: relative;">
-                          <span style="position: absolute; top: -5px; right: 17px; font-size: 0.8rem;">
-                            <small>System Approved Date: {{ $approvedDateFormatted }}</small>
-                          </span>
-                          <input type="hidden" name="display_approved_final" value="{{ $approvedDateFormatted }}">
-                        </div>
+
+                      <div class="col-lg col-md-12 col-sm-12 p-1">
+                        <div class="border-dark p-3 text-center">APPROVED BY</div>
                         <div class="p-1">
-                          @if (isset($approvalThreshold) && isset($approvalThreshold->higher_than) && $form_approval->totalamount_total > $approvalThreshold->higher_than)
-                              @if ($form_approval->final_approver)
-                                  <input type="text"
-                                      style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
-                                      name="approved_by"
-                                      value="{{ $form_approval->final_approver->name }}"
-                                      readonly>
-                              @else
-                                  <p>No final approver found.</p>
-                              @endif
-                          @else
-                              <input type="text"
-                                  style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
-                                  name="approved_by"
-                                  value="{{ $form_approval->approver->first()->approver_info->name ?? ($form_approval->employee->immediateSupervisor->first_name . ($form_approval->employee->immediateSupervisor->middle_initial ? ' ' . $form_approval->employee->immediateSupervisor->middle_initial . '.' : '') . ' ' . $form_approval->employee->immediateSupervisor->last_name) }}"
-                                  readonly>
-                          @endif
-                        <small class="text-center d-block">Division/Cluster Head</small>
-                      </div>
-                      </div>
-                    </div>
-                  </div>
-                @endif
-                @if ($to->status == 'Approved' || $to->status == "Declined")
-                <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
-                  <div class="border-dark p-3 text-center">CHECKED BY</div>
-                    <div style="position: relative;">
-                        <span style="position: absolute; top: -5px; right: 17px; font-size: 0.8rem;" name="approved">
-                            <small>System Approved Date: {{ $form_approval->approved_date ? \Carbon\Carbon::parse($form_approval->approved_date)->format('F j, Y') : '' }}</small>
-                        </span>
-                        <input type="hidden" name="display_approved_date" value="{{ $form_approval->approved_date ? \Carbon\Carbon::parse($form_approval->approved_date)->format('F j, Y') : '' }}">
-                    </div>
-                  <div class="p-1 text-center">
-                    <input type="text" 
-                    style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
-                    name="checked_by" 
-                    value="{{ $form_approval->approvedBy->name ?? '' }}"
-                    readonly>
-                    <small class="text-center d-block">Immediate Supervisor</small>
-                  </div>
-                </div>
-                <div class="col-lg col-md-12 col-sm-12 p-1">
-                  <div class="border-dark p-3 text-center">APPROVED BY</div>
-                  <div class="p-1 text-center">
-                    <div style="position: relative;">
-                      <span style="position: absolute; top: -5px; right: 17px; font-size: 0.8rem;">
-                         @if ($form_approval->show_final_approver)
-                              <small>System Approved Date: 
-                                  {{ $form_approval->approved_head_division 
-                                      ? \Carbon\Carbon::parse($form_approval->approved_head_division)->format('F j, Y') 
-                                      : '' 
-                                  }}
-                              </small>
-                          @else
-                              <small>System Approved Date: 
-                                  {{ $form_approval->approved_date 
-                                      ? \Carbon\Carbon::parse($form_approval->approved_date)->format('F j, Y') 
-                                      : '' 
-                                  }}
-                              </small>
-                          @endif
-                      </span>
-                    <input type="hidden" name="display_approved_final" value="{{ $form_approval->show_final_approver ? ($form_approval->approved_head_division ? \Carbon\Carbon::parse($form_approval->approved_head_division)->format('F j, Y') : '') : ($form_approval->approved_date ? \Carbon\Carbon::parse($form_approval->approved_date)->format('F j, Y') : '') }}">
-                    </div>
-                    <div class="p-1">
-                      @if ($form_approval->totalamount_total)
-                          @if ($form_approval->status === 'Approved')
-                              <img src="{{ asset('signed/APPROVED.png') }}"
-                                  name="status"
-                                  alt="Approved"
-                                  style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 170px; opacity: 0.5; pointer-events: none; z-index: 10;">
-                          @elseif ($form_approval->status === 'Declined')
-                              <img src="{{ asset('signed/DENIED.png') }}"
-                                  name="status"
-                                  alt="Declined"
-                                  style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 170px; opacity: 0.5; pointer-events: none; z-index: 10;">
-                          @endif
-                      @endif
-                      <input type="hidden" name="status" value="{{ $form_approval->status }}" />
-                      @if ($form_approval->show_final_approver)
-                              <input type="text"
-                                  style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
-                                  name="approved_by"
-                                  value="{{ $form_approval->approvedByHeadDivision->name ?? '' }}"
-                                  readonly>
-                      @else
-                          <input type="text"
+                          @if ($form_approval->final_approver)
+                            <input type="text"
                               style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
                               name="approved_by"
-                              value="{{ $form_approval->approvedBy->name ?? ''}}"
+                              value="{{ $form_approval->final_approver->name }}"
                               readonly>
+                          @else
+                            <p>No final approver found.</p>
+                          @endif
+                          <small class="text-center d-block">Division/Cluster Head</small>
+                        </div>
+                      </div>
+                    </div>
+                  @endif
+                @if ($to->status == 'Approved' || $to->status == "Declined")
+                  <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
+                    <div class="border-dark p-3 text-center">CHECKED BY</div>
+                    <div style="position: relative;">
+                      <span style="position: absolute; top: -5px; right: 17px; font-size: 0.7rem;" name="approved">
+                        <small>System Approved Date: {{ $form_approval->approved_date ? \Carbon\Carbon::parse($form_approval->approved_date)->format('F j, Y') : '' }}</small>
+                      </span>
+                      <input type="hidden" name="display_approved_date" value="{{ $form_approval->approved_date ? \Carbon\Carbon::parse($form_approval->approved_date)->format('F j, Y') : '' }}">
+                    </div>
+                    <input type="hidden" name="show_final_approver" value="{{ $form_approval->show_final_approver ? '1' : '0' }}">
+                    <div class="p-1 text-center" style="position: relative;">
+                      @php
+                        $showStampOnCheckedBy = !$form_approval->approved_by_head_division;
+                      @endphp
+                      
+                      @if ($showStampOnCheckedBy)
+                        @if ($form_approval->status === 'Approved')
+                          <img src="{{ asset('signed/APPROVED.png') }}"
+                              alt="Approved"
+                              style="position: absolute; top: -80%; left: 50%; transform: translateX(-50%); width: 170px; opacity: 0.5; pointer-events: none; z-index: 10;">
+                        @elseif ($form_approval->status === 'Declined')
+                          <img src="{{ asset('signed/DENIED.png') }}"
+                              alt="Declined"
+                              style="position: absolute; top: -80%; left: 50%; transform: translateX(-50%); width: 170px; opacity: 0.5; pointer-events: none; z-index: 10;">
+                        @endif
                       @endif
-                    <small class="text-center d-block">Division/Cluster Head</small>
-                   </div>
+                      
+                      <input type="text" 
+                        style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
+                        name="checked_by" 
+                        value="{{ $form_approval->approvedBy->name ?? '' }}"
+                        readonly>
+                      <small class="text-center d-block">Immediate Supervisor</small>
+                    </div>
+                  </div>
+                  
+                  <div class="col-lg col-md-12 col-sm-12 p-1">
+                    <div class="border-dark p-3 text-center">APPROVED BY</div>
+                    <div class="p-1 text-center">
+                      <div style="position: relative;">
+                        <span style="position: absolute; top: -5px; right: 17px; font-size: 0.7rem;">
+                          @if ($form_approval->approved_by_head_division)
+                            <small>System Approved Date: 
+                              {{ $form_approval->approved_head_division 
+                                  ? \Carbon\Carbon::parse($form_approval->approved_head_division)->format('F j, Y') 
+                                  : '' 
+                              }}
+                            </small>
+                          @else
+                            <small>System Approved Date: 
+                              {{ $form_approval->approved_date 
+                                  ? \Carbon\Carbon::parse($form_approval->approved_date)->format('F j, Y') 
+                                  : '' 
+                              }}
+                            </small>
+                          @endif
+                        </span>
+                        <input type="hidden" name="display_approved_final" value="{{ $form_approval->approved_by_head_division ? ($form_approval->approved_head_division ? \Carbon\Carbon::parse($form_approval->approved_head_division)->format('F j, Y') : '') : ($form_approval->approved_date ? \Carbon\Carbon::parse($form_approval->approved_date)->format('F j, Y') : '') }}">
+                      </div>
+                      <div class="p-1" style="position: relative;">
+                        @php
+                          $showStampOnApprovedBy = $form_approval->approved_by_head_division;
+                        @endphp
+                        
+                        @if ($showStampOnApprovedBy)
+                          @if ($form_approval->status === 'Approved')
+                            <img src="{{ asset('signed/APPROVED.png') }}"
+                                name="status"
+                                alt="Approved"
+                                style="position: absolute; top: -80%; left: 50%; transform: translateX(-50%); width: 170px; opacity: 0.5; pointer-events: none; z-index: 10;">
+                          @elseif ($form_approval->status === 'Declined')
+                            <img src="{{ asset('signed/DENIED.png') }}"
+                                name="status"
+                                alt="Declined"
+                                style="position: absolute; top: -80%; left: 50%; transform: translateX(-50%); width: 170px; opacity: 0.5; pointer-events: none; z-index: 10;">
+                          @endif
+                        @endif
+                        <input type="hidden" name="status" value="{{ $form_approval->status }}" />
+                        
+                        @php
+                          $approvedByName = '';
+                          
+                          if ($form_approval->approved_by_head_division) {
+                              $approvedByName = $form_approval->approvedByHeadDivision->name ?? '';
+                          } else {
+                              $allUserApprovers = \App\EmployeeApprover::where('user_id', $form_approval->user_id)
+                                                                    ->with('approver_info')
+                                                                    ->get();
+                              
+                              $finalApprover = $allUserApprovers->firstWhere('as_final', 'on');
+                              
+                              if ($finalApprover && $finalApprover->approver_info) {
+                                  $approvedByName = $finalApprover->approver_info->name;
+                              }
+                          }
+                        @endphp
+                        
+                        <input type="text"
+                            style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
+                            name="approved_by"
+                            value="{{ $approvedByName }}"
+                            readonly>
+                        <small class="text-center d-block">Division/Cluster Head</small>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              @endif
+                @endif
               <div class="row m-0 border border-dark border-top-0">
-                <div class="col-12 border-bottom border-dark p-1 text-center fw-bold" style="color: white; background-color: #3490dc; border-color: #3490dc;">REMARKS AND LIQUIDATION DETAILS</div>
-                <div class="col-md-7 col-sm-12 border-right border-dark p-1">
-                  <div class="border-dark p-1">
-                    REMARKS
-                  </div>
-                  @if ($form_approval->show_final_approver)
-                       <small> Remarks by Immediate Supervisor</small>
-                       <small>( {{ $form_approval->approvedBy->name ?? '' }} - System Approved Date:  {{ $form_approval->approved_date ? \Carbon\Carbon::parse($form_approval->approved_date)->format('F j, Y') : '' }})</small>
-                  <textarea class="form-control" name="approval_remarks" rows="1" readonly>{{ $form_approval->approval_remarks }}</textarea>
-                       <small> Remarks by Head Supervisor</small>
-                       <small>( {{ $form_approval->approvedByHeadDivision->name ?? '' }} - System Approved Date: {{ $form_approval->approved_head_division ? \Carbon\Carbon::parse($form_approval->approved_head_division)->format('F j, Y') : '' }})</small>
-                  <textarea class="form-control" name="approval_remarks2" rows="1" readonly>{{ $form_approval->approval_remarks2 }}</textarea>
-                      @else
-                       <small> Remarks by Immediate Supervisor</small>
-                       <small>( {{ $form_approval->approvedBy->name ?? '' }} - System Approved Date:  {{ $form_approval->approved_date ? \Carbon\Carbon::parse($form_approval->approved_date)->format('F j, Y') : '' }})</small>
-                  <textarea class="form-control" name="approval_remarks" rows="1" readonly>{{ $form_approval->approval_remarks }}</textarea>
+              <div class="col-12 border-bottom border-dark p-1 text-center fw-bold" style="color: white; background-color: #3490dc; border-color: #3490dc;">
+                REMARKS AND LIQUIDATION DETAILS
+              </div>
+              <div class="col-md-7 col-sm-12 border-right border-dark p-1">
+                <div class="border-dark p-1">REMARKS</div>
+                
+                @if($form_approval->approvalRemarks->count() > 0)
+                  @foreach($form_approval->approvalRemarks as $remark)
+                    <div class="mb-2 p-2" style="background-color: #f8f9fa; border-left: 3px solid #3490dc;">
+                      <small class="d-block">
+                        <strong>{{ $remark->approver->name ?? 'N/A' }}</strong>
+                      </small>
+                      <small class="text-muted d-block">
+                        <i class="ti-calendar"></i> 
+                        {{ $remark->action_date ? $remark->action_date->format('F j, Y h:i A') : 'N/A' }}
+                      </small>
+                      @if($remark->remarks)
+                        <div class="mt-1">
+                          <small>{{ $remark->remarks }}</small>
+                        </div>
                       @endif
-                </div>
-                <div class="col-md-3 col-sm-6 border-end border-dark p-1">
-                  <div class="border-dark p-1">LIQUIDATION DUE ON:</div>
-                  <div style="margin-top: 17px;">
-                    <input class="form-control" name="liquidation_date" id="liquidation_date" value="{{ $form_approval->liquidation_date ? \Carbon\Carbon::parse($form_approval->liquidation_date)->format('F j, Y') : '' }}" readonly>
+                    </div>
+                  @endforeach
+                @else
+                  <div class="p-2">
+                    <small class="text-muted"><em>No remarks yet</em></small>
                   </div>
+                @endif
+              </div>
+              
+              <div class="col-md-3 col-sm-6 border-end border-dark p-1">
+                <div class="border-dark p-1">LIQUIDATION DUE ON:</div>
+                <div style="margin-top: 17px;">
+                  <input class="form-control" name="liquidation_date" id="liquidation_date" 
+                        value="{{ $form_approval->liquidation_date ? \Carbon\Carbon::parse($form_approval->liquidation_date)->format('F j, Y') : '' }}" 
+                        readonly>
                 </div>
               </div>
-             <small>Distribution: 1 Copy attached to RFP upon liquidation.</small>
+            </div>
+             <div style="display: flex; justify-content: space-between;">
+                  <small>Distribution: 1 Copy attached to RFP upon liquidation.</small>
+                  <small>Travel Order Form | OOP-HRD-FOR-016-001</small>
+               </div>
         </div>
       </div>
       <div class="modal-footer">

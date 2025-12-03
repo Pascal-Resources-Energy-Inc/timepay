@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\PlanningController;
 use Illuminate\Http\Request;
 use Carbon\CarbonPeriod;
 use App\Attendance;
@@ -23,6 +24,7 @@ use App\Leave;
 use App\HubPerLocation;
 use Carbon\Carbon;
 use App\LeavePlan;
+use App\Planning;
 use stdClass;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Support\Facades\Auth;
@@ -176,6 +178,18 @@ class HomeController extends Controller
                 $leave_plan_array[] = $object;
             }
         }
+
+        $userLeaves = collect();
+        if ($currentEmployee) {
+            $userLeaves = EmployeeLeave::where('user_id', $currentUser->id)
+                ->where('status', 'Approved')
+                ->whereMonth('date_to', '<=', date('m'))
+                ->whereMonth('date_from', '>=', date('m'))
+                ->whereYear('date_from', '<=', date('Y'))
+                ->whereYear('date_to', '>=', date('Y'))
+                ->with('leave')
+                ->get();
+        }
         
         $request = new Request(['location' => null]);
         $statsResponse = $this->filterByLocation($request);
@@ -229,6 +243,15 @@ class HomeController extends Controller
                 $sl_balance = ($sl_beginning_balance + $earned_sl) - $used_sl;
             }
         }
+
+        $planningQuery = \App\Planning::with(['employee', 'approver_info'])
+            ->where('name', $currentEmployee->id ?? null)
+            ->whereMonth('date', date('m'))
+            ->whereYear('date', date('Y'))
+            ->where('status', '!=', 'Cancelled')
+            ->orderBy('date', 'desc');
+
+        $plannings = $planningQuery->paginate(7);
         
         return  array_merge([
             'header' => '',
@@ -256,8 +279,10 @@ class HomeController extends Controller
             'leave_plans_per_month' => $leave_plans_per_month,
             'leave_plan_array' => $leave_plan_array,
             'hubLocations' => $hubLocations,
+            'userLeaves' => $userLeaves,
             'vl_balance' => $vl_balance,
             'sl_balance' => $sl_balance,
+            'plannings' => $plannings,
         ], $adminStats);
     }
 
@@ -272,8 +297,9 @@ class HomeController extends Controller
      */
     public function dashboardAdmin()
     {
+        $header = 'dashboard_admin';
         $data = $this->prepareDashboardData();
-        return view('dashboards.dashboard_admin', $data);
+        return view('dashboards.dashboard_admin', $data)->with('header', $header);
     }
 
     public function uploadEmployeeImage(Request $request)

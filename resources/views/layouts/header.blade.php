@@ -373,6 +373,7 @@
                             <span class="menu-title">Dashboard</span>
                         </a>
                     </li>
+                    
                     <li class="nav-item @if ($header == 'attendances') active @endif">
                         <a class="nav-link" href="{{ url('/attendances') }}" onclick='show()'>
                             <i class="icon-watch menu-icon"></i>
@@ -397,8 +398,10 @@
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li> -->
                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/work-from-home') }}">Work from home</a></li> --}}
 
-                                <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li> -->
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/planning') }}">Planning</a></li>
+                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/dar') }}">DAR</a></li> --}}
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> -->
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/231380935515052">Authority to Deduct</a></li>
@@ -432,6 +435,20 @@
                             <span class="menu-title">Leave Calendar</span>
                         </a>
                     </li>
+                    <li class="nav-item @if ($header == 'purchase') active @endif">
+                        <a class="nav-link" href="{{ url('purchase') }}" onclick='show()'>
+                            <i class="icon-bag menu-icon"></i>
+                            <span class="menu-title">Employee PO</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item @if ($header == 'tds') active @endif">
+                        <a class="nav-link" href="{{ url('tds') }}" onclick='show()'>
+                            <i class="icon-bag menu-icon"></i>
+                            <span class="menu-title">TDS</span>
+                        </a>
+                    </li>
+
                   @if(count(auth()->user()->employee->as_resign) > 0)
                     <li class="nav-item">
                         <hr>
@@ -554,7 +571,7 @@
                         <h5>Super Admin</h5>
                     </li>
 
-                   <li class="nav-item @if ($header == 'Admindashboard') active @endif">
+                   <li class="nav-item @if ($header == 'dashboard_admin') active @endif">
                         <a class="nav-link" href="{{ url('/Admindashboard') }}" onclick='show()'>
                             <i class="icon-head menu-icon"></i>
                             <span class="menu-title">Dashboard Admin</span>
@@ -805,6 +822,7 @@
                     <li class="nav-item"> <a class="nav-link" href="{{ url('/attendance-report') }}">Attendance Reports</a></li>
                     {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/system-report') }}">Online In/Out Report</a></li> --}}
                     <li class="nav-item"><a class="nav-link" href="{{url('ob_files')}}">OB Uploaded Files</a></li>
+                     <li class="nav-item"><a class="nav-link" href="{{url('purchase-reports')}}">Purchase Order Report</a></li>
                 </ul>
             </div>
         </li>

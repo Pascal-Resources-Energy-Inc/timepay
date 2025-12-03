@@ -1454,3 +1454,27 @@ function usedSlVlThisYear($user_id, $leave_type, $date_hired,$scheduleDatas = []
     
     return $count;
 }
+
+//for discount LPG module
+function addBusinessDays($date, $days) {
+    $currentDate = clone $date;
+    $addedDays = 0;
+    
+    while ($addedDays < $days) {
+        $currentDate->modify('+1 day');
+        $dayOfWeek = (int)$currentDate->format('N');
+        if ($dayOfWeek < 6) {
+            $addedDays++;
+        }
+    }
+    
+    return $currentDate;
+}
+
+// Helper function to check if order is expired
+function isOrderExpired($createdAt) {
+    $created = new \DateTime($createdAt);
+    $expiresAt = addBusinessDays($created, 3);
+    $now = new \DateTime();
+    return $now > $expiresAt;
+}

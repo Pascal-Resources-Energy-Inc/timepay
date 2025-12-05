@@ -97,6 +97,9 @@ class PurchaseExport implements FromArray, WithTitle, ShouldAutoSize, WithStyles
 
         $data = [];
         
+        $data[] = ['GazLite'];
+        $data[] = ['Employee Purchase Orders'];
+
         $dateRange = date('M d, Y', strtotime($this->from)) . ' - ' . date('M d, Y', strtotime($this->to));
         $titleRow = ['Date Range: ' . $dateRange, '', '', '', 'QUANTITY - DEALER/END USER'];
         $data[] = $titleRow;
@@ -173,22 +176,20 @@ class PurchaseExport implements FromArray, WithTitle, ShouldAutoSize, WithStyles
     public function styles(Worksheet $sheet)
     {
         $lastColumn = 'Q';
-        
-        $sheet->mergeCells('A1:C1');
-        $sheet->mergeCells('D1:' . $lastColumn . '1');
-        
-        $sheet->mergeCells('A2:C2');
-        $sheet->mergeCells('D2:D2');
-        $sheet->mergeCells('E2:E2');
-        $sheet->mergeCells('F2:G2');
-        $sheet->mergeCells('H2:H2');
-        $sheet->mergeCells('I2:I2');
-        $sheet->mergeCells('J2:K2');
-        $sheet->mergeCells('L2:L2');
-        $sheet->mergeCells('M2:N2');
-        $sheet->mergeCells('O2:Q2');
-        
-        $sheet->getStyle('A1:' . $lastColumn . '3')->applyFromArray([
+
+        $sheet->mergeCells('A1:' . $lastColumn . '1');  
+        $sheet->mergeCells('A2:' . $lastColumn . '2'); 
+
+        $sheet->mergeCells('A3:C3');
+        $sheet->mergeCells('D3:' . $lastColumn . '3');
+
+        $sheet->mergeCells('A4:C4');
+        $sheet->mergeCells('F4:G4');
+        $sheet->mergeCells('J4:K4');
+        $sheet->mergeCells('M4:N4');
+        $sheet->mergeCells('O4:Q4');
+
+        $sheet->getStyle('A1:' . $lastColumn . '4')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'size' => 11,
@@ -207,7 +208,7 @@ class PurchaseExport implements FromArray, WithTitle, ShouldAutoSize, WithStyles
                 'startColor' => ['rgb' => 'D3D3D3']
             ]
         ]);
-        
+
         $lastRow = $sheet->getHighestRow();
         $sheet->getStyle('A1:' . $lastColumn . $lastRow)->applyFromArray([
             'borders' => [
@@ -216,19 +217,19 @@ class PurchaseExport implements FromArray, WithTitle, ShouldAutoSize, WithStyles
                 ],
             ],
         ]);
-        
-        $sheet->getStyle('D4:N' . $lastRow)->applyFromArray([
+
+        $sheet->getStyle('D5:N' . $lastRow)->applyFromArray([
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
             ],
         ]);
-        
-        $sheet->getStyle('Q4:Q' . $lastRow)->applyFromArray([
+
+        $sheet->getStyle('Q5:Q' . $lastRow)->applyFromArray([
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_RIGHT,
             ],
         ]);
-        
+
         return [];
     }
 }

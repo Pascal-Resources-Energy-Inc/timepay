@@ -13,7 +13,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                     <div class="card-body">
                         <div class="media">                
                             <div class="media-body">
-                                <h4 class="mb-4">Total Items Purchased</h4>
+                                <h4 class="mb-4">Total LPG Refill Purchased</h4>
                                 <h2 class="card-text">{{ $stats['total_purchase'] ?? 0 }}</h2>
                                 <small class="mb-4">All time</small>
                             </div>
@@ -26,7 +26,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
                     <div class="card-body">
                         <div class="media">                
                             <div class="media-body">
-                                <h4 class="mb-4">Items This Month</h4>
+                                <h4 class="mb-4">Discounted LPG Refill Limit</h4>
                                 <h2 class="card-text">{{ $stats['total_items_sum'] ?? 0 }}/10</h2>
                                 <small class="text-muted">{{ date('F Y') }}</small>
                             </div>

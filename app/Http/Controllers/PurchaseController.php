@@ -479,7 +479,7 @@ class PurchaseController extends Controller
         $from = $request->input('from', date('Y-m-d'));
         $to = $request->input('to', date('Y-m-d'));
         
-        $filename = 'Discounted_LPG_Refill_' . $from . '_to_' . $to . '.xlsx';
+        $filename = 'Employee_PO_' . $from . '_to_' . $to . '.xlsx';
         
         return Excel::download(new PurchaseExport($from, $to, null), $filename);
     }

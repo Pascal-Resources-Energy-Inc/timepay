@@ -49,7 +49,7 @@ class TDSController extends Controller
         $regions = Region::orderBy('region_name')->get();
 
         return view('forms.tds.index', compact('tdsRecords', 'stats', 'regions'))
-            ->with('header', 'forms');
+            ->with('header', 'tds');
     }
 
     public function show($id)

@@ -577,6 +577,13 @@
                             <span class="menu-title">Dashboard Admin</span>
                         </a>
                     </li>
+
+                    <li class="nav-item @if ($header == 'tdsDashboard') active @endif ">
+                        <a class="nav-link" href="{{ url('/tdsdashboard') }}" onclick='show()'>
+                            <i class="icon-briefcase menu-icon"></i>
+                            <span class="menu-title">Sales Performance</span>
+                        </a>
+                    </li>
                     
                     @if (checkUserPrivilege('timekeeping_dashboard',auth()->user()->id) == 'yes')
                     {{-- @if(request()->getHost() != "hris.gazlite.com.ph") --}}

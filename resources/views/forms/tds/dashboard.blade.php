@@ -165,7 +165,6 @@
     margin-bottom: 1rem !important;
 }
 
-/* Select2 Custom Styling */
 .select2-container--bootstrap-5 .select2-selection {
     min-height: 38px;
 }
@@ -194,7 +193,7 @@
                 <div class="card card-tale">
                     <div class="card-body">
                         <h4 class="mb-2">Total Target</h4>
-                        <h2 class="mb-0">₱{{ number_format($overview['total_target'], 2) }}</h2>
+                        <h2 class="mb-0" style="font-size: 25px;">₱{{ number_format($overview['total_target'], 2) }}</h2>
                         <small class="text-muted">Year {{ $selectedYear }}</small>
                     </div>
                 </div>
@@ -204,7 +203,7 @@
                 <div class="card card-dark-blue">
                     <div class="card-body">
                         <h4 class="mb-2">Total Actual</h4>
-                        <h2 class="mb-0">₱{{ number_format($overview['total_actual'], 2) }}</h2>
+                        <h2 class="mb-0" style="font-size: 25px;">₱{{ number_format($overview['total_actual'], 2) }}</h2>
                         <small class="text-muted">YTD Achievement</small>
                     </div>
                 </div>
@@ -214,7 +213,7 @@
                 <div class="card text-success">
                     <div class="card-body">
                         <h4 class="mb-2">Achievement Rate</h4>
-                        <h2 class="mb-0">{{ number_format($overview['achievement_rate'], 2) }}%</h2>
+                        <h2 class="mb-0" style="font-size: 25px;">{{ number_format($overview['achievement_rate'], 2) }}%</h2>
                         <small class="text-muted">Overall Performance</small>
                     </div>
                 </div>
@@ -224,7 +223,7 @@
                 <div class="card card-light-danger">
                     <div class="card-body">
                         <h4 class="mb-2">Active TDS</h4>
-                        <h2 class="mb-0">{{ $overview['active_tds'] }}</h2>
+                        <h2 class="mb-0" style="font-size: 25px;">{{ $overview['active_tds'] }}</h2>
                         <small class="text-muted">Trade Development Specialists</small>
                     </div>
                 </div>
@@ -272,8 +271,8 @@
                                                 @php
                                                     $user = \App\User::with('employee')->find($selectedEmployee);
                                                     $displayName = $user->name ?? 'Selected Employee';
-                                                    if ($user && $user->employee && $user->employee->employee_no) {
-                                                        $displayName = $user->employee->employee_no . ' - ' . $user->name;
+                                                    if ($user && $user->employee && $user->employee->employee_number) {
+                                                        $displayName = $user->employee->employee_number . ' - ' . $user->name;
                                                     }
                                                 @endphp
                                                 <option value="{{ $selectedEmployee }}" selected>
@@ -294,17 +293,32 @@
                                         <i class="ti-download"></i> Export CSV
                                     </a>
                                 </div>
-                                <div class='col-md-1'>
-                                    <button type="button" class="btn btn-secondary btn-block" id="resetFilters">
-                                        <i class="ti-reload"></i>
-                                    </button>
-                                </div>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
+
+        @if(empty($regionData))
+        <div class='row mb-4'>
+            <div class='col-lg-12'>
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="ti-info-alt" style="font-size: 48px; color: #6c757d;"></i>
+                        <h4 class="mt-3 mb-2">No Data Available</h4>
+                        <p class="text-muted">
+                            @if($selectedEmployee ?? null)
+                                No records found for the selected employee in {{ $selectedYear }}.
+                            @else
+                                No records found for the selected filters.
+                            @endif
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
 
         @foreach($regionData as $regionName => $regionInfo)
         <div class='mb-4' style="font-size: 11px;">
@@ -498,8 +512,7 @@
 <script>
 $(document).ready(function() {
     $('#employeeSelect').select2({
-        theme: 'bootstrap-5',
-        placeholder: 'Search by name or employee number...',
+        placeholder: 'Type to search employee...',
         allowClear: true,
         width: '100%',
         ajax: {
@@ -508,29 +521,33 @@ $(document).ready(function() {
             delay: 250,
             data: function (params) {
                 return {
-                    search: params.term,
+                    search: params.term || '',
                     year: $('#yearSelect').val(),
                     region: $('#regionSelect').val(),
                     page: params.page || 1
                 };
             },
             processResults: function (data) {
+                console.log('Search results:', data);
                 return {
-                    results: data.results
+                    results: data.results || []
                 };
             },
             cache: true
         },
-        minimumInputLength: 0,
+        minimumInputLength: 1,
         language: {
             inputTooShort: function() {
-                return 'Start typing employee name or number...';
+                return 'Type at least 1 character to search...';
             },
             searching: function() {
                 return 'Searching employees...';
             },
             noResults: function() {
                 return 'No employees found';
+            },
+            errorLoading: function() {
+                return 'Error loading results';
             }
         }
     });

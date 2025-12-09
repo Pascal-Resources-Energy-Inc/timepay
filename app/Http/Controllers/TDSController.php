@@ -58,6 +58,343 @@ class TDSController extends Controller
         return view('forms.tds.view_details', compact('tds'));
     }
 
+   public function dashboard(Request $request)
+    {
+        $selectedYear = $request->input('year', date('Y'));
+        $selectedRegion = $request->input('region', null);
+        $selectedEmployee = $request->input('employee', null);
+        
+        $regions = Region::orderBy('region_name')->get();
+        
+        $query = Tds::with(['user', 'region'])
+            ->whereYear('date_of_registration', $selectedYear);
+        
+        if ($selectedRegion) {
+            $query->where('area', $selectedRegion);
+        }
+        
+        if ($selectedEmployee) {
+            $query->where('user_id', $selectedEmployee);
+        }
+        
+        $records = $query->get();
+        
+        $targetQuery = SalesTarget::whereYear('month', $selectedYear);
+        if ($selectedRegion) {
+            $targetQuery->where('id', $selectedRegion);
+        }
+        $totalTarget = $targetQuery->sum('target_amount');
+        
+        $totalActual = $records->sum('purchase_amount');
+        
+        if ($selectedEmployee) {
+            $totalTarget = 200000 * 12;
+        }
+        
+        $achievementRate = $totalTarget > 0 ? ($totalActual / $totalTarget) * 100 : 0;
+        $activeTds = $records->groupBy('user_id')->count();
+        
+        $overview = [
+            'total_target' => $totalTarget,
+            'total_actual' => $totalActual,
+            'achievement_rate' => $achievementRate,
+            'active_tds' => $activeTds,
+        ];
+        
+        $regionData = [];
+        $regionsToProcess = $selectedRegion 
+            ? Region::where('id', $selectedRegion)->get() 
+            : $regions;
+        
+        foreach ($regionsToProcess as $region) {
+            $regionRecords = $records->where('area', $region->id);
+            
+            if ($selectedEmployee && $regionRecords->isEmpty()) {
+                continue;
+            }
+            
+            $regionData[$region->region_name] = $this->prepareRegionKPI($region, $regionRecords, $selectedYear, $selectedEmployee);
+        }
+        
+        $chartData = $this->prepareChartData($records, $selectedYear);
+
+        return view(
+            'forms.tds.dashboard',
+            array(
+                'header' => 'tdsDashboard',
+                'overview' => $overview,
+                'regionData' => $regionData,
+                'regions' => $regions,
+                'selectedYear' => $selectedYear,
+                'selectedRegion' => $selectedRegion,
+                'selectedEmployee' => $selectedEmployee,
+                'chartData' => $chartData
+            )
+        );
+    }
+
+    public function getEmployees(Request $request)
+    {
+        $search = $request->input('search', '');
+        $selectedYear = $request->input('year', date('Y'));
+        $selectedRegion = $request->input('region', null);
+        
+        $query = DB::table('users')
+            ->join('tds', 'users.id', '=', 'tds.user_id')
+            ->leftJoin('employees', 'users.id', '=', 'employees.user_id')
+            ->whereYear('tds.date_of_registration', $selectedYear)
+            ->select('users.id', 'users.name', 'employees.employee_number')
+            ->distinct();
+        
+        if ($selectedRegion) {
+            $query->where('tds.area', $selectedRegion);
+        }
+        
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('users.name', 'LIKE', "%{$search}%")
+                ->orWhere('employees.employee_number', 'LIKE', "%{$search}%");
+            });
+        }
+        
+        $employees = $query->orderBy('users.name')
+            ->limit(20)
+            ->get();
+        
+        $results = $employees->map(function($employee) {
+            $displayText = $employee->name;
+            if ($employee->employee_number) {
+                $displayText = $employee->employee_number . ' - ' . $employee->name;
+            }
+            return [
+                'id' => $employee->id,
+                'text' => $displayText
+            ];
+        });
+        
+        return response()->json([
+            'results' => $results
+        ]);
+    }
+
+
+    private function prepareRegionKPI($region, $records, $year)
+    {
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $monthNumbers = [
+            'Jan' => 1, 'Feb' => 2, 'Mar' => 3, 'Apr' => 4, 'May' => 5, 'Jun' => 6,
+            'Jul' => 7, 'Aug' => 8, 'Sep' => 9, 'Oct' => 10, 'Nov' => 11, 'Dec' => 12
+        ];
+        
+        $summary = [
+            'monthly' => array_fill_keys($months, 0),
+            'actual' => 0,
+            'target' => 0,
+            'achievement' => 0,
+            'ad_monthly' => array_fill_keys($months, 0),
+            'ad_actual' => 0,
+            'ad_target' => 0,
+            'dealer_monthly' => array_fill_keys($months, 0),
+            'dealer_actual' => 0,
+            'dealer_target' => 0,
+        ];
+        
+        $employees = [];
+        $userIds = $records->pluck('user_id')->unique();
+        
+        foreach ($userIds as $userId) {
+            $user = \App\User::find($userId);
+            if (!$user) continue;
+            
+            $userRecords = $records->where('user_id', $userId);
+            
+            $employeeData = [
+                'name' => $user->name,
+                'monthly' => array_fill_keys($months, 0),
+                'actual' => 0,
+                'target' => 200000,
+                'achievement' => 0,
+                'ad_monthly' => array_fill_keys($months, 0),
+                'ad_actual' => 0,
+                'ad_target' => 1,
+                'dealer_monthly' => array_fill_keys($months, 0),
+                'dealer_actual' => 0,
+                'dealer_target' => 40,
+            ];
+            
+            foreach ($months as $month) {
+                $monthNum = $monthNumbers[$month];
+                $monthRecords = $userRecords->filter(function($record) use ($year, $monthNum) {
+                    $date = \Carbon\Carbon::parse($record->date_of_registration);
+                    return $date->year == $year && $date->month == $monthNum;
+                });
+                
+                $monthAmount = $monthRecords->sum('purchase_amount');
+                $employeeData['monthly'][$month] = $monthAmount;
+                $employeeData['actual'] += $monthAmount;
+                
+                $adCount = $monthRecords->whereIn('package_type', ['AD', 'MD'])->count();
+                $dealerCount = $monthRecords->whereIn('package_type', ['D', 'EU'])->count();
+                
+                $employeeData['ad_monthly'][$month] = $adCount;
+                $employeeData['ad_actual'] += $adCount;
+                
+                $employeeData['dealer_monthly'][$month] = $dealerCount;
+                $employeeData['dealer_actual'] += $dealerCount;
+                
+                $summary['monthly'][$month] += $monthAmount;
+                $summary['ad_monthly'][$month] += $adCount;
+                $summary['dealer_monthly'][$month] += $dealerCount;
+            }
+            
+            $employeeData['achievement'] = $employeeData['target'] > 0 
+                ? ($employeeData['actual'] / $employeeData['target']) * 100 
+                : 0;
+            
+            $employees[] = $employeeData;
+            
+            $summary['actual'] += $employeeData['actual'];
+            $summary['target'] += $employeeData['target'];
+            $summary['ad_actual'] += $employeeData['ad_actual'];
+            $summary['ad_target'] += $employeeData['ad_target'];
+            $summary['dealer_actual'] += $employeeData['dealer_actual'];
+            $summary['dealer_target'] += $employeeData['dealer_target'];
+        }
+        
+        $summary['achievement'] = $summary['target'] > 0 
+            ? ($summary['actual'] / $summary['target']) * 100 
+            : 0;
+        
+        return [
+            'summary' => $summary,
+            'employees' => $employees,
+            'has_vacant' => false,
+            'vacant_target' => 200000,
+        ];
+    }
+
+    private function prepareChartData($records, $year)
+    {
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $monthNumbers = [
+            'Jan' => 1, 'Feb' => 2, 'Mar' => 3, 'Apr' => 4, 'May' => 5, 'Jun' => 6,
+            'Jul' => 7, 'Aug' => 8, 'Sep' => 9, 'Oct' => 10, 'Nov' => 11, 'Dec' => 12
+        ];
+        
+        $monthly = array_fill_keys($months, 0);
+        $monthlyTargets = array_fill_keys($months, 0);
+        
+        foreach ($months as $month) {
+            $monthNum = $monthNumbers[$month];
+            $monthRecords = $records->filter(function($record) use ($year, $monthNum) {
+                $date = \Carbon\Carbon::parse($record->date_of_registration);
+                return $date->year == $year && $date->month == $monthNum;
+            });
+            
+            $monthly[$month] = $monthRecords->sum('purchase_amount');
+            
+            $targetRecord = SalesTarget::where('month', $year . '-' . str_pad($monthNum, 2, '0', STR_PAD_LEFT))->first();
+            $monthlyTargets[$month] = $targetRecord ? $targetRecord->target_amount : 0;
+        }
+        
+        $packages = [
+            'EU - End User' => $records->where('package_type', 'EU')->count(),
+            'D - Dealer' => $records->where('package_type', 'D')->count(),
+            'MD - Mega Dealer' => $records->where('package_type', 'MD')->count(),
+            'AD - Area Distributor' => $records->where('package_type', 'AD')->count(),
+        ];
+        
+        return [
+            'monthly' => $monthly,
+            'monthly_targets' => $monthlyTargets,
+            'packages' => $packages,
+        ];
+    }
+
+    public function dashboardExport(Request $request)
+    {
+        $selectedYear = $request->input('year', date('Y'));
+        $selectedRegion = $request->input('region', null);
+        $selectedEmployee = $request->input('employee', null); 
+        
+        $query = Tds::with(['user', 'region'])
+            ->whereYear('date_of_registration', $selectedYear);
+        
+        if ($selectedRegion) {
+            $query->where('area', $selectedRegion);
+        }
+        
+        if ($selectedEmployee) {
+            $query->where('user_id', $selectedEmployee);
+        }
+        
+        $records = $query->get();
+        $regions = $selectedRegion 
+            ? Region::where('id', $selectedRegion)->get() 
+            : Region::orderBy('region_name')->get();
+        
+        $filename = 'tds_kpi_dashboard_' . $selectedYear;
+        if ($selectedEmployee) {
+            $user = \App\User::find($selectedEmployee);
+            $filename .= '_' . str_replace(' ', '_', $user->name ?? 'employee');
+        }
+        $filename .= '_' . date('Y-m-d_His') . '.csv';
+        
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        
+        $output = fopen('php://output', 'w');
+        
+        foreach ($regions as $region) {
+            $regionRecords = $records->where('area', $region->id);
+            
+            fputcsv($output, [$selectedYear . ' KPI for Trade Development Specialists']);
+            fputcsv($output, [$region->region_name]);
+            fputcsv($output, []);
+            
+            fputcsv($output, [
+                'Employee Name', 'Metric',
+                'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+                'Actual', 'Target', 'A/R'
+            ]);
+            
+            $userIds = $regionRecords->pluck('user_id')->unique();
+            
+            foreach ($userIds as $userId) {
+                $user = \App\User::find($userId);
+                if (!$user) continue;
+                
+                $userRecords = $regionRecords->where('user_id', $userId);
+                
+                $phpRow = [$user->name, 'Php'];
+                $total = 0;
+                
+                for ($m = 1; $m <= 12; $m++) {
+                    $monthRecords = $userRecords->filter(function($record) use ($selectedYear, $m) {
+                        $date = \Carbon\Carbon::parse($record->date_of_registration);
+                        return $date->year == $selectedYear && $date->month == $m;
+                    });
+                    $amount = $monthRecords->sum('purchase_amount');
+                    $phpRow[] = number_format($amount, 2);
+                    $total += $amount;
+                }
+                
+                $phpRow[] = number_format($total, 2);
+                $phpRow[] = '200000.00';
+                $phpRow[] = number_format(($total / 200000) * 100, 2) . '%';
+                
+                fputcsv($output, $phpRow);
+            }
+            
+            fputcsv($output, []);
+            fputcsv($output, []);
+        }
+        
+        fclose($output);
+        exit;
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([

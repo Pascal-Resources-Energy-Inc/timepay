@@ -115,23 +115,14 @@
     Route::get('/tds/export', 'TDSController@export')->name('tds.export');
     Route::post('/tds/update-target', 'TDSController@updateSalesTarget')->name('tds.update-target');
     Route::get('/tds/activity-logs', 'TDSController@getActivityLogs')->name('tds.activity-logs');
+
+    Route::get('/tdsdashboard', 'TDSController@dashboard')->name('tds.dashboard');
+    Route::get('/tds/employees/search', 'TDSController@getEmployees')->name('tds.employees.search');
+    Route::get('/tds/dashboard/export', 'TDSController@dashboardExport')->name('tds.dashboard.export');
+
     Route::get('/tds/{id}', 'TDSController@show')->name('tds.show');
     Route::put('/tds/{id}', 'TDSController@update')->name('tds.update');
     Route::delete('/tds/{id}', 'TDSController@destroy')->name('tds.destroy');
-
-    Route::get('/test-relationships', function() {
-        $tds = App\Tds::with(['user', 'region'])->first();
-        
-        dd([
-            'tds_id' => $tds->id,
-            'user_id' => $tds->user_id,
-            'user_object' => $tds->user,
-            'user_name' => $tds->user ? $tds->user->name : 'NULL',
-            'area' => $tds->area,
-            'region_object' => $tds->region,
-            'region_name' => $tds->region ? $tds->region->region_name : 'NULL',
-        ]);
-    });
 
     Route::get('overtime','EmployeeOvertimeController@overtime');
     //Overtime

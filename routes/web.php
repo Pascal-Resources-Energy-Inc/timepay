@@ -112,10 +112,26 @@
     //TDS
     Route::get('/tds', 'TDSController@index')->name('tds.index');
     Route::post('/tds/store', 'TDSController@store')->name('tds.store');
+    Route::get('/tds/export', 'TDSController@export')->name('tds.export');
+    Route::post('/tds/update-target', 'TDSController@updateSalesTarget')->name('tds.update-target');
+    Route::get('/tds/activity-logs', 'TDSController@getActivityLogs')->name('tds.activity-logs');
     Route::get('/tds/{id}', 'TDSController@show')->name('tds.show');
     Route::put('/tds/{id}', 'TDSController@update')->name('tds.update');
     Route::delete('/tds/{id}', 'TDSController@destroy')->name('tds.destroy');
-    Route::get('/tds/export', 'TDSController@export')->name('tds.export');
+
+    Route::get('/test-relationships', function() {
+        $tds = App\Tds::with(['user', 'region'])->first();
+        
+        dd([
+            'tds_id' => $tds->id,
+            'user_id' => $tds->user_id,
+            'user_object' => $tds->user,
+            'user_name' => $tds->user ? $tds->user->name : 'NULL',
+            'area' => $tds->area,
+            'region_object' => $tds->region,
+            'region_name' => $tds->region ? $tds->region->region_name : 'NULL',
+        ]);
+    });
 
     Route::get('overtime','EmployeeOvertimeController@overtime');
     //Overtime
@@ -180,8 +196,8 @@
     //Planning 
     Route::get('planning', 'EmployeePlanningController@index');
     Route::post('/planning/import', 'EmployeePlanningController@import')->name('planning.import');
-    Route::post('/planning/upload-files', 'EmployeePlanningController@uploadFiles')->name('planning.upload-files');
-    Route::get('/planning/{id}/files', 'EmployeePlanningController@getFiles')->name('planning.get-files');
+    Route::post('/planning/upload-files', 'HomeController@uploadFiles')->name('planning.upload-files');
+    Route::get('/planning/{id}/files', 'HomeController@getFiles')->name('planning.get-files');
     Route::get('/disable-planning/{id}', 'EmployeePlanningController@disablePlanning')->name('planning.disable');
 
     //Dar 

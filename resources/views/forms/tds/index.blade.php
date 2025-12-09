@@ -1,661 +1,644 @@
 @extends('layouts.header')
 
 @section('head')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-<style>
-.kpi-table {
-    border-collapse: collapse;
-    width: 100%;
-    font-size: 12px;
-    min-width: 1400px;
-    border: 2px solid #dee2e6;
-}
-
-.kpi-table thead tr:first-child th {
-    background: #343a40;
-    color: white;
-    padding: 12px 8px;
-    text-align: center;
-    border: 2px solid #2c3237;
-    font-weight: 600;
-    font-size: 11px;
-    text-transform: uppercase;
-}
-
-.kpi-table thead tr:last-child th {
-    background: #495057;
-    color: white;
-    padding: 10px 8px;
-    text-align: center;
-    border: 2px solid #3d4349;
-    font-weight: 600;
-    font-size: 11px;
-}
-
-.kpi-table tbody td {
-    padding: 10px 8px;
-    text-align: center;
-    border: 1px solid #dee2e6;
-    font-size: 12px;
-}
-
-.kpi-table tbody tr {
-    border-bottom: 1px solid #dee2e6;
-}
-
-.kpi-table tbody tr:hover {
-    background-color: #f8f9fa;
-}
-
-.employee-name {
-    text-align: left !important;
-    font-weight: 600;
-    color: #2c3e50;
-    padding-left: 15px !important;
-    background: #f8f9fa;
-}
-
-.category-label {
-    text-align: right !important;
-    padding-right: 15px !important;
-    color: #6c757d;
-    font-weight: 600;
-    font-size: 11px;
-    background: #f8f9fa;
-}
-
-.month-achieved {
-    background-color: #d4edda !important;
-    color: #155724;
-    font-weight: 700;
-}
-
-.target-cell {
-    background-color: #fff3cd !important;
-    font-weight: 700;
-    color: #856404;
-}
-
-.actual-cell {
-    background-color: #cfe2ff !important;
-    font-weight: 700;
-    color: #084298;
-}
-
-.achievement-cell {
-    font-weight: 700;
-    font-size: 12px;
-}
-
-.achievement-good {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-.achievement-warning {
-    background-color: #fff3cd;
-    color: #856404;
-}
-
-.achievement-danger {
-    background-color: #f8d7da;
-    color: #721c24;
-}
-
-.summary-row {
-    background-color: #e9ecef !important;
-}
-
-.summary-row td {
-    font-weight: 700;
-    font-size: 12px;
-}
-
-.vacant-row td {
-    background-color: #fff5f5 !important;
-}
-
-.vacant-row .employee-name {
-    color: #dc3545 !important;
-    background-color: #fff5f5 !important;
-}
-
-.chart-card {
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-}
-
-.chart-card h4 {
-    font-size: 16px;
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 15px;
-}
-
-.chart-container {
-    position: relative;
-    height: 300px;
-}
-
-.card {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.card-body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.grid-margin .card {
-    min-height: 140px;
-}
-
-.grid-margin .card-body {
-    justify-content: center;
-}
-
-.grid-margin .mb-3 {
-    margin-bottom: 1rem !important;
-}
-
-/* Select2 Custom Styling */
-.select2-container--bootstrap-5 .select2-selection {
-    min-height: 38px;
-}
-
-.select2-container--bootstrap-5 .select2-selection--single {
-    padding: 0.375rem 0.75rem;
-}
-
-.select2-container--bootstrap-5 .select2-dropdown {
-    border-color: #ced4da;
-}
-
-.select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field {
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-}
-</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 @endsection
 
 @section('content')
 <div class="main-panel">
     <div class="content-wrapper">
-        
-        <div class='row grid-margin'>
-            <div class='col-lg-3 col-md-6 mb-3'>
-                <div class="card card-tale">
-                    <div class="card-body">
-                        <h4 class="mb-2">Total Target</h4>
-                        <h2 class="mb-0">₱{{ number_format($overview['total_target'], 2) }}</h2>
-                        <small class="text-muted">Year {{ $selectedYear }}</small>
-                    </div>
+      
+      <div class='row grid-margin'>
+        <div class='col-lg-3'>
+          <div class="card card-tale">
+            <div class="card-body">
+              <div class="media">                
+                <div class="media-body">
+                  <h4 class="mb-4">Monthly Target</h4>
+                  <h2 class="card-text">₱{{ number_format($stats['monthly_target'], 2) }}</h2>
                 </div>
+              </div>
             </div>
-            
-            <div class='col-lg-3 col-md-6 mb-3'>
-                <div class="card card-dark-blue">
-                    <div class="card-body">
-                        <h4 class="mb-2">Total Actual</h4>
-                        <h2 class="mb-0">₱{{ number_format($overview['total_actual'], 2) }}</h2>
-                        <small class="text-muted">YTD Achievement</small>
-                    </div>
+          </div>
+        </div> 
+        <div class='col-lg-3'>
+          <div class="card card-dark-blue">
+            <div class="card-body">
+              <div class="media">                
+                <div class="media-body">
+                  <h4 class="mb-4">Actual Sales</h4>
+                  <h2 class="card-text">₱{{ number_format($stats['actual_sales'], 2) }}</h2>
                 </div>
+              </div>
             </div>
-            
-            <div class='col-lg-3 col-md-6 mb-3'>
-                <div class="card text-success">
-                    <div class="card-body">
-                        <h4 class="mb-2">Achievement Rate</h4>
-                        <h2 class="mb-0">{{ number_format($overview['achievement_rate'], 2) }}%</h2>
-                        <small class="text-muted">Overall Performance</small>
-                    </div>
-                </div>
-            </div>
-            
-            <div class='col-lg-3 col-md-6 mb-3'>
-                <div class="card card-light-danger">
-                    <div class="card-body">
-                        <h4 class="mb-2">Active TDS</h4>
-                        <h2 class="mb-0">{{ $overview['active_tds'] }}</h2>
-                        <small class="text-muted">Trade Development Specialists</small>
-                    </div>
-                </div>
-            </div>
+          </div>
         </div>
-
-        <div class='row mb-3'>
-            <div class='col-lg-12'>
-                <div class="card">
-                    <div class="card-body">
-                        <form method='get' action="{{ route('tds.dashboard') }}" id="filterForm">
-                            <div class="row align-items-end">
-                                <div class='col-md-2'>
-                                    <div class="form-group mb-0">
-                                        <label><strong>Year</strong></label>
-                                        <select class="form-control" name="year" id="yearSelect">
-                                            @for($y = date('Y'); $y >= 2020; $y--)
-                                                <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>
-                                                    {{ $y }}
-                                                </option>
-                                            @endfor
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class='col-md-2'>
-                                    <div class="form-group mb-0">
-                                        <label><strong>Region</strong></label>
-                                        <select class="form-control" name="region" id="regionSelect">
-                                            <option value="">All Regions</option>
-                                            @foreach($regions as $region)
-                                                <option value="{{ $region->id }}" 
-                                                    {{ $selectedRegion == $region->id ? 'selected' : '' }}>
-                                                    {{ $region->region_name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class='col-md-3'>
-                                    <div class="form-group mb-0">
-                                        <label><strong>Employee</strong></label>
-                                        <select class="form-control" name="employee" id="employeeSelect">
-                                            <option value="">All Employees</option>
-                                            @if($selectedEmployee ?? null)
-                                                @php
-                                                    $user = \App\User::with('employee')->find($selectedEmployee);
-                                                    $displayName = $user->name ?? 'Selected Employee';
-                                                    if ($user && $user->employee && $user->employee->employee_no) {
-                                                        $displayName = $user->employee->employee_no . ' - ' . $user->name;
-                                                    }
-                                                @endphp
-                                                <option value="{{ $selectedEmployee }}" selected>
-                                                    {{ $displayName }}
-                                                </option>
-                                            @endif
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class='col-md-2'>
-                                    <button type="submit" class="btn btn-primary btn-block">
-                                        <i class="ti-filter"></i> Apply Filter
-                                    </button>
-                                </div>
-                                <div class='col-md-2'>
-                                    <a href="{{ route('tds.dashboard.export', request()->query()) }}" 
-                                       class="btn btn-success btn-block">
-                                        <i class="ti-download"></i> Export CSV
-                                    </a>
-                                </div>
-                                <div class='col-md-1'>
-                                    <button type="button" class="btn btn-secondary btn-block" id="resetFilters">
-                                        <i class="ti-reload"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+        <div class='col-lg-3'>
+          <div class="card text-success">
+            <div class="card-body">
+              <div class="media">
+                <div class="media-body">
+                  <h4 class="mb-4">For Delivery</h4>
+                  <h2 class="card-text">{{ $stats['for_delivery'] ?? 0 }}</h2>
                 </div>
+              </div>
             </div>
+          </div>
         </div>
-
-        @foreach($regionData as $regionName => $regionInfo)
-        <div class='mb-4' style="font-size: 11px;">
-            <div class='col-lg-12'>
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h4 class="card-title mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; margin: -20px -20px 20px -20px; border-radius: 8px 8px 0 0;">
-                            <i class="ti-location-pin mr-2"></i>{{ $regionName }} - {{ $selectedYear }} KPI Performance
-                        </h4>
-                        
-                        <div class="table-responsive">
-                        <table class="kpi-table">
-                            <thead>
-                                <tr>
-                                    <th rowspan="2" style="width: 180px;">Employee Name</th>
-                                    <th rowspan="2" style="width: 140px;">Metric</th>
-                                    <th colspan="12">Monthly Performance</th>
-                                    <th rowspan="2" style="width: 110px;">Actual</th>
-                                    <th rowspan="2" style="width: 110px;">Target</th>
-                                    <th rowspan="2" style="width: 80px;">A/R %</th>
-                                </tr>
-                                <tr>
-                                    <th style="width: 70px;">Jan</th>
-                                    <th style="width: 70px;">Feb</th>
-                                    <th style="width: 70px;">Mar</th>
-                                    <th style="width: 70px;">Apr</th>
-                                    <th style="width: 70px;">May</th>
-                                    <th style="width: 70px;">Jun</th>
-                                    <th style="width: 70px;">Jul</th>
-                                    <th style="width: 70px;">Aug</th>
-                                    <th style="width: 70px;">Sep</th>
-                                    <th style="width: 70px;">Oct</th>
-                                    <th style="width: 70px;">Nov</th>
-                                    <th style="width: 70px;">Dec</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="summary-row">
-                                    <td class="employee-name">SUMMARY ACQUISITION</td>
-                                    <td class="category-label">Php</td>
-                                    @foreach(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as $month)
-                                        <td class="{{ isset($regionInfo['summary']['monthly'][$month]) && $regionInfo['summary']['monthly'][$month] > 0 ? 'month-achieved' : '' }}">
-                                            {{ number_format($regionInfo['summary']['monthly'][$month] ?? 0, 2) }}
-                                        </td>
-                                    @endforeach
-                                    <td class="actual-cell">{{ number_format($regionInfo['summary']['actual'], 2) }}</td>
-                                    <td class="target-cell">{{ number_format($regionInfo['summary']['target'], 2) }}</td>
-                                    <td class="achievement-cell {{ $regionInfo['summary']['achievement'] >= 100 ? 'achievement-good' : ($regionInfo['summary']['achievement'] >= 50 ? 'achievement-warning' : 'achievement-danger') }}">
-                                        {{ number_format($regionInfo['summary']['achievement'], 2) }}%
-                                    </td>
-                                </tr>
-                                
-                                <tr class="summary-row">
-                                    <td></td>
-                                    <td class="category-label">Area Distributor</td>
-                                    @foreach(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as $month)
-                                        <td>{{ $regionInfo['summary']['ad_monthly'][$month] ?? 0 }}</td>
-                                    @endforeach
-                                    <td class="actual-cell">{{ $regionInfo['summary']['ad_actual'] ?? 0 }}</td>
-                                    <td class="target-cell">{{ $regionInfo['summary']['ad_target'] ?? 0 }}</td>
-                                    <td class="achievement-cell">
-                                        {{ $regionInfo['summary']['ad_target'] > 0 ? number_format(($regionInfo['summary']['ad_actual'] / $regionInfo['summary']['ad_target']) * 100, 2) : 0 }}%
-                                    </td>
-                                </tr>
-                                
-                                <tr class="summary-row">
-                                    <td></td>
-                                    <td class="category-label">Dealer</td>
-                                    @foreach(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as $month)
-                                        <td>{{ $regionInfo['summary']['dealer_monthly'][$month] ?? 0 }}</td>
-                                    @endforeach
-                                    <td class="actual-cell">{{ $regionInfo['summary']['dealer_actual'] ?? 0 }}</td>
-                                    <td class="target-cell">{{ $regionInfo['summary']['dealer_target'] ?? 0 }}</td>
-                                    <td class="achievement-cell">
-                                        {{ $regionInfo['summary']['dealer_target'] > 0 ? number_format(($regionInfo['summary']['dealer_actual'] / $regionInfo['summary']['dealer_target']) * 100, 2) : 0 }}%
-                                    </td>
-                                </tr>
-
-                                @foreach($regionInfo['employees'] as $employee)
-                                <tr>
-                                    <td class="employee-name" rowspan="3">
-                                        <i class="ti-user mr-1"></i>{{ $employee['name'] }}
-                                    </td>
-                                    <td class="category-label">Php</td>
-                                    @foreach(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as $month)
-                                        <td class="{{ isset($employee['monthly'][$month]) && $employee['monthly'][$month] > 0 ? 'month-achieved' : '' }}">
-                                            {{ number_format($employee['monthly'][$month] ?? 0, 2) }}
-                                        </td>
-                                    @endforeach
-                                    <td class="actual-cell">{{ number_format($employee['actual'], 2) }}</td>
-                                    <td class="target-cell">{{ number_format($employee['target'], 2) }}</td>
-                                    <td class="achievement-cell {{ $employee['achievement'] >= 100 ? 'achievement-good' : ($employee['achievement'] >= 50 ? 'achievement-warning' : 'achievement-danger') }}">
-                                        {{ number_format($employee['achievement'], 2) }}%
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="category-label">Area Distributor</td>
-                                    @foreach(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as $month)
-                                        <td>{{ $employee['ad_monthly'][$month] ?? 0 }}</td>
-                                    @endforeach
-                                    <td class="actual-cell">{{ $employee['ad_actual'] }}</td>
-                                    <td class="target-cell">{{ $employee['ad_target'] }}</td>
-                                    <td class="achievement-cell">
-                                        {{ $employee['ad_target'] > 0 ? number_format(($employee['ad_actual'] / $employee['ad_target']) * 100, 2) : 0 }}%
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="category-label">Dealer</td>
-                                    @foreach(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as $month)
-                                        <td>{{ $employee['dealer_monthly'][$month] ?? 0 }}</td>
-                                    @endforeach
-                                    <td class="actual-cell">{{ $employee['dealer_actual'] }}</td>
-                                    <td class="target-cell">{{ $employee['dealer_target'] }}</td>
-                                    <td class="achievement-cell">
-                                        {{ $employee['dealer_target'] > 0 ? number_format(($employee['dealer_actual'] / $employee['dealer_target']) * 100, 2) : 0 }}%
-                                    </td>
-                                </tr>
-                                @endforeach
-
-                                @if($regionInfo['has_vacant'])
-                                <tr class="vacant-row">
-                                    <td class="employee-name" rowspan="3">
-                                        <i class="ti-alert mr-1"></i>VACANT
-                                    </td>
-                                    <td class="category-label">Php</td>
-                                    @foreach(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as $month)
-                                        <td>-</td>
-                                    @endforeach
-                                    <td class="actual-cell">0.00</td>
-                                    <td class="target-cell">{{ number_format($regionInfo['vacant_target'], 2) }}</td>
-                                    <td class="achievement-cell achievement-danger">0.00%</td>
-                                </tr>
-                                <tr class="vacant-row">
-                                    <td class="category-label">Area Distributor</td>
-                                    @foreach(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as $month)
-                                        <td>0</td>
-                                    @endforeach
-                                    <td class="actual-cell">0</td>
-                                    <td class="target-cell">1</td>
-                                    <td class="achievement-cell">0%</td>
-                                </tr>
-                                <tr class="vacant-row">
-                                    <td class="category-label">Dealer</td>
-                                    @foreach(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as $month)
-                                        <td>0</td>
-                                    @endforeach
-                                    <td class="actual-cell">0</td>
-                                    <td class="target-cell">40</td>
-                                    <td class="achievement-cell">0%</td>
-                                </tr>
-                                @endif
-                            </tbody>
-                        </table>
-                    </div>
+        <div class='col-lg-3'>
+          <div class="card card-light-danger">
+            <div class="card-body">
+              <div class="media">                
+                <div class="media-body">
+                  <h4 class="mb-4">Gap to Goal</h4>
+                  <h2 class="card-text">₱{{ number_format($stats['gap_to_goal'], 2) }}</h2>
                 </div>
+              </div>
             </div>
+          </div>
+        </div> 
+      </div>
+
+      <div class='row'>
+        <div class="col-lg-12 grid-margin stretch-card">
+          <div class="card">
+            <div class="card-body">
+              <h4 class="card-title">Sales Performance Portal</h4>
+              <p class="card-description">
+                <button type="button" class="btn btn-outline-success btn-icon-text" data-toggle="modal" data-target="#registerDealer">
+                  <i class="ti-plus btn-icon-prepend"></i>                                                    
+                  Register New Sales
+                </button>
+                @if(Auth::user()->role === 'Admin' || Auth::user()->is_admin)
+                <button type="button" class="btn btn-outline-warning btn-icon-text" data-toggle="modal" data-target="#setSalesTarget">
+                  <i class="ti-settings btn-icon-prepend"></i>                                                    
+                  Set Sales Target
+                </button>
+                @endif
+                <a href="{{ route('tds.export', request()->query()) }}" class="btn btn-outline-primary btn-icon-text">
+                  <i class="ti-download btn-icon-prepend"></i>                                                    
+                  Export to CSV
+                </a>
+              </p>
+
+              <form method='get' action="{{ route('tds.index') }}">
+                <div class=row>
+                  <div class='col-md-2'>
+                    <div class="form-group">
+                      <label class="text-right">From</label>
+                      <input type="date" value='{{ request('from') }}' class="form-control form-control-sm" name="from"
+                          max='{{ date('Y-m-d') }}' />
+                    </div>
+                  </div>
+                  <div class='col-md-2'>
+                    <div class="form-group">
+                      <label class="text-right">To</label>
+                      <input type="date" value='{{ request('to') }}' class="form-control form-control-sm" name="to" />
+                    </div>
+                  </div>
+                  <div class='col-md-2'>
+                    <div class="form-group">
+                      <label class="text-right">Status</label>
+                      <select class="form-control form-control-sm" name='status'>
+                        <option value="">-- All Status --</option>
+                        <option value="Delivered" {{ request('status') == 'Delivered' ? 'selected' : '' }}>Delivered</option>
+                        <option value="For Delivery" {{ request('status') == 'For Delivery' ? 'selected' : '' }}>For Delivery</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class='col-md-2'>
+                    <div class="form-group">
+                      <label class="text-right">Package Type</label>
+                      <select class="form-control form-control-sm" name='package'>
+                        <option value="">-- All Packages --</option>
+                        <option value="EU" {{ request('package') == 'EU' ? 'selected' : '' }}>EU</option>
+                        <option value="D" {{ request('package') == 'D' ? 'selected' : '' }}>D</option>
+                        <option value="MD" {{ request('package') == 'MD' ? 'selected' : '' }}>MD</option>
+                        <option value="AD" {{ request('package') == 'AD' ? 'selected' : '' }}>AD</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class='col-md-2'>
+                    <button type="submit" class="form-control form-control-sm btn btn-primary mb-2 btn-sm">Filter</button>
+                  </div>
+                </div>
+              </form>
+
+              <div class="table-responsive">
+                <table class="table table-hover table-bordered tablewithSearch">
+                  <thead>
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>Date Registered</th>
+                      <th>Employee</th>
+                      <th>Area</th>
+                      <th>Customer Name</th>
+                      <th>Business Name</th>
+                      <th>Business Type</th>
+                      <th>Package</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    @forelse($tdsRecords as $record)
+                    <tr>
+                      <td>{{ \Carbon\Carbon::parse($record->created_at)->format('Y-m-d H:i:s') }}</td>
+                      <td>{{ \Carbon\Carbon::parse($record->date_of_registration)->format('Y-m-d') }}</td>
+                      <td>{{ $record->user->name ?? 'N/A' }}</td>
+                      <td>{{ $record->region->region_name ?? 'N/A' }}</td>
+                      <td>{{ $record->customer_name }}</td>
+                      <td>{{ $record->business_name }}</td>
+                      <td>{{ $record->business_type }}</td>
+                      <td>
+                        @if($record->package_type == 'EU')
+                          <span class="badge badge-secondary">EU</span>
+                        @elseif($record->package_type == 'D')
+                          <span class="badge badge-info">D</span>
+                        @elseif($record->package_type == 'MD')
+                          <span class="badge badge-warning">MD</span>
+                        @elseif($record->package_type == 'AD')
+                          <span class="badge badge-primary">AD</span>
+                        @endif
+                      </td>
+                      <td>₱{{ number_format($record->purchase_amount, 2) }}</td>
+                      <td>
+                        @if($record->status == 'Delivered')
+                          <span class="badge badge-success">Delivered</span>
+                        @else
+                          <span class="badge badge-warning">For Delivery</span>
+                        @endif
+                      </td>
+                      <td>
+                        <button class="btn btn-sm btn-primary" 
+                                data-toggle="modal" 
+                                data-target="#viewDetails{{ $record->id }}"
+                                title="View Details">
+                          <i class="ti-eye"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger delete-record" 
+                                data-id="{{ $record->id }}"
+                                data-customer="{{ $record->customer_name }}"
+                                title="Delete Record">
+                          <i class="ti-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    @empty
+                    <tr>
+                      <td colspan="11" class="text-center">No records found</td>
+                    </tr>
+                    @endforelse
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
-        @endforeach
-
-        <div class='row mt-5'>
-            <div class='col-lg-6 mb-3'>
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title"><i class="ti-bar-chart mr-2"></i>Monthly Target vs Actual</h4>
-                        <div class="chart-container">
-                            <canvas id="targetActualChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class='col-lg-6 mb-3'>
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title"><i class="ti-pie-chart mr-2"></i>Package Type Distribution</h4>
-                        <div class="chart-container">
-                            <canvas id="packageChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+      </div>
     </div>
 </div>
+
+<div class="modal fade" id="registerDealer" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <form action="{{ route('tds.store') }}" method="POST" id="dealerForm">
+        @csrf
+        <div class="modal-header text-black">
+          <h5 class="modal-title">Register New Dealer</h5>
+          <button type="button" class="close text-white" data-dismiss="modal">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <h5 class="mb-3 text-primary">General Details</h5>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Date of Registration <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" 
+                       name="date_registered" value="{{ old('date_registered') }}" required>
+                <small class="form-text text-muted">When the dealer signed-up</small>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Employee Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" 
+                       name="employee_name" value="{{ old('employee_name', Auth::user()->name) }}" 
+                       placeholder="Who acquired the dealer?" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Area <span class="text-danger">*</span></label>
+                <select class="form-control" name="area" required>
+                  <option value="">-- Select Area --</option>
+                  @foreach($regions as $region)
+                    <option value="{{ $region->id }}" {{ old('area') == $region->id ? 'selected' : '' }}>
+                      {{ $region->region_name }}
+                    </option>
+                  @endforeach
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+          <h5 class="mb-3 text-primary">Customer Information</h5>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Customer Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" 
+                       name="customer_name" value="{{ old('customer_name') }}" 
+                       placeholder="Full name of the customer" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Contact Number <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" 
+                       name="contact_no" value="{{ old('contact_no') }}" 
+                       placeholder="0912-325-1234" pattern="[0-9]{4}-[0-9]{3}-[0-9]{4}" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Business Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" 
+                       name="business_name" value="{{ old('business_name') }}" 
+                       placeholder="e.g., Justin's Store" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Business Type <span class="text-danger">*</span></label>
+                <select class="form-control" name="business_type" required>
+                  <option value="">-- Select Business Type --</option>
+                  <option value="Sari-Sari Store" {{ old('business_type') == 'Sari-Sari Store' ? 'selected' : '' }}>Sari-Sari Store</option>
+                  <option value="Mini Mart" {{ old('business_type') == 'Mini Mart' ? 'selected' : '' }}>Mini Mart</option>
+                  <option value="Retail Shop" {{ old('business_type') == 'Retail Shop' ? 'selected' : '' }}>Retail Shop</option>
+                  <option value="Wholesale" {{ old('business_type') == 'Wholesale' ? 'selected' : '' }}>Wholesale</option>
+                  <option value="Grocery" {{ old('business_type') == 'Grocery' ? 'selected' : '' }}>Grocery</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                <label>Awarded Area</label>
+                <input type="text" class="form-control" 
+                       name="awarded_area" value="{{ old('awarded_area') }}" 
+                       placeholder="For Area Distributors">
+                <small class="form-text text-muted">Only applicable for Area Distributors</small>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+          <h5 class="mb-3 text-primary">Package & Delivery Details</h5>
+
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Package Type <span class="text-danger">*</span></label>
+                <select class="form-control" name="package_type" required>
+                  <option value="">-- Select Package --</option>
+                  <option value="EU" {{ old('package_type') == 'EU' ? 'selected' : '' }}>EU - End User</option>
+                  <option value="D" {{ old('package_type') == 'D' ? 'selected' : '' }}>D - Dealer</option>
+                  <option value="MD" {{ old('package_type') == 'MD' ? 'selected' : '' }}>MD - Mega Dealer</option>
+                  <option value="AD" {{ old('package_type') == 'AD' ? 'selected' : '' }}>AD - Area Distributor</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Purchase Amount <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" 
+                       name="purchase_amount" value="{{ old('purchase_amount') }}" 
+                       placeholder="25000" min="0" step="0.01" required>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Lead Generator <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" 
+                       name="lead_generator" value="{{ old('lead_generator') }}" 
+                       placeholder="e.g., Other Accounts" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Supplier Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" 
+                       name="supplier_name" value="{{ old('supplier_name') }}" 
+                       placeholder="e.g., MD Monicarl, AD Gorospe, PDI" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Status <span class="text-danger">*</span></label>
+                <select class="form-control" name="status" required>
+                  <option value="">-- Select Status --</option>
+                  <option value="For Delivery" {{ old('status') == 'For Delivery' ? 'selected' : '' }}>For Delivery</option>
+                  <option value="Delivered" {{ old('status') == 'Delivered' ? 'selected' : '' }}>Delivered</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Timeline</label>
+                <input type="date" class="form-control" 
+                       name="timeline" value="{{ old('timeline') }}">
+                <small class="form-text text-muted">Expected delivery for 'For Delivery' status</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                <label>Additional Notes</label>
+                <textarea class="form-control" 
+                          name="additional_notes" rows="3" 
+                          placeholder="Any additional information...">{{ old('additional_notes') }}</textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Register Dealer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="setSalesTarget" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form action="{{ route('tds.update-target') }}" method="POST" id="salesTargetForm">
+        @csrf
+        <div class="modal-header text-black">
+          <h5 class="modal-title">Set Monthly Sales Target</h5>
+          <button type="button" class="close text-white" data-dismiss="modal">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="target_month">Month <span class="text-danger">*</span></label>
+            <input type="month" class="form-control" name="month" id="target_month" 
+                   value="{{ date('Y-m') }}" required>
+          </div>
+
+          <div class="form-group">
+            <label for="target_amount">Target Amount <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text">₱</span>
+              </div>
+              <input type="number" class="form-control" name="target_amount" id="target_amount" 
+                     value="{{ $stats['monthly_target'] }}" 
+                     min="0" step="0.01" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="target_notes">Notes (Optional)</label>
+            <textarea class="form-control" name="notes" id="target_notes" rows="3" 
+                      placeholder="Any notes or comments about this target..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Target</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+@foreach($tdsRecords as $record)
+<div class="modal fade" id="viewDetails{{ $record->id }}" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-black">
+        <h5 class="modal-title">Dealer Details - {{ $record->customer_name }}</h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h5 class="text-primary mb-3">General Information</h5>
+            <table class="table table-borderless table-sm">
+              <tr>
+                <th width="45%">Date Registered:</th>
+                <td>{{ \Carbon\Carbon::parse($record->date_of_registration)->format('M d, Y') }}</td>
+              </tr>
+              <tr>
+                <th>Employee Name:</th>
+                <td>{{ $record->user->name ?? 'N/A' }}</td>
+              </tr>
+              <tr>
+                <th>Area:</th>
+                <td>{{ $record->region->region_name ?? 'N/A' }}</td>
+              </tr>
+              <tr>
+                <th>Status:</th>
+                <td>
+                  @if($record->status == 'Delivered')
+                    <span class="badge badge-success">Delivered</span>
+                  @else
+                    <span class="badge badge-warning">For Delivery</span>
+                  @endif
+                </td>
+              </tr>
+              @if($record->timeline)
+              <tr>
+                <th>Timeline:</th>
+                <td>{{ \Carbon\Carbon::parse($record->timeline)->format('M d, Y') }}</td>
+              </tr>
+              @endif
+            </table>
+          </div>
+
+          <div class="col-md-6">
+            <h5 class="text-primary mb-3">Customer Information</h5>
+            <table class="table table-borderless table-sm">
+              <tr>
+                <th width="45%">Customer Name:</th>
+                <td>{{ $record->customer_name }}</td>
+              </tr>
+              <tr>
+                <th>Contact Number:</th>
+                <td>{{ $record->contact_no }}</td>
+              </tr>
+              <tr>
+                <th>Business Name:</th>
+                <td>{{ $record->business_name }}</td>
+              </tr>
+              <tr>
+                <th>Business Type:</th>
+                <td>{{ $record->business_type }}</td>
+              </tr>
+              @if($record->awarded_area)
+              <tr>
+                <th>Awarded Area:</th>
+                <td>{{ $record->awarded_area }}</td>
+              </tr>
+              @endif
+            </table>
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="row">
+          <div class="col-md-6">
+            <h5 class="text-primary mb-3">Package Details</h5>
+            <table class="table table-borderless table-sm">
+              <tr>
+                <th width="45%">Package Type:</th>
+                <td>
+                  @if($record->package_type == 'EU')
+                    <span class="badge badge-secondary">EU - End User</span>
+                  @elseif($record->package_type == 'D')
+                    <span class="badge badge-info">D - Dealer</span>
+                  @elseif($record->package_type == 'MD')
+                    <span class="badge badge-warning">MD - Mega Dealer</span>
+                  @elseif($record->package_type == 'AD')
+                    <span class="badge badge-primary">AD - Area Distributor</span>
+                  @endif
+                </td>
+              </tr>
+              <tr>
+                <th>Purchase Amount:</th>
+                <td><strong class="text-success">₱{{ number_format($record->purchase_amount, 2) }}</strong></td>
+              </tr>
+              <tr>
+                <th>Lead Generator:</th>
+                <td>{{ $record->lead_generator }}</td>
+              </tr>
+              <tr>
+                <th>Supplier Name:</th>
+                <td>{{ $record->supplier_name }}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="col-md-6">
+            <h5 class="text-primary mb-3">Additional Information</h5>
+            @if($record->additional_notes)
+              <div class="alert alert-info">
+                <strong><i class="ti-info-alt"></i> Notes:</strong><br>
+                {{ $record->additional_notes }}
+              </div>
+            @else
+              <p class="text-muted"><em>No additional notes available.</em></p>
+            @endif
+            
+            <div class="mt-3">
+              <small class="text-muted">
+                <i class="ti-time"></i> Created: {{ \Carbon\Carbon::parse($record->created_at)->format('M d, Y h:i A') }}
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+@endforeach
+
+<form id="deleteForm" method="POST" style="display: none;">
+  @csrf
+  @method('DELETE')
+</form>
+
 @endsection
 
 @section('js')
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-$(document).ready(function() {
-    $('#employeeSelect').select2({
-        theme: 'bootstrap-5',
-        placeholder: 'Search by name or employee number...',
-        allowClear: true,
-        width: '100%',
-        ajax: {
-            url: '{{ route("tds.employees.search") }}',
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return {
-                    search: params.term,
-                    year: $('#yearSelect').val(),
-                    region: $('#regionSelect').val(),
-                    page: params.page || 1
-                };
-            },
-            processResults: function (data) {
-                return {
-                    results: data.results
-                };
-            },
-            cache: true
-        },
-        minimumInputLength: 0,
-        language: {
-            inputTooShort: function() {
-                return 'Start typing employee name or number...';
-            },
-            searching: function() {
-                return 'Searching employees...';
-            },
-            noResults: function() {
-                return 'No employees found';
-            }
-        }
+  @if(session('success'))
+    Swal.fire({
+      icon: 'success',
+      title: 'Success!',
+      text: '{{ session('success') }}',
+      timer: 3000,
+      showConfirmButton: true,
+      confirmButtonColor: '#28a745'
     });
+  @endif
 
-    $('#yearSelect, #regionSelect').on('change', function() {
-        $('#employeeSelect').val(null).trigger('change');
+  @if(session('error'))
+    Swal.fire({
+      icon: 'error',
+      title: 'Oops...',
+      text: '{{ session('error') }}',
+      confirmButtonColor: '#dc3545'
     });
+  @endif
 
-    $('#resetFilters').on('click', function() {
-        $('#yearSelect').val('{{ date("Y") }}');
-        $('#regionSelect').val('');
-        $('#employeeSelect').val(null).trigger('change');
-        $('#filterForm').submit();
+  @if($errors->any())
+    Swal.fire({
+      icon: 'error',
+      title: 'Validation Error',
+      html: '<ul style="text-align: left;">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>',
+      confirmButtonColor: '#dc3545'
     });
-});
+    $('#registerDealer').modal('show');
+  @endif
 
-var ctx1 = document.getElementById('targetActualChart').getContext('2d');
-var targetActualChart = new Chart(ctx1, {
-    type: 'bar',
-    data: {
-        labels: {!! json_encode(array_keys($chartData['monthly'])) !!},
-        datasets: [{
-            label: 'Target',
-            data: {!! json_encode(array_values($chartData['monthly_targets'])) !!},
-            backgroundColor: 'rgba(255, 193, 7, 0.7)',
-            borderColor: 'rgba(255, 193, 7, 1)',
-            borderWidth: 2,
-            borderRadius: 4
-        }, {
-            label: 'Actual',
-            data: {!! json_encode(array_values($chartData['monthly'])) !!},
-            backgroundColor: 'rgba(40, 167, 69, 0.7)',
-            borderColor: 'rgba(40, 167, 69, 1)',
-            borderWidth: 2,
-            borderRadius: 4
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'top',
-                labels: {
-                    font: { size: 12, weight: '600' },
-                    padding: 15
-                }
-            },
-            tooltip: {
-                backgroundColor: 'rgba(0,0,0,0.8)',
-                padding: 10,
-                callbacks: {
-                    label: function(context) {
-                        return context.dataset.label + ': ₱' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    }
-                }
-            }
-        },
-        scales: {
-            x: {
-                grid: { display: false },
-                ticks: { font: { size: 11, weight: '600' } }
-            },
-            y: {
-                beginAtZero: true,
-                grid: { color: 'rgba(0,0,0,0.05)' },
-                ticks: {
-                    font: { size: 11 },
-                    callback: function(value) {
-                        return '₱' + value.toLocaleString();
-                    }
-                }
-            }
-        }
-    }
-});
+  $(document).on('click', '.delete-record', function(e) {
+    e.preventDefault();
+    var recordId = $(this).data('id');
+    var customerName = $(this).data('customer');
 
-var ctx2 = document.getElementById('packageChart').getContext('2d');
-var packageChart = new Chart(ctx2, {
-    type: 'doughnut',
-    data: {
-        labels: {!! json_encode(array_keys($chartData['packages'])) !!},
-        datasets: [{
-            data: {!! json_encode(array_values($chartData['packages'])) !!},
-            backgroundColor: [
-                'rgba(108, 117, 125, 0.85)',
-                'rgba(23, 162, 184, 0.85)',
-                'rgba(255, 193, 7, 0.85)',
-                'rgba(102, 126, 234, 0.85)'
-            ],
-            borderColor: [
-                'rgba(108, 117, 125, 1)',
-                'rgba(23, 162, 184, 1)',
-                'rgba(255, 193, 7, 1)',
-                'rgba(102, 126, 234, 1)'
-            ],
-            borderWidth: 2,
-            hoverOffset: 8
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    font: { size: 11, weight: '600' },
-                    padding: 12,
-                    usePointStyle: true
-                }
-            },
-            tooltip: {
-                backgroundColor: 'rgba(0,0,0,0.8)',
-                padding: 10,
-                callbacks: {
-                    label: function(context) {
-                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                        const percentage = ((context.parsed / total) * 100).toFixed(1);
-                        return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
-                    }
-                }
-            }
-        }
-    }
-});
+    Swal.fire({
+      title: 'Are you sure?',
+      html: `You are about to delete <strong>${customerName}</strong>'s record.<br>This action cannot be undone!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        var form = $('#deleteForm');
+        form.attr('action', '{{ url("/tds") }}/' + recordId);
+        form.submit();
+      }
+    });
+  });
 </script>
 @endsection

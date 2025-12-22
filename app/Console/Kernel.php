@@ -21,7 +21,8 @@ class Kernel extends ConsoleKernel
         Commands\WorkFromHomeApproval::class,
         Commands\DailyTimeRecordApproval::class,
         Commands\AutoEarnedLeave::class,
-        Commands\EmailAttendance::class
+        Commands\EmailAttendance::class,
+        Commands\ForfeitExpiredPurchases::class
     ];
 
     /**
@@ -42,7 +43,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('command:dtr_approval')->everyMinute();
         $schedule->command('command:email_attendance')->dailyAt('10:00');
         // $schedule->command('command:auto_earned_leave')->dailyAt('8:00');
-        $schedule->command('purchases:forfeit-expired')->daily();
+        $schedule->command('purchases:forfeit-expired')->everyFifteenMinutes();
     }
 
     /**

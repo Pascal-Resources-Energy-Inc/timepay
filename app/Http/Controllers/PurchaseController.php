@@ -16,6 +16,8 @@ class PurchaseController extends Controller
     public function index(Request $request)
     {
         $header = 'purchase';
+
+        $this->updateExpiredPurchases();
         
         $from = $request->input('from', date('Y-m-d'));
         $to = $request->input('to', date('Y-m-d'));
@@ -96,8 +98,6 @@ class PurchaseController extends Controller
     public function store(Request $request)
     {
         try {
-            \Log::info('Store Purchase Request:', $request->all());
-            
             $validated = $request->validate([
                 'products' => 'required|array|min:1',
                 'products.*.product_id' => 'required|integer|exists:products,id',
@@ -110,7 +110,6 @@ class PurchaseController extends Controller
             ]);
 
             $userId = Auth::id();
-            \Log::info('User ID:', ['user_id' => $userId]);
             
             $mainProductsThisMonth = DB::table('purchase_items')
                 ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
@@ -121,8 +120,6 @@ class PurchaseController extends Controller
                 ->whereMonth('purchases.created_at', date('m'))
                 ->sum('purchase_items.quantity');
             
-            \Log::info('Main products this month:', ['count' => $mainProductsThisMonth]);
-            
             $newMainProducts = 0;
             foreach ($validated['products'] as $item) {
                 $product = DB::table('products')->where('id', $item['product_id'])->first();
@@ -130,8 +127,6 @@ class PurchaseController extends Controller
                     $newMainProducts += $item['quantity'];
                 }
             }
-            
-            \Log::info('New main products:', ['count' => $newMainProducts]);
             
             if (($mainProductsThisMonth + $newMainProducts) > 10) {
                 return response()->json([
@@ -147,15 +142,6 @@ class PurchaseController extends Controller
                 ->orWhere('id', $userId)
                 ->first();
             
-            \Log::info('Employee Found:', [
-                'employee' => $employee ? [
-                    'id' => $employee->id,
-                    'user_id' => $employee->user_id,
-                    'employee_number' => $employee->employee_number,
-                    'name' => $employee->first_name . ' ' . $employee->last_name
-                ] : 'NOT FOUND'
-            ]);
-            
             if (!$employee) {
                 DB::rollBack();
                 return response()->json([
@@ -166,12 +152,6 @@ class PurchaseController extends Controller
             
             $qrCode = $this->generateUniqueQRCode();
             $orderNumber = 'EPO-' . strtoupper(substr(uniqid(), -6));
-            
-            \Log::info('Creating purchase:', [
-                'order_number' => $orderNumber,
-                'user_id' => $userId,
-                'employee_number' => $employee->employee_number
-            ]);
             
             $purchaseId = DB::table('purchases')->insertGetId([
                 'order_number' => $orderNumber,
@@ -187,8 +167,6 @@ class PurchaseController extends Controller
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
-            
-            \Log::info('Purchase created:', ['purchase_id' => $purchaseId]);
             
             foreach ($validated['products'] as $item) {
                 $product = DB::table('products')
@@ -212,7 +190,6 @@ class PurchaseController extends Controller
             }
             
             DB::commit();
-            \Log::info('Purchase stored successfully');
             
             return response()->json([
                 'success' => true,
@@ -224,7 +201,6 @@ class PurchaseController extends Controller
             
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
-            \Log::error('Validation error:', ['errors' => $e->errors()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -233,10 +209,6 @@ class PurchaseController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Store purchase error:', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to place order: ' . $e->getMessage()
@@ -376,7 +348,6 @@ class PurchaseController extends Controller
             return view('forms.purchase.claim', compact('purchase', 'currentUser'));
             
         } catch (\Exception $e) {
-            \Log::error('Claim page error: ' . $e->getMessage());
             return view('forms.purchase.claim', [
                 'error' => 'System Error',
                 'message' => 'An error occurred while retrieving your order. Please try again later.'
@@ -484,9 +455,34 @@ class PurchaseController extends Controller
         return Excel::download(new PurchaseExport($from, $to, null), $filename);
     }
 
+    private function updateExpiredPurchases()
+    {
+        $purchases = DB::table('purchases')
+            ->where('status', 'Processing')
+            ->get();
+        
+        foreach ($purchases as $purchase) {
+            $createdAt = new \DateTime($purchase->created_at);
+            $expiresAt = $this->addBusinessDays($createdAt, 3);
+            $now = new \DateTime();
+            
+            if ($now > $expiresAt) {
+                DB::table('purchases')
+                    ->where('id', $purchase->id)
+                    ->update([
+                        'status' => 'Forfeited',
+                        'updated_at' => now()
+                    ]);
+            }
+        }
+    }
+
     public function reports(Request $request)
     {
         $header = 'reports';
+
+        $this->updateExpiredPurchases();
+        
         $from = $request->input('from');
         $to = $request->input('to');
         $status = $request->input('status');

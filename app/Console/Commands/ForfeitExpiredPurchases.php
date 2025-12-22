@@ -15,7 +15,6 @@ class ForfeitExpiredPurchases extends Command
     {
         $expiredCount = 0;
         
-        // Get all Processing purchases
         $purchases = DB::table('purchases')
             ->where('status', 'Processing')
             ->get();
@@ -25,7 +24,6 @@ class ForfeitExpiredPurchases extends Command
             $expiresAt = $this->addBusinessDays($createdAt, 3);
             $now = new \DateTime();
             
-            // Check if expired
             if ($now > $expiresAt) {
                 DB::table('purchases')
                     ->where('id', $purchase->id)
@@ -43,9 +41,6 @@ class ForfeitExpiredPurchases extends Command
         return 0;
     }
     
-    /**
-     * Add business days to a date (excluding weekends)
-     */
     private function addBusinessDays($date, $days)
     {
         $currentDate = clone $date;

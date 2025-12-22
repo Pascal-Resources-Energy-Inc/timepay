@@ -27,7 +27,13 @@
               </tr>
               <tr>
                 <th>Area:</th>
-                <td>{{ $record->region->region_name ?? 'N/A' }}</td>
+                <td>
+                  @if($record->region)
+                    {{ $record->region->region }} - {{ $record->region->province }}{{ $record->region->district ? ' - ' . $record->region->district : '' }}
+                  @else
+                    N/A
+                  @endif
+                </td>
               </tr>
               <tr>
                 <th>Status:</th>

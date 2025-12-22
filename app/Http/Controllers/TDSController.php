@@ -6,12 +6,24 @@ use App\Tds;
 use App\Region;
 use App\SalesTarget;
 use App\TdsActivityLog;
+use App\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use DB;
 
 class TDSController extends Controller
 {
+    private function getRegionDisplayName($region)
+    {
+        if (!$region) return 'N/A';
+        
+        $display = $region->region . ' - ' . $region->province;
+        if ($region->district) {
+            $display .= ' - ' . $region->district;
+        }
+        return $display;
+    }
+
     public function index(Request $request)
     {
         $query = Tds::with(['user', 'region']);
@@ -28,25 +40,39 @@ class TDSController extends Controller
             $query->where('package_type', $request->package);
         }
 
+        if ($request->program) {
+            $query->where('program_type', $request->program);
+        }
+
         $tdsRecords = $query->latest()->get();
 
         $currentMonth = Carbon::now()->format('Y-m');
-        $targetRecord = SalesTarget::where('month', $currentMonth)->first();
-        $monthlyTarget = $targetRecord ? $targetRecord->target_amount : 0;
+        
+        $activeTdsUserIds = Tds::whereYear('date_of_registration', Carbon::now()->year)
+            ->whereMonth('date_of_registration', Carbon::now()->month)
+            ->pluck('user_id')
+            ->unique();
+        
+        $totalMonthlyTarget = SalesTarget::where('month', $currentMonth)
+            ->whereIn('user_id', $activeTdsUserIds)
+            ->sum('target_amount');
 
         $actualSales = Tds::whereYear('date_of_registration', Carbon::now()->year)
             ->whereMonth('date_of_registration', Carbon::now()->month)
+            ->whereIn('status', ['Delivered', 'For Delivery', 'Interested'])
             ->sum('purchase_amount');
 
         $stats = [
-            'monthly_target' => $monthlyTarget,
+            'monthly_target' => $totalMonthlyTarget,
             'actual_sales' => $actualSales,
             'for_delivery' => Tds::where('status', 'For Delivery')->count(),
-            'gap_to_goal' => max(0, $monthlyTarget - $actualSales),
-            'achievement_percentage' => $monthlyTarget > 0 ? round(($actualSales / $monthlyTarget) * 100, 2) : 0,
+            'gap_to_goal' => max(0, $totalMonthlyTarget - $actualSales),
+            'achievement_percentage' => $totalMonthlyTarget > 0 ? round(($actualSales / $totalMonthlyTarget) * 100, 2) : 0,
         ];
 
-        $regions = Region::orderBy('region_name')->get();
+        $regions = Region::orderBy('region')
+            ->orderBy('province')
+            ->get();
 
         return view('forms.tds.index', compact('tdsRecords', 'stats', 'regions'))
             ->with('header', 'tds');
@@ -58,13 +84,15 @@ class TDSController extends Controller
         return view('forms.tds.view_details', compact('tds'));
     }
 
-   public function dashboard(Request $request)
+    public function dashboard(Request $request)
     {
         $selectedYear = $request->input('year', date('Y'));
         $selectedRegion = $request->input('region', null);
         $selectedEmployee = $request->input('employee', null);
         
-        $regions = Region::orderBy('region_name')->get();
+        $regions = Region::orderBy('region')
+            ->orderBy('province')
+            ->get();
         
         $query = Tds::with(['user', 'region'])
             ->whereYear('date_of_registration', $selectedYear);
@@ -79,17 +107,18 @@ class TDSController extends Controller
         
         $records = $query->get();
         
-        $targetQuery = SalesTarget::whereYear('month', $selectedYear);
-        if ($selectedRegion) {
-            $targetQuery->where('id', $selectedRegion);
+        $userIds = $records->pluck('user_id')->unique();
+        $totalTarget = 0;
+        
+        foreach ($userIds as $userId) {
+            $employeeYearlyTarget = SalesTarget::where('user_id', $userId)
+                ->whereYear('month', $selectedYear)
+                ->sum('target_amount');
+            
+            $totalTarget += $employeeYearlyTarget;
         }
-        $totalTarget = $targetQuery->sum('target_amount');
         
         $totalActual = $records->sum('purchase_amount');
-        
-        if ($selectedEmployee) {
-            $totalTarget = 200000 * 12;
-        }
         
         $achievementRate = $totalTarget > 0 ? ($totalActual / $totalTarget) * 100 : 0;
         $activeTds = $records->groupBy('user_id')->count();
@@ -113,10 +142,12 @@ class TDSController extends Controller
                 continue;
             }
             
-            $regionData[$region->region_name] = $this->prepareRegionKPI($region, $regionRecords, $selectedYear, $selectedEmployee);
+            // Use the helper method to create region key
+            $regionKey = $this->getRegionDisplayName($region);
+            $regionData[$regionKey] = $this->prepareRegionKPI($region, $regionRecords, $selectedYear, $selectedEmployee);
         }
         
-        $chartData = $this->prepareChartData($records, $selectedYear);
+        $chartData = $this->prepareChartData($records, $selectedYear, $userIds);
 
         return view(
             'forms.tds.dashboard',
@@ -177,8 +208,63 @@ class TDSController extends Controller
         ]);
     }
 
+    public function getAllUsers(Request $request)
+    {
+        try {
+            $search = $request->input('search', '');
+            $page = $request->input('page', 1);
+            $perPage = 20;
+            
+            $query = DB::table('users')
+                ->leftJoin('employees', 'users.id', '=', 'employees.user_id')
+                ->select('users.id', 'users.name', 'employees.employee_number')
+                ->orderBy('users.name');
+            
+            if ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('users.name', 'LIKE', "%{$search}%")
+                    ->orWhere('employees.employee_number', 'LIKE', "%{$search}%");
+                });
+            }
+            
+            $total = $query->count();
+            
+            $users = $query->skip(($page - 1) * $perPage)
+                        ->take($perPage)
+                        ->get();
+            
+            $results = $users->map(function($user) {
+                $displayText = $user->name;
+                if ($user->employee_number) {
+                    $displayText = $user->employee_number . ' - ' . $user->name;
+                }
+                return [
+                    'id' => $user->id,
+                    'text' => $displayText
+                ];
+            });
+            
+            return response()->json([
+                'results' => $results,
+                'total' => $total,
+                'pagination' => [
+                    'more' => ($page * $perPage) < $total
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('getAllUsers error: ' . $e->getMessage());
+            
+            return response()->json([
+                'results' => [],
+                'total' => 0,
+                'error' => 'Failed to load users',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 
-    private function prepareRegionKPI($region, $records, $year)
+    private function prepareRegionKPI($region, $records, $year, $selectedEmployee = null)
     {
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         $monthNumbers = [
@@ -208,11 +294,17 @@ class TDSController extends Controller
             
             $userRecords = $records->where('user_id', $userId);
             
+            $employeeYearlyTarget = SalesTarget::where('user_id', $userId)
+                ->whereYear('month', $year)
+                ->sum('target_amount');
+            
+            $employeeYearlyTarget = $employeeYearlyTarget ?: 0;
+            
             $employeeData = [
                 'name' => $user->name,
                 'monthly' => array_fill_keys($months, 0),
                 'actual' => 0,
-                'target' => 200000,
+                'target' => $employeeYearlyTarget,
                 'achievement' => 0,
                 'ad_monthly' => array_fill_keys($months, 0),
                 'ad_actual' => 0,
@@ -269,11 +361,26 @@ class TDSController extends Controller
             'summary' => $summary,
             'employees' => $employees,
             'has_vacant' => false,
-            'vacant_target' => 200000,
+            'vacant_target' => 0,
         ];
     }
 
-    private function prepareChartData($records, $year)
+    public function getEmployeeTarget(Request $request)
+    {
+        $userId = $request->input('user_id');
+        $month = $request->input('month');
+        
+        $target = SalesTarget::where('user_id', $userId)
+            ->where('month', $month)
+            ->first();
+        
+        return response()->json([
+            'target_amount' => $target ? $target->target_amount : 200000,
+            'notes' => $target ? $target->notes : '',
+        ]);
+    }
+
+    private function prepareChartData($records, $year, $userIds = null)
     {
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         $monthNumbers = [
@@ -293,8 +400,16 @@ class TDSController extends Controller
             
             $monthly[$month] = $monthRecords->sum('purchase_amount');
             
-            $targetRecord = SalesTarget::where('month', $year . '-' . str_pad($monthNum, 2, '0', STR_PAD_LEFT))->first();
-            $monthlyTargets[$month] = $targetRecord ? $targetRecord->target_amount : 0;
+            $monthString = $year . '-' . str_pad($monthNum, 2, '0', STR_PAD_LEFT);
+            
+            if ($userIds) {
+                $monthlyTargets[$month] = SalesTarget::where('month', $monthString)
+                    ->whereIn('user_id', $userIds)
+                    ->sum('target_amount');
+            } else {
+                $monthlyTargets[$month] = SalesTarget::where('month', $monthString)
+                    ->sum('target_amount');
+            }
         }
         
         $packages = [
@@ -331,7 +446,7 @@ class TDSController extends Controller
         $records = $query->get();
         $regions = $selectedRegion 
             ? Region::where('id', $selectedRegion)->get() 
-            : Region::orderBy('region_name')->get();
+            : Region::orderBy('region')->orderBy('province')->get();
         
         $filename = 'tds_kpi_dashboard_' . $selectedYear;
         if ($selectedEmployee) {
@@ -349,7 +464,9 @@ class TDSController extends Controller
             $regionRecords = $records->where('area', $region->id);
             
             fputcsv($output, [$selectedYear . ' KPI for Trade Development Specialists']);
-            fputcsv($output, [$region->region_name]);
+            
+            $regionTitle = $this->getRegionDisplayName($region);
+            fputcsv($output, [$regionTitle]);
             fputcsv($output, []);
             
             fputcsv($output, [
@@ -367,6 +484,12 @@ class TDSController extends Controller
                 
                 $userRecords = $regionRecords->where('user_id', $userId);
                 
+                $employeeYearlyTarget = SalesTarget::where('user_id', $userId)
+                    ->whereYear('month', $selectedYear)
+                    ->sum('target_amount');
+                
+                $employeeYearlyTarget = $employeeYearlyTarget ?: 0;
+                
                 $phpRow = [$user->name, 'Php'];
                 $total = 0;
                 
@@ -381,8 +504,12 @@ class TDSController extends Controller
                 }
                 
                 $phpRow[] = number_format($total, 2);
-                $phpRow[] = '200000.00';
-                $phpRow[] = number_format(($total / 200000) * 100, 2) . '%';
+                $phpRow[] = number_format($employeeYearlyTarget, 2);
+                
+                $achievement = $employeeYearlyTarget > 0 
+                    ? ($total / $employeeYearlyTarget) * 100 
+                    : 0;
+                $phpRow[] = number_format($achievement, 2) . '%';
                 
                 fputcsv($output, $phpRow);
             }
@@ -402,26 +529,40 @@ class TDSController extends Controller
             'employee_name' => 'required|string|max:255',
             'area' => 'required|integer|exists:regions,id',
             'customer_name' => 'required|string|max:255',
-            'contact_no' => 'required|string|regex:/^[0-9]{4}-[0-9]{3}-[0-9]{4}$/',
+            'contact_no' => 'required|string|max:255',
             'business_name' => 'required|string|max:255',
             'business_type' => 'required|string|max:255',
             'awarded_area' => 'nullable|string|max:255',
             'package_type' => 'required|in:EU,D,MD,AD',
             'purchase_amount' => 'required|numeric|min:0',
+            'program_type' => 'nullable|in:Roadshow,Mini-Roadshow,Non-Roadshow',
+            'program_area' => 'required_if:program_type,Roadshow,Mini-Roadshow|nullable|string|max:255',
             'lead_generator' => 'required|string|max:255',
             'supplier_name' => 'required|string|max:255',
-            'status' => 'required|in:For Delivery,Delivered',
+            'status' => 'required|in:Decline,Interested,For Delivery,Delivered',
             'timeline' => 'nullable|date',
+            'delivery_date' => 'nullable|date',
+            'document_attachment' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
             'additional_notes' => 'nullable|string',
         ], [
-            'contact_no.regex' => 'Contact number must be in format: 0912-345-6789',
             'package_type.in' => 'Package type must be EU, D, MD, or AD',
-            'status.in' => 'Status must be either For Delivery or Delivered',
+            'status.in' => 'Status must be Decline, Interested, For Delivery, or Delivered',
             'area.exists' => 'Selected area is invalid',
+            'program_area.required_if' => 'Program area is required for Roadshow and Mini-Roadshow',
+            'document_attachment.mimes' => 'Document must be a PDF, DOC, DOCX, JPG, JPEG, or PNG file',
+            'document_attachment.max' => 'Document size must not exceed 5MB',
         ]);
 
         DB::beginTransaction();
         try {
+            $documentFileName = null;
+            
+            if ($request->hasFile('document_attachment')) {
+                $file = $request->file('document_attachment');
+                $documentFileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $file->storeAs('public/tds_documents', $documentFileName);
+            }
+
             $tds = Tds::create([
                 'date_of_registration' => $request->date_registered,
                 'user_id' => auth()->id(),
@@ -433,10 +574,14 @@ class TDSController extends Controller
                 'business_type' => $request->business_type,
                 'package_type' => $request->package_type,
                 'purchase_amount' => $request->purchase_amount,
+                'program_type' => $request->program_type,
+                'program_area' => $request->program_area,
                 'lead_generator' => $request->lead_generator,
                 'supplier_name' => $request->supplier_name,
                 'status' => $request->status,
                 'timeline' => $request->timeline,
+                'delivery_date' => $request->delivery_date,
+                'document_attachment' => $documentFileName,
                 'additional_notes' => $request->additional_notes,
             ]);
 
@@ -445,6 +590,7 @@ class TDSController extends Controller
                 'business_name' => $request->business_name,
                 'package_type' => $request->package_type,
                 'purchase_amount' => $request->purchase_amount,
+                'program_type' => $request->program_type,
                 'status' => $request->status,
             ]);
 
@@ -455,6 +601,11 @@ class TDSController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            
+            if (isset($documentFileName) && $documentFileName) {
+                \Storage::delete('public/tds_documents/' . $documentFileName);
+            }
+            
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Failed to register dealer: ' . $e->getMessage());
@@ -463,72 +614,72 @@ class TDSController extends Controller
 
     public function update(Request $request, $id)
     {
-        $validated = $request->validate([
-            'date_registered' => 'required|date',
-            'area' => 'required|integer|exists:regions,id',
-            'customer_name' => 'required|string|max:255',
-            'contact_no' => 'required|string|regex:/^[0-9]{4}-[0-9]{3}-[0-9]{4}$/',
-            'business_name' => 'required|string|max:255',
-            'business_type' => 'required|string|max:255',
-            'awarded_area' => 'nullable|string|max:255',
-            'package_type' => 'required|in:EU,D,MD,AD',
-            'purchase_amount' => 'required|numeric|min:0',
-            'lead_generator' => 'required|string|max:255',
-            'supplier_name' => 'required|string|max:255',
-            'status' => 'required|in:For Delivery,Delivered',
-            'timeline' => 'nullable|date',
-            'additional_notes' => 'nullable|string',
-        ]);
+    //     $validated = $request->validate([
+    //         'date_registered' => 'required|date',
+    //         'area' => 'required|integer|exists:regions,id',
+    //         'customer_name' => 'required|string|max:255',
+    //         'contact_no' => 'required|string|regex:/^[0-9]{11}$/',
+    //         'business_name' => 'required|string|max:255',
+    //         'business_type' => 'required|string|max:255',
+    //         'awarded_area' => 'nullable|string|max:255',
+    //         'package_type' => 'required|in:EU,D,MD,AD',
+    //         'purchase_amount' => 'required|numeric|min:0',
+    //         'lead_generator' => 'required|string|max:255',
+    //         'supplier_name' => 'required|string|max:255',
+    //         'status' => 'required|in:For Delivery,Delivered',
+    //         'timeline' => 'nullable|date',
+    //         'additional_notes' => 'nullable|string',
+    //     ]);
 
-        DB::beginTransaction();
-        try {
-            $tds = Tds::findOrFail($id);
-            $oldData = $tds->getOriginal();
+    //     DB::beginTransaction();
+    //     try {
+    //         $tds = Tds::findOrFail($id);
+    //         $oldData = $tds->getOriginal();
 
-            $tds->update([
-                'date_of_registration' => $request->date_registered,
-                'area' => $request->area,
-                'customer_name' => $request->customer_name,
-                'contact_no' => $request->contact_no,
-                'business_name' => $request->business_name,
-                'awarded_area' => $request->awarded_area,
-                'business_type' => $request->business_type,
-                'package_type' => $request->package_type,
-                'purchase_amount' => $request->purchase_amount,
-                'lead_generator' => $request->lead_generator,
-                'supplier_name' => $request->supplier_name,
-                'status' => $request->status,
-                'timeline' => $request->timeline,
-                'additional_notes' => $request->additional_notes,
-            ]);
+    //         $tds->update([
+    //             'date_of_registration' => $request->date_registered,
+    //             'area' => $request->area,
+    //             'customer_name' => $request->customer_name,
+    //             'contact_no' => $request->contact_no,
+    //             'business_name' => $request->business_name,
+    //             'awarded_area' => $request->awarded_area,
+    //             'business_type' => $request->business_type,
+    //             'package_type' => $request->package_type,
+    //             'purchase_amount' => $request->purchase_amount,
+    //             'lead_generator' => $request->lead_generator,
+    //             'supplier_name' => $request->supplier_name,
+    //             'status' => $request->status,
+    //             'timeline' => $request->timeline,
+    //             'additional_notes' => $request->additional_notes,
+    //         ]);
 
-            $changes = [];
-            if ($oldData['status'] != $request->status) {
-                $changes['status'] = ['from' => $oldData['status'], 'to' => $request->status];
-            }
-            if ($oldData['purchase_amount'] != $request->purchase_amount) {
-                $changes['purchase_amount'] = ['from' => $oldData['purchase_amount'], 'to' => $request->purchase_amount];
-            }
-            if ($oldData['package_type'] != $request->package_type) {
-                $changes['package_type'] = ['from' => $oldData['package_type'], 'to' => $request->package_type];
-            }
+    //         $changes = [];
+    //         if ($oldData['status'] != $request->status) {
+    //             $changes['status'] = ['from' => $oldData['status'], 'to' => $request->status];
+    //         }
+    //         if ($oldData['purchase_amount'] != $request->purchase_amount) {
+    //             $changes['purchase_amount'] = ['from' => $oldData['purchase_amount'], 'to' => $request->purchase_amount];
+    //         }
+    //         if ($oldData['package_type'] != $request->package_type) {
+    //             $changes['package_type'] = ['from' => $oldData['package_type'], 'to' => $request->package_type];
+    //         }
 
-            $tds->logActivity('updated', [
-                'customer_name' => $request->customer_name,
-                'changes' => $changes
-            ]);
+    //         $tds->logActivity('updated', [
+    //             'customer_name' => $request->customer_name,
+    //             'changes' => $changes
+    //         ]);
 
-            DB::commit();
+    //         DB::commit();
 
-            return redirect()->route('tds.index')
-                ->with('success', 'Dealer information updated successfully!');
+    //         return redirect()->route('tds.index')
+    //             ->with('success', 'Dealer information updated successfully!');
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Failed to update dealer: ' . $e->getMessage());
-        }
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         return redirect()->back()
+    //             ->withInput()
+    //             ->with('error', 'Failed to update dealer: ' . $e->getMessage());
+    //     }
     }
 
     public function destroy($id)
@@ -565,6 +716,7 @@ class TDSController extends Controller
         }
 
         $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
             'month' => 'required|date_format:Y-m',
             'target_amount' => 'required|numeric|min:0',
             'notes' => 'nullable|string|max:500',
@@ -573,7 +725,10 @@ class TDSController extends Controller
         DB::beginTransaction();
         try {
             $salesTarget = SalesTarget::updateOrCreate(
-                ['month' => $request->month],
+                [
+                    'user_id' => $request->user_id,
+                    'month' => $request->month
+                ],
                 [
                     'target_amount' => $request->target_amount,
                     'notes' => $request->notes,
@@ -582,7 +737,9 @@ class TDSController extends Controller
 
             $action = $salesTarget->wasRecentlyCreated ? 'created' : 'updated';
             
+            $user = User::find($request->user_id);
             $salesTarget->logActivity($action, [
+                'employee' => $user->name,
                 'month' => $request->month,
                 'target_amount' => $request->target_amount,
                 'notes' => $request->notes,
@@ -591,8 +748,8 @@ class TDSController extends Controller
             DB::commit();
 
             $message = $action === 'created' 
-                ? 'Sales target set successfully!' 
-                : 'Sales target updated successfully!';
+                ? "Sales target set successfully for {$user->name}!" 
+                : "Sales target updated successfully for {$user->name}!";
 
             return redirect()->route('tds.index')
                 ->with('success', $message);
@@ -688,7 +845,7 @@ class TDSController extends Controller
             fputcsv($output, [
                 $record->date_of_registration,
                 $record->user ? $record->user->name : 'N/A',
-                $record->region ? $record->region->region_name : 'N/A',
+                $this->getRegionDisplayName($record->region),
                 $record->customer_name,
                 $record->contact_no ?? 'N/A',
                 $record->business_name,

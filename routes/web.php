@@ -114,6 +114,8 @@
     Route::post('/tds/store', 'TDSController@store')->name('tds.store');
     Route::get('/tds/export', 'TDSController@export')->name('tds.export');
     Route::post('/tds/update-target', 'TDSController@updateSalesTarget')->name('tds.update-target');
+    Route::get('/tds/get-employee-target', 'TDSController@getEmployeeTarget')->name('tds.get-employee-target');
+    Route::get('/tds/get-all-users', 'TDSController@getAllUsers')->name('tds.get-all-users');
     Route::get('/tds/activity-logs', 'TDSController@getActivityLogs')->name('tds.activity-logs');
 
     Route::get('/tdsdashboard', 'TDSController@dashboard')->name('tds.dashboard');

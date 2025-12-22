@@ -2,6 +2,8 @@
 
 @section('head')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 @endsection
 
 @section('content')
@@ -101,8 +103,10 @@
                       <label class="text-right">Status</label>
                       <select class="form-control form-control-sm" name='status'>
                         <option value="">-- All Status --</option>
-                        <option value="Delivered" {{ request('status') == 'Delivered' ? 'selected' : '' }}>Delivered</option>
+                        <option value="Decline" {{ request('status') == 'Decline' ? 'selected' : '' }}>Decline</option>
+                        <option value="Interested" {{ request('status') == 'Interested' ? 'selected' : '' }}>Interested</option>
                         <option value="For Delivery" {{ request('status') == 'For Delivery' ? 'selected' : '' }}>For Delivery</option>
+                        <option value="Delivered" {{ request('status') == 'Delivered' ? 'selected' : '' }}>Delivered</option>
                       </select>
                     </div>
                   </div>
@@ -115,6 +119,17 @@
                         <option value="D" {{ request('package') == 'D' ? 'selected' : '' }}>D</option>
                         <option value="MD" {{ request('package') == 'MD' ? 'selected' : '' }}>MD</option>
                         <option value="AD" {{ request('package') == 'AD' ? 'selected' : '' }}>AD</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class='col-md-2'>
+                    <div class="form-group">
+                      <label class="text-right">Program Type</label>
+                      <select class="form-control form-control-sm" name='program'>
+                        <option value="">-- All Programs --</option>
+                        <option value="Roadshow" {{ request('program') == 'Roadshow' ? 'selected' : '' }}>Roadshow</option>
+                        <option value="Mini-Roadshow" {{ request('program') == 'Mini-Roadshow' ? 'selected' : '' }}>Mini-Roadshow</option>
+                        <option value="Non-Roadshow" {{ request('program') == 'Non-Roadshow' ? 'selected' : '' }}>Non-Roadshow</option>
                       </select>
                     </div>
                   </div>
@@ -136,8 +151,11 @@
                       <th>Business Name</th>
                       <th>Business Type</th>
                       <th>Package</th>
+                      <th>Program Type</th>
                       <th>Amount</th>
                       <th>Status</th>
+                      <th>Delivery Date</th>
+                      <th>Document</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -148,7 +166,7 @@
                       <td>{{ \Carbon\Carbon::parse($record->created_at)->format('Y-m-d H:i:s') }}</td>
                       <td>{{ \Carbon\Carbon::parse($record->date_of_registration)->format('Y-m-d') }}</td>
                       <td>{{ $record->user->name ?? 'N/A' }}</td>
-                      <td>{{ $record->region->region_name ?? 'N/A' }}</td>
+                      <td>{{ optional($record->region)->region ? optional($record->region)->region . ' - ' . optional($record->region)->province . (optional($record->region)->district ? ' - ' . optional($record->region)->district : '') : 'N/A' }}</td>
                       <td>{{ $record->customer_name }}</td>
                       <td>{{ $record->business_name }}</td>
                       <td>{{ $record->business_type }}</td>
@@ -163,12 +181,42 @@
                           <span class="badge badge-primary">AD</span>
                         @endif
                       </td>
+                      <td>
+                        @if($record->program_type)
+                          <span class="badge badge-light">{{ $record->program_type }}</span>
+                        @else
+                          <span class="text-muted">N/A</span>
+                        @endif
+                      </td>
                       <td>₱{{ number_format($record->purchase_amount, 2) }}</td>
                       <td>
                         @if($record->status == 'Delivered')
                           <span class="badge badge-success">Delivered</span>
-                        @else
+                        @elseif($record->status == 'For Delivery')
                           <span class="badge badge-warning">For Delivery</span>
+                        @elseif($record->status == 'Interested')
+                          <span class="badge badge-info">Interested</span>
+                        @elseif($record->status == 'Decline')
+                          <span class="badge badge-danger">Decline</span>
+                        @endif
+                      </td>
+                      <td>
+                        @if($record->delivery_date)
+                          {{ \Carbon\Carbon::parse($record->delivery_date)->format('M d, Y') }}
+                        @else
+                          <span class="text-muted">-</span>
+                        @endif
+                      </td>
+                      <td class="text-center">
+                        @if($record->document_attachment)
+                          <a href="{{ asset('storage/tds_documents/' . $record->document_attachment) }}" 
+                            target="_blank" 
+                            class="btn btn-sm btn-info" 
+                            title="View Document">
+                            <i class="ti-file"></i>
+                          </a>
+                        @else
+                          <span class="text-muted">-</span>
                         @endif
                       </td>
                       <td>
@@ -188,7 +236,7 @@
                     </tr>
                     @empty
                     <tr>
-                      <td colspan="11" class="text-center">No records found</td>
+                      <td colspan="14" class="text-center">No records found</td>
                     </tr>
                     @endforelse
                   </tbody>
@@ -201,391 +249,20 @@
     </div>
 </div>
 
-<div class="modal fade" id="registerDealer" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <form action="{{ route('tds.store') }}" method="POST" id="dealerForm">
-        @csrf
-        <div class="modal-header text-black">
-          <h5 class="modal-title">Register New Dealer</h5>
-          <button type="button" class="close text-white" data-dismiss="modal">
-            <span>&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <h5 class="mb-3 text-primary">General Details</h5>
-          
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label>Date of Registration <span class="text-danger">*</span></label>
-                <input type="date" class="form-control" 
-                       name="date_registered" value="{{ old('date_registered') }}" required>
-                <small class="form-text text-muted">When the dealer signed-up</small>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group">
-                <label>Employee Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" 
-                       name="employee_name" value="{{ old('employee_name', Auth::user()->name) }}" 
-                       placeholder="Who acquired the dealer?" required>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label>Area <span class="text-danger">*</span></label>
-                <select class="form-control" name="area" required>
-                  <option value="">-- Select Area --</option>
-                  @foreach($regions as $region)
-                    <option value="{{ $region->id }}" {{ old('area') == $region->id ? 'selected' : '' }}>
-                      {{ $region->region_name }}
-                    </option>
-                  @endforeach
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <hr class="my-4">
-          <h5 class="mb-3 text-primary">Customer Information</h5>
-
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label>Customer Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" 
-                       name="customer_name" value="{{ old('customer_name') }}" 
-                       placeholder="Full name of the customer" required>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group">
-                <label>Contact Number <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" 
-                       name="contact_no" value="{{ old('contact_no') }}" 
-                       placeholder="0912-325-1234" pattern="[0-9]{4}-[0-9]{3}-[0-9]{4}" required>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label>Business Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" 
-                       name="business_name" value="{{ old('business_name') }}" 
-                       placeholder="e.g., Justin's Store" required>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group">
-                <label>Business Type <span class="text-danger">*</span></label>
-                <select class="form-control" name="business_type" required>
-                  <option value="">-- Select Business Type --</option>
-                  <option value="Sari-Sari Store" {{ old('business_type') == 'Sari-Sari Store' ? 'selected' : '' }}>Sari-Sari Store</option>
-                  <option value="Mini Mart" {{ old('business_type') == 'Mini Mart' ? 'selected' : '' }}>Mini Mart</option>
-                  <option value="Retail Shop" {{ old('business_type') == 'Retail Shop' ? 'selected' : '' }}>Retail Shop</option>
-                  <option value="Wholesale" {{ old('business_type') == 'Wholesale' ? 'selected' : '' }}>Wholesale</option>
-                  <option value="Grocery" {{ old('business_type') == 'Grocery' ? 'selected' : '' }}>Grocery</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-12">
-              <div class="form-group">
-                <label>Awarded Area</label>
-                <input type="text" class="form-control" 
-                       name="awarded_area" value="{{ old('awarded_area') }}" 
-                       placeholder="For Area Distributors">
-                <small class="form-text text-muted">Only applicable for Area Distributors</small>
-              </div>
-            </div>
-          </div>
-
-          <hr class="my-4">
-          <h5 class="mb-3 text-primary">Package & Delivery Details</h5>
-
-          <div class="row">
-            <div class="col-md-4">
-              <div class="form-group">
-                <label>Package Type <span class="text-danger">*</span></label>
-                <select class="form-control" name="package_type" required>
-                  <option value="">-- Select Package --</option>
-                  <option value="EU" {{ old('package_type') == 'EU' ? 'selected' : '' }}>EU - End User</option>
-                  <option value="D" {{ old('package_type') == 'D' ? 'selected' : '' }}>D - Dealer</option>
-                  <option value="MD" {{ old('package_type') == 'MD' ? 'selected' : '' }}>MD - Mega Dealer</option>
-                  <option value="AD" {{ old('package_type') == 'AD' ? 'selected' : '' }}>AD - Area Distributor</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="form-group">
-                <label>Purchase Amount <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" 
-                       name="purchase_amount" value="{{ old('purchase_amount') }}" 
-                       placeholder="25000" min="0" step="0.01" required>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="form-group">
-                <label>Lead Generator <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" 
-                       name="lead_generator" value="{{ old('lead_generator') }}" 
-                       placeholder="e.g., Other Accounts" required>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label>Supplier Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" 
-                       name="supplier_name" value="{{ old('supplier_name') }}" 
-                       placeholder="e.g., MD Monicarl, AD Gorospe, PDI" required>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group">
-                <label>Status <span class="text-danger">*</span></label>
-                <select class="form-control" name="status" required>
-                  <option value="">-- Select Status --</option>
-                  <option value="For Delivery" {{ old('status') == 'For Delivery' ? 'selected' : '' }}>For Delivery</option>
-                  <option value="Delivered" {{ old('status') == 'Delivered' ? 'selected' : '' }}>Delivered</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label>Timeline</label>
-                <input type="date" class="form-control" 
-                       name="timeline" value="{{ old('timeline') }}">
-                <small class="form-text text-muted">Expected delivery for 'For Delivery' status</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-12">
-              <div class="form-group">
-                <label>Additional Notes</label>
-                <textarea class="form-control" 
-                          name="additional_notes" rows="3" 
-                          placeholder="Any additional information...">{{ old('additional_notes') }}</textarea>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Register Dealer</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="setSalesTarget" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <form action="{{ route('tds.update-target') }}" method="POST" id="salesTargetForm">
-        @csrf
-        <div class="modal-header text-black">
-          <h5 class="modal-title">Set Monthly Sales Target</h5>
-          <button type="button" class="close text-white" data-dismiss="modal">
-            <span>&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="target_month">Month <span class="text-danger">*</span></label>
-            <input type="month" class="form-control" name="month" id="target_month" 
-                   value="{{ date('Y-m') }}" required>
-          </div>
-
-          <div class="form-group">
-            <label for="target_amount">Target Amount <span class="text-danger">*</span></label>
-            <div class="input-group">
-              <div class="input-group-prepend">
-                <span class="input-group-text">₱</span>
-              </div>
-              <input type="number" class="form-control" name="target_amount" id="target_amount" 
-                     value="{{ $stats['monthly_target'] }}" 
-                     min="0" step="0.01" required>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="target_notes">Notes (Optional)</label>
-            <textarea class="form-control" name="notes" id="target_notes" rows="3" 
-                      placeholder="Any notes or comments about this target..."></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Update Target</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-
-@foreach($tdsRecords as $record)
-<div class="modal fade" id="viewDetails{{ $record->id }}" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header text-black">
-        <h5 class="modal-title">Dealer Details - {{ $record->customer_name }}</h5>
-        <button type="button" class="close text-white" data-dismiss="modal">
-          <span>&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="row">
-          <div class="col-md-6">
-            <h5 class="text-primary mb-3">General Information</h5>
-            <table class="table table-borderless table-sm">
-              <tr>
-                <th width="45%">Date Registered:</th>
-                <td>{{ \Carbon\Carbon::parse($record->date_of_registration)->format('M d, Y') }}</td>
-              </tr>
-              <tr>
-                <th>Employee Name:</th>
-                <td>{{ $record->user->name ?? 'N/A' }}</td>
-              </tr>
-              <tr>
-                <th>Area:</th>
-                <td>{{ $record->region->region_name ?? 'N/A' }}</td>
-              </tr>
-              <tr>
-                <th>Status:</th>
-                <td>
-                  @if($record->status == 'Delivered')
-                    <span class="badge badge-success">Delivered</span>
-                  @else
-                    <span class="badge badge-warning">For Delivery</span>
-                  @endif
-                </td>
-              </tr>
-              @if($record->timeline)
-              <tr>
-                <th>Timeline:</th>
-                <td>{{ \Carbon\Carbon::parse($record->timeline)->format('M d, Y') }}</td>
-              </tr>
-              @endif
-            </table>
-          </div>
-
-          <div class="col-md-6">
-            <h5 class="text-primary mb-3">Customer Information</h5>
-            <table class="table table-borderless table-sm">
-              <tr>
-                <th width="45%">Customer Name:</th>
-                <td>{{ $record->customer_name }}</td>
-              </tr>
-              <tr>
-                <th>Contact Number:</th>
-                <td>{{ $record->contact_no }}</td>
-              </tr>
-              <tr>
-                <th>Business Name:</th>
-                <td>{{ $record->business_name }}</td>
-              </tr>
-              <tr>
-                <th>Business Type:</th>
-                <td>{{ $record->business_type }}</td>
-              </tr>
-              @if($record->awarded_area)
-              <tr>
-                <th>Awarded Area:</th>
-                <td>{{ $record->awarded_area }}</td>
-              </tr>
-              @endif
-            </table>
-          </div>
-        </div>
-
-        <hr class="my-4">
-
-        <div class="row">
-          <div class="col-md-6">
-            <h5 class="text-primary mb-3">Package Details</h5>
-            <table class="table table-borderless table-sm">
-              <tr>
-                <th width="45%">Package Type:</th>
-                <td>
-                  @if($record->package_type == 'EU')
-                    <span class="badge badge-secondary">EU - End User</span>
-                  @elseif($record->package_type == 'D')
-                    <span class="badge badge-info">D - Dealer</span>
-                  @elseif($record->package_type == 'MD')
-                    <span class="badge badge-warning">MD - Mega Dealer</span>
-                  @elseif($record->package_type == 'AD')
-                    <span class="badge badge-primary">AD - Area Distributor</span>
-                  @endif
-                </td>
-              </tr>
-              <tr>
-                <th>Purchase Amount:</th>
-                <td><strong class="text-success">₱{{ number_format($record->purchase_amount, 2) }}</strong></td>
-              </tr>
-              <tr>
-                <th>Lead Generator:</th>
-                <td>{{ $record->lead_generator }}</td>
-              </tr>
-              <tr>
-                <th>Supplier Name:</th>
-                <td>{{ $record->supplier_name }}</td>
-              </tr>
-            </table>
-          </div>
-
-          <div class="col-md-6">
-            <h5 class="text-primary mb-3">Additional Information</h5>
-            @if($record->additional_notes)
-              <div class="alert alert-info">
-                <strong><i class="ti-info-alt"></i> Notes:</strong><br>
-                {{ $record->additional_notes }}
-              </div>
-            @else
-              <p class="text-muted"><em>No additional notes available.</em></p>
-            @endif
-            
-            <div class="mt-3">
-              <small class="text-muted">
-                <i class="ti-time"></i> Created: {{ \Carbon\Carbon::parse($record->created_at)->format('M d, Y h:i A') }}
-              </small>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-@endforeach
-
 <form id="deleteForm" method="POST" style="display: none;">
   @csrf
   @method('DELETE')
 </form>
 
+@include('forms/tds/sales-target')
+@include('forms/tds/new')
+@include('forms/tds/view-details')
+
 @endsection
 
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
   @if(session('success'))
@@ -640,5 +317,131 @@
       }
     });
   });
+</script>
+
+<script>
+$(document).ready(function() {
+  $('#program_type').on('change', function() {
+    var programType = $(this).val();
+    if (programType === 'Roadshow' || programType === 'Mini-Roadshow') {
+      $('#program_area').prop('required', true);
+      $('.program-area-required').show();
+    } else {
+      $('#program_area').prop('required', false);
+      $('.program-area-required').hide();
+    }
+  });
+
+  $('#program_type').trigger('change');
+});
+</script>
+
+<script>
+$(document).ready(function() {
+  $('select[name="area"]').select2({
+    placeholder: '-- Select Area --',
+    allowClear: true,
+    dropdownParent: $('#registerDealer'),
+    width: '100%'
+  });
+
+  $('.select2-employee').select2({
+    ajax: {
+      url: '{{ route("tds.get-all-users") }}',
+      dataType: 'json',
+      delay: 250,
+      data: function (params) {
+        return {
+          search: params.term,
+          page: params.page || 1
+        };
+      },
+      processResults: function (data, params) {
+        params.page = params.page || 1;
+        
+        return {
+          results: data.results,
+          pagination: {
+            more: (params.page * 20) < data.total
+          }
+        };
+      },
+      cache: true
+    },
+    placeholder: '-- Search for an employee --',
+    minimumInputLength: 0,
+    allowClear: true,
+    dropdownParent: $('#setSalesTarget')
+  });
+  
+
+  $('.select2-employee').select2({
+    ajax: {
+      url: '{{ route("tds.get-all-users") }}',
+      dataType: 'json',
+      delay: 250,
+      data: function (params) {
+        return {
+          search: params.term,
+          page: params.page || 1
+        };
+      },
+      processResults: function (data, params) {
+        params.page = params.page || 1;
+        
+        return {
+          results: data.results,
+          pagination: {
+            more: (params.page * 20) < data.total
+          }
+        };
+      },
+      cache: true
+    },
+    placeholder: '-- Search for an employee --',
+    minimumInputLength: 0,
+    allowClear: true,
+    dropdownParent: $('#setSalesTarget')
+  });
+
+  $('#employee_select, #target_month').on('change', function() {
+    var userId = $('#employee_select').val();
+    var month = $('#target_month').val();
+    
+    if (userId && month) {
+      $.ajax({
+        url: '{{ route("tds.get-employee-target") }}',
+        method: 'GET',
+        data: {
+          user_id: userId,
+          month: month
+        },
+        success: function(response) {
+          $('#target_amount').val(response.target_amount);
+          $('#target_notes').val(response.notes || '');
+          
+          if (response.target_amount != 200000) {
+            $('#current_target_info').text('Current target: ₱' + parseFloat(response.target_amount).toLocaleString());
+            $('#current_target_info').addClass('text-info');
+          } else {
+            $('#current_target_info').text('No target set. Using default: ₱200,000');
+            $('#current_target_info').removeClass('text-info');
+          }
+        },
+        error: function() {
+          $('#target_amount').val(200000);
+          $('#target_notes').val('');
+          $('#current_target_info').text('');
+        }
+      });
+    }
+  });
+
+  $('#setSalesTarget').on('hidden.bs.modal', function () {
+    $('#salesTargetForm')[0].reset();
+    $('#employee_select').val(null).trigger('change');
+    $('#current_target_info').text('');
+  });
+});
 </script>
 @endsection

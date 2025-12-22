@@ -22,14 +22,18 @@ class Tds extends Model
         'business_type',
         'package_type',
         'purchase_amount',
+        'program_type',
+        'program_area',
         'lead_generator',
         'supplier_name',
         'status',
         'timeline',
+        'delivery_date',
+        'document_attachment',
         'additional_notes',
     ];
 
-    protected $dates = ['date_of_registration', 'timeline', 'deleted_at'];
+    protected $dates = ['date_of_registration', 'timeline', 'delivery_date', 'deleted_at'];
 
     public function user()
     {
@@ -56,5 +60,21 @@ class Tds extends Model
             'record_identifier' => "TDS-{$this->id}",
             'details' => is_array($details) ? json_encode($details) : $details,
         ]);
+    }
+
+    public function getDocumentPathAttribute()
+    {
+        if ($this->document_attachment) {
+            return storage_path('app/public/tds_documents/' . $this->document_attachment);
+        }
+        return null;
+    }
+
+    public function getDocumentUrlAttribute()
+    {
+        if ($this->document_attachment) {
+            return asset('storage/tds_documents/' . $this->document_attachment);
+        }
+        return null;
     }
 }

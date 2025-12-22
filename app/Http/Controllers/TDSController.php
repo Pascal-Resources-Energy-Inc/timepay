@@ -57,9 +57,10 @@ class TDSController extends Controller
             ->whereIn('user_id', $activeTdsUserIds)
             ->sum('target_amount');
 
+        // CHANGED: Only count "Delivered" status in actual sales
         $actualSales = Tds::whereYear('date_of_registration', Carbon::now()->year)
             ->whereMonth('date_of_registration', Carbon::now()->month)
-            ->whereIn('status', ['Delivered', 'For Delivery', 'Interested'])
+            ->where('status', 'Delivered')
             ->sum('purchase_amount');
 
         $stats = [
@@ -608,6 +609,45 @@ class TDSController extends Controller
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Failed to register dealer: ' . $e->getMessage());
+        }
+    }
+
+    // NEW METHOD: Update only status
+    public function updateStatus(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:Decline,Interested,For Delivery,Delivered',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $tds = Tds::findOrFail($id);
+            $oldStatus = $tds->status;
+
+            $tds->update([
+                'status' => $request->status,
+            ]);
+
+            $tds->logActivity('status_updated', [
+                'customer_name' => $tds->customer_name,
+                'old_status' => $oldStatus,
+                'new_status' => $request->status,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status updated successfully!',
+                'new_status' => $request->status
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update status: ' . $e->getMessage()
+            ], 500);
         }
     }
 

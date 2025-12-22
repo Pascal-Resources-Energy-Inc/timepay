@@ -226,6 +226,13 @@
                                 title="View Details">
                           <i class="ti-eye"></i>
                         </button>
+                        <button class="btn btn-sm btn-warning edit-status-btn" 
+                                data-id="{{ $record->id }}"
+                                data-status="{{ $record->status }}"
+                                data-customer="{{ $record->customer_name }}"
+                                title="Update Status">
+                          <i class="ti-pencil"></i>
+                        </button>
                         <button type="button" class="btn btn-sm btn-danger delete-record" 
                                 data-id="{{ $record->id }}"
                                 data-customer="{{ $record->customer_name }}"
@@ -317,6 +324,83 @@
       }
     });
   });
+
+  $(document).on('click', '.edit-status-btn', function(e) {
+    e.preventDefault();
+    var recordId = $(this).data('id');
+    var currentStatus = $(this).data('status');
+    var customerName = $(this).data('customer');
+
+    Swal.fire({
+      title: 'Update Status',
+      html: `
+        <p>Customer: <strong>${customerName}</strong></p>
+        <p>Current Status: <strong>${currentStatus}</strong></p>
+        <select id="new-status" class="swal2-input" style="width: 70%;">
+          <option value="">-- Select New Status --</option>
+          <option value="Decline" ${currentStatus === 'Decline' ? 'selected' : ''}>Decline</option>
+          <option value="Interested" ${currentStatus === 'Interested' ? 'selected' : ''}>Interested</option>
+          <option value="For Delivery" ${currentStatus === 'For Delivery' ? 'selected' : ''}>For Delivery</option>
+          <option value="Delivered" ${currentStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
+        </select>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: '#ffc107',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Update Status',
+      cancelButtonText: 'Cancel',
+      preConfirm: () => {
+        const newStatus = document.getElementById('new-status').value;
+        if (!newStatus) {
+          Swal.showValidationMessage('Please select a status');
+          return false;
+        }
+        return newStatus;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const newStatus = result.value;
+        
+        Swal.fire({
+          title: 'Updating...',
+          text: 'Please wait',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        $.ajax({
+          url: '{{ url("/tds") }}/' + recordId + '/update-status',
+          method: 'POST',
+          data: {
+            _token: '{{ csrf_token() }}',
+            status: newStatus
+          },
+          success: function(response) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Status Updated!',
+              text: response.message,
+              timer: 2000,
+              showConfirmButton: true,
+              confirmButtonColor: '#28a745'
+            }).then(() => {
+              location.reload();
+            });
+          },
+          error: function(xhr) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Update Failed',
+              text: xhr.responseJSON?.message || 'Failed to update status',
+              confirmButtonColor: '#dc3545'
+            });
+          }
+        });
+      }
+    });
+  });
 </script>
 
 <script>
@@ -344,36 +428,6 @@ $(document).ready(function() {
     dropdownParent: $('#registerDealer'),
     width: '100%'
   });
-
-  $('.select2-employee').select2({
-    ajax: {
-      url: '{{ route("tds.get-all-users") }}',
-      dataType: 'json',
-      delay: 250,
-      data: function (params) {
-        return {
-          search: params.term,
-          page: params.page || 1
-        };
-      },
-      processResults: function (data, params) {
-        params.page = params.page || 1;
-        
-        return {
-          results: data.results,
-          pagination: {
-            more: (params.page * 20) < data.total
-          }
-        };
-      },
-      cache: true
-    },
-    placeholder: '-- Search for an employee --',
-    minimumInputLength: 0,
-    allowClear: true,
-    dropdownParent: $('#setSalesTarget')
-  });
-  
 
   $('.select2-employee').select2({
     ajax: {

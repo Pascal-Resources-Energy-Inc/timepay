@@ -48,17 +48,18 @@ class TDSController extends Controller
 
         $currentMonth = Carbon::now()->format('Y-m');
         
-        $userIdsWithTargets = SalesTarget::where('month', $currentMonth)
+        $activeTdsUserIds = Tds::whereYear('date_of_registration', Carbon::now()->year)
+            ->whereMonth('date_of_registration', Carbon::now()->month)
             ->pluck('user_id')
             ->unique();
         
         $totalMonthlyTarget = SalesTarget::where('month', $currentMonth)
+            ->whereIn('user_id', $activeTdsUserIds)
             ->sum('target_amount');
 
         $actualSales = Tds::whereYear('date_of_registration', Carbon::now()->year)
             ->whereMonth('date_of_registration', Carbon::now()->month)
-            ->whereIn('user_id', $userIdsWithTargets)
-            ->where('status', 'Delivered')
+            ->whereIn('status', ['Delivered', 'For Delivery', 'Interested'])
             ->sum('purchase_amount');
 
         $stats = [
@@ -93,13 +94,8 @@ class TDSController extends Controller
             ->orderBy('province')
             ->get();
         
-        $userIdsWithTargets = SalesTarget::whereYear('month', $selectedYear)
-            ->pluck('user_id')
-            ->unique();
-        
         $query = Tds::with(['user', 'region'])
-            ->whereYear('date_of_registration', $selectedYear)
-            ->whereIn('user_id', $userIdsWithTargets);
+            ->whereYear('date_of_registration', $selectedYear);
         
         if ($selectedRegion) {
             $query->where('area', $selectedRegion);
@@ -111,23 +107,21 @@ class TDSController extends Controller
         
         $records = $query->get();
         
-        $totalTarget = SalesTarget::whereYear('month', $selectedYear)
-            ->when($selectedEmployee, function($q) use ($selectedEmployee) {
-                $q->where('user_id', $selectedEmployee);
-            })
-            ->sum('target_amount');
+        $userIds = $records->pluck('user_id')->unique();
+        $totalTarget = 0;
         
-        $totalActual = $records->where('status', 'Delivered')->sum('purchase_amount');
+        foreach ($userIds as $userId) {
+            $employeeYearlyTarget = SalesTarget::where('user_id', $userId)
+                ->whereYear('month', $selectedYear)
+                ->sum('target_amount');
+            
+            $totalTarget += $employeeYearlyTarget;
+        }
+        
+        $totalActual = $records->sum('purchase_amount');
         
         $achievementRate = $totalTarget > 0 ? ($totalActual / $totalTarget) * 100 : 0;
-        
-        $activeTds = $userIdsWithTargets->count();
-        if ($selectedEmployee) {
-            $activeTds = $userIdsWithTargets->contains($selectedEmployee) ? 1 : 0;
-        } elseif ($selectedRegion) {
-            $regionUserIds = $records->pluck('user_id')->unique();
-            $activeTds = $userIdsWithTargets->intersect($regionUserIds)->count();
-        }
+        $activeTds = $records->groupBy('user_id')->count();
         
         $overview = [
             'total_target' => $totalTarget,
@@ -149,10 +143,10 @@ class TDSController extends Controller
             }
             
             $regionKey = $this->getRegionDisplayName($region);
-            $regionData[$regionKey] = $this->prepareRegionKPI($region, $regionRecords, $selectedYear, $selectedEmployee, $userIdsWithTargets);
+            $regionData[$regionKey] = $this->prepareRegionKPI($region, $regionRecords, $selectedYear, $selectedEmployee);
         }
         
-        $chartData = $this->prepareChartData($records, $selectedYear, $userIdsWithTargets);
+        $chartData = $this->prepareChartData($records, $selectedYear, $userIds);
 
         return view(
             'forms.tds.dashboard',
@@ -269,7 +263,7 @@ class TDSController extends Controller
         }
     }
 
-    private function prepareRegionKPI($region, $records, $year, $selectedEmployee = null, $userIdsWithTargets = null)
+    private function prepareRegionKPI($region, $records, $year, $selectedEmployee = null)
     {
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         $monthNumbers = [
@@ -291,26 +285,13 @@ class TDSController extends Controller
         ];
         
         $employees = [];
+        $userIds = $records->pluck('user_id')->unique();
         
-        if ($userIdsWithTargets === null) {
-            $userIdsWithTargets = SalesTarget::whereYear('month', $year)
-                ->pluck('user_id')
-                ->unique();
-        }
-        
-        foreach ($userIdsWithTargets as $userId) {
+        foreach ($userIds as $userId) {
             $user = \App\User::find($userId);
             if (!$user) continue;
             
-            if ($selectedEmployee && $userId != $selectedEmployee) {
-                continue;
-            }
-            
             $userRecords = $records->where('user_id', $userId);
-            
-            if ($userRecords->isEmpty() && !$selectedEmployee) {
-                continue;
-            }
             
             $employeeYearlyTarget = SalesTarget::where('user_id', $userId)
                 ->whereYear('month', $year)
@@ -339,8 +320,7 @@ class TDSController extends Controller
                     return $date->year == $year && $date->month == $monthNum;
                 });
                 
-                $deliveredRecords = $monthRecords->where('status', 'Delivered');
-                $monthAmount = $deliveredRecords->sum('purchase_amount');
+                $monthAmount = $monthRecords->sum('purchase_amount');
                 $employeeData['monthly'][$month] = $monthAmount;
                 $employeeData['actual'] += $monthAmount;
                 
@@ -417,7 +397,7 @@ class TDSController extends Controller
                 return $date->year == $year && $date->month == $monthNum;
             });
             
-            $monthly[$month] = $monthRecords->where('status', 'Delivered')->sum('purchase_amount');
+            $monthly[$month] = $monthRecords->sum('purchase_amount');
             
             $monthString = $year . '-' . str_pad($monthNum, 2, '0', STR_PAD_LEFT);
             
@@ -449,15 +429,10 @@ class TDSController extends Controller
     {
         $selectedYear = $request->input('year', date('Y'));
         $selectedRegion = $request->input('region', null);
-        $selectedEmployee = $request->input('employee', null);
-        
-        $userIdsWithTargets = SalesTarget::whereYear('month', $selectedYear)
-            ->pluck('user_id')
-            ->unique();
+        $selectedEmployee = $request->input('employee', null); 
         
         $query = Tds::with(['user', 'region'])
-            ->whereYear('date_of_registration', $selectedYear)
-            ->whereIn('user_id', $userIdsWithTargets);
+            ->whereYear('date_of_registration', $selectedYear);
         
         if ($selectedRegion) {
             $query->where('area', $selectedRegion);
@@ -500,19 +475,13 @@ class TDSController extends Controller
                 'Actual', 'Target', 'A/R'
             ]);
             
-            foreach ($userIdsWithTargets as $userId) {
+            $userIds = $regionRecords->pluck('user_id')->unique();
+            
+            foreach ($userIds as $userId) {
                 $user = \App\User::find($userId);
                 if (!$user) continue;
                 
-                if ($selectedEmployee && $userId != $selectedEmployee) {
-                    continue;
-                }
-                
                 $userRecords = $regionRecords->where('user_id', $userId);
-                
-                if ($userRecords->isEmpty() && !$selectedEmployee) {
-                    continue;
-                }
                 
                 $employeeYearlyTarget = SalesTarget::where('user_id', $userId)
                     ->whereYear('month', $selectedYear)
@@ -528,9 +497,7 @@ class TDSController extends Controller
                         $date = \Carbon\Carbon::parse($record->date_of_registration);
                         return $date->year == $selectedYear && $date->month == $m;
                     });
-                    
-                    $deliveredRecords = $monthRecords->where('status', 'Delivered');
-                    $amount = $deliveredRecords->sum('purchase_amount');
+                    $amount = $monthRecords->sum('purchase_amount');
                     $phpRow[] = number_format($amount, 2);
                     $total += $amount;
                 }

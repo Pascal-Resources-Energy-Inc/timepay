@@ -149,6 +149,10 @@ class TDSController extends Controller
         
         $chartData = $this->prepareChartData($records, $selectedYear, $userIds);
 
+        if (auth()->user()->role != 'Admin' && checkUserPrivilege('sales_performance', auth()->user()->id) != 'yes') {
+            abort(403, 'Unauthorized access to Sales Performance.');
+        }
+
         return view(
             'forms.tds.dashboard',
             array(

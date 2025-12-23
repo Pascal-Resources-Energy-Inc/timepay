@@ -568,10 +568,8 @@
 
                     @if (auth()->user()->role == 'Admin' || checkUserPrivilege('sales_performance', auth()->user()->id) == 'yes')
                     <li class="nav-item">
-                        @if (auth()->user()->role != 'Admin')
                         <hr>
                         <h5>TDS Dashboard</h5>
-                        @endif
                     </li>
                     <li class="nav-item @if ($header == 'tdsDashboard') active @endif ">
                         <a class="nav-link" href="{{ url('/tdsdashboard') }}" onclick='show()'>

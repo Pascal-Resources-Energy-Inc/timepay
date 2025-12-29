@@ -29,7 +29,7 @@
                 <label>Employee Name <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" 
                        name="employee_name" value="{{ old('employee_name', Auth::user()->name) }}" 
-                       placeholder="Who acquired the dealer?" required>
+                       placeholder="Who acquired the dealer?" disabled>
               </div>
             </div>
           </div>
@@ -147,8 +147,8 @@
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
-                <label>Program Type</label>
-                <select class="form-control" name="program_type" id="program_type" onclick="event.stopPropagation();">
+                <label>Program Type <span class="text-danger">*</span></label>
+                <select class="form-control" name="program_type" id="program_type" onclick="event.stopPropagation();" required>
                   <option value="">-- Select Program Type --</option>
                   <option value="Roadshow" {{ old('program_type') == 'Roadshow' ? 'selected' : '' }}>Roadshow</option>
                   <option value="Mini-Roadshow" {{ old('program_type') == 'Mini-Roadshow' ? 'selected' : '' }}>Mini-Roadshow</option>

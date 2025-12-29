@@ -143,7 +143,6 @@
                 <table class="table table-hover table-bordered tablewithSearch">
                   <thead>
                     <tr>
-                      <th>Timestamp</th>
                       <th>Date Registered</th>
                       <th>Employee</th>
                       <th>Area</th>
@@ -163,7 +162,6 @@
                   <tbody>
                     @forelse($tdsRecords as $record)
                     <tr>
-                      <td>{{ \Carbon\Carbon::parse($record->created_at)->format('Y-m-d H:i:s') }}</td>
                       <td>{{ \Carbon\Carbon::parse($record->date_of_registration)->format('Y-m-d') }}</td>
                       <td>{{ $record->user->name ?? 'N/A' }}</td>
                       <td>{{ optional($record->region)->region ? optional($record->region)->region . ' - ' . optional($record->region)->province . (optional($record->region)->district ? ' - ' . optional($record->region)->district : '') : 'N/A' }}</td>

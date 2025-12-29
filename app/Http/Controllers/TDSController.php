@@ -26,7 +26,10 @@ class TDSController extends Controller
 
     public function index(Request $request)
     {
-        $query = Tds::with(['user', 'region']);
+        $currentUserId = auth()->id();
+        
+        $query = Tds::with(['user', 'region'])
+            ->where('user_id', $currentUserId);
 
         if ($request->from && $request->to) {
             $query->whereBetween('date_of_registration', [$request->from, $request->to]);
@@ -47,28 +50,30 @@ class TDSController extends Controller
         $tdsRecords = $query->latest()->get();
 
         $currentMonth = Carbon::now()->format('Y-m');
+        $currentUserId = auth()->id();
         
-        $activeTdsUserIds = Tds::whereYear('date_of_registration', Carbon::now()->year)
-            ->whereMonth('date_of_registration', Carbon::now()->month)
-            ->pluck('user_id')
-            ->unique();
+        $userTarget = SalesTarget::where('user_id', $currentUserId)
+            ->where('month', $currentMonth)
+            ->first();
         
-        $totalMonthlyTarget = SalesTarget::where('month', $currentMonth)
-            ->whereIn('user_id', $activeTdsUserIds)
-            ->sum('target_amount');
+        $monthlyTarget = $userTarget ? $userTarget->target_amount : 0;
 
-        // CHANGED: Only count "Delivered" status in actual sales
         $actualSales = Tds::whereYear('date_of_registration', Carbon::now()->year)
             ->whereMonth('date_of_registration', Carbon::now()->month)
+            ->where('user_id', $currentUserId)
             ->where('status', 'Delivered')
             ->sum('purchase_amount');
 
+        $forDelivery = Tds::where('status', 'For Delivery')
+            ->where('user_id', $currentUserId)
+            ->count();
+
         $stats = [
-            'monthly_target' => $totalMonthlyTarget,
+            'monthly_target' => $monthlyTarget,
             'actual_sales' => $actualSales,
-            'for_delivery' => Tds::where('status', 'For Delivery')->count(),
-            'gap_to_goal' => max(0, $totalMonthlyTarget - $actualSales),
-            'achievement_percentage' => $totalMonthlyTarget > 0 ? round(($actualSales / $totalMonthlyTarget) * 100, 2) : 0,
+            'for_delivery' => $forDelivery,
+            'gap_to_goal' => max(0, $monthlyTarget - $actualSales),
+            'achievement_percentage' => $monthlyTarget > 0 ? round(($actualSales / $monthlyTarget) * 100, 2) : 0,
         ];
 
         $regions = Region::orderBy('region')

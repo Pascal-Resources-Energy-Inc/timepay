@@ -621,7 +621,6 @@ class TDSController extends Controller
         }
     }
 
-    // NEW METHOD: Update only status
     public function updateStatus(Request $request, $id)
     {
         $validated = $request->validate([
@@ -659,77 +658,6 @@ class TDSController extends Controller
             ], 500);
         }
     }
-
-    public function update(Request $request, $id)
-    {
-    //     $validated = $request->validate([
-    //         'date_registered' => 'required|date',
-    //         'area' => 'required|integer|exists:regions,id',
-    //         'customer_name' => 'required|string|max:255',
-    //         'contact_no' => 'required|string|regex:/^[0-9]{11}$/',
-    //         'business_name' => 'required|string|max:255',
-    //         'business_type' => 'required|string|max:255',
-    //         'awarded_area' => 'nullable|string|max:255',
-    //         'package_type' => 'required|in:EU,D,MD,AD',
-    //         'purchase_amount' => 'required|numeric|min:0',
-    //         'lead_generator' => 'required|string|max:255',
-    //         'supplier_name' => 'required|string|max:255',
-    //         'status' => 'required|in:For Delivery,Delivered',
-    //         'timeline' => 'nullable|date',
-    //         'additional_notes' => 'nullable|string',
-    //     ]);
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $tds = Tds::findOrFail($id);
-    //         $oldData = $tds->getOriginal();
-
-    //         $tds->update([
-    //             'date_of_registration' => $request->date_registered,
-    //             'area' => $request->area,
-    //             'customer_name' => $request->customer_name,
-    //             'contact_no' => $request->contact_no,
-    //             'business_name' => $request->business_name,
-    //             'awarded_area' => $request->awarded_area,
-    //             'business_type' => $request->business_type,
-    //             'package_type' => $request->package_type,
-    //             'purchase_amount' => $request->purchase_amount,
-    //             'lead_generator' => $request->lead_generator,
-    //             'supplier_name' => $request->supplier_name,
-    //             'status' => $request->status,
-    //             'timeline' => $request->timeline,
-    //             'additional_notes' => $request->additional_notes,
-    //         ]);
-
-    //         $changes = [];
-    //         if ($oldData['status'] != $request->status) {
-    //             $changes['status'] = ['from' => $oldData['status'], 'to' => $request->status];
-    //         }
-    //         if ($oldData['purchase_amount'] != $request->purchase_amount) {
-    //             $changes['purchase_amount'] = ['from' => $oldData['purchase_amount'], 'to' => $request->purchase_amount];
-    //         }
-    //         if ($oldData['package_type'] != $request->package_type) {
-    //             $changes['package_type'] = ['from' => $oldData['package_type'], 'to' => $request->package_type];
-    //         }
-
-    //         $tds->logActivity('updated', [
-    //             'customer_name' => $request->customer_name,
-    //             'changes' => $changes
-    //         ]);
-
-    //         DB::commit();
-
-    //         return redirect()->route('tds.index')
-    //             ->with('success', 'Dealer information updated successfully!');
-
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-    //         return redirect()->back()
-    //             ->withInput()
-    //             ->with('error', 'Failed to update dealer: ' . $e->getMessage());
-    //     }
-    }
-
     public function destroy($id)
     {
         DB::beginTransaction();

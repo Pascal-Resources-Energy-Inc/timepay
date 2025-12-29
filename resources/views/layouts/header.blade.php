@@ -442,13 +442,6 @@
                         </a>
                     </li>
 
-                    <li class="nav-item @if ($header == 'tds') active @endif">
-                        <a class="nav-link" href="{{ url('tds') }}" onclick='show()'>
-                            <i class="icon-bag menu-icon"></i>
-                            <span class="menu-title">TDS</span>
-                        </a>
-                    </li>
-
                   @if(count(auth()->user()->employee->as_resign) > 0)
                     <li class="nav-item">
                         <hr>
@@ -566,11 +559,17 @@
                     </li>
                     @endif
 
-                    @if (auth()->user()->role == 'Admin' || checkUserPrivilege('sales_performance', auth()->user()->id) == 'yes')
                     <li class="nav-item">
                         <hr>
                         <h5>TDS Dashboard</h5>
                     </li>
+                    <li class="nav-item @if ($header == 'tds') active @endif">
+                        <a class="nav-link" href="{{ url('tds') }}" onclick='show()'>
+                            <i class="icon-bag menu-icon"></i>
+                            <span class="menu-title">TDS</span>
+                        </a>
+                    </li>
+                    @if (auth()->user()->role == 'Admin' || checkUserPrivilege('sales_performance', auth()->user()->id) == 'yes')
                     <li class="nav-item @if ($header == 'tdsDashboard') active @endif ">
                         <a class="nav-link" href="{{ url('/tdsdashboard') }}" onclick='show()'>
                             <i class="icon-briefcase menu-icon"></i>

@@ -29,7 +29,7 @@
                 <label>Employee Name <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" 
                        name="employee_name" value="{{ old('employee_name', Auth::user()->name) }}" 
-                       placeholder="Who acquired the dealer?" disabled>
+                       placeholder="Who acquired the dealer?" readonly>
               </div>
             </div>
           </div>

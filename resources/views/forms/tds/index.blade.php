@@ -71,7 +71,7 @@
                   <i class="ti-plus btn-icon-prepend"></i>                                                    
                   Register New Sales
                 </button>
-                @if(Auth::user()->role === 'Admin' || Auth::user()->is_admin)
+                @if (auth()->user()->role == 'Admin' || checkUserPrivilege('sales_performance', auth()->user()->id) == 'yes')
                 <button type="button" class="btn btn-outline-warning btn-icon-text" data-toggle="modal" data-target="#setSalesTarget">
                   <i class="ti-settings btn-icon-prepend"></i>                                                    
                   Set Sales Target

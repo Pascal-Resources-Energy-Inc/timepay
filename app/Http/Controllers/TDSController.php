@@ -27,6 +27,12 @@ class TDSController extends Controller
     public function index(Request $request)
     {
         $currentUserId = auth()->id();
+
+        if (auth()->user()->role != 'Admin' 
+            && checkUserPrivilege('tdsModule', auth()->user()->id) != 'yes'
+            && checkUserPrivilege('sales_performance', auth()->user()->id) != 'yes') {
+            abort(403, 'Unauthorized access to Sales Performance.');
+        }
         
         $query = Tds::with(['user', 'region'])
             ->where('user_id', $currentUserId);

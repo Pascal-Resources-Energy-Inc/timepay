@@ -566,16 +566,16 @@
                     </li>
                     <li class="nav-item @if ($header == 'tdsModule') active @endif">
                         <a class="nav-link" href="{{ url('tdsModule') }}" onclick='show()'>
-                            <i class="icon-docs menu-icon"></i>
+                            <i class="ti-clipboard menu-icon"></i>
                             <span class="menu-title">TDS</span>
                         </a>
                     </li>
                     @endif
-                    
+
                     @if (auth()->user()->role == 'Admin' || checkUserPrivilege('sales_performance', auth()->user()->id) == 'yes')
                     <li class="nav-item @if ($header == 'tdsDashboard') active @endif ">
                         <a class="nav-link" href="{{ url('/tdsdashboard') }}" onclick='show()'>
-                            <i class="icon-graphs menu-icon"></i>
+                            <i class="ti-bar-chart menu-icon"></i>
                             <span class="menu-title">Sales Performance</span>
                         </a>
                     </li>

@@ -80,12 +80,6 @@ class TDSController extends Controller
             ->orderBy('province')
             ->get();
 
-        if (auth()->user()->role != 'Admin' 
-            && checkUserPrivilege('tdsModule', auth()->user()->id) != 'yes'
-            && checkUserPrivilege('sales_performance', auth()->user()->id) != 'yes') {
-            abort(403, 'Unauthorized access to Sales Performance.');
-        }
-
         return view(
             'forms.tds.tdsModule',
             array(

@@ -31,7 +31,7 @@ class TDSController extends Controller
         if (auth()->user()->role != 'Admin' 
             && checkUserPrivilege('tdsModule', auth()->user()->id) != 'yes'
             && checkUserPrivilege('sales_performance', auth()->user()->id) != 'yes') {
-            abort(403, 'Unauthorized access to Sales Performance.');
+            abort(403, 'Unauthorized access to TDS.');
         }
         
         $query = Tds::with(['user', 'region'])

@@ -412,12 +412,12 @@
                                         <h5>Modules</h5>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->tds == 'on')
-                                                <input type="checkbox" name="tds" id="tds{{$user->id}}" value="{{ $user->user_privilege->tds }}" checked>
+                                                <input type="checkbox" name="tdsModule" id="tdsModule{{$user->id}}" value="{{ $user->user_privilege->tds }}" checked>
                                             @else
-                                                <input type="checkbox" name="tds" id="tds{{$user->id}}">
+                                                <input type="checkbox" name="tdsModule" id="tdsModule{{$user->id}}">
                                             @endif
                                         @else
-                                            <input type="checkbox" name="tds" id="tds{{$user->id}}">
+                                            <input type="checkbox" name="tdsModule" id="tdsModule{{$user->id}}">
                                         @endif
                                         TDS
                                         <br>

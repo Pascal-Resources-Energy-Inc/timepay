@@ -83,7 +83,7 @@
                 </a>
               </p>
 
-              <form method='get' action="{{ route('tds.index') }}">
+              <form method='get' action="{{ route('tds.tdsModule') }}">
                 <div class=row>
                   <div class='col-md-2'>
                     <div class="form-group">

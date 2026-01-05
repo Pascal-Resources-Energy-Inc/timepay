@@ -564,8 +564,8 @@
                         <hr>
                         <h5>TDS Dashboard</h5>
                     </li>
-                    <li class="nav-item @if ($header == 'tds') active @endif">
-                        <a class="nav-link" href="{{ url('tds') }}" onclick='show()'>
+                    <li class="nav-item @if ($header == 'tdsModule') active @endif">
+                        <a class="nav-link" href="{{ url('tdsModule') }}" onclick='show()'>
                             <i class="icon-bag menu-icon"></i>
                             <span class="menu-title">TDS</span>
                         </a>

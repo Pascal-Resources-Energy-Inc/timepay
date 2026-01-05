@@ -80,8 +80,15 @@ class TDSController extends Controller
             ->orderBy('province')
             ->get();
 
-        return view('forms.tds.index', compact('tdsRecords', 'stats', 'regions'))
-            ->with('header', 'tds');
+        return view(
+            'forms.tds.tdsModule',
+            array(
+                'header'  => 'tdsModule',
+                'tdsRecords' => $tdsRecords,
+                'stats' => $stats,
+                'regions' => $regions,
+            )
+        );
     }
 
     public function show($id)
@@ -605,7 +612,7 @@ class TDSController extends Controller
 
             DB::commit();
 
-            return redirect()->route('tds.index')
+            return redirect()->route('tds.tdsModule')
                 ->with('success', 'Dealer registered successfully!');
 
         } catch (\Exception $e) {
@@ -674,12 +681,12 @@ class TDSController extends Controller
 
             DB::commit();
 
-            return redirect()->route('tds.index')
+            return redirect()->route('tds.tdsModule')
                 ->with('success', 'Dealer record deleted successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('tds.index')
+            return redirect()->route('tds.tdsModule')
                 ->with('error', 'Failed to delete dealer: ' . $e->getMessage());
         }
     }
@@ -727,7 +734,7 @@ class TDSController extends Controller
                 ? "Sales target set successfully for {$user->name}!" 
                 : "Sales target updated successfully for {$user->name}!";
 
-            return redirect()->route('tds.index')
+            return redirect()->route('tds.tdsModule')
                 ->with('success', $message);
 
         } catch (\Exception $e) {

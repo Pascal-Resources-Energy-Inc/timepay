@@ -110,7 +110,7 @@
     Route::get('/purchase/export', 'PurchaseController@export')->name('purchase.export');
 
     //TDS
-    Route::get('/tds', 'TDSController@index')->name('tds.index');
+    Route::get('/tdsModule', 'TDSController@index')->name('tds.tdsModule');
     Route::post('/tds/store', 'TDSController@store')->name('tds.store');
     Route::get('/tds/export', 'TDSController@export')->name('tds.export');
     Route::post('/tds/update-target', 'TDSController@updateSalesTarget')->name('tds.update-target');

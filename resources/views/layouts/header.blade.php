@@ -559,7 +559,7 @@
                     </li>
                     @endif
 
-                    @if (auth()->user()->role == 'Admin' || checkUserPrivilege('sales_performance', auth()->user()->id) == 'yes' || checkUserPrivilege('tds', auth()->user()->id) == 'yes')
+                    @if (auth()->user()->role == 'Admin' || checkUserPrivilege('sales_performance', auth()->user()->id) == 'yes' || checkUserPrivilege('tdsModule', auth()->user()->id) == 'yes')
                     <li class="nav-item">
                         <hr>
                         <h5>TDS Dashboard</h5>

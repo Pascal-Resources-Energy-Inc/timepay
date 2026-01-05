@@ -559,6 +559,7 @@
                     </li>
                     @endif
 
+                    @if (auth()->user()->role == 'Admin' || checkUserPrivilege('sales_performance', auth()->user()->id) == 'yes' || checkUserPrivilege('tds', auth()->user()->id) == 'yes')
                     <li class="nav-item">
                         <hr>
                         <h5>TDS Dashboard</h5>
@@ -569,6 +570,8 @@
                             <span class="menu-title">TDS</span>
                         </a>
                     </li>
+                    @endif
+                    
                     @if (auth()->user()->role == 'Admin' || checkUserPrivilege('sales_performance', auth()->user()->id) == 'yes')
                     <li class="nav-item @if ($header == 'tdsDashboard') active @endif ">
                         <a class="nav-link" href="{{ url('/tdsdashboard') }}" onclick='show()'>

@@ -411,7 +411,7 @@
                                     <div class="col-md-6 form-group">
                                         <h5>Modules</h5>
                                         @if($user->user_privilege)
-                                            @if($user->user_privilege->tds == 'on')
+                                            @if($user->user_privilege->tdsModule == 'on')
                                                 <input type="checkbox" name="tdsModule" id="tdsModule{{$user->id}}" value="{{ $user->user_privilege->tdsModule }}" checked>
                                             @else
                                                 <input type="checkbox" name="tdsModule" id="tdsModule{{$user->id}}">

@@ -101,6 +101,35 @@
           <div class="row">
             <div class="col-md-12">
               <div class="form-group">
+                <label>Location/Address <span class="text-danger">*</span></label>
+                <textarea class="form-control" 
+                          name="location" rows="2" 
+                          placeholder="Complete business address"
+                          required>{{ old('location') }}</textarea>
+                <small class="form-text text-muted">Full address of the business</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                <label>Business Image <span class="text-danger">*</span></label>
+                <input type="file" class="form-control-file" 
+                      name="business_image" 
+                      accept="image/jpeg,image/jpg,image/png"
+                      required>
+                <small class="form-text text-muted">Upload business photo (JPG, JPEG, PNG - Max 5MB)</small>
+                <div id="imagePreview" class="mt-2" style="display: none;">
+                  <img src="" alt="Preview" style="max-width: 200px; max-height: 200px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
                 <label>Awarded Area</label>
                 <input type="text" class="form-control" 
                        name="awarded_area" value="{{ old('awarded_area') }}" 
@@ -242,3 +271,42 @@
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.querySelector('input[name="business_image"]');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = imagePreview.querySelector('img');
+    
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Image size must not exceed 5MB');
+                    this.value = '';
+                    imagePreview.style.display = 'none';
+                    return;
+                }
+                
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+                if (!validTypes.includes(file.type)) {
+                    alert('Please upload a valid image (JPG, JPEG, or PNG)');
+                    this.value = '';
+                    imagePreview.style.display = 'none';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.style.display = 'none';
+            }
+        });
+    }
+});
+</script>

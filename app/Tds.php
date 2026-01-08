@@ -20,6 +20,8 @@ class Tds extends Model
         'business_name',
         'awarded_area',
         'business_type',
+        'location',
+        'business_image',
         'package_type',
         'purchase_amount',
         'program_type',

@@ -552,6 +552,8 @@ class TDSController extends Controller
             'area' => 'required|integer|exists:regions,id',
             'customer_name' => 'required|string|max:255',
             'contact_no' => 'required|string|max:255',
+            'location' => 'required|string|max:500',
+            'business_image' => 'required|image|mimes:jpeg,jpg,png|max:5120',
             'business_name' => 'required|string|max:255',
             'business_type' => 'required|string|max:255',
             'awarded_area' => 'nullable|string|max:255',
@@ -571,6 +573,11 @@ class TDSController extends Controller
             'status.in' => 'Status must be Decline, Interested, For Delivery, or Delivered',
             'area.exists' => 'Selected area is invalid',
             'program_area.required_if' => 'Program area is required for Roadshow and Mini-Roadshow',
+            'location.required' => 'Business location is required',
+            'business_image.required' => 'Business image is required',
+            'business_image.image' => 'File must be an image',
+            'business_image.mimes' => 'Image must be JPG, JPEG, or PNG',
+            'business_image.max' => 'Image size must not exceed 5MB',
             'document_attachment.mimes' => 'Document must be a PDF, DOC, DOCX, JPG, JPEG, or PNG file',
             'document_attachment.max' => 'Document size must not exceed 5MB',
         ]);
@@ -578,11 +585,18 @@ class TDSController extends Controller
         DB::beginTransaction();
         try {
             $documentFileName = null;
+            $businessImageFileName = null;
             
             if ($request->hasFile('document_attachment')) {
                 $file = $request->file('document_attachment');
                 $documentFileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
                 $file->storeAs('public/tds_documents', $documentFileName);
+            }
+
+            if ($request->hasFile('business_image')) {
+                $image = $request->file('business_image');
+                $businessImageFileName = time() . '_business_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $image->storeAs('public/tds_images', $businessImageFileName);
             }
 
             $tds = Tds::create([
@@ -591,6 +605,8 @@ class TDSController extends Controller
                 'area' => $request->area,
                 'customer_name' => $request->customer_name,
                 'contact_no' => $request->contact_no,
+                'location' => $request->location,
+                'business_image' => $businessImageFileName,
                 'business_name' => $request->business_name,
                 'awarded_area' => $request->awarded_area,
                 'business_type' => $request->business_type,
@@ -610,6 +626,7 @@ class TDSController extends Controller
             $tds->logActivity('created', [
                 'customer_name' => $request->customer_name,
                 'business_name' => $request->business_name,
+                'location' => $request->location,
                 'package_type' => $request->package_type,
                 'purchase_amount' => $request->purchase_amount,
                 'program_type' => $request->program_type,
@@ -626,6 +643,9 @@ class TDSController extends Controller
             
             if (isset($documentFileName) && $documentFileName) {
                 \Storage::delete('public/tds_documents/' . $documentFileName);
+            }
+            if (isset($businessImageFileName) && $businessImageFileName) {
+                \Storage::delete('public/tds_images/' . $businessImageFileName);
             }
             
             return redirect()->back()

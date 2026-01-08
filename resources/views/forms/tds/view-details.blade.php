@@ -83,6 +83,10 @@
                 <th>Business Type:</th>
                 <td>{{ $record->business_type }}</td>
               </tr>
+              <tr>
+                <th>Business Location:</th>
+                <td style="word-wrap: break-word; word-break: break-word; white-space: normal;">{{ $record->location }}</td>
+              </tr>
               @if($record->awarded_area)
               <tr>
                 <th>Awarded Area:</th>
@@ -95,6 +99,23 @@
         </div>
 
         <hr class="my-4">
+
+        @if($record->business_image)
+        <div class="row mb-4">
+          <div class="col-md-12">
+            <h5 class="text-primary mb-3">Business Image</h5>
+            <div class="text-center">
+              <img src="{{ asset('storage/tds_images/' . $record->business_image) }}" 
+                   alt="Business Image" 
+                   class="img-fluid img-thumbnail"
+                   style="max-height: 400px; cursor: pointer;"
+                   onclick="window.open(this.src, '_blank')">
+              <p class="text-muted mt-2"><small>Click image to view full size</small></p>
+            </div>
+          </div>
+        </div>
+        <hr class="my-4">
+        @endif
 
         <div class="row">
           

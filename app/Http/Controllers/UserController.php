@@ -34,7 +34,7 @@ class UserController extends Controller
     //
     public function index(Request $request){
 
-        if (in_array(auth()->user()->id, [1, 26, 725])){
+        if (in_array(auth()->user()->id, [1, 26, 725,62])){
             $search = isset($request->search) ? $request->search : "";
             $limit = isset($request->limit) ? $request->limit : 1000;
             $companies = Company::whereHas('employee_has_company')->orderBy('company_name','ASC')->get();

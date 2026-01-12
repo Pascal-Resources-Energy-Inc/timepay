@@ -905,32 +905,25 @@ class TDSController extends Controller
             }
         }
 
-        $logs = $query->paginate(50);
+        $perPage = $request->input('per_page', 50);
+        $perPage = in_array($perPage, [10, 25, 50, 100, 200]) ? $perPage : 50;
 
-        try {
-            $actions = TdsActivityLog::select('action')
-                ->distinct()
-                ->whereNotNull('action')
-                ->orderBy('action')
-                ->pluck('action')
-                ->toArray();
-        } catch (\Exception $e) {
-            \Log::error('Error fetching actions: ' . $e->getMessage());
-            $actions = [];
-        }
+        $logs = $query->paginate($perPage);
 
-        if (!is_array($actions) || empty($actions)) {
+        $actions = TdsActivityLog::select('action')
+            ->distinct()
+            ->whereNotNull('action')
+            ->orderBy('action')
+            ->pluck('action')
+            ->toArray();
+
+        if (empty($actions)) {
             $actions = ['created', 'updated', 'status_updated', 'deleted'];
         }
 
         $users = collect([]);
         if (auth()->user()->role == 'Admin') {
-            try {
-                $users = \App\User::orderBy('name')->get();
-            } catch (\Exception $e) {
-                \Log::error('Error fetching users: ' . $e->getMessage());
-                $users = collect([]);
-            }
+            $users = \App\User::orderBy('name')->get();
         }
 
         return view('forms.tds.history', [

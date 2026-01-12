@@ -58,6 +58,27 @@
   .timeline-item.deleted::before {
     background: #dc3545;
   }
+  .pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  .entries-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .entries-control label {
+    margin: 0;
+    white-space: nowrap;
+  }
+  .entries-control select {
+    width: auto;
+    min-width: 80px;
+  }
 </style>
 @endsection
 
@@ -76,7 +97,7 @@
               Track all changes and activities in the TDS module
             </p>
 
-            <form method='get' action="{{ route('tds.history') }}" class="mb-4">
+            <form method='get' action="{{ route('tds.history') }}" id="filterForm" class="mb-4">
               <div class="row">
                 <div class='col-md-3'>
                   <div class="form-group">
@@ -137,7 +158,26 @@
                   </button>
                 </div>
               </div>
+              <input type="hidden" name="per_page" value="{{ request('per_page', 50) }}">
             </form>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="entries-control">
+                <label for="perPageSelect">Show</label>
+                <select id="perPageSelect" class="form-control form-control-sm" onchange="changePerPage(this.value)">
+                  <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                  <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                  <option value="50" {{ request('per_page', 50) == 50 ? 'selected' : '' }}>50</option>
+                  <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                  <option value="200" {{ request('per_page') == 200 ? 'selected' : '' }}>200</option>
+                </select>
+                <label>entries</label>
+              </div>
+              
+              <div class="text-muted">
+                Showing {{ $logs->firstItem() ?? 0 }} to {{ $logs->lastItem() ?? 0 }} of {{ $logs->total() }} entries
+              </div>
+            </div>
 
             <div class="table-responsive">
               <table class="table table-hover">
@@ -263,17 +303,13 @@
               </table>
             </div>
 
-            <div class="mt-3">
-              {{ $logs->appends(request()->query())->links() }}
-            </div>
-
-            <div class="row mt-4">
-              <div class="col-md-12">
-                <div class="alert alert-info">
-                  <strong>Summary:</strong> 
-                  Showing {{ $logs->firstItem() ?? 0 }} to {{ $logs->lastItem() ?? 0 }} 
-                  of {{ $logs->total() }} activity logs
-                </div>
+            <div class="pagination-controls">
+              <div class="text-muted">
+                Showing {{ $logs->firstItem() ?? 0 }} to {{ $logs->lastItem() ?? 0 }} of {{ $logs->total() }} entries
+              </div>
+              
+              <div>
+                {{ $logs->appends(request()->query())->links() }}
               </div>
             </div>
 
@@ -298,5 +334,12 @@ $(document).ready(function() {
     width: '100%'
   });
 });
+
+function changePerPage(value) {
+  const form = document.getElementById('filterForm');
+  const input = form.querySelector('input[name="per_page"]');
+  input.value = value;
+  form.submit();
+}
 </script>
 @endsection

@@ -584,8 +584,8 @@
                     @if (auth()->user()->role == 'Admin')
                     <li class="nav-item @if ($header == 'history') active @endif">
                         <a class="nav-link" href="{{ route('tds.history') }}" onclick='show()'>
-                            <i class="ti-clipboard menu-icon"></i>
-                            <span class="menu-title">History</span>
+                            <i class="ti-time menu-icon"></i>
+                            <span class="menu-title">Audit Trail</span>
                         </a>
                     </li>
                     @endif

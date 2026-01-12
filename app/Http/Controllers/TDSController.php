@@ -568,6 +568,8 @@ class TDSController extends Controller
             'delivery_date' => 'nullable|date',
             'document_attachment' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
             'additional_notes' => 'nullable|string',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
         ], [
             'package_type.in' => 'Package type must be EU, D, MD, or AD',
             'status.in' => 'Status must be Decline, Interested, For Delivery, or Delivered',
@@ -621,6 +623,8 @@ class TDSController extends Controller
                 'delivery_date' => $request->delivery_date,
                 'document_attachment' => $documentFileName,
                 'additional_notes' => $request->additional_notes,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
             ]);
 
             $tds->logActivity('created', [
@@ -872,5 +876,68 @@ class TDSController extends Controller
 
         fclose($output);
         exit;
+    }
+
+    public function history(Request $request)
+    {
+        if (auth()->user()->role != 'Admin' 
+            && checkUserPrivilege('tdsModule', auth()->user()->id) != 'yes'
+            && checkUserPrivilege('sales_performance', auth()->user()->id) != 'yes') {
+            abort(403, 'Unauthorized access to TDS History.');
+        }
+
+        $query = TdsActivityLog::with(['user', 'tds.region'])
+            ->latest();
+
+        if ($request->from && $request->to) {
+            $query->whereBetween('created_at', [$request->from . ' 00:00:00', $request->to . ' 23:59:59']);
+        }
+
+        if ($request->action) {
+            $query->where('action', $request->action);
+        }
+
+        if ($request->user_id && auth()->user()->role == 'Admin') {
+            $query->where('user_id', $request->user_id);
+        } else {
+            if (auth()->user()->role != 'Admin') {
+                $query->where('user_id', auth()->id());
+            }
+        }
+
+        $logs = $query->paginate(50);
+
+        try {
+            $actions = TdsActivityLog::select('action')
+                ->distinct()
+                ->whereNotNull('action')
+                ->orderBy('action')
+                ->pluck('action')
+                ->toArray();
+        } catch (\Exception $e) {
+            \Log::error('Error fetching actions: ' . $e->getMessage());
+            $actions = [];
+        }
+
+        if (!is_array($actions) || empty($actions)) {
+            $actions = ['created', 'updated', 'status_updated', 'deleted'];
+        }
+
+        $users = collect([]);
+        if (auth()->user()->role == 'Admin') {
+            try {
+                $users = \App\User::orderBy('name')->get();
+            } catch (\Exception $e) {
+                \Log::error('Error fetching users: ' . $e->getMessage());
+                $users = collect([]);
+            }
+        }
+
+        return view('forms.tds.history', [
+            'header' => 'history',
+            'logs' => $logs,
+            'actions' => $actions,
+            'users' => $users
+        ]);
     }
 }

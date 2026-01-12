@@ -112,6 +112,7 @@
     //TDS
     Route::get('/tdsModule', 'TDSController@index')->name('tds.tdsModule');
     Route::post('/tds/store', 'TDSController@store')->name('tds.store');
+    Route::get('/tds/history', 'TDSController@history')->name('tds.history');
     Route::get('/tds/export', 'TDSController@export')->name('tds.export');
     Route::post('/tds/update-target', 'TDSController@updateSalesTarget')->name('tds.update-target');
     Route::get('/tds/get-employee-target', 'TDSController@getEmployeeTarget')->name('tds.get-employee-target');

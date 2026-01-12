@@ -582,6 +582,15 @@
                     @endif
 
                     @if (auth()->user()->role == 'Admin')
+                    <li class="nav-item @if ($header == 'history') active @endif">
+                        <a class="nav-link" href="{{ route('tds.history') }}" onclick='show()'>
+                            <i class="ti-clipboard menu-icon"></i>
+                            <span class="menu-title">History</span>
+                        </a>
+                    </li>
+                    @endif
+
+                    @if (auth()->user()->role == 'Admin')
                     <li class="nav-item">
                         <hr>
                         <h5>Super Admin</h5>

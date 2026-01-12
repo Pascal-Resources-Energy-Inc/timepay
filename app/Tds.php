@@ -33,6 +33,8 @@ class Tds extends Model
         'delivery_date',
         'document_attachment',
         'additional_notes',
+        'latitude',
+        'longitude',
     ];
 
     protected $dates = ['date_of_registration', 'timeline', 'delivery_date', 'deleted_at'];
@@ -60,7 +62,7 @@ class Tds extends Model
             'action' => $action,
             'record_type' => 'tds',
             'record_identifier' => "TDS-{$this->id}",
-            'details' => is_array($details) ? json_encode($details) : $details,
+            'details' => $details,
         ]);
     }
 

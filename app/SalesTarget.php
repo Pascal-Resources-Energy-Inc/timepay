@@ -28,7 +28,7 @@ class SalesTarget extends Model
             'action' => $action,
             'record_type' => 'sales_target',
             'record_identifier' => "TARGET-{$this->id}",
-            'details' => is_array($details) ? json_encode($details) : $details,
+            'details' => $details,
         ]);
     }
 

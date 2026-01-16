@@ -29,7 +29,7 @@ class TDSController extends Controller
         $currentUserId = auth()->id();
 
         if (auth()->user()->role != 'Admin' 
-            && checkUserPrivilege('tdsModule', auth()->user()->id) != 'yes'
+            && checkUserPrivilege('tds', auth()->user()->id) != 'yes'
             && checkUserPrivilege('sales_performance', auth()->user()->id) != 'yes') {
             abort(403, 'Unauthorized access to TDS.');
         }
@@ -561,7 +561,7 @@ class TDSController extends Controller
             'purchase_amount' => 'required|numeric|min:0',
             'program_type' => 'nullable|in:Roadshow,Mini-Roadshow,Non-Roadshow',
             'program_area' => 'required_if:program_type,Roadshow,Mini-Roadshow|nullable|string|max:255',
-            'lead_generator' => 'required|string|max:255',
+            'lead_generator' => 'required|in:FB,Events,Kaagapay,Referral,MFI,MD,PD,AD,Own Accounts',
             'supplier_name' => 'required|string|max:255',
             'status' => 'required|in:Decline,Interested,For Delivery,Delivered',
             'timeline' => 'nullable|date',
@@ -881,7 +881,7 @@ class TDSController extends Controller
     public function history(Request $request)
     {
         if (auth()->user()->role != 'Admin' 
-            && checkUserPrivilege('tdsModule', auth()->user()->id) != 'yes'
+            && checkUserPrivilege('tds', auth()->user()->id) != 'yes'
             && checkUserPrivilege('sales_performance', auth()->user()->id) != 'yes') {
             abort(403, 'Unauthorized access to TDS History.');
         }
@@ -931,6 +931,42 @@ class TDSController extends Controller
             'logs' => $logs,
             'actions' => $actions,
             'users' => $users
+        ]);
+    }
+
+    public function allSubmissions(Request $request)
+    {
+        if (auth()->user()->role != 'Admin' 
+            && checkUserPrivilege('tds_records', auth()->user()->id) != 'yes') {
+            abort(403, 'Unauthorized access to TDS Submissions.');
+        }
+
+        $query = Tds::with(['user', 'region']);
+
+        if ($request->from && $request->to) {
+            $query->whereBetween('date_of_registration', [$request->from, $request->to]);
+        }
+
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('customer_name', 'LIKE', "%{$search}%")
+                ->orWhere('business_name', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $query->latest('created_at');
+
+        $perPage = $request->input('per_page', 25);
+        
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 25;
+
+        $submissions = $query->paginate($perPage)->appends($request->query());
+
+        return view('forms.tds.records', [
+            'header' => 'allSubmissions',
+            'submissions' => $submissions,
+            'tdsRecords' => $submissions
         ]);
     }
 }

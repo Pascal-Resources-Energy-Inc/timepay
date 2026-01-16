@@ -581,6 +581,15 @@
                     </li>
                     @endif
 
+                    @if (auth()->user()->role == 'Admin' || checkUserPrivilege('tds_records', auth()->user()->id) == 'yes')
+                    <li class="nav-item @if ($header == 'allSubmissions') active @endif">
+                        <a class="nav-link" href="{{ route('tds.records') }}" onclick='show()'>
+                            <i class="ti-list menu-icon"></i>
+                            <span class="menu-title">All Records</span>
+                        </a>
+                    </li>
+                    @endif
+
                     @if (auth()->user()->role == 'Admin')
                     <li class="nav-item @if ($header == 'history') active @endif">
                         <a class="nav-link" href="{{ route('tds.history') }}" onclick='show()'>

@@ -411,15 +411,28 @@
                                     <div class="col-md-6 form-group">
                                         <h5>Modules</h5>
                                         @if($user->user_privilege)
-                                            @if($user->user_privilege->tdsModule == 'on')
-                                                <input type="checkbox" name="tdsModule" id="tdsModule{{$user->id}}" value="{{ $user->user_privilege->tdsModule }}" checked>
+                                            @if($user->user_privilege->tds == 'on')
+                                                <input type="checkbox" name="tds" id="tds{{$user->id}}" value="{{ $user->user_privilege->tds }}" checked>
                                             @else
-                                                <input type="checkbox" name="tdsModule" id="tdsModule{{$user->id}}">
+                                                <input type="checkbox" name="tds" id="tds{{$user->id}}">
                                             @endif
                                         @else
-                                            <input type="checkbox" name="tdsModule" id="tdsModule{{$user->id}}">
+                                            <input type="checkbox" name="tds" id="tds{{$user->id}}">
                                         @endif
                                         TDS
+                                        <br>
+                                        <br>
+
+                                        @if($user->user_privilege)
+                                            @if($user->user_privilege->tds_records == 'on')
+                                                <input type="checkbox" name="tds_records" id="tds_records{{$user->id}}" value="{{ $user->user_privilege->tds_records }}" checked>
+                                            @else
+                                                <input type="checkbox" name="tds_records" id="tds_records{{$user->id}}">
+                                            @endif
+                                        @else
+                                            <input type="checkbox" name="tds_records" id="tds_records{{$user->id}}">
+                                        @endif
+                                        TDS Records
                                         <br>
                                         <br>
                                     </div>

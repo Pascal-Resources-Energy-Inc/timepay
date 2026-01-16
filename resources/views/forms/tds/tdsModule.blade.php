@@ -415,11 +415,7 @@ $(document).ready(function() {
   });
 
   $('#program_type').trigger('change');
-});
-</script>
 
-<script>
-$(document).ready(function() {
   $('select[name="area"]').select2({
     placeholder: '-- Select Area --',
     allowClear: true,
@@ -427,73 +423,118 @@ $(document).ready(function() {
     width: '100%'
   });
 
-  $('.select2-employee').select2({
-    ajax: {
-      url: '{{ route("tds.get-all-users") }}',
-      dataType: 'json',
-      delay: 250,
-      data: function (params) {
-        return {
-          search: params.term,
-          page: params.page || 1
-        };
+  let employeeSelect2Instance = null;
+
+  $('#setSalesTarget').on('shown.bs.modal', function () {
+    if ($('.select2-employee').hasClass('select2-hidden-accessible')) {
+      $('.select2-employee').select2('destroy');
+    }
+
+    employeeSelect2Instance = $('.select2-employee').select2({
+      dropdownParent: $('#setSalesTarget'),
+      placeholder: '-- Type to search employee --',
+      allowClear: true,
+      minimumInputLength: 2,
+      width: '100%',
+      ajax: {
+        url: '{{ route("tds.get-all-users") }}',
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+          return {
+            search: params.term,
+            page: params.page || 1
+          };
+        },
+        processResults: function (data, params) {
+          params.page = params.page || 1;
+          return {
+            results: data.results,
+            pagination: {
+              more: data.pagination && data.pagination.more
+            }
+          };
+        },
+        cache: true
       },
-      processResults: function (data, params) {
-        params.page = params.page || 1;
-        
-        return {
-          results: data.results,
-          pagination: {
-            more: (params.page * 20) < data.total
-          }
-        };
-      },
-      cache: true
-    },
-    placeholder: '-- Search for an employee --',
-    minimumInputLength: 0,
-    allowClear: true,
-    dropdownParent: $('#setSalesTarget')
+      language: {
+        inputTooShort: function () {
+          return 'Please enter at least 2 characters to search';
+        },
+        searching: function () {
+          return 'Searching employees...';
+        },
+        noResults: function () {
+          return 'No employees found';
+        }
+      }
+    });
+
+    $('.select2-employee').on('select2:select', function (e) {
+      const selectedUserId = e.params.data.id;
+      const selectedMonth = $('#target_month').val();
+      
+      if (selectedUserId && selectedMonth) {
+        loadEmployeeTarget(selectedUserId, selectedMonth);
+      }
+    });
   });
 
-  $('#employee_select, #target_month').on('change', function() {
-    var userId = $('#employee_select').val();
-    var month = $('#target_month').val();
+  $('#target_month').on('change', function() {
+    const selectedUserId = $('#employee_select').val();
+    const selectedMonth = $(this).val();
     
-    if (userId && month) {
-      $.ajax({
-        url: '{{ route("tds.get-employee-target") }}',
-        method: 'GET',
-        data: {
-          user_id: userId,
-          month: month
-        },
-        success: function(response) {
-          $('#target_amount').val(response.target_amount);
-          $('#target_notes').val(response.notes || '');
-          
-          if (response.target_amount != 200000) {
-            $('#current_target_info').text('Current target: ₱' + parseFloat(response.target_amount).toLocaleString());
-            $('#current_target_info').addClass('text-info');
-          } else {
-            $('#current_target_info').text('No target set. Using default: ₱200,000');
-            $('#current_target_info').removeClass('text-info');
-          }
-        },
-        error: function() {
-          $('#target_amount').val(200000);
-          $('#target_notes').val('');
-          $('#current_target_info').text('');
-        }
-      });
+    if (selectedUserId && selectedMonth) {
+      loadEmployeeTarget(selectedUserId, selectedMonth);
     }
   });
 
   $('#setSalesTarget').on('hidden.bs.modal', function () {
+    if ($('.select2-employee').hasClass('select2-hidden-accessible')) {
+      $('.select2-employee').val(null).trigger('change');
+    }
     $('#salesTargetForm')[0].reset();
-    $('#employee_select').val(null).trigger('change');
-    $('#current_target_info').text('');
+    $('#current_target_info').html('');
+    $('#target_amount').val(200000);
+    $('#target_month').val('{{ date('Y-m') }}');
   });
+
+  function loadEmployeeTarget(userId, month) {
+    $.ajax({
+      url: '{{ route("tds.get-employee-target") }}',
+      method: 'GET',
+      data: {
+        user_id: userId,
+        month: month
+      },
+      success: function(response) {
+        if (response.target_amount) {
+          $('#target_amount').val(response.target_amount);
+          $('#current_target_info').html(
+            '<span class="text-info">Current target: ₱' + 
+            parseFloat(response.target_amount).toLocaleString('en-PH', {minimumFractionDigits: 2}) + 
+            '</span>'
+          );
+        } else {
+          $('#target_amount').val(200000);
+          $('#current_target_info').html(
+            '<span class="text-muted">No existing target for this month</span>'
+          );
+        }
+        
+        if (response.notes) {
+          $('#target_notes').val(response.notes);
+        } else {
+          $('#target_notes').val('');
+        }
+      },
+      error: function() {
+        $('#target_amount').val(200000);
+        $('#current_target_info').html('');
+        $('#target_notes').val('');
+      }
+    });
+  }
 });
 </script>
 @endsection

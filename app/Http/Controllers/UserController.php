@@ -34,7 +34,7 @@ class UserController extends Controller
     //
     public function index(Request $request){
 
-        if (in_array(auth()->user()->id, [1, 26, 725,62])){
+        if (in_array(auth()->user()->id, [1, 26, 725,62, 733])){
             $search = isset($request->search) ? $request->search : "";
             $limit = isset($request->limit) ? $request->limit : 1000;
             $companies = Company::whereHas('employee_has_company')->orderBy('company_name','ASC')->get();
@@ -191,8 +191,8 @@ class UserController extends Controller
                 $user_privilege->settings_delete = $request->settings_delete;
                 
                 $user_privilege->sales_performance = $request->sales_performance;
-                $user_privilege->tdsModule = $request->tdsModule;
-
+                $user_privilege->tds = $request->tds;
+                $user_privilege->tds_records = $request->tds_records;
 
                 $user_privilege->masterfiles_companies = $request->masterfiles_companies;
                 $user_privilege->masterfiles_departments = $request->masterfiles_departments;
@@ -241,7 +241,8 @@ class UserController extends Controller
                 $new_user_privilege->settings_delete = $request->settings_delete;
 
                 $new_user_privilege->sales_performance = $request->sales_performance;
-                $new_user_privilege->tdsModule = $request->tdsModule;
+                $new_user_privilege->tds = $request->tds;
+                $new_user_privilege->tds_records = $request->tds_records;
 
                 $new_user_privilege->masterfiles_companies = $request->masterfiles_companies;
                 $new_user_privilege->masterfiles_departments = $request->masterfiles_departments;

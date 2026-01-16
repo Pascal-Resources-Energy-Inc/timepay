@@ -254,9 +254,19 @@
             <div class="col-md-4">
               <div class="form-group">
                 <label>Lead Generator <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" 
-                       name="lead_generator" value="{{ old('lead_generator') }}" 
-                       placeholder="e.g., Other Accounts" required>
+                <select class="form-control" name="lead_generator" required onclick="event.stopPropagation();">
+                  <option value="">-- Select Lead Generator --</option>
+                  <option value="FB" {{ old('lead_generator') == 'FB' ? 'selected' : '' }}>FB</option>
+                  <option value="Events" {{ old('lead_generator') == 'Events' ? 'selected' : '' }}>Events</option>
+                  <option value="Kaagapay" {{ old('lead_generator') == 'Kaagapay' ? 'selected' : '' }}>Kaagapay</option>
+                  <option value="Referral" {{ old('lead_generator') == 'Referral' ? 'selected' : '' }}>Referral</option>
+                  <option value="MFI" {{ old('lead_generator') == 'MFI' ? 'selected' : '' }}>MFI</option>
+                  <option value="MD" {{ old('lead_generator') == 'MD' ? 'selected' : '' }}>MD</option>
+                  <option value="PD" {{ old('lead_generator') == 'PD' ? 'selected' : '' }}>PD</option>
+                  <option value="AD" {{ old('lead_generator') == 'AD' ? 'selected' : '' }}>AD</option>
+                  <option value="Own Accounts" {{ old('lead_generator') == 'Own Accounts' ? 'selected' : '' }}>Own Accounts</option>
+                </select>
+                <small class="form-text text-muted">Source of the lead</small>
               </div>
             </div>
           </div>

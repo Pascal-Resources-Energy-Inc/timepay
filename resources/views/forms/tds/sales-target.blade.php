@@ -20,9 +20,9 @@
                     name="user_id" 
                     id="employee_select" 
                     required>
-              <option value="">-- Select Employee --</option>
+              <option value="">-- Type to search employee --</option>
             </select>
-            <small class="form-text text-muted">Search and select the TDS employee</small>
+            <small class="form-text text-muted">Start typing to search for employees (minimum 2 characters)</small>
           </div>
 
           <div class="form-group">

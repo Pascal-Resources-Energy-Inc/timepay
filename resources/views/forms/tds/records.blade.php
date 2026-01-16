@@ -1,0 +1,200 @@
+@extends('layouts.header')
+
+@section('head')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<style>
+    .table-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    .entries-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .entries-control label {
+        margin: 0;
+        margin-bottom: 0 !important;
+        white-space: nowrap;
+        line-height: 1;
+        padding-top: 8px;
+    }
+    .entries-control select {
+        width: 80px;
+        display: inline-block;
+        margin: 0;
+    }
+</style>
+@endsection
+
+@section('content')
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class='row'>
+            <div class="col-lg-12 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">All TDS Submissions</h4>
+                        <p class="card-description">
+                            View all submitted sales records
+                        </p>
+
+                        <form method='get' action="{{ route('tds.records') }}" id="filterForm" class="mb-4">
+                            <div class="row">
+                                <div class='col-md-3'>
+                                    <div class="form-group">
+                                        <label>From Date</label>
+                                        <input type="date" value='{{ request("from") }}' class="form-control form-control-sm" name="from" max='{{ date("Y-m-d") }}' />
+                                    </div>
+                                </div>
+                                <div class='col-md-3'>
+                                    <div class="form-group">
+                                        <label>To Date</label>
+                                        <input type="date" value='{{ request("to") }}' class="form-control form-control-sm" name="to" max='{{ date("Y-m-d") }}' />
+                                    </div>
+                                </div>
+                                <div class='col-md-3'>
+                                    <div class="form-group">
+                                        <label>Search</label>
+                                        <input type="text" value='{{ request("search") }}' class="form-control form-control-sm" name="search" placeholder="Customer name or business name" />
+                                    </div>
+                                </div>
+                                <div class='col-md-3'>
+                                    <div class="form-group">
+                                        <label>&nbsp;</label>
+                                        <div>
+                                            <div class='col-md-3'>
+                                                <button type="submit" class="btn btn-primary mb-2">Filter</button>
+                                            </div>
+                                            {{-- <a href="{{ route('tds.records') }}" class="btn btn-secondary btn-sm">
+                                                <i class="ti-reload"></i> Reset
+                                            </a> --}}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" name="per_page" id="per_page_input" value="{{ request('per_page', 25) }}">
+                        </form>
+
+                        <div class="table-controls">
+                            <div class="entries-control">
+                                <label for="entries">Show</label>
+                                <select class="form-control form-control-sm" id="entries" style="width: 80px;">
+                                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                                    <option value="25" {{ request('per_page', 25) == 25 ? 'selected' : '' }}>25</option>
+                                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                                </select>
+                                <label>entries</label>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Date Registered</th>
+                                        <th>Submitted At</th>
+                                        <th>Employee Name</th>
+                                        <th>Area</th>
+                                        <th>Customer Name</th>
+                                        <th>Business Name</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($submissions as $record)
+                                    <tr>
+                                        <td>{{ \Carbon\Carbon::parse($record->date_of_registration)->format('M d, Y') }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($record->created_at)->format('M d, Y h:i A') }}</td>
+                                        <td>{{ $record->user->name ?? 'N/A' }}</td>
+                                        <td>
+                                            {{ optional($record->region)->region ? optional($record->region)->region . ' - ' . optional($record->region)->province . (optional($record->region)->district ? ' - ' . optional($record->region)->district : '') : 'N/A' }}
+                                        </td>
+                                        <td>{{ $record->customer_name }}</td>
+                                        <td>{{ $record->business_name }}</td>
+                                        <td>
+                                            @if($record->status == 'Delivered')
+                                                <span class="badge badge-success">Delivered</span>
+                                            @elseif($record->status == 'For Delivery')
+                                                <span class="badge badge-warning">For Delivery</span>
+                                            @elseif($record->status == 'Interested')
+                                                <span class="badge badge-info">Interested</span>
+                                            @elseif($record->status == 'Decline')
+                                                <span class="badge badge-danger">Decline</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary view-details-btn" 
+                                                    data-toggle="modal" 
+                                                    data-target="#viewDetails{{ $record->id }}"
+                                                    title="View Details">
+                                                <i class="ti-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="8" class="text-center">No submissions found</td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-4 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-muted">
+                                    Showing {{ $submissions->firstItem() ?? 0 }} to {{ $submissions->lastItem() ?? 0 }} of {{ $submissions->total() }} entries
+                                </span>
+                            </div>
+                            <div>
+                                {{ $submissions->links() }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@include('forms/tds/view-details', ['tdsRecords' => $submissions])
+
+@endsection
+
+@section('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  document.getElementById('entries').addEventListener('change', function() {
+      document.getElementById('per_page_input').value = this.value;
+      document.getElementById('filterForm').submit();
+  });
+
+  @if(session('success'))
+    Swal.fire({
+      icon: 'success',
+      title: 'Success!',
+      text: '{{ session('success') }}',
+      timer: 3000,
+      showConfirmButton: true,
+      confirmButtonColor: '#28a745'
+    });
+  @endif
+
+  @if(session('error'))
+    Swal.fire({
+      icon: 'error',
+      title: 'Oops...',
+      text: '{{ session('error') }}',
+      confirmButtonColor: '#dc3545'
+    });
+  @endif
+</script>
+@endsection

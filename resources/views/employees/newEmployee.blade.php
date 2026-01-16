@@ -453,7 +453,7 @@
           }
       }
 
-      document.querySelectorAll('.next').forEach(button => {
+    document.querySelectorAll('.next').forEach(button => {
       button.addEventListener('click', function (e) {
         const currentFieldset = this.closest('fieldset');
         const personalEmailInput = document.querySelector('input[name="personal_email"]');
@@ -461,11 +461,11 @@
 
         if (currentFieldset.id === 'personal_information') {
           const email = personalEmailInput.value.trim();
-          if (email !== '' && !email.endsWith('.com')) {
+          if (email !== '' && !isValidEmail(email)) {
             Swal.fire({
               icon: 'error',
               title: 'Invalid Email',
-              text: 'Please use a valid Gmail address (e.g., yourname@gmail.com)',
+              text: 'Please enter a valid email address (e.g., yourname@example.com)',
             });
             personalEmailInput.focus();
             return;
@@ -474,11 +474,11 @@
 
         if (currentFieldset.id === 'employment_information') {
           const email = workEmailInput.value.trim();
-          if (email !== '' && !email.endsWith('.com')) {
+          if (email !== '' && !isValidEmail(email)) {
             Swal.fire({
               icon: 'error',
               title: 'Invalid Work Email',
-              text: 'Please use a valid Gmail address for your work email (e.g., name@gmail.com)',
+              text: 'Please enter a valid work email address (e.g., name@company.com)',
             });
             workEmailInput.focus();
             return;

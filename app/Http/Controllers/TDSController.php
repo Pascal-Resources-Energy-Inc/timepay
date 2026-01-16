@@ -969,4 +969,178 @@ class TDSController extends Controller
             'tdsRecords' => $submissions
         ]);
     }
+
+    public function exportRecords(Request $request)
+    {
+        if (auth()->user()->role != 'Admin' 
+            && checkUserPrivilege('tds_records', auth()->user()->id) != 'yes') {
+            abort(403, 'Unauthorized access to TDS Submissions.');
+        }
+
+        $query = Tds::with(['user', 'region']);
+
+        if ($request->from && $request->to) {
+            $query->whereBetween('date_of_registration', [$request->from, $request->to]);
+        }
+
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('customer_name', 'LIKE', "%{$search}%")
+                ->orWhere('business_name', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $records = $query->latest('created_at')->get();
+
+        $filename = 'tds_records';
+        if ($request->from && $request->to) {
+            $filename .= '_' . $request->from . '_to_' . $request->to;
+        }
+        $filename .= '_' . date('Y-m-d_His') . '.xls';
+        
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        echo '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+        echo '<head>';
+        echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">';
+        echo '<!--[if gte mso 9]>';
+        echo '<xml>';
+        echo '<x:ExcelWorkbook>';
+        echo '<x:ExcelWorksheets>';
+        echo '<x:ExcelWorksheet>';
+        echo '<x:Name>TDS Records</x:Name>';
+        echo '<x:WorksheetOptions>';
+        echo '<x:Print>';
+        echo '<x:ValidPrinterInfo/>';
+        echo '</x:Print>';
+        echo '</x:WorksheetOptions>';
+        echo '</x:ExcelWorksheet>';
+        echo '</x:ExcelWorksheets>';
+        echo '</x:ExcelWorkbook>';
+        echo '</xml>';
+        echo '<![endif]-->';
+        echo '<style>';
+        echo 'table { border-collapse: collapse; width: 100%; font-family: Calibri, Arial, sans-serif; font-size: 11pt; }';
+        echo 'th { background-color: #4472C4; color: white; font-weight: bold; text-align: center; padding: 10px 8px; border: 1px solid #2F5597; white-space: nowrap; }';
+        echo 'td { padding: 8px; border: 1px solid #D0D0D0; vertical-align: top; }';
+        echo 'tr:nth-child(even) { background-color: #F2F2F2; }';
+        echo 'tr:nth-child(odd) { background-color: #FFFFFF; }';
+        echo '.text-center { text-align: center; }';
+        echo '.text-right { text-align: right; }';
+        echo '.currency { text-align: right; }';
+        echo '.badge { padding: 4px 8px; border-radius: 3px; font-weight: bold; display: inline-block; }';
+        echo '.badge-success { background-color: #28a745; color: white; }';
+        echo '.badge-warning { background-color: #ffc107; color: black; }';
+        echo '.badge-info { background-color: #17a2b8; color: white; }';
+        echo '.badge-danger { background-color: #dc3545; color: white; }';
+        echo '.badge-secondary { background-color: #6c757d; color: white; }';
+        echo '.badge-primary { background-color: #007bff; color: white; }';
+        echo '</style>';
+        echo '</head>';
+        echo '<body>';
+        
+        echo '<table border="1">';
+        
+        echo '<thead>';
+        echo '<tr>';
+        echo '<th style="width: 100px;">Date Registered</th>';
+        echo '<th style="width: 130px;">Submitted At</th>';
+        echo '<th style="width: 150px;">Employee Name</th>';
+        echo '<th style="width: 200px;">Area</th>';
+        echo '<th style="width: 150px;">Customer Name</th>';
+        echo '<th style="width: 120px;">Contact Number</th>';
+        echo '<th style="width: 180px;">Business Name</th>';
+        echo '<th style="width: 120px;">Business Type</th>';
+        echo '<th style="width: 250px;">Business Location</th>';
+        echo '<th style="width: 150px;">Awarded Area</th>';
+        echo '<th style="width: 140px;">Package Type</th>';
+        echo '<th style="width: 110px;">Purchase Amount</th>';
+        echo '<th style="width: 110px;">Program Type</th>';
+        echo '<th style="width: 150px;">Program Area</th>';
+        echo '<th style="width: 120px;">Lead Generator</th>';
+        echo '<th style="width: 150px;">Supplier Name</th>';
+        echo '<th style="width: 100px;">Status</th>';
+        echo '<th style="width: 100px;">Timeline</th>';
+        echo '<th style="width: 100px;">Delivery Date</th>';
+        echo '<th style="width: 250px;">Additional Notes</th>';
+        echo '</tr>';
+        echo '</thead>';
+        
+        echo '<tbody>';
+        foreach ($records as $record) {
+            $packageType = '';
+            $packageClass = '';
+            switch($record->package_type) {
+                case 'EU': 
+                    $packageType = 'EU - End User'; 
+                    $packageClass = 'badge-secondary';
+                    break;
+                case 'D': 
+                    $packageType = 'D - Dealer'; 
+                    $packageClass = 'badge-info';
+                    break;
+                case 'MD': 
+                    $packageType = 'MD - Mega Dealer'; 
+                    $packageClass = 'badge-warning';
+                    break;
+                case 'AD': 
+                    $packageType = 'AD - Area Distributor'; 
+                    $packageClass = 'badge-primary';
+                    break;
+                default: 
+                    $packageType = $record->package_type;
+                    $packageClass = 'badge-secondary';
+            }
+            
+            $statusClass = '';
+            switch($record->status) {
+                case 'Delivered': $statusClass = 'badge-success'; break;
+                case 'For Delivery': $statusClass = 'badge-warning'; break;
+                case 'Interested': $statusClass = 'badge-info'; break;
+                case 'Decline': $statusClass = 'badge-danger'; break;
+            }
+            
+            $regionDisplay = 'N/A';
+            if ($record->region) {
+                $regionDisplay = $record->region->region . ' - ' . $record->region->province;
+                if ($record->region->district) {
+                    $regionDisplay .= ' - ' . $record->region->district;
+                }
+            }
+            
+            echo '<tr>';
+            echo '<td class="text-center">' . \Carbon\Carbon::parse($record->date_of_registration)->format('M d, Y') . '</td>';
+            echo '<td class="text-center">' . \Carbon\Carbon::parse($record->created_at)->format('M d, Y h:i A') . '</td>';
+            echo '<td>' . ($record->user ? htmlspecialchars($record->user->name) : 'N/A') . '</td>';
+            echo '<td>' . htmlspecialchars($regionDisplay) . '</td>';
+            echo '<td>' . htmlspecialchars($record->customer_name) . '</td>';
+            echo '<td class="text-center">' . htmlspecialchars($record->contact_no ?? 'N/A') . '</td>';
+            echo '<td>' . htmlspecialchars($record->business_name) . '</td>';
+            echo '<td>' . htmlspecialchars($record->business_type) . '</td>';
+            echo '<td>' . htmlspecialchars($record->location) . '</td>';
+            echo '<td>' . htmlspecialchars($record->awarded_area ?? 'N/A') . '</td>';
+            echo '<td class="text-center"><span class="badge ' . $packageClass . '">' . htmlspecialchars($packageType) . '</span></td>';
+            echo '<td class="currency">₱ ' . number_format($record->purchase_amount, 2) . '</td>';
+            echo '<td class="text-center">' . htmlspecialchars($record->program_type ?? 'N/A') . '</td>';
+            echo '<td>' . htmlspecialchars($record->program_area ?? 'N/A') . '</td>';
+            echo '<td class="text-center">' . htmlspecialchars($record->lead_generator) . '</td>';
+            echo '<td>' . htmlspecialchars($record->supplier_name) . '</td>';
+            echo '<td class="text-center"><span class="badge ' . $statusClass . '">' . htmlspecialchars($record->status) . '</span></td>';
+            echo '<td class="text-center">' . ($record->timeline ? \Carbon\Carbon::parse($record->timeline)->format('M d, Y') : 'N/A') . '</td>';
+            echo '<td class="text-center">' . ($record->delivery_date ? \Carbon\Carbon::parse($record->delivery_date)->format('M d, Y') : 'N/A') . '</td>';
+            echo '<td>' . htmlspecialchars($record->additional_notes ?? 'N/A') . '</td>';
+            echo '</tr>';
+        }
+        echo '</tbody>';
+        
+        echo '</table>';
+        echo '</body>';
+        echo '</html>';
+        
+        exit;
+    }
 }

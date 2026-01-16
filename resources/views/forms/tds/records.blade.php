@@ -38,42 +38,47 @@
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">All TDS Submissions</h4>
-                        <p class="card-description">
-                            View all submitted sales records
-                        </p>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h4 class="card-title mb-0">All TDS Submissions</h4>
+                                <p class="card-description mb-0">
+                                    View all submitted sales records
+                                </p>
+                            </div>
+                        </div>
 
                         <form method='get' action="{{ route('tds.records') }}" id="filterForm" class="mb-4">
                             <div class="row">
                                 <div class='col-md-3'>
                                     <div class="form-group">
                                         <label>From Date</label>
-                                        <input type="date" value='{{ request("from") }}' class="form-control form-control-sm" name="from" max='{{ date("Y-m-d") }}' />
+                                        <input type="date" value='{{ request("from") }}' class="form-control form-control-sm" name="from" id="fromDate" max='{{ date("Y-m-d") }}' />
                                     </div>
                                 </div>
                                 <div class='col-md-3'>
                                     <div class="form-group">
                                         <label>To Date</label>
-                                        <input type="date" value='{{ request("to") }}' class="form-control form-control-sm" name="to" max='{{ date("Y-m-d") }}' />
+                                        <input type="date" value='{{ request("to") }}' class="form-control form-control-sm" name="to" id="toDate" max='{{ date("Y-m-d") }}' />
                                     </div>
                                 </div>
                                 <div class='col-md-3'>
                                     <div class="form-group">
                                         <label>Search</label>
-                                        <input type="text" value='{{ request("search") }}' class="form-control form-control-sm" name="search" placeholder="Customer name or business name" />
+                                        <input type="text" value='{{ request("search") }}' class="form-control form-control-sm" name="search" id="searchInput" placeholder="Customer name or business name" />
                                     </div>
                                 </div>
-                                <div class='col-md-3'>
+                                <div class='col-md-3' style="margin-top: -5px;">
                                     <div class="form-group">
                                         <label>&nbsp;</label>
                                         <div>
-                                            <div class='col-md-3'>
-                                                <button type="submit" class="btn btn-primary mb-2">Filter</button>
-                                            </div>
-                                            {{-- <a href="{{ route('tds.records') }}" class="btn btn-secondary btn-sm">
-                                                <i class="ti-reload"></i> Reset
-                                            </a> --}}
+                                            <button type="submit" class="btn btn-primary mb-2" style="height: 50px;">
+                                                Filter
+                                            </button>
+                                            <button type="button" class="btn btn-success" id="exportBtn" style="margin-top: -10px; height: 50px;">
+                                                <i class="ti-download"></i> Export to CSV
+                                            </button>
                                         </div>
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -175,6 +180,23 @@
   document.getElementById('entries').addEventListener('change', function() {
       document.getElementById('per_page_input').value = this.value;
       document.getElementById('filterForm').submit();
+  });
+
+  document.getElementById('exportBtn').addEventListener('click', function() {
+      const from = document.getElementById('fromDate').value;
+      const to = document.getElementById('toDate').value;
+      const search = document.getElementById('searchInput').value;
+      
+      let exportUrl = '{{ route("tds.records.export") }}?';
+      const params = [];
+      
+      if (from) params.push('from=' + from);
+      if (to) params.push('to=' + to);
+      if (search) params.push('search=' + encodeURIComponent(search));
+      
+      exportUrl += params.join('&');
+      
+      window.location.href = exportUrl;
   });
 
   @if(session('success'))

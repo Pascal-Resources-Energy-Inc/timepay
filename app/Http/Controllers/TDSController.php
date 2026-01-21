@@ -239,6 +239,8 @@ class TDSController extends Controller
             
             $query = DB::table('users')
                 ->leftJoin('employees', 'users.id', '=', 'employees.user_id')
+                ->join('departments', 'employees.department_id', '=', 'departments.id')
+                ->where('departments.code', 'BDD')
                 ->select('users.id', 'users.name', 'employees.employee_number')
                 ->orderBy('users.name');
             

@@ -105,12 +105,18 @@
           <div class="col-md-12">
             <h5 class="text-primary mb-3">Business Image</h5>
             <div class="text-center">
-              <img src="{{ asset('storage/tds_images/' . $record->business_image) }}" 
-                   alt="Business Image" 
-                   class="img-fluid img-thumbnail"
-                   style="max-height: 400px; cursor: pointer;"
-                   onclick="window.open(this.src, '_blank')">
-              <p class="text-muted mt-2"><small>Click image to view full size</small></p>
+              @if(file_exists(storage_path('app/public/tds_images/' . $record->business_image)))
+                <img src="{{ asset('storage/tds_images/' . $record->business_image) }}" 
+                    alt="Business Image" 
+                    class="img-fluid img-thumbnail"
+                    style="max-height: 400px; cursor: pointer;"
+                    onclick="window.open(this.src, '_blank')">
+                <p class="text-muted mt-2"><small>Click image to view full size</small></p>
+              @else
+                <div class="alert alert-warning">
+                  <i class="ti-alert"></i> Image file not found: {{ $record->business_image }}
+                </div>
+              @endif
             </div>
           </div>
         </div>

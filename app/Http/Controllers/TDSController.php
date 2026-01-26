@@ -554,7 +554,7 @@ class TDSController extends Controller
             'customer_name' => 'required|string|max:255',
             'contact_no' => 'required|string|max:255',
             'location' => 'required|string|max:500',
-            'business_image' => 'required|image|mimes:jpeg,jpg,png|max:5120',
+            'business_image' => 'required|file|max:5120',
             'business_name' => 'required|string|max:255',
             'business_type' => 'required|string|max:255',
             'awarded_area' => 'nullable|string|max:255',

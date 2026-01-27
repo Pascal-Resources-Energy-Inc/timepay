@@ -157,6 +157,10 @@
                 <td>{{ $record->lead_generator }}</td>
               </tr>
               <tr>
+                <th>Lead Generator:</th>
+                <td>{{ $record->lead_reference ?? 'N/A' }}</td>
+              </tr>
+              <tr>
                 <th>Supplier Name:</th>
                 <td>{{ $record->supplier_name }}</td>
               </tr>

@@ -254,9 +254,11 @@
             <div class="col-md-4">
               <div class="form-group">
                 <label>Lead Generator <span class="text-danger">*</span></label>
-                <select class="form-control" name="lead_generator" required onclick="event.stopPropagation();">
+                <select class="form-control" name="lead_generator" id="lead_generator" required onclick="event.stopPropagation();">
                   <option value="">-- Select Lead Generator --</option>
                   <option value="FB" {{ old('lead_generator') == 'FB' ? 'selected' : '' }}>FB</option>
+                  <option value="Shopee" {{ old('lead_generator') == 'Shopee' ? 'selected' : '' }}>Shopee</option>
+                  <option value="Gaz Lite Website" {{ old('lead_generator') == 'Gaz Lite Website' ? 'selected' : '' }}>Gaz Lite Website</option>
                   <option value="Events" {{ old('lead_generator') == 'Events' ? 'selected' : '' }}>Events</option>
                   <option value="Kaagapay" {{ old('lead_generator') == 'Kaagapay' ? 'selected' : '' }}>Kaagapay</option>
                   <option value="Referral" {{ old('lead_generator') == 'Referral' ? 'selected' : '' }}>Referral</option>
@@ -267,6 +269,16 @@
                   <option value="Own Accounts" {{ old('lead_generator') == 'Own Accounts' ? 'selected' : '' }}>Own Accounts</option>
                 </select>
                 <small class="form-text text-muted">Source of the lead</small>
+              </div>
+            </div>
+
+            <div class="col-md-4" id="reference_field" style="display: none;">
+              <div class="form-group">
+                <label>Reference Number <span class="text-danger reference-required">*</span></label>
+                <input type="text" class="form-control" 
+                      name="lead_reference" id="lead_reference" value="{{ old('lead_reference') }}" 
+                      placeholder="Enter reference number or link">
+                <small class="form-text text-muted">Required for FB, Shopee, and Gaz Lite Website</small>
               </div>
             </div>
           </div>
@@ -372,6 +384,34 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    document.getElementById('lead_generator').addEventListener('change', function() {
+      const referenceField = document.getElementById('reference_field');
+      const referenceInput = document.getElementById('lead_reference');
+      const referenceRequired = document.querySelector('.reference-required');
+      
+      const requiresReference = ['FB', 'Shopee', 'Gaz Lite Website'].includes(this.value);
+      
+      if (requiresReference) {
+          referenceField.style.display = 'block';
+          referenceInput.setAttribute('required', 'required');
+          referenceRequired.style.display = 'inline';
+      } else {
+          referenceField.style.display = 'none';
+          referenceInput.removeAttribute('required');
+          referenceInput.value = '';
+          referenceRequired.style.display = 'none';
+      }
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+      const leadGenerator = document.getElementById('lead_generator');
+      if (leadGenerator.value) {
+          leadGenerator.dispatchEvent(new Event('change'));
+      }
+  });
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

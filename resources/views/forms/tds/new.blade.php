@@ -1018,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', function() {
             "Dumangas": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"]
         },
         "Negros Occidental": {
-            "Bacolod City": ["Poblacion", "Luzuriaga", "Alangilan", "Barangay 1", "Barangay 2"],
+            "Bacolod City": ["Poblacion", "Luzuriaga", "Alangilan", "Binalbagan", "Barangay 1", "Barangay 2"],
             "San Carlos City": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
             "Bago City": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
             "Cadiz City": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],

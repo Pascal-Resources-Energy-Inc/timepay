@@ -450,165 +450,824 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const locationData = {
+  const locationData = {
+    "Metro Manila": {
         "Metro Manila": {
-            "Metro Manila": {
-                "Quezon City": ["Commonwealth", "Batasan Hills", "Fairview", "Novaliches", "Diliman", "Cubao", "Project 6"],
-                "Manila": ["Ermita", "Malate", "Intramuros", "Binondo", "Tondo", "Sampaloc", "Sta. Cruz"],
-                "Makati": ["Poblacion", "Bel-Air", "San Lorenzo", "Urdaneta", "Guadalupe", "Rockwell"],
-                "Pasig": ["Kapitolyo", "Ugong", "Ortigas", "Rosario", "Santolan", "Malinao"],
-                "Taguig": ["Bonifacio Global City", "Western Bicutan", "Fort Bonifacio", "Pinagsama", "Signal Village"],
-                "Mandaluyong": ["Poblacion", "Addition Hills", "Plainview", "Highway Hills"],
-                "Parañaque": ["BF Homes", "Baclaran", "Moonwalk", "San Antonio"],
-                "Las Piñas": ["BF International", "Talon", "Pamplona"],
-                "Muntinlupa": ["Alabang", "Putatan", "Poblacion", "Ayala Alabang"]
-            }
-        },
-        "Calabarzon": {
-            "Laguna": {
-                "Santa Rosa": ["Poblacion", "Balibago", "Tagapo", "Labas", "Market Area", "Macabling"],
-                "Calamba": ["Poblacion", "Parian", "Real", "Canlubang", "Majada"],
-                "Biñan": ["Poblacion", "Canlalay", "San Antonio", "Santo Domingo"],
-                "San Pedro": ["Poblacion", "Landayan", "San Vicente", "Nueva"]
-            },
-            "Cavite": {
-                "Bacoor": ["Poblacion", "Molino", "Talaba", "Zapote", "Queens Row"],
-                "Imus": ["Poblacion", "Anabu", "Tanzang Luma", "Bucandala", "Bayan Luma"],
-                "Dasmariñas": ["Poblacion", "Salitran", "San Agustin", "Paliparan"],
-                "General Trias": ["Poblacion", "San Francisco", "Pasong Kawayan"]
-            },
-            "Rizal": {
-                "Antipolo": ["Poblacion", "San Roque", "Mambugan", "Cupang"],
-                "Cainta": ["Poblacion", "San Isidro", "San Juan", "Santo Domingo"],
-                "Taytay": ["Poblacion", "San Juan", "Dolores", "Muzon"]
-            },
-            "Batangas": {
-                "Batangas City": ["Poblacion", "Alangilan", "Kumintang Ibaba", "Pallocan"],
-                "Lipa": ["Poblacion", "Marawoy", "Tambo", "Tibig"]
-            }
-        },
-        "Central Luzon": {
-            "Pampanga": {
-                "Angeles City": ["Poblacion", "Balibago", "Anunas", "Cutcut"],
-                "San Fernando": ["Poblacion", "Dolores", "San Jose", "Sindalan"]
-            },
-            "Bulacan": {
-                "Malolos": ["Poblacion", "Atlag", "Barihan", "Dakila"],
-                "Meycauayan": ["Poblacion", "Malhacan", "Saluysoy", "Calvario"]
-            }
-        },
-        "Visayas": {
-            "Cebu": {
-                "Cebu City": ["Lahug", "Capitol Site", "Mabolo", "Banilad", "Talamban", "Guadalupe"],
-                "Mandaue": ["Centro", "Banilad", "Casuntingan", "Looc", "Tingub"],
-                "Lapu-Lapu": ["Poblacion", "Mactan", "Pusok", "Basak"]
-            }
-        },
-        "Mindanao": {
-            "Davao del Sur": {
-                "Digos": ["Poblacion", "Zone 1", "Zone 2", "Tres de Mayo"],
-                "Davao City": ["Poblacion", "Buhangin", "Toril", "Calinan", "Tugbok", "Matina", "Talomo", "Agdao", "Panacan", "Lanang", "Ma-a", "Catalunan Grande"]
-            },
-            "Davao Occidental": {
-                "Malita": ["Poblacion", "Little Baguio", "Tingolo"],
-                "Don Marcelino": ["Poblacion", "Kiobog", "Kinanga"]
-            },
-            "Davao Oriental": {
-                "Mati": ["Poblacion", "Central", "Dahican", "Sainz"],
-                "Baganga": ["Poblacion", "Salingcomot", "Lambajon"]
-            }
-        },
-        "Region XII - Soccsksargen": {
-            "Cotabato (North Cotabato)": {
-                "Kidapawan": ["Poblacion", "Amas", "Perez"],
-                "Midsayap": ["Poblacion", "Damatulan", "Bual"]
-            },
-            "Sarangani": {
-                "Alabel": ["Poblacion", "Ladol", "Spring"],
-                "Glan": ["Poblacion", "Gumasa", "Big Margus"]
-            },
-            "South Cotabato": {
-                "General Santos": ["Poblacion", "City Heights", "Dadiangas North", "Calumpang", "Lagao", "Bula"],
-                "Koronadal": ["Poblacion", "Zone 1", "Zone 2", "Carpenter Hill"],
-                "Polomolok": ["Poblacion", "Koronadal Proper", "Bentung"]
-            },
-            "Sultan Kudarat": {
-                "Isulan": ["Poblacion", "Kalawag 1", "Bambad"],
-                "Tacurong": ["Poblacion", "Baras", "New Isabela"]
-            }
-        },
-        "Region XIII - Caraga": {
-            "Agusan del Norte": {
-                "Butuan": ["Poblacion", "Libertad", "Goldtown", "Banza", "Agao", "Anticala"],
-                "Cabadbaran": ["Poblacion", "Sanghan", "Soriano"]
-            },
-            "Agusan del Sur": {
-                "Bayugan": ["Poblacion", "Taglatawan", "Anahaw"],
-                "Prosperidad": ["Poblacion", "La Paz", "San Pedro"]
-            },
-            "Surigao del Norte": {
-                "Surigao City": ["Poblacion", "Washington", "Taft", "Luna", "Mabua"],
-                "Siargao (Del Carmen)": ["Poblacion", "General Luna", "Dapa"]
-            },
-            "Surigao del Sur": {
-                "Tandag": ["Poblacion", "Bongtud", "Awasian"],
-                "Bislig": ["Poblacion", "Mangagoy", "San Vicente"]
-            },
-            "Dinagat Islands": {
-                "San Jose": ["Poblacion", "Aurelio", "Santa Cruz"]
-            }
-        },
-        "BARMM - Bangsamoro Autonomous Region": {
-            "Basilan": {
-                "Isabela City": ["Poblacion", "Sunrise Village", "Cabunbata"],
-                "Lamitan": ["Poblacion", "Limo-ok", "Sangkahan"]
-            },
-            "Lanao del Sur": {
-                "Marawi": ["Poblacion", "East Basak", "Banggolo"],
-                "Malabang": ["Poblacion", "Pindolonan", "Kumalarang"]
-            },
-            "Maguindanao": {
-                "Cotabato City": ["Poblacion", "Rosary Heights", "Bagua"],
-                "Sultan Kudarat": ["Poblacion", "Midtungok", "Katenong"]
-            },
-            "Sulu": {
-                "Jolo": ["Poblacion", "Chinese Pier", "Walled City"],
-                "Parang": ["Poblacion", "Kawasan", "Kaunayan"]
-            },
-            "Tawi-Tawi": {
-                "Bongao": ["Poblacion", "Karungdong", "Laminusa"],
-                "Languyan": ["Poblacion", "Bakong", "Matatal"]
-            }
-        },
-        "CAR - Cordillera Administrative Region": {
-            "Abra": {
-                "Bangued": ["Poblacion", "Zone 1", "Calaba"],
-                "Dolores": ["Poblacion", "Talogtog", "Isit"]
-            },
-            "Apayao": {
-                "Kabugao": ["Poblacion", "Malibang", "Dagara"],
-                "Luna": ["Poblacion", "San Jose"]
-            },
-            "Benguet": {
-                "Baguio": ["Poblacion", "Session Road", "Burnham", "Camp Allen", "Lower Rock Quarry", "Upper Bonifacio", "Malcolm Square"],
-                "La Trinidad": ["Poblacion", "Wangal", "Balili", "Pico"],
-                "Itogon": ["Poblacion", "Tinongdan", "Ucab"],
-                "Tuba": ["Poblacion", "Camp One", "Twin Peaks"]
-            },
-            "Ifugao": {
-                "Lagawe": ["Poblacion", "Burnay", "Olilicon"],
-                "Banaue": ["Poblacion", "Viewpoint", "Tam-an"]
-            },
-            "Kalinga": {
-                "Tabuk": ["Poblacion", "Bulanao", "Dagupan"],
-                "Lubuagan": ["Poblacion", "Lower Uma", "Tanglag"]
-            },
-            "Mountain Province": {
-                "Bontoc": ["Poblacion", "Caluttit", "Mainit"],
-                "Sagada": ["Poblacion", "Demang", "Patay"]
-            }
+            "Quezon City": ["Commonwealth", "Batasan Hills", "Fairview", "Novaliches", "Diliman", "Cubao", "Project 6", "Kamuning", "Libis", "Loyola Heights"],
+            "Manila": ["Ermita", "Malate", "Intramuros", "Binondo", "Tondo", "Sampaloc", "Sta. Cruz", "Sta. Mesa", "Quiapo", "Pandacan"],
+            "Makati": ["Poblacion", "Bel-Air", "San Lorenzo", "Urdaneta", "Guadalupe", "Rockwell", "Salcedo Village", "Forbes Park"],
+            "Pasig": ["Kapitolyo", "Ugong", "Ortigas", "Rosario", "Santolan", "Malinao", "Maybunga", "Pineda"],
+            "Taguig": ["Bonifacio Global City", "Western Bicutan", "Fort Bonifacio", "Pinagsama", "Signal Village", "Maharlika Village"],
+            "Mandaluyong": ["Poblacion", "Addition Hills", "Plainview", "Highway Hills", "Vergara", "Wack-Wack"],
+            "Parañaque": ["BF Homes", "Baclaran", "Moonwalk", "San Antonio", "Tambo", "Sun Valley"],
+            "Las Piñas": ["BF International", "Talon", "Pamplona", "Almanza", "Pulang Lupa"],
+            "Muntinlupa": ["Alabang", "Putatan", "Poblacion", "Ayala Alabang", "Cupang", "Buli"],
+            "Pasay": ["Malibay", "Tramo", "San Rafael", "San Roque", "Maricaban"],
+            "Caloocan": ["Bagong Barrio", "Bagong Silang", "Camarin", "Kaybiga", "Sangandaan"],
+            "Malabon": ["Acacia", "Baritan", "Catmon", "Concepcion", "Flores"],
+            "Navotas": ["Bagumbayan North", "Bagumbayan South", "Bangculasi", "Daanghari", "Navotas East"],
+            "Valenzuela": ["Arkong Bato", "Bagbaguin", "Bignay", "Bisig", "Canumay"],
+            "Pateros": ["Aguho", "Magtanggol", "Martires del '96", "Poblacion", "San Pedro"],
+            "San Juan": ["Addition Hills", "Balong-Bato", "Batis", "Corazon de Jesus", "Greenhills"],
+            "Marikina": ["Barangka", "Calumpang", "Concepcion Uno", "Industrial Valley", "Jesus dela Peña"]
         }
-    };
+    },
+
+    "CAR - Cordillera Administrative Region": {
+        "Abra": {
+            "Bangued": ["Poblacion", "Zone 1", "Zone 2", "Zone 3", "Calaba", "Cosili", "Dangdangla"],
+            "Dolores": ["Poblacion", "Talogtog", "Isit", "Bayabas", "Cabaroan"],
+            "Lagangilang": ["Poblacion", "Aguet", "Bacooc", "Balais", "Cayapa"],
+            "Lacub": ["Poblacion", "Guinguinabang", "Lan-ag", "Pacac"],
+            "La Paz": ["Poblacion", "Mudeng", "Pidigan", "San Gregorio"],
+            "Langiden": ["Poblacion", "Baac", "Mabungtot", "Malekmag"],
+            "Luba": ["Poblacion", "Cabcaborao", "Lusuac", "Pang-ot"],
+            "Malibcong": ["Poblacion", "Buanao", "Duldulao", "Pacgued"],
+            "Manabo": ["Poblacion", "Ayyeng", "Catacdegan Nuevo", "Luzong"],
+            "Peñarrubia": ["Poblacion", "Canan", "Lusuac", "Patucannay"],
+            "Pidigan": ["Poblacion", "Asom", "Immuli", "Monggoc"],
+            "Pilar": ["Poblacion", "Borobor", "Lenneng", "Naguirian"],
+            "Sallapadan": ["Poblacion", "Bilabila", "Naguilian", "Sallapadan"],
+            "San Isidro": ["Poblacion", "Dalipey", "Manayday", "Sabangan"],
+            "San Juan": ["Poblacion", "Lam-ag", "Naguilian", "Pinukpuk"],
+            "San Quintin": ["Poblacion", "Labaan", "Palang", "Tangadan"],
+            "Tayum": ["Poblacion", "Bagalay", "Caupasan", "Velasco"],
+            "Tineg": ["Poblacion", "Agsimao", "Anayan", "Belaat"],
+            "Tubo": ["Poblacion", "Kili", "Mayabo", "Supo"],
+            "Villaviciosa": ["Poblacion", "Labaan", "Luzong", "Tambo"]
+        },
+        "Apayao": {
+            "Calanasan": ["Poblacion", "Cadaclan", "Namaltugan", "Tanglagan"],
+            "Conner": ["Poblacion", "Buluan", "Karikitan", "Manag"],
+            "Flora": ["Poblacion", "Allig", "Anninipan", "Atok"],
+            "Kabugao": ["Poblacion", "Malibang", "Dagara", "Lenneng"],
+            "Luna": ["Poblacion", "Baket", "Lower Maton", "San Isidro"],
+            "Pudtol": ["Poblacion", "Aga", "Emilia", "Linan"],
+            "Santa Marcela": ["Poblacion", "Almacen", "Imelda", "Katablangan"]
+        },
+        "Benguet": {
+            "Baguio City": ["Poblacion", "Session Road", "Burnham", "Camp Allen", "Lower Rock Quarry", "Upper Bonifacio", "Malcolm Square", "Cabinet Hill"],
+            "La Trinidad": ["Poblacion", "Wangal", "Balili", "Pico", "Alno", "Ambiong"],
+            "Itogon": ["Poblacion", "Tinongdan", "Ucab", "Ampucao", "Dalupirip"],
+            "Tuba": ["Poblacion", "Camp One", "Twin Peaks", "Ansagan", "Camp 3"],
+            "Sablan": ["Poblacion", "Balluay", "Banangan", "Bayabas", "Kamog"],
+            "Tublay": ["Poblacion", "Ambassador", "Ambongdolan", "Ba-ayan", "Basil"],
+            "Kapangan": ["Poblacion", "Balakbak", "Beleng-Belis", "Cayapes", "Gadang"],
+            "Atok": ["Poblacion", "Abiang", "Cattubo", "Naguey", "Paoay"],
+            "Bokod": ["Poblacion", "Bobok-Bisal", "Daclan", "Karao", "Pito"],
+            "Buguias": ["Poblacion", "Abatan", "Amgaleyguey", "Baculongan", "Lengaoan"],
+            "Kabayan": ["Poblacion", "Anchukey", "Ballay", "Bashoy", "Eddet"],
+            "Kibungan": ["Poblacion", "Badeo", "Lubo", "Madaymen", "Palina"],
+            "Mankayan": ["Poblacion", "Balili", "Bedbed", "Bulalacao", "Guinaoang"],
+            "Bakun": ["Poblacion", "Ampusongan", "Dalipey", "Gambang", "Kayapa"]
+        },
+        "Ifugao": {
+            "Lagawe": ["Poblacion", "Burnay", "Olilicon", "Bocobo", "Bolog"],
+            "Aguinaldo": ["Poblacion", "Chalalo", "Galonogon", "Ibaba", "Nabinunan"],
+            "Alfonso Lista": ["Poblacion", "Busilac", "Calao", "Namnama", "Namillangan"],
+            "Asipulo": ["Poblacion", "Amduntog", "Antipolo", "Camandag", "Haliap"],
+            "Banaue": ["Poblacion", "Viewpoint", "Tam-an", "Batad", "Bocos"],
+            "Hingyon": ["Poblacion", "Anao", "Bangtinon", "Bitu", "Cababuyan"],
+            "Hungduan": ["Poblacion", "Abatan", "Bangbang", "Hapao", "Nungulunan"],
+            "Kiangan": ["Poblacion", "Ambabag", "Baguinge", "Hucab", "Julongan"],
+            "Lamut": ["Poblacion", "Bangbang", "Hapao", "Mabatobato", "Nayon"],
+            "Mayoyao": ["Poblacion", "Alimit", "Balangbang", "Bongan", "Cham-a"],
+            "Tinoc": ["Poblacion", "Ahin", "Ap-apid", "Binablayan", "Danggo"]
+        },
+        "Kalinga": {
+            "Tabuk City": ["Poblacion", "Bulanao", "Dagupan", "Appas", "Bado Dangwa"],
+            "Balbalan": ["Poblacion", "Balbalasang", "Mabaca", "Pantikian", "Talalang"],
+            "Lubuagan": ["Poblacion", "Lower Uma", "Tanglag", "Mabilong", "Madalag"],
+            "Pasil": ["Poblacion", "Ableg", "Balatoc", "Cagaluan", "Dalupa"],
+            "Pinukpuk": ["Poblacion", "Aciga", "Allaguia", "Ammacian", "Apatan"],
+            "Rizal": ["Poblacion", "Calaocan", "Liwan East", "Liwan West", "Macutay"],
+            "Tanudan": ["Poblacion", "Dacalan", "Gaang", "Lubo", "Mangali"],
+            "Tinglayan": ["Poblacion", "Bangad", "Buscalan", "Butbut", "Loccong"]
+        },
+        "Mountain Province": {
+            "Bontoc": ["Poblacion", "Caluttit", "Mainit", "Alab Oriente", "Alab Proper"],
+            "Barlig": ["Poblacion", "Chupac", "Fiangtin", "Kaleo", "Latang"],
+            "Bauko": ["Poblacion", "Abatan", "Bagnen Oriente", "Bagnen Proper", "Balintaugan"],
+            "Besao": ["Poblacion", "Agawa", "Ambaguio", "Banguitan", "Gueday"],
+            "Sabangan": ["Poblacion", "Banangan", "Capinitan", "Data", "Gayang"],
+            "Sadanga": ["Poblacion", "Anabel", "Betwagan", "Demang", "Sacasacan"],
+            "Sagada": ["Poblacion", "Aguid", "Ambasing", "Ankileng", "Antadao"],
+            "Tadian": ["Poblacion", "Balaoa", "Batayan", "Bunga", "Cadad-anan"]
+        }
+    },
+
+    "Region I - Ilocos Region": {
+        "Ilocos Norte": {
+            "Laoag City": ["Poblacion", "Barangay 1", "Barangay 2", "Araniw", "Balatong", "Balacad", "Bengcag"],
+            "Batac City": ["Poblacion", "Barangay 1", "Acosta", "Baay", "Baligat", "Baoa East"],
+            "Pagudpud": ["Poblacion 1", "Balaoi", "Burayoc", "Caunayan", "Ligaya", "Saud"],
+            "Paoay": ["Poblacion", "Bacsil", "Cabagoan", "Cabangaran", "Callaguip"],
+            "Currimao": ["Poblacion", "Bimmanga", "Cabuusan", "Comcomloong", "Gaang"],
+            "Bacarra": ["Poblacion", "Barbar", "Buyon", "Caunayan", "Duripes"],
+            "Burgos": ["Poblacion", "Aring", "Buduan", "Cabaroan", "Caunayan"],
+            "Dingras": ["Poblacion", "Albano", "Bagut", "Baresbes", "Barong"],
+            "Marcos": ["Poblacion", "Balaoi", "Cacafean", "Daquioag", "Fortuna"],
+            "Nueva Era": ["Poblacion", "Acnam", "Barangobong", "Barikir", "Bugayong"],
+            "Piddig": ["Poblacion", "Abucay", "Anao", "Arua-ay", "Barbar"],
+            "Pinili": ["Poblacion Norte", "Aglipay", "Barangobong", "Buanga", "Bungro"],
+            "San Nicolas": ["Poblacion", "Barbar", "Bingao", "Bulbulala", "Cabulalaan"],
+            "Sarrat": ["Poblacion", "Barangay 1", "Barangay 2", "Barangay 3", "Barangay 4"]
+        },
+        "Ilocos Sur": {
+            "Vigan City": ["Poblacion", "Ayusan Norte", "Barangay Beddeng Laud", "Barraca", "Bongtolan"],
+            "Candon City": ["Poblacion", "Allangigan 1st", "Amguid", "Ayudante", "Bagani Campo"],
+            "Santa Catalina": ["Poblacion", "Ambalayat", "Bitalag", "Cabaroan", "Cabittaogan"],
+            "Bantay": ["Poblacion", "Aggay", "Banaoang", "Bulag-bulag", "Cabalanggan"],
+            "Magsingal": ["Poblacion", "Alangan", "Bacar", "Barbarit", "Bungro"],
+            "Tagudin": ["Poblacion", "Baracbac", "Bario-an", "Barraca", "Begang"],
+            "Santa Maria": ["Poblacion Norte", "Apatut-Lubong", "Balidbid", "Baybayabas", "Bitalag"],
+            "Narvacan": ["Poblacion 1", "Ayudante", "Banglayan", "Bulanos", "Burgos"],
+            "Santa Lucia": ["Poblacion East", "Ayusan", "Banbanaba", "Bao-as", "Biday"],
+            "Caoayan": ["Poblacion", "Anonang Mayor", "Callaguip", "Catagtaguen", "Danuman East"],
+            "San Esteban": ["Poblacion", "Ansad", "Apatot", "Bateria", "Butol"],
+            "San Vicente": ["Poblacion", "Bantaoay", "Bayubay Norte", "Bonifacio", "Bulala-Aruo"]
+        },
+        "La Union": {
+            "San Fernando City": ["Poblacion", "Abut", "Apaleng", "Bacsil", "Bangbangolan"],
+            "Agoo": ["Poblacion", "Ambitacay", "Balawarte", "Bangan-Oda", "Capas"],
+            "Bauang": ["Poblacion", "Acao", "Ballay", "Bawanta", "Boy-utan"],
+            "San Juan": ["Poblacion", "Aludaid", "Bacnar", "Barong", "Bato"],
+            "Bacnotan": ["Poblacion", "Arosip", "Bagutot", "Bani", "Bitalag"],
+            "Naguilian": ["Poblacion", "Aguioas", "Al-alinao Norte", "Amontoc", "Angin"],
+            "Bagulin": ["Poblacion", "Alibangsay", "Baay", "Bagbaguin", "Cambaly"],
+            "Balaoan": ["Poblacion", "Alfonso", "Antonino", "Azucena", "Buenos Aires"],
+            "Bangar": ["Poblacion", "Bangaoilan East", "Barangobong", "Cadapli", "Consuegra"],
+            "Caba": ["Poblacion", "Bautista", "Carcarmay", "La Paz Centro", "Las-ud"],
+            "Luna": ["Poblacion", "Alcala", "Ayaoan", "Barangobong", "Barengeg"],
+            "Rosario": ["Poblacion", "Ambuetel", "Ambuclao", "Bangar", "Bani"],
+            "San Gabriel": ["Poblacion", "Ambalite", "Apayao", "Balbalayang", "Baracbac"],
+            "Santol": ["Poblacion", "Lettac Norte", "Loslos", "Nagsabaran", "Napunan"]
+        },
+        "Pangasinan": {
+            "Dagupan City": ["Poblacion", "Bacayao Norte", "Barangay I", "Bolosan", "Bonuan Binloc"],
+            "Alaminos City": ["Poblacion", "Alos", "Amandiego", "Amangbangan", "Balangobong"],
+            "San Carlos City": ["Poblacion", "Abanon", "Agdao", "Anando", "Ano"],
+            "Urdaneta City": ["Poblacion", "Anonas", "Bactad East", "Bayaoas", "Bolaoen"],
+            "Umingan": ["Poblacion", "Abot Molina", "Amaronan", "Annam", "Anuang"],
+            "Binalonan": ["Poblacion", "Amistad", "Balangobong", "Bued", "Bugayong"],
+            "Manaoag": ["Poblacion", "Babasit", "Baguinay", "Baritao", "Bisal"],
+            "Binmaley": ["Poblacion", "Balagan", "Balogo", "Basing", "Buenlag"],
+            "Calasiao": ["Poblacion", "Ambonao", "Ambuetel", "Banaoang", "Bued"],
+            "San Fabian": ["Poblacion", "Alacan", "Ambalangan-Dalin", "Angio", "Anonang"],
+            "Lingayen": ["Poblacion", "Aliwekwek", "Baay", "Balangobong", "Balococ"],
+            "Tayug": ["Poblacion", "Agno", "Amagbagan", "Ayos", "Carriedo"],
+            "Bayambang": ["Poblacion", "Alinggan", "Amangonan-Balangobong", "Ambabaay", "Ambayat I"],
+            "Rosales": ["Poblacion", "Bakitbakit", "Balingcanaway", "Cabalaoangan Norte", "Calanutan"],
+            "Villasis": ["Poblacion", "Amamperez", "Bacag", "Barangobong", "Barraca"],
+            "Malasiqui": ["Poblacion", "Alacan", "Amacalan", "Andangin", "Apaya"],
+            "Pozorrubio": ["Poblacion", "Alipangpang", "Amagbagan", "Balacag", "Banding"],
+            "Alcala": ["Poblacion", "Alacan", "Anulid", "Atainan", "Bersamin"],
+            "Bautista": ["Poblacion", "Artacho", "Balingueo", "Cabuaan", "Cacandongan"],
+            "Bolinao": ["Poblacion", "Arnedo", "Balinmanalo", "Binabalian", "Cabarruyan"],
+            "Bugallon": ["Poblacion", "Angarian", "Asinan", "Baleyadaan", "Bolaoen"],
+            "Infanta": ["Poblacion", "Bamban", "Barlo", "Batang", "Bayambang"],
+            "Dasol": ["Poblacion", "Amalbalan", "Aloneros", "Bobonot", "Eguia"],
+            "Mabini": ["Poblacion", "Balogo", "Balungao", "Banaban", "Barang"]
+        }
+    },
+
+    "Region II - Cagayan Valley": {
+        "Batanes": {
+            "Basco": ["Poblacion", "San Antonio", "San Joaquin", "Kaychanarianan"],
+            "Itbayat": ["Poblacion", "Raele", "Santa Rosa", "Santa Lucia"],
+            "Ivana": ["Poblacion", "Salagao", "Tuhel", "Radiwan"],
+            "Mahatao": ["Poblacion", "Hanib", "Kaumbakan", "Panatayan"],
+            "Sabtang": ["Poblacion", "Chavayan", "Malakdang", "Nakanmuan"],
+            "Uyugan": ["Poblacion", "Imnajbu", "Itbud", "Kayvaluganan"]
+        },
+        "Cagayan": {
+          "Tuguegarao City": ["Centro 1", "Centro 2", "Centro 3", "Annafunan East", "Buntun", "Caggay"],
+          "Ilagan": ["Poblacion", "Centro I", "Alibagu", "Allinguigan", "Bagong Bayan"],
+          "Aparri": ["Poblacion", "Backiling", "Bangag", "Binalan", "Bisagu"],
+          "Sanchez-Mira": ["Poblacion", "Bagunot", "Bangan", "Callao", "Centro I"],
+          "Santa Ana": ["Poblacion", "Centro I", "Diora", "Dungeg", "Palawig"],
+          "Ballesteros": ["Poblacion", "Ammubuan", "Balza", "Callao", "Carusican"],
+          "Camalaniugan": ["Poblacion", "Aguinaldo", "Bacayao Norte", "Bacayao Sur", "Balatoc"],
+          "Claveria": ["Poblacion", "Baay", "Bangag", "Cabagan", "Callao"],
+          "Enrile": ["Poblacion", "Bagay", "Balaca", "Burgos", "Caraycaray"],
+          "Gattaran": ["Poblacion", "Agawid", "Alangigan", "Baligan", "Cagayan"],
+          "Lasam": ["Poblacion", "Bagbag", "Bacag", "Callao", "Carasi"],
+          "Peñablanca": ["Poblacion", "Agang", "Aparri", "Bagumbayan", "Callao"],
+          "Piat": ["Poblacion", "Abag", "Balatoc", "Bangag", "Callao"],
+          "Rizal": ["Poblacion", "Agano", "Bagumbayan", "Bantay", "Callao"],
+          "Solana": ["Poblacion", "Aduas", "Balac", "Bungao", "Caraycaray"],
+          "Tuao": ["Poblacion", "Banaoang", "Bangar", "Callao", "Cabuloan"],
+          "Tumauini": ["Poblacion", "Abucay", "Bagumbayan", "Bangag", "Callao"]
+      },
+      "Isabela": {
+          "Ilagan City": ["Poblacion", "San Vicente", "San Pedro", "San Juan", "San Roque"],
+          "Cauayan City": ["Poblacion", "San Fermin", "San Agustin", "San Antonio", "San Isidro"],
+          "Cabagan": ["Poblacion", "Bangag", "Callao", "San Pedro", "Santa Maria"],
+          "Delfin Albano": ["Poblacion", "Agaba", "Balucuc", "Callang", "Caris"],
+          "Divilacan": ["Poblacion", "Bangag", "Callao", "Catangpitan", "Cauayan"],
+          "Maconacon": ["Poblacion", "Abuan", "Balawag", "Bacag", "Calamagui"],
+          "Naguilian": ["Poblacion", "Bangar", "Callao", "San Roque", "Santa Cruz"],
+          "Palanan": ["Poblacion", "Bubug", "Cabuluan", "Dibagat", "Malaueg"],
+          "Ramon": ["Poblacion", "Bagabag", "Bangar", "Callao", "San Isidro"],
+          "San Mateo": ["Poblacion", "Agata", "Bagulin", "Bangad", "Cayawan"],
+          "Santo Tomas": ["Poblacion", "Bangag", "Callao", "San Pedro", "Santa Lucia"],
+          "Tumauini": ["Poblacion", "Abucay", "Bagumbayan", "Bangag", "Callao"],
+          "Cabatuan": ["Poblacion", "Bangad", "Callao", "San Pedro", "Santa Maria"],
+          "Ilagan": ["Poblacion", "San Vicente", "San Pedro", "San Juan", "San Roque"]
+      },
+      "Nueva Vizcaya": {
+          "Bayombong": ["Poblacion", "Bagabag", "Balete", "Caraballo", "Malabug"],
+          "Solano": ["Poblacion", "Abong", "Balete", "Bayanan", "Callao"],
+          "Aritao": ["Poblacion", "Bagbag", "Balete", "Cabangbang", "Callao"],
+          "Bambang": ["Poblacion", "Agano", "Bagabag", "Balete", "Callao"],
+          "Dupax del Norte": ["Poblacion", "Bagabag", "Balete", "Callao", "San Jose"],
+          "Dupax del Sur": ["Poblacion", "Bagabag", "Balete", "Callao", "San Pedro"],
+          "Kasibu": ["Poblacion", "Bagabag", "Balete", "Callao", "San Juan"],
+          "Quezon": ["Poblacion", "Bagabag", "Balete", "Callao", "Santa Maria"],
+          "Santa Fe": ["Poblacion", "Bagabag", "Balete", "Callao", "San Vicente"]
+      },
+      "Quirino": {
+          "Cabarruyan": ["Poblacion", "Bangar", "Callao", "San Jose", "Santa Lucia"],
+          "Diffun": ["Poblacion", "Bagabag", "Balete", "Callao", "San Isidro"],
+          "Maddela": ["Poblacion", "Bagabag", "Balete", "Callao", "San Juan"],
+          "Nagtipunan": ["Poblacion", "Bagabag", "Balete", "Callao", "San Pedro"],
+          "Saguday": ["Poblacion", "Bagabag", "Balete", "Callao", "Santa Maria"]
+      }
+    },
+    "Region III - Central Luzon": {
+      "Aurora": {
+          "Baler": ["Poblacion", "Catan", "Ditailin", "Maligaya", "San Luis"],
+          "Casiguran": ["Poblacion", "Binonayan", "San Joaquin", "Santisimo", "San Isidro"],
+          "Dilasag": ["Poblacion", "Abuay", "Cagayanin", "Calabuan", "Ditac"],
+          "Dinalungan": ["Poblacion", "Cabuluan", "Dinas", "San Juan", "San Pedro"],
+          "Dipaculao": ["Poblacion", "Calabaan", "Calacag", "San Isidro", "Bagumbayan"],
+          "Maria Aurora": ["Poblacion", "Baler", "Balete", "San Juan", "San Roque"]
+      },
+      "Bataan": {
+          "Balanga City": ["Poblacion", "San Jose", "San Rafael", "Bagong Silang", "Bagumbayan"],
+          "Abucay": ["Poblacion", "Bagong Silang", "San Antonio", "San Juan", "Santa Lucia"],
+          "Bagac": ["Poblacion", "San Agustin", "San Isidro", "San Jose", "Santa Cruz"],
+          "Dinalupihan": ["Poblacion", "San Andres", "San Isidro", "San Roque", "Bagong Silang"],
+          "Hermosa": ["Poblacion", "San Isidro", "San Jose", "San Rafael", "Santa Cruz"],
+          "Morong": ["Poblacion", "Bagong Silang", "San Miguel", "San Roque", "Santa Rosa"],
+          "Orani": ["Poblacion", "San Isidro", "San Jose", "San Roque", "Santa Lucia"],
+          "Orion": ["Poblacion", "Bagong Silang", "San Isidro", "San Jose", "San Roque"],
+          "Pilar": ["Poblacion", "Bagong Silang", "San Isidro", "San Roque", "Santa Cruz"],
+          "Samal": ["Poblacion", "San Antonio", "San Isidro", "San Jose", "San Roque"]
+      },
+      "Bulacan": {
+          "Malolos City": ["Poblacion", "Baras", "Bulihan", "Tabang", "Palimpe"],
+          "Meycauayan City": ["Poblacion", "Bagbaguin", "Iba", "Lias", "Saluysoy"],
+          "San Jose del Monte City": ["Poblacion", "Fatima", "Langgam", "Minuyan", "Poblacion"],
+          "Angat": ["Poblacion", "Bagumbayan", "Capistahan", "San Juan", "San Miguel"],
+          "Balagtas": ["Poblacion", "Longos", "Poblacion Norte", "Poblacion Sur", "San Jose"],
+          "Baliuag": ["Poblacion", "Bagumbayan", "San Jose", "Santo Cristo", "San Isidro"],
+          "Bocaue": ["Poblacion", "Bagumbayan", "San Jose", "San Roque", "Santa Maria"],
+          "Bulacan": ["Poblacion", "Bagumbayan", "San Jose", "San Rafael", "Santa Rosa"],
+          "Guiguinto": ["Poblacion", "Bagumbayan", "San Isidro", "San Jose", "San Roque"],
+          "Hagonoy": ["Poblacion", "Bagumbayan", "San Isidro", "San Jose", "San Roque"],
+          "Marilao": ["Poblacion", "Bagumbayan", "San Isidro", "San Jose", "San Roque"],
+          "Norzagaray": ["Poblacion", "Bagumbayan", "San Isidro", "San Jose", "San Roque"],
+          "Obando": ["Poblacion", "Bagumbayan", "San Isidro", "San Jose", "San Roque"],
+          "Pandi": ["Poblacion", "Bagumbayan", "San Isidro", "San Jose", "San Roque"],
+          "Plaridel": ["Poblacion", "Bagumbayan", "San Isidro", "San Jose", "San Roque"],
+          "Pulilan": ["Poblacion", "Bagumbayan", "San Isidro", "San Jose", "San Roque"],
+          "San Ildefonso": ["Poblacion", "Bagumbayan", "San Isidro", "San Jose", "San Roque"],
+          "San Miguel": ["Poblacion", "Bagumbayan", "San Isidro", "San Jose", "San Roque"],
+          "San Rafael": ["Poblacion", "Bagumbayan", "San Isidro", "San Jose", "San Roque"],
+          "Santa Maria": ["Poblacion", "Bagumbayan", "San Isidro", "San Jose", "San Roque"]
+      },
+      "Nueva Ecija": {
+        "Cabanatuan City": ["Poblacion", "Bagong Barrio", "Biga", "San Isidro", "Santo Cristo"],
+        "Gapan City": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santo Rosario"],
+        "Palayan City": ["Poblacion", "Bagong Barrio", "San Jose", "San Roque", "Santa Rita"],
+        "San Jose City": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Maria"],
+        "Aliaga": ["Poblacion", "Bagong Barrio", "San Vicente", "Santa Cruz", "San Miguel"],
+        "Bongabon": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Lucia"],
+        "Cuyapo": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Maria"],
+        "Gabaldon": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Cruz"],
+        "General Tinio": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Rita"],
+        "Jaen": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Lucia"],
+        "Laur": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Maria"],
+        "Licab": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Cruz"],
+        "Llanera": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Maria"],
+        "Lupao": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Lucia"],
+        "Muñoz City": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Maria"],
+        "Nampicuan": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Cruz"],
+        "Pantabangan": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Maria"],
+        "Peñaranda": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Lucia"],
+        "Rizal": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Maria"],
+        "San Antonio": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Cruz"],
+        "San Leonardo": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Maria"],
+        "Santa Rosa": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Lucia"],
+        "Santo Domingo": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Maria"],
+        "Talavera": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Lucia"],
+        "Talugtug": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Maria"],
+        "Zaragoza": ["Poblacion", "Bagong Barrio", "San Isidro", "San Roque", "Santa Cruz"]
+      },
+      "Pampanga": {
+        "Angeles City": ["Poblacion", "Balibago", "Cutcut", "Malabanias", "Salapungan"],
+        "Mabalacat City": ["Poblacion", "Dolores", "Mabiga", "Sta. Ines", "Sto. Domingo"],
+        "San Fernando City": ["Poblacion", "Del Pilar", "Del Rosario", "San Juan", "San Nicolas"],
+        "Apalit": ["Poblacion", "San Vicente", "San Pedro", "San Juan", "Santa Lucia"],
+        "Arayat": ["Poblacion", "Baliti", "Capalangan", "San Jose", "Santa Catalina"],
+        "Bacolor": ["Poblacion", "San Agustin", "San Nicolas", "San Juan", "Santa Rita"],
+        "Candaba": ["Poblacion", "San Isidro", "San Roque", "Santa Lucia", "Santa Maria"],
+        "Floridablanca": ["Poblacion", "Balas", "San Agustin", "San Jose", "San Nicolas"],
+        "Guagua": ["Poblacion", "San Jose", "San Nicolas", "Santa Rita", "San Roque"],
+        "Lubao": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Rita"],
+        "Macabebe": ["Poblacion", "San Isidro", "San Juan", "San Roque", "Santa Lucia"],
+        "Magalang": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Rita"],
+        "Masantol": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Rita"],
+        "Mexico": ["Poblacion", "San Jose", "San Roque", "San Nicolas", "Santa Lucia"],
+        "Porac": ["Poblacion", "San Isidro", "San Juan", "San Roque", "Santa Rita"],
+        "San Luis": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Lucia"],
+        "San Simon": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Rita"],
+        "Santa Ana": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Rita"],
+        "Santa Rita": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Lucia"],
+        "Santo Tomas": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Rita"],
+        "Sasmuan": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Rita"]
+      },
+      "Tarlac": {
+        "Tarlac City": ["Poblacion", "San Isidro", "San Roque", "San Juan", "San Nicolas"],
+        "Anao": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Lucia"],
+        "Bamban": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Maria"],
+        "Camiling": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Lucia"],
+        "Capas": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Maria"],
+        "Concepcion": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Rita"],
+        "Gerona": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Lucia"],
+        "La Paz": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Rita"],
+        "Mayantoc": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Lucia"],
+        "Moncada": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Rita"],
+        "Paniqui": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Lucia"],
+        "Pura": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Rita"],
+        "Ramos": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Lucia"],
+        "San Clemente": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Rita"],
+        "San Manuel": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Lucia"],
+        "Santa Ignacia": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Rita"]
+      },
+      "Zambales": {
+        "Olongapo City": ["Poblacion", "San Antonio", "San Roque", "San Nicolas", "Santa Rita"],
+        "Botolan": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Lucia"],
+        "Cabangan": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Maria"],
+        "Candelaria": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Lucia"],
+        "Castillejos": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Rita"],
+        "Iba": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Lucia"],
+        "Masinloc": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Rita"],
+        "Palauig": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Lucia"],
+        "San Antonio": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Maria"],
+        "San Felipe": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Lucia"],
+        "San Marcelino": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Rita"],
+        "San Narciso": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Lucia"],
+        "Santa Cruz": ["Poblacion", "San Agustin", "San Jose", "San Nicolas", "Santa Maria"],
+        "Subic": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Rita"]
+      }
+    },
+    "Region IV-A - CALABARZON": {
+      "Cavite": {
+          "Cavite City": ["Poblacion", "San Jose", "San Roque", "San Juan", "Santa Cruz"],
+          "Dasmariñas City": ["Poblacion", "Salitran", "Salawag", "Burol", "Sampaloc"],
+          "Bacoor City": ["Poblacion", "Zapote", "Talaba", "Dulong Bayan", "Cavite West"],
+          "Imus City": ["Poblacion", "Anabu", "Burgos", "Bayan Luma", "Burgos"],
+          "Tagaytay City": ["Poblacion", "Mendez", "Maharlika", "San Jose", "Iruhin"],
+          "Tanza": ["Poblacion", "Sapang", "Mabuhay", "Bagong Bayan", "Maharlika"],
+          "Kawit": ["Poblacion", "Magdalo", "San Roque", "Cavite West", "Bagong Bayan"],
+          "Indang": ["Poblacion", "Puting Kahoy", "San Jose", "Balite", "San Isidro"],
+          "Trece Martires City": ["Poblacion", "Alas-asin", "San Miguel", "Conchu", "San Roque"],
+          "General Trias": ["Poblacion", "Santo Niño", "Buenavista", "San Francisco", "Malabanan"]
+      },
+      "Laguna": {
+          "Calamba City": ["Poblacion", "Halang", "Sampaguita Village", "Parian", "Punta"],
+          "San Pablo City": ["Poblacion", "San Jose", "Concepcion", "Calle Uno", "San Isidro"],
+          "Santa Rosa City": ["Poblacion", "Balibago", "Tagapo", "Kanluran", "Bayanan"],
+          "Binan City": ["Poblacion", "San Antonio", "San Isidro", "Pandan", "Lakeside"],
+          "Biñan": ["Poblacion", "San Francisco", "San Jose", "San Vicente", "Malabanan"],
+          "Cabuyao City": ["Poblacion", "Marinig", "Mamatid", "Pulo", "Niugan"],
+          "Calauan": ["Poblacion", "Longos", "Banay-Banay", "San Antonio", "San Juan"],
+          "Los Baños": ["Poblacion", "Baybayin", "Bagong Silang", "Batong Malake", "Milagrosa"],
+          "San Pedro": ["Poblacion", "San Vicente", "San Antonio", "San Roque", "Santa Rosa"],
+          "Laguna": ["Poblacion", "Bagong Bayan", "San Isidro", "San Juan", "Santa Cruz"]
+      },
+      "Batangas": {
+          "Batangas City": ["Poblacion", "Alangilan", "Calicanto", "Santa Clara", "Mataas Na Lupa"],
+          "Lipa City": ["Poblacion", "Balintawak", "Marawoy", "Del Rosario", "Mataas Na Lupa"],
+          "Tanauan City": ["Poblacion", "Bagbag", "Bariis", "San Isidro", "Santo Domingo"],
+          "Tanauan": ["Poblacion", "Sampaloc", "San Jose", "San Roque", "Santa Clara"],
+          "Nasugbu": ["Poblacion", "Balayong", "Matabungkay", "Kaylaway", "Anilao"],
+          "Lemery": ["Poblacion", "San Juan", "San Roque", "Santa Rita", "Balibago"],
+          "Lian": ["Poblacion", "Balayan", "San Juan", "San Roque", "Santa Rita"],
+          "Calatagan": ["Poblacion", "San Andres", "San Juan", "San Roque", "Santa Maria"]
+      },
+      "Rizal": {
+          "Antipolo City": ["Poblacion", "San Roque", "San Isidro", "San Juan", "Bagong Nayon"],
+          "Taytay": ["Poblacion", "San Isidro", "San Juan", "Santa Ana", "Barangay 1"],
+          "Cainta": ["Poblacion", "San Isidro", "San Juan", "Santa Lucia", "Barangay 2"],
+          "Angono": ["Poblacion", "San Isidro", "San Juan", "Santa Clara", "San Roque"],
+          "Binangonan": ["Poblacion", "San Isidro", "San Juan", "Santa Maria", "San Roque"],
+          "Cardona": ["Poblacion", "San Isidro", "San Juan", "Santa Rosa", "Barangay 1"],
+          "Morong": ["Poblacion", "San Isidro", "San Juan", "Santa Cruz", "San Roque"]
+      },
+      "Quezon": {
+          "Lucena City": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+          "Tayabas City": ["Poblacion", "San Roque", "San Isidro", "San Juan", "Santa Cruz"],
+          "Sariaya": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Maria"],
+          "Candelaria": ["Poblacion", "San Jose", "San Roque", "San Isidro", "Santa Lucia"],
+          "Tiaong": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Rosa"],
+          "Gumaca": ["Poblacion", "San Roque", "San Isidro", "San Juan", "Santa Cruz"],
+          "Mauban": ["Poblacion", "San Isidro", "San Roque", "San Juan", "Santa Maria"],
+          "Lucban": ["Poblacion", "San Roque", "San Isidro", "San Juan", "Santa Clara"]
+      }
+    },
+    "Region IV-B - MIMAROPA": {
+      "Occidental Mindoro": {
+          "Mamburao": ["Poblacion", "San Jose", "Santa Cruz", "San Isidro", "San Roque"],
+          "Sablayan": ["Poblacion", "San Miguel", "Santa Rita", "San Antonio", "San Vicente"],
+          "San Jose": ["Poblacion", "San Roque", "San Isidro", "Santa Cruz", "San Juan"],
+          "Looc": ["Poblacion", "San Isidro", "San Jose", "Santa Maria", "San Roque"],
+          "Lubang": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+          "Rizal": ["Poblacion", "San Isidro", "San Jose", "Santa Rita", "San Roque"],
+          "Sablayan": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"]
+      },
+      "Oriental Mindoro": {
+          "Calapan City": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+          "Puerto Galera": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Lucia"],
+          "Baco": ["Poblacion", "San Jose", "San Isidro", "San Roque", "Santa Cruz"],
+          "Bansud": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+          "Bulalacao": ["Poblacion", "San Roque", "San Jose", "Santa Rita", "San Isidro"],
+          "Gloria": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+          "Mansalay": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+          "Naujan": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+          "Pinamalayan": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+          "Pola": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+          "Roxas": ["Poblacion", "San Roque", "San Jose", "Santa Lucia", "San Isidro"],
+          "Socorro": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+          "Bongabong": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"]
+      },
+      "Marinduque": {
+          "Boac": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Cruz"],
+          "Buenavista": ["Poblacion", "San Roque", "San Jose", "Santa Maria", "San Isidro"],
+          "Gasan": ["Poblacion", "San Jose", "San Roque", "San Isidro", "Santa Rita"],
+          "Mogpog": ["Poblacion", "San Roque", "San Jose", "Santa Maria", "San Isidro"],
+          "Santa Cruz": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Rita"],
+          "Torrijos": ["Poblacion", "San Roque", "San Jose", "Santa Maria", "San Isidro"]
+      },
+      "Romblon": {
+          "Romblon": ["Poblacion", "San Jose", "San Roque", "Santa Cruz", "San Isidro"],
+          "Odiongan": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+          "San Agustin": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+          "San Andres": ["Poblacion", "San Jose", "San Roque", "Santa Maria", "San Isidro"],
+          "San Fernando": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+          "Santa Fe": ["Poblacion", "San Jose", "San Roque", "Santa Maria", "San Isidro"],
+          "Cajidiocan": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"]
+      },
+      "Palawan": {
+          "Puerto Princesa City": ["Poblacion", "San Jose", "San Roque", "Santa Cruz", "San Isidro"],
+          "Aborlan": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+          "Narra": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+          "Quezon": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+          "Roxas": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+          "San Vicente": ["Poblacion", "San Jose", "San Roque", "Santa Maria", "San Isidro"],
+          "El Nido": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+          "Coron": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+          "Culion": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+          "Bataraza": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"]
+      }
+    },
+    "Region V - Bicol Region": {
+        "Albay": {
+            "Legazpi City": ["Poblacion", "San Roque", "San Jose", "Barangay 1", "Barangay 2"],
+            "Tabaco City": ["Poblacion", "San Francisco", "San Isidro", "San Juan", "Santa Cruz"],
+            "Ligao City": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Bacacay": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Rita"],
+            "Camalig": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Daraga": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Guinobatan": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Jovellar": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Rita"]
+        },
+        "Camarines Norte": {
+            "Daet": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Cruz"],
+            "Basud": ["Poblacion", "San Roque", "San Jose", "Santa Maria", "San Isidro"],
+            "Capalonga": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Rita"],
+            "Jose Panganiban": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Labo": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Mercedes": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"]
+        },
+        "Camarines Sur": {
+            "Naga City": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Cruz"],
+            "Iriga City": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Baao": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Balatan": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Bato": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Rita"],
+            "Bombon": ["Poblacion", "San Roque", "San Jose", "Santa Maria", "San Isidro"],
+            "Buhi": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Cruz"]
+        },
+        "Catanduanes": {
+            "Virac": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Bagamanoc": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Baras": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Bato": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Caramoran": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"]
+        },
+        "Masbate": {
+            "Masbate City": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Aroroy": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Baleno": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Balud": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Cataingan": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"]
+        },
+        "Sorsogon": {
+            "Sorsogon City": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Barcelona": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Bulusan": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Gubat": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Irosin": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Matnog": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"]
+        }
+    },
+    "Region VI - Western Visayas": {
+        "Aklan": {
+            "Kalibo": ["Poblacion", "Pangpang", "Balabag", "Tigayon", "Quinobcob"],
+            "Nabas": ["Poblacion", "San Isidro", "San Jose", "San Roque", "Santa Cruz"],
+            "Malay": ["Poblacion", "Barangay 1", "Barangay 2", "Caticlan", "Boracay"],
+            "Banga": ["Poblacion", "San Isidro", "San Jose", "San Roque", "Santa Maria"],
+            "Libacao": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"]
+        },
+        "Antique": {
+            "San Jose de Buenavista": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Santa Cruz"],
+            "Patnongon": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Tibiao": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Valderrama": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Sibalom": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"]
+        },
+        "Capiz": {
+            "Roxas City": ["Poblacion", "Baybay", "Dumalag", "Cogon", "Lawa-an"],
+            "Panay": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Cruz"],
+            "Cuartero": ["Poblacion", "San Roque", "San Jose", "Santa Maria", "San Isidro"],
+            "Mambusao": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Cruz"]
+        },
+        "Guimaras": {
+            "Jordan": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Cruz"],
+            "Nueva Valencia": ["Poblacion", "San Roque", "San Jose", "Santa Maria", "San Isidro"],
+            "Sibunag": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"]
+        },
+        "Iloilo": {
+            "Iloilo City": ["Poblacion", "La Paz", "Jaro", "Molo", "Arevalo"],
+            "Passi City": ["Poblacion", "San Roque", "San Jose", "Santa Maria", "San Isidro"],
+            "Pavia": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Cruz"],
+            "Miagao": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Dumangas": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"]
+        },
+        "Negros Occidental": {
+            "Bacolod City": ["Poblacion", "Luzuriaga", "Alangilan", "Barangay 1", "Barangay 2"],
+            "San Carlos City": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Bago City": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Cadiz City": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"],
+            "Himamaylan City": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Kabankalan City": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"]
+        }
+    },
+    "Region VII - Central Visayas": {
+        "Cebu": {
+            "Cebu City": ["Poblacion", "Lahug", "Banilad", "Mabolo", "Talamban"],
+            "Mandaue City": ["Poblacion", "Cebu Light", "Tipolo", "Subangdaku", "Looc"],
+            "Lapu-Lapu City": ["Poblacion", "Poblacion Zone 1", "Poblacion Zone 2", "Gun-ob", "Mactan"],
+            "Talisay City": ["Poblacion", "San Isidro", "Tabunok", "Cansojong", "Bulacao"],
+            "Toledo City": ["Poblacion", "Bagacay", "Poblacion Zone 2", "Tubod", "Apas"]
+        },
+        "Bohol": {
+            "Tagbilaran City": ["Poblacion", "Bool", "Cogon", "Tampisaw", "Barangay 1"],
+            "Carmen": ["Poblacion", "Sikatuna", "Batuan", "Barangay 1", "Barangay 2"],
+            "Dauis": ["Poblacion", "Barangay 1", "Barangay 2", "San Isidro", "San Roque"],
+            "Loboc": ["Poblacion", "Barangay 1", "Barangay 2", "San Roque", "Santa Cruz"],
+            "Tubigon": ["Poblacion", "San Isidro", "San Jose", "Barangay 1", "Barangay 2"]
+        },
+        "Negros Oriental": {
+            "Dumaguete City": ["Poblacion", "Batinguel", "Banilad", "Barangay 1", "Barangay 2"],
+            "Bayawan City": ["Poblacion", "Barangay 1", "San Isidro", "San Roque", "Santa Maria"],
+            "Bais City": ["Poblacion", "Barangay 1", "San Isidro", "San Roque", "Santa Cruz"],
+            "Sibulan": ["Poblacion", "Barangay 1", "San Jose", "San Roque", "Santa Maria"]
+        },
+        "Siquijor": {
+            "Siquijor": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Cruz"],
+            "Larena": ["Poblacion", "San Roque", "San Jose", "Santa Maria", "San Isidro"],
+            "Lazi": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Santa Maria"],
+            "Maria": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "San Isidro"]
+        }
+    },
+    "Region VIII - Eastern Visayas": {
+        "Leyte": {
+            "Tacloban City": ["Poblacion", "Santa Elena", "Santa Fe", "Barangay 1", "Barangay 2"],
+            "Ormoc City": ["Poblacion", "Barangay 1", "Barangay 2", "San Isidro", "San Roque"],
+            "Baybay City": ["Poblacion", "San Isidro", "San Roque", "Barangay 1", "Barangay 2"],
+            "Carigara": ["Poblacion", "Barangay 1", "Barangay 2", "San Jose", "San Roque"],
+            "Tolosa": ["Poblacion", "San Isidro", "San Roque", "Barangay 1", "Barangay 2"]
+        },
+        "Southern Leyte": {
+            "Maasin City": ["Poblacion", "San Roque", "San Isidro", "Barangay 1", "Barangay 2"],
+            "Sogod": ["Poblacion", "San Isidro", "San Roque", "Barangay 1", "Barangay 2"],
+            "Bontoc": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Libagon": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"]
+        },
+        "Samar (Western Samar)": {
+            "Catbalogan City": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Basey": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Calbayog City": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Paranas": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "Northern Samar": {
+            "Catarman": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Allen": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Laoang": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Victoria": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"]
+        },
+        "Eastern Samar": {
+            "Borongan City": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Dolores": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Guiuan": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Salcedo": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"]
+        },
+        "Biliran": {
+            "Naval": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Biliran": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Almeria": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"]
+        }
+    },
+    "Region IX - Zamboanga Peninsula": {
+        "Zamboanga del Norte": {
+            "Dipolog City": ["Poblacion", "Sta. Cruz", "Barangay 1", "Barangay 2", "Cogon"],
+            "Dapitan City": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Sindangan": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Tampilisan": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "Zamboanga del Sur": {
+            "Pagadian City": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Dumalinao": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Dinas": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Molave": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "Zamboanga Sibugay": {
+            "Ipil": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Kabasalan": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Buug": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Siay": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"]
+        },
+        "Zamboanga City": {
+            "Poblacion": ["Canelar", "Sta. Catalina", "Tetuan", "Putik", "Divisoria"],
+            "Mariki": ["Culasian", "San Roque", "Santa Maria", "San Isidro", "Barangay 5"],
+            "Tetuan": ["San Roque", "San Jose", "Barangay 1", "Barangay 2", "Poblacion"],
+            "Sta. Barbara": ["San Isidro", "San Roque", "San Jose", "Barangay 1", "Barangay 2"]
+        }
+    },
+    "Region X - Northern Mindanao": {
+        "Bukidnon": {
+            "Malaybalay City": ["Poblacion", "Sumpong", "Bagontaas", "Patpat", "Manalog"],
+            "Valencia City": ["Poblacion", "Bagontaas", "Central", "Bagang", "San Miguel"],
+            "Manolo Fortich": ["Poblacion", "Tignapoloan", "San Miguel", "Kahaponan", "Maluko"],
+            "Baungon": ["Poblacion", "Kisolon", "Langonan", "Mantalongon", "San Vicente"]
+        },
+        "Camiguin": {
+            "Mambajao": ["Poblacion", "Guinsiliban", "San Roque", "Binuangan", "Barangay 1"],
+            "Catarman": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Mahinog": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "Misamis Occidental": {
+            "Oroquieta City": ["Poblacion", "San Roque", "San Jose", "Santa Cruz", "Barangay 1"],
+            "Ozamiz City": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Tangub City": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Don Victoriano": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"]
+        },
+        "Misamis Oriental": {
+            "Cagayan de Oro City": ["Poblacion", "Carmen", "Barangay 1", "Barangay 2", "Macasandig"],
+            "El Salvador City": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Gingoog City": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Opol": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"]
+        }
+    },
+    "Region XI - Davao Region": {
+        "Davao de Oro": {
+            "Nabunturan": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Maco": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Monkayo": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Compostela": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "Davao del Norte": {
+            "Tagum City": ["Poblacion", "Magugpo", "San Isidro", "San Roque", "San Jose"],
+            "Panabo City": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Kapalong": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "New Corella": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "Davao del Sur": {
+            "Digos City": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Bansalan": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Hagonoy": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Matanao": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"]
+        },
+        "Davao Occidental": {
+            "Malita": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Santa Maria": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Jose Abad Santos": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"]
+        },
+        "Davao City": {
+            "Poblacion District": ["Agdao", "Buhangin", "Tugbok", "Catalunan Grande", "Matina"],
+            "Talomo District": ["Bago Oshiro", "Buhangin", "Calinan", "Marilog", "Talomo"],
+            "Agdao District": ["Agdao", "Lizada", "Catalunan Grande", "Catalunan Pequeño", "Talandang"],
+            "Buhangin District": ["Buhangin Proper", "Talandang", "Malinao", "Barangay 1", "Barangay 2"]
+        }
+    },
+    "Region XII - SOCCSKSARGEN": {
+        "South Cotabato": {
+            "Koronadal City": ["Poblacion", "San Isidro", "San Roque", "Barangay 1", "Barangay 2"],
+            "Polomolok": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Santo Niño": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Tupi": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "Cotabato (North Cotabato)": {
+            "Kidapawan City": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "M'lang": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Tulunan": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Makilala": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"]
+        },
+        "Sultan Kudarat": {
+            "Tacurong City": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Isulan": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Lambayong": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "President Quirino": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"]
+        },
+        "Sarangani": {
+            "Alabel": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Glan": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Malungon": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "General Santos City": {
+            "Poblacion District": ["Dadiangas North", "Dadiangas South", "Lagao", "Bulan", "Sinawal"],
+            "Banga District": ["Bula", "Fatima", "Barangay 1", "Barangay 2", "Barangay 3"],
+            "Calumpang District": ["Calumpang", "Tambler", "Aguinaldo", "Barangay 1", "Barangay 2"]
+        }
+    },
+    "Region XIII - Caraga": {
+        "Agusan del Norte": {
+            "Butuan City": ["Poblacion", "Buenavista", "Libertad", "Barangay 1", "Barangay 2"],
+            "Cabadbaran City": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Las Nieves": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Buenavista": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "Agusan del Sur": {
+            "Bayugan City": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Esperanza": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "San Francisco": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Trento": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"]
+        },
+        "Surigao del Norte": {
+            "Surigao City": ["Poblacion", "Bgy. 1", "Bgy. 2", "San Roque", "San Isidro"],
+            "Burgos": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Claver": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Dapa": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "Surigao del Sur": {
+            "Tandag City": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Bislig City": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Cantilan": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Carmen": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "Dinagat Islands": {
+            "San Jose": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Dinagat": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Tubajon": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"]
+        }
+    },
+    "BARMM - Bangsamoro Autonomous Region": {
+        "Basilan": {
+            "Isabela City": ["Poblacion", "Santa Clara", "Barangay 1", "Barangay 2", "San Roque"],
+            "Lamitan City": ["Poblacion", "San Jose", "San Isidro", "San Roque", "Barangay 1"],
+            "Tipo-Tipo": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Sumisip": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "Lanao del Sur": {
+            "Marawi City": ["Poblacion", "Sagonsongan", "Lilod Madaya", "Datu Saber", "Barangay 1"],
+            "Bacolod-Kalawi": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Balabagan": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Wao": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "Maguindanao": {
+            "Cotabato City": ["Poblacion", "Arenas", "Bgy. 1", "Bgy. 2", "San Roque"],
+            "Mamasapano": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Shariff Aguak": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Sultan Kudarat (Maguindanao)": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "Sulu": {
+            "Jolo": ["Poblacion", "Santa Cruz", "San Roque", "San Isidro", "Barangay 1"],
+            "Indanan": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"],
+            "Kalingalan Caluang": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Patikul": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        },
+        "Tawi-Tawi": {
+            "Bongao": ["Poblacion", "Tubig Basag", "Sanga-Sanga", "Buan", "Barangay 1"],
+            "Mapun": ["Poblacion", "San Roque", "San Isidro", "San Jose", "Barangay 1"],
+            "Panglima Sugala": ["Poblacion", "San Isidro", "San Roque", "San Jose", "Barangay 1"],
+            "Sapa-Sapa": ["Poblacion", "San Roque", "San Jose", "San Isidro", "Barangay 1"]
+        }
+    }
+  };
 
     let map, marker;
     let currentLat = 14.6507, currentLng = 121.0494;

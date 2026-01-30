@@ -141,9 +141,9 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label>Barangay <span class="text-danger">*</span></label>
-                <select class="form-control" id="location_barangay" name="location_barangay" required onclick="event.stopPropagation();" disabled>
-                  <option value="">-- Select City First --</option>
-                </select>
+                <input type="text" class="form-control" 
+                       name="location_barangay" id="location_barangay" value="{{ old('location_barangay') }}" 
+                       placeholder="e.g., Barangay 1" required>
               </div>
             </div>
           </div>

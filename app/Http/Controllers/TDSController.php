@@ -840,6 +840,7 @@ class TDSController extends Controller
         $output = fopen('php://output', 'w');
 
         fputcsv($output, [
+            'Lead Reference',
             'Date Registered',
             'Employee Name',
             'Area',
@@ -859,6 +860,7 @@ class TDSController extends Controller
 
         foreach ($records as $record) {
             fputcsv($output, [
+                $record->lead_reference ?? 'N/A',
                 $record->date_of_registration,
                 $record->user ? $record->user->name : 'N/A',
                 $this->getRegionDisplayName($record->region),
@@ -1050,6 +1052,7 @@ class TDSController extends Controller
         
         echo '<thead>';
         echo '<tr>';
+        echo '<th style="width: 100px;">Lead Reference</th>';
         echo '<th style="width: 100px;">Date Registered</th>';
         echo '<th style="width: 130px;">Submitted At</th>';
         echo '<th style="width: 150px;">Employee Name</th>';
@@ -1116,6 +1119,7 @@ class TDSController extends Controller
             }
             
             echo '<tr>';
+            echo '<td>' . htmlspecialchars($record->lead_reference) . '</td>';
             echo '<td class="text-center">' . \Carbon\Carbon::parse($record->date_of_registration)->format('M d, Y') . '</td>';
             echo '<td class="text-center">' . \Carbon\Carbon::parse($record->created_at)->format('M d, Y h:i A') . '</td>';
             echo '<td>' . ($record->user ? htmlspecialchars($record->user->name) : 'N/A') . '</td>';

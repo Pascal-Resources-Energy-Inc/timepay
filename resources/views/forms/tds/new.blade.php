@@ -2403,7 +2403,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (province) {
             citySelect.disabled = false;
             const cities = locationData[region][province];
-            Object.keys(cities).forEach(city => {
+            cities.forEach(city => {
                 const option = document.createElement('option');
                 option.value = city;
                 option.textContent = city;

@@ -2416,29 +2416,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('location_city').addEventListener('change', function() {
-        const region = document.getElementById('location_region').value;
-        const province = document.getElementById('location_province').value;
-        const city = this.value;
-        const barangaySelect = document.getElementById('location_barangay');
-
-        barangaySelect.innerHTML = '<option value="">-- Select Barangay --</option>';
-
-        if (city) {
-            barangaySelect.disabled = false;
-            const barangays = locationData[region][province][city];
-            barangays.forEach(barangay => {
-                const option = document.createElement('option');
-                option.value = barangay;
-                option.textContent = barangay;
-                barangaySelect.appendChild(option);
-            });
-
-            updateMapForCity(city);
-        } else {
-            barangaySelect.disabled = true;
-        }
-        updateFullAddress();
-    });
+      const city = this.value;
+      
+      if (city) {
+          document.getElementById('location_barangay').disabled = false;
+          updateMapForCity(city);
+      } else {
+          document.getElementById('location_barangay').disabled = true;
+      }
+      updateFullAddress();
+  });
 
     document.getElementById('location_barangay').addEventListener('change', updateFullAddress);
     document.getElementById('postal_code').addEventListener('input', updateFullAddress);

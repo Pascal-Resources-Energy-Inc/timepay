@@ -117,7 +117,7 @@
                 </div>
                 <div class='col-md-4'>
                   Work Email
-                  <input type="email" name="work_email" value="{{ $user->email }}" readonly="true" class='form-control form-control-sm required' placeholder="Work Email"/>
+                  <input type="email" name="work_email" value="{{ $user->email }}" class='form-control form-control-sm required' placeholder="Work Email"/>
                 </div>
                 <div class='col-md-4'>
                   Schedule

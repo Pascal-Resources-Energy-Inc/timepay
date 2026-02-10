@@ -403,6 +403,75 @@ class TDSController extends Controller
         ]);
     }
 
+
+    public function getExistingCustomers(Request $request)
+    {
+        try {
+            $search = $request->input('search', '');
+
+            $selectColumns = [
+                DB::raw('MAX(id) as id'),
+                'customer_name',
+                'contact_no',
+                'business_name',
+                'business_type',
+                DB::raw('MAX(created_at) as last_transaction'),
+            ];
+
+            $groupByColumns = [
+                'customer_name',
+                'contact_no',
+                'business_name',
+                'business_type',
+            ];
+
+            $query = DB::table('tds')
+                ->select($selectColumns)
+                ->where('status', '!=', 'Decline')
+                ->groupBy($groupByColumns)
+                ->orderByDesc('last_transaction');
+
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('customer_name', 'LIKE', "%{$search}%")
+                    ->orWhere('contact_no', 'LIKE', "%{$search}%")
+                    ->orWhere('business_name', 'LIKE', "%{$search}%");
+                });
+            }
+
+            $customers = $query->limit(50)->get();
+
+            $results = $customers->map(function ($customer) {
+                return [
+                    'id'            => $customer->id,
+                    'text'          => $customer->customer_name
+                                    . ' - ' . $customer->business_name
+                                    . ' (' . $customer->contact_no . ')',
+                    'customer_name' => $customer->customer_name,
+                    'contact_no'    => $customer->contact_no,
+                    'business_name' => $customer->business_name,
+                    'business_type' => $customer->business_type,
+                ];
+            });
+
+            return response()->json([
+                'results' => $results
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('getExistingCustomers error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'results' => [],
+                'error'   => 'Failed to load customers.',
+                'message' => config('app.debug') ? $e->getMessage() : 'Server error.'
+            ], 500);
+        }
+    }
+
+
     private function prepareChartData($records, $year, $userIds = null)
     {
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

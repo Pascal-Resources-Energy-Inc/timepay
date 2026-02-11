@@ -1200,6 +1200,11 @@ class EmployeeController extends Controller
     public function updateEmpInfoHR(Request $request, $id){
         
         $employee = Employee::findOrFail($id);
+
+        $user = User::findOrFail($employee->user_id);
+        $user->email = $request->work_email;
+        $user->save();
+        
         $employee->employee_number = $request->employee_number;
         $employee->company_id = $request->company;
         $employee->position = $request->position;
@@ -1214,7 +1219,7 @@ class EmployeeController extends Controller
         $employee->tax_number = $request->tin;
         $employee->hdmf_number = $request->pagibig;
         $employee->original_date_hired = $request->date_hired;
-        // $employee->personal_email = $request->personal_email;
+        $employee->personal_email = $request->work_email;
         $employee->immediate_sup = $request->immediate_supervisor;
         $employee->schedule_id = $request->schedule;
         $employee->bank_name = $request->bank_name;

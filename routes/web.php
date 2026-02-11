@@ -119,6 +119,7 @@
     Route::get('/tds/get-all-users', 'TDSController@getAllUsers')->name('tds.get-all-users');
     Route::get('/tds/activity-logs', 'TDSController@getActivityLogs')->name('tds.activity-logs');
 
+    Route::post('/geocode-location', 'TDSController@geocodeLocation')->name('geocode.location');
     Route::get('/tds/existing-customers', 'TDSController@getExistingCustomers')->name('tds.existing-customers');
 
     Route::get('/tds/records', 'TDSController@allSubmissions')->name('tds.records');

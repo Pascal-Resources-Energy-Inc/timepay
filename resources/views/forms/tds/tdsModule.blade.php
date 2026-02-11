@@ -71,11 +71,11 @@
                   <i class="ti-plus btn-icon-prepend"></i>                                                    
                   Register New Sales
                 </button>
-                @if (auth()->user()->role == 'Admin' || auth()->user()->role == 'Manager')
-                <button type="button" class="btn btn-outline-warning btn-icon-text" data-toggle="modal" data-target="#setSalesTarget">
-                  <i class="ti-settings btn-icon-prepend"></i>                                                    
-                  Set Sales Target
-                </button>
+                @if (auth()->user()->role == 'Admin' || checkUserPrivilege('sales_target', auth()->user()->id) == 'yes')
+                    <button type="button" class="btn btn-outline-warning btn-icon-text" data-toggle="modal" data-target="#setSalesTarget">
+                        <i class="ti-settings btn-icon-prepend"></i>                                                    
+                        Set Sales Target
+                    </button>
                 @endif
                 <a href="{{ route('tds.export', request()->query()) }}" class="btn btn-outline-primary btn-icon-text">
                   <i class="ti-download btn-icon-prepend"></i>                                                    

@@ -409,7 +409,7 @@
 
                                     {{-- Modules --}}
                                     <div class="col-md-6 form-group">
-                                        <h5>Modules</h5>
+                                        <h5>TDS Modules</h5>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->tds == 'on')
                                                 <input type="checkbox" name="tds" id="tds{{$user->id}}" value="{{ $user->user_privilege->tds }}" checked>
@@ -433,6 +433,19 @@
                                             <input type="checkbox" name="tds_records" id="tds_records{{$user->id}}">
                                         @endif
                                         TDS Records
+                                        <br>
+                                        <br>
+
+                                        @if($user->user_privilege)
+                                            @if($user->user_privilege->sales_target == 'on')
+                                                <input type="checkbox" name="sales_target" id="sales_target{{$user->id}}" value="{{ $user->user_privilege->sales_target }}" checked>
+                                            @else
+                                                <input type="checkbox" name="sales_target" id="sales_target{{$user->id}}">
+                                            @endif
+                                        @else
+                                            <input type="checkbox" name="sales_target" id="sales_target{{$user->id}}">
+                                        @endif
+                                        Sales Target
                                         <br>
                                         <br>
                                     </div>

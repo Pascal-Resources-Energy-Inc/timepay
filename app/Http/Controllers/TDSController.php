@@ -471,6 +471,65 @@ class TDSController extends Controller
         }
     }
 
+    public function geocodeLocation(Request $request)
+    {
+        try {
+            $request->validate([
+                'barangay' => 'required|string',
+                'city' => 'required|string',
+                'province' => 'required|string',
+            ]);
+
+            $barangay = $request->input('barangay');
+            $city = $request->input('city');
+            $province = $request->input('province');
+            
+            $query = urlencode("{$barangay}, {$city}, {$province}, Philippines");
+            $url = "https://nominatim.openstreetmap.org/search?q={$query}&format=json&limit=1&countrycodes=ph";
+            
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'DealerRegistrationApp/1.0');
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+            
+            if ($error) {
+                \Log::error('Geocoding cURL error: ' . $error);
+            }
+            
+            if ($httpCode == 200 && $response) {
+                $data = json_decode($response, true);
+                
+                if (!empty($data)) {
+                    return response()->json([
+                        'success' => true,
+                        'lat' => $data[0]['lat'],
+                        'lng' => $data[0]['lon']
+                    ]);
+                }
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Location not found'
+            ], 200);
+            
+        } catch (\Exception $e) {
+            \Log::error('Geocoding error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Geocoding failed',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error'
+            ], 200);
+        }
+    }
 
     private function prepareChartData($records, $year, $userIds = null)
     {

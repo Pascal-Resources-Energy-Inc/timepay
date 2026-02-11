@@ -192,6 +192,7 @@ class UserController extends Controller
                 
                 $user_privilege->sales_performance = $request->sales_performance;
                 $user_privilege->tds = $request->tds;
+                $user_privilege->sales_target = $request->sales_target;
                 $user_privilege->tds_records = $request->tds_records;
 
                 $user_privilege->masterfiles_companies = $request->masterfiles_companies;
@@ -242,6 +243,7 @@ class UserController extends Controller
 
                 $new_user_privilege->sales_performance = $request->sales_performance;
                 $new_user_privilege->tds = $request->tds;
+                $new_user_privilege->sales_target = $request->sales_target;
                 $new_user_privilege->tds_records = $request->tds_records;
 
                 $new_user_privilege->masterfiles_companies = $request->masterfiles_companies;

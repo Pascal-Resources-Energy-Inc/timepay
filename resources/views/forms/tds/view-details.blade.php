@@ -103,14 +103,27 @@
         @if($record->business_image)
         <div class="row mb-4">
           <div class="col-md-12">
-            <h5 class="text-primary mb-3">Business Image</h5>
+            <h5 class="text-primary mb-3"><i class="ti-image"></i> Business Image</h5>
             <div class="text-center">
-              <img src="{{ url('/tds-images/' . $record->business_image) }}" 
-                  alt="Business Image" 
+              <img src="{{ asset('uploads/tds_images/' . $record->business_image) }}" 
+                  alt="Business Image for {{ $record->business_name }}" 
                   class="img-fluid img-thumbnail"
-                  style="max-height: 400px; cursor: pointer;"
-                  onclick="window.open(this.src, '_blank')">
-              <p class="text-muted mt-2"><small>Click image to view full size</small></p>
+                  style="max-height: 400px; cursor: pointer; border: 2px solid #ddd; border-radius: 8px;"
+                  onclick="window.open(this.src, '_blank')"
+                  onerror="this.onerror=null; this.src='{{ asset('images/no-image.png') }}'; this.alt='Image not found';">
+              <p class="text-muted mt-2"><small><i class="ti-info-alt"></i> Click image to view full size in new tab</small></p>
+            </div>
+          </div>
+        </div>
+        <hr class="my-4">
+        @else
+        <div class="row mb-4">
+          <div class="col-md-12">
+            <h5 class="text-primary mb-3"><i class="ti-image"></i> Business Image</h5>
+            <div class="text-center">
+              <div class="alert alert-warning">
+                <i class="ti-alert"></i> No business image uploaded for this record.
+              </div>
             </div>
           </div>
         </div>
@@ -157,7 +170,7 @@
                 <td>{{ $record->lead_generator }}</td>
               </tr>
               <tr>
-                <th>Lead Generator:</th>
+                <th>Lead Reference:</th>
                 <td>{{ $record->lead_reference ?? 'N/A' }}</td>
               </tr>
               <tr>
@@ -172,19 +185,66 @@
             
             @if($record->document_attachment)
               <div class="alert alert-success mb-3">
-                <strong><i class="ti-file"></i> Document:</strong><br>
-                <a href="{{ asset('storage/tds_documents/' . $record->document_attachment) }}" 
-                   target="_blank" 
+                <strong><i class="ti-file"></i> Document Attachment:</strong><br>
+                <span class="text-muted small">{{ $record->document_attachment }}</span><br>
+                <a href="{{ asset('uploads/tds_documents/' . $record->document_attachment) }}" 
+                   download 
                    class="btn btn-sm btn-info mt-2">
-                  <i class="ti-download"></i> View Document
+                  <i class="ti-eye"></i> View
                 </a>
               </div>
+            @else
+              <div class="alert alert-light mb-3">
+                <i class="ti-info-alt"></i> No document attachment available.
+              </div>
+            @endif
+
+            @if($record->status == 'Delivered')
+              @if($record->proof_of_payment)
+                <div class="alert alert-success mb-3">
+                  <strong><i class="ti-check-box"></i> Proof of Payment:</strong><br>
+                  <span class="text-muted small">{{ $record->proof_of_payment }}</span><br>
+                  
+                  @php
+                    $fileExtension = pathinfo($record->proof_of_payment, PATHINFO_EXTENSION);
+                    $isImage = in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png']);
+                  @endphp
+                  
+                  @if($isImage)
+                    <div class="mt-2">
+                      <img src="{{ asset('uploads/tds_payments/' . $record->proof_of_payment) }}" 
+                           alt="Proof of Payment" 
+                           class="img-fluid img-thumbnail"
+                           style="max-height: 200px; cursor: pointer; border: 2px solid #28a745; border-radius: 8px;"
+                           onclick="window.open(this.src, '_blank')"
+                           onerror="this.onerror=null; this.src='{{ asset('images/no-image.png') }}'; this.alt='Image not found';">
+                      <p class="text-muted mt-1 mb-0"><small><i class="ti-info-alt"></i> Click to view full size</small></p>
+                    </div>
+                  @else
+                    <a href="{{ asset('uploads/tds_payments/' . $record->proof_of_payment) }}" 
+                       target="_blank" 
+                       class="btn btn-sm btn-success mt-2">
+                      <i class="ti-eye"></i> View PDF
+                    </a>
+                  @endif
+                  
+                  <a href="{{ asset('uploads/tds_payments/' . $record->proof_of_payment) }}" 
+                     download 
+                     class="btn btn-sm btn-outline-success mt-2">
+                    <i class="ti-download"></i> Download
+                  </a>
+                </div>
+              @else
+                <div class="alert alert-warning mb-3">
+                  <i class="ti-alert"></i> No proof of payment uploaded yet.
+                </div>
+              @endif
             @endif
 
             @if($record->additional_notes)
               <div class="alert alert-info">
-                <strong><i class="ti-info-alt"></i> Notes:</strong><br>
-                {{ $record->additional_notes }}
+                <strong><i class="ti-comment-alt"></i> Notes:</strong><br>
+                <p class="mb-0" style="white-space: pre-wrap;">{{ $record->additional_notes }}</p>
               </div>
             @else
               <p class="text-muted"><em>No additional notes available.</em></p>
@@ -194,6 +254,12 @@
               <small class="text-muted">
                 <i class="ti-time"></i> Created: {{ \Carbon\Carbon::parse($record->created_at)->format('M d, Y h:i A') }}
               </small>
+              @if($record->updated_at && $record->updated_at != $record->created_at)
+              <br>
+              <small class="text-muted">
+                <i class="ti-reload"></i> Last Updated: {{ \Carbon\Carbon::parse($record->updated_at)->format('M d, Y h:i A') }}
+              </small>
+              @endif
             </div>
           </div>
 
@@ -202,7 +268,9 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="ti-close"></i> Close
+        </button>
       </div>
 
     </div>

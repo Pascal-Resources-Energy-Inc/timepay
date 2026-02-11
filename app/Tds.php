@@ -33,6 +33,7 @@ class Tds extends Model
         'timeline',
         'delivery_date',
         'document_attachment',
+        'proof_of_payment',
         'additional_notes',
         'latitude',
         'longitude',

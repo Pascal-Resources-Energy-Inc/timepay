@@ -142,108 +142,123 @@
               <div class="table-responsive">
                 <table class="table table-hover table-bordered tablewithSearch">
                   <thead>
-                    <tr>
-                      <th>Date Registered</th>
-                      <th>Employee</th>
-                      <th>Area</th>
-                      <th>Customer Name</th>
-                      <th>Business Name</th>
-                      <th>Business Type</th>
-                      <th>Package</th>
-                      <th>Program Type</th>
-                      <th>Amount</th>
-                      <th>Status</th>
-                      <th>Delivery Date</th>
-                      <th>Document</th>
-                      <th>Action</th>
-                    </tr>
+                      <tr>
+                          <th>Date Registered</th>
+                          <th>Employee</th>
+                          <th>Area</th>
+                          <th>Customer Name</th>
+                          <th>Business Name</th>
+                          <th>Business Type</th>
+                          <th>Package</th>
+                          <th>Program Type</th>
+                          <th>Amount</th>
+                          <th>Status</th>
+                          <th>Delivery Date</th>
+                          {{-- <th>Business Image</th>
+                          <th>Document</th> --}}
+                          <th>Action</th>
+                      </tr>
                   </thead>
 
                   <tbody>
-                    @forelse($tdsRecords as $record)
-                    <tr>
-                      <td>{{ \Carbon\Carbon::parse($record->date_of_registration)->format('Y-m-d') }}</td>
-                      <td>{{ $record->user->name ?? 'N/A' }}</td>
-                      <td>{{ optional($record->region)->region ? optional($record->region)->region . ' - ' . optional($record->region)->province . (optional($record->region)->district ? ' - ' . optional($record->region)->district : '') : 'N/A' }}</td>
-                      <td>{{ $record->customer_name }}</td>
-                      <td>{{ $record->business_name }}</td>
-                      <td>{{ $record->business_type }}</td>
-                      <td>
-                        @if($record->package_type == 'EU')
-                          <span class="badge badge-secondary">EU</span>
-                        @elseif($record->package_type == 'D')
-                          <span class="badge badge-info">D</span>
-                        @elseif($record->package_type == 'MD')
-                          <span class="badge badge-warning">MD</span>
-                        @elseif($record->package_type == 'AD')
-                          <span class="badge badge-primary">AD</span>
-                        @endif
-                      </td>
-                      <td>
-                        @if($record->program_type)
-                          <span class="badge badge-light">{{ $record->program_type }}</span>
-                        @else
-                          <span class="text-muted">N/A</span>
-                        @endif
-                      </td>
-                      <td>₱{{ number_format($record->purchase_amount, 2) }}</td>
-                      <td>
-                        @if($record->status == 'Delivered')
-                          <span class="badge badge-success">Delivered</span>
-                        @elseif($record->status == 'For Delivery')
-                          <span class="badge badge-warning">For Delivery</span>
-                        @elseif($record->status == 'Interested')
-                          <span class="badge badge-info">Interested</span>
-                        @elseif($record->status == 'Decline')
-                          <span class="badge badge-danger">Decline</span>
-                        @endif
-                      </td>
-                      <td>
-                        @if($record->delivery_date)
-                          {{ \Carbon\Carbon::parse($record->delivery_date)->format('M d, Y') }}
-                        @else
-                          <span class="text-muted">-</span>
-                        @endif
-                      </td>
-                      <td class="text-center">
-                        @if($record->document_attachment)
-                          <a href="{{ asset('storage/tds_documents/' . $record->document_attachment) }}" 
-                            target="_blank" 
-                            class="btn btn-sm btn-info" 
-                            title="View Document">
-                            <i class="ti-file"></i>
-                          </a>
-                        @else
-                          <span class="text-muted">-</span>
-                        @endif
-                      </td>
-                      <td>
-                        <button class="btn btn-sm btn-primary" 
-                                data-toggle="modal" 
-                                data-target="#viewDetails{{ $record->id }}"
-                                title="View Details">
-                          <i class="ti-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-warning edit-status-btn" 
-                                data-id="{{ $record->id }}"
-                                data-status="{{ $record->status }}"
-                                data-customer="{{ $record->customer_name }}"
-                                title="Update Status">
-                          <i class="ti-pencil"></i>
-                        </button>
-                        <button type="button" class="btn btn-sm btn-danger delete-record" 
-                                data-id="{{ $record->id }}"
-                                data-customer="{{ $record->customer_name }}"
-                                title="Delete Record">
-                          <i class="ti-trash"></i>
-                        </button>
-                      </td>
-                    </tr>
-                    @empty
-                    <tr>
-                      <td colspan="14" class="text-center">No records found</td>
-                    </tr>
-                    @endforelse
+                      @forelse($tdsRecords as $record)
+                      <tr>
+                          <td>{{ \Carbon\Carbon::parse($record->date_of_registration)->format('Y-m-d') }}</td>
+                          <td>{{ $record->user->name ?? 'N/A' }}</td>
+                          <td>{{ optional($record->region)->region ? optional($record->region)->region . ' - ' . optional($record->region)->province . (optional($record->region)->district ? ' - ' . optional($record->region)->district : '') : 'N/A' }}</td>
+                          <td>{{ $record->customer_name }}</td>
+                          <td>{{ $record->business_name }}</td>
+                          <td>{{ $record->business_type }}</td>
+                          <td>
+                              @if($record->package_type == 'EU')
+                                  <span class="badge badge-secondary">EU</span>
+                              @elseif($record->package_type == 'D')
+                                  <span class="badge badge-info">D</span>
+                              @elseif($record->package_type == 'MD')
+                                  <span class="badge badge-warning">MD</span>
+                              @elseif($record->package_type == 'AD')
+                                  <span class="badge badge-primary">AD</span>
+                              @endif
+                          </td>
+                          <td>
+                              @if($record->program_type)
+                                  <span class="badge badge-light">{{ $record->program_type }}</span>
+                              @else
+                                  <span class="text-muted">N/A</span>
+                              @endif
+                          </td>
+                          <td>₱{{ number_format($record->purchase_amount, 2) }}</td>
+                          <td>
+                              @if($record->status == 'Delivered')
+                                  <span class="badge badge-success">Delivered</span>
+                              @elseif($record->status == 'For Delivery')
+                                  <span class="badge badge-warning">For Delivery</span>
+                              @elseif($record->status == 'Interested')
+                                  <span class="badge badge-info">Interested</span>
+                              @elseif($record->status == 'Decline')
+                                  <span class="badge badge-danger">Decline</span>
+                              @endif
+                          </td>
+                          <td>
+                              @if($record->delivery_date)
+                                  {{ \Carbon\Carbon::parse($record->delivery_date)->format('M d, Y') }}
+                              @else
+                                  <span class="text-muted">-</span>
+                              @endif
+                          </td>
+                          {{-- <td class="text-center">
+                              @if($record->business_image)
+                                  <button type="button" 
+                                          class="btn btn-sm btn-success view-image" 
+                                          data-url="{{ asset('uploads/tds_images/' . $record->business_image) }}"
+                                          data-business="{{ $record->business_name }}"
+                                          title="View Business Image">
+                                      <i class="ti-image"></i>
+                                  </button>
+                              @else
+                                  <span class="text-muted">-</span>
+                              @endif
+                          </td> --}}
+                          {{-- <td class="text-center">
+                              @if($record->document_attachment)
+                                  <button type="button" 
+                                          class="btn btn-sm btn-info view-document" 
+                                          data-url="{{ asset('uploads/tds_documents/' . $record->document_attachment) }}"
+                                          data-filename="{{ $record->document_attachment }}"
+                                          title="View Document">
+                                      <i class="ti-file"></i>
+                                  </button>
+                              @else
+                                  <span class="text-muted">-</span>
+                              @endif
+                          </td> --}}
+                          <td>
+                              <button class="btn btn-sm btn-primary" 
+                                      data-toggle="modal" 
+                                      data-target="#viewDetails{{ $record->id }}"
+                                      title="View Details">
+                                  <i class="ti-eye"></i>
+                              </button>
+                              <button class="btn btn-sm btn-warning edit-status-btn" 
+                                      data-id="{{ $record->id }}"
+                                      data-status="{{ $record->status }}"
+                                      data-customer="{{ $record->customer_name }}"
+                                      title="Update Status">
+                                  <i class="ti-pencil"></i>
+                              </button>
+                              <button type="button" class="btn btn-sm btn-danger delete-record" 
+                                      data-id="{{ $record->id }}"
+                                      data-customer="{{ $record->customer_name }}"
+                                      title="Delete Record">
+                                  <i class="ti-trash"></i>
+                              </button>
+                          </td>
+                      </tr>
+                      @empty
+                      <tr>
+                          <td colspan="14" class="text-center">No records found</td>
+                      </tr>
+                      @endforelse
                   </tbody>
                 </table>
               </div>
@@ -253,6 +268,56 @@
       </div>
     </div>
 </div>
+
+{{-- <div class="modal fade" id="imagePreviewModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalTitle">Business Image</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center" style="padding: 20px;">
+                <img id="businessImagePreview" 
+                     src="" 
+                     alt="Business Image" 
+                     class="img-fluid"
+                     style="max-height: 70vh; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            </div>
+            <div class="modal-footer">
+                <a id="downloadImageBtn" href="#" class="btn btn-primary" download>
+                    <i class="ti-download"></i> Download
+                </a>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="documentPreviewModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document" style="max-width: 90%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Document Preview</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="height: 80vh; padding: 0;">
+                <iframe id="documentFrame" 
+                        style="width: 100%; height: 100%; border: none;">
+                </iframe>
+            </div>
+            <div class="modal-footer">
+                <a id="downloadDocBtn" href="#" class="btn btn-primary" download>
+                    <i class="ti-download"></i> Download
+                </a>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div> --}}
 
 <form id="deleteForm" method="POST" style="display: none;">
   @csrf
@@ -268,6 +333,71 @@
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+{{-- <script>
+$(document).on('click', '.view-image', function(e) {
+    e.preventDefault();
+    var imageUrl = $(this).data('url');
+    var businessName = $(this).data('business');
+    
+    $('#imageModalTitle').text(businessName + ' - Business Image');
+    $('#businessImagePreview').attr('src', imageUrl);
+    $('#downloadImageBtn').attr('href', imageUrl);
+    $('#imagePreviewModal').modal('show');
+});
+
+$('#imagePreviewModal').on('hidden.bs.modal', function () {
+    $('#businessImagePreview').attr('src', '');
+});
+
+$(document).on('click', '.view-document', function(e) {
+    e.preventDefault();
+    var docUrl = $(this).data('url');
+    var filename = $(this).data('filename');
+    
+    var extension = filename.split('.').pop().toLowerCase();
+    
+    var viewerUrl;
+    if (extension === 'pdf') {
+        viewerUrl = docUrl;
+    } else {
+        viewerUrl = 'https://docs.google.com/viewer?url=' + encodeURIComponent(docUrl) + '&embedded=true';
+    }
+    
+    $('#documentFrame').attr('src', viewerUrl);
+    $('#downloadDocBtn').attr('href', docUrl);
+    $('#documentPreviewModal').modal('show');
+});
+
+$('#documentPreviewModal').on('hidden.bs.modal', function () {
+    $('#documentFrame').attr('src', '');
+});
+</script>
+
+<script>
+$(document).on('click', '.view-document', function(e) {
+    e.preventDefault();
+    var docUrl = $(this).data('url');
+    var filename = $(this).data('filename');
+    
+    var extension = filename.split('.').pop().toLowerCase();
+    
+    var viewerUrl;
+    if (extension === 'pdf') {
+        viewerUrl = docUrl;
+    } else {
+        viewerUrl = 'https://docs.google.com/viewer?url=' + encodeURIComponent(docUrl) + '&embedded=true';
+    }
+    
+    $('#documentFrame').attr('src', viewerUrl);
+    $('#downloadDocBtn').attr('href', docUrl);
+    $('#documentPreviewModal').modal('show');
+});
+
+$('#documentPreviewModal').on('hidden.bs.modal', function () {
+    $('#documentFrame').attr('src', '');
+});
+</script> --}}
 
 <script>
   @if(session('success'))
@@ -341,23 +471,73 @@
           <option value="For Delivery" ${currentStatus === 'For Delivery' ? 'selected' : ''}>For Delivery</option>
           <option value="Delivered" ${currentStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
         </select>
+        <div id="proof-of-payment-section" style="display: none; margin-top: 15px;">
+          <label for="proof-of-payment" style="display: block; margin-bottom: 5px; font-weight: bold;">
+            Proof of Payment <span style="color: red;">*</span>
+          </label>
+          <input type="file" id="proof-of-payment" class="swal2-file" 
+                 accept=".jpg,.jpeg,.png,.pdf" 
+                 style="width: 70%; padding: 8px; border: 1px solid #d9d9d9; border-radius: 4px;">
+          <small style="display: block; margin-top: 5px; color: #666;">
+            Accepted formats: JPG, PNG, PDF (Max: 5MB)
+          </small>
+        </div>
       `,
       showCancelButton: true,
       confirmButtonColor: '#ffc107',
       cancelButtonColor: '#6c757d',
       confirmButtonText: 'Update Status',
       cancelButtonText: 'Cancel',
+      didOpen: () => {
+        const statusSelect = document.getElementById('new-status');
+        const proofSection = document.getElementById('proof-of-payment-section');
+        
+        // Show/hide proof of payment field based on status
+        statusSelect.addEventListener('change', function() {
+          if (this.value === 'Delivered') {
+            proofSection.style.display = 'block';
+          } else {
+            proofSection.style.display = 'none';
+          }
+        });
+        
+        if (statusSelect.value === 'Delivered') {
+          proofSection.style.display = 'block';
+        }
+      },
       preConfirm: () => {
         const newStatus = document.getElementById('new-status').value;
+        const proofOfPayment = document.getElementById('proof-of-payment').files[0];
+        
         if (!newStatus) {
           Swal.showValidationMessage('Please select a status');
           return false;
         }
-        return newStatus;
+        
+        if (newStatus === 'Delivered' && !proofOfPayment) {
+          Swal.showValidationMessage('Proof of payment is required for Delivered status');
+          return false;
+        }
+        
+        if (proofOfPayment && proofOfPayment.size > 5 * 1024 * 1024) {
+          Swal.showValidationMessage('File size must not exceed 5MB');
+          return false;
+        }
+        
+        if (proofOfPayment) {
+          const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+          if (!allowedTypes.includes(proofOfPayment.type)) {
+            Swal.showValidationMessage('Only JPG, PNG, and PDF files are allowed');
+            return false;
+          }
+        }
+        
+        return { status: newStatus, file: proofOfPayment };
       }
     }).then((result) => {
       if (result.isConfirmed) {
-        const newStatus = result.value;
+        const newStatus = result.value.status;
+        const proofFile = result.value.file;
         
         Swal.fire({
           title: 'Updating...',
@@ -368,13 +548,20 @@
           }
         });
 
+        const formData = new FormData();
+        formData.append('_token', '{{ csrf_token() }}');
+        formData.append('status', newStatus);
+        
+        if (proofFile) {
+          formData.append('proof_of_payment', proofFile);
+        }
+
         $.ajax({
           url: '{{ url("/tds") }}/' + recordId + '/update-status',
           method: 'POST',
-          data: {
-            _token: '{{ csrf_token() }}',
-            status: newStatus
-          },
+          data: formData,
+          processData: false,
+          contentType: false,
           success: function(response) {
             Swal.fire({
               icon: 'success',

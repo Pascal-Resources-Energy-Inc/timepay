@@ -663,13 +663,25 @@ class TDSController extends Controller
             if ($request->hasFile('document_attachment')) {
                 $file = $request->file('document_attachment');
                 $documentFileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                $file->storeAs('public/tds_documents', $documentFileName);
+                
+                $documentPath = public_path('uploads/tds_documents');
+                if (!file_exists($documentPath)) {
+                    mkdir($documentPath, 0777, true);
+                }
+                
+                $file->move($documentPath, $documentFileName);
             }
 
             if ($request->hasFile('business_image')) {
                 $image = $request->file('business_image');
                 $businessImageFileName = time() . '_business_' . uniqid() . '.' . $image->getClientOriginalExtension();
-                $image->storeAs('public/tds_images', $businessImageFileName);
+                
+                $imagePath = public_path('uploads/tds_images');
+                if (!file_exists($imagePath)) {
+                    mkdir($imagePath, 0777, true);
+                }
+                
+                $image->move($imagePath, $businessImageFileName);
             }
 
             $tds = Tds::create([
@@ -718,10 +730,16 @@ class TDSController extends Controller
             DB::rollBack();
             
             if (isset($documentFileName) && $documentFileName) {
-                \Storage::delete('public/tds_documents/' . $documentFileName);
+                $docPath = public_path('uploads/tds_documents/' . $documentFileName);
+                if (file_exists($docPath)) {
+                    unlink($docPath);
+                }
             }
             if (isset($businessImageFileName) && $businessImageFileName) {
-                \Storage::delete('public/tds_images/' . $businessImageFileName);
+                $imgPath = public_path('uploads/tds_images/' . $businessImageFileName);
+                if (file_exists($imgPath)) {
+                    unlink($imgPath);
+                }
             }
             
             return redirect()->back()
@@ -732,41 +750,81 @@ class TDSController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        $validated = $request->validate([
+        $rules = [
             'status' => 'required|in:Decline,Interested,For Delivery,Delivered',
+        ];
+        
+        if ($request->status === 'Delivered') {
+            $rules['proof_of_payment'] = 'required|file|mimes:jpg,jpeg,png,pdf|max:5120';
+        }
+        
+        $validated = $request->validate($rules, [
+            'proof_of_payment.required' => 'Proof of payment is required when marking as Delivered',
+            'proof_of_payment.mimes' => 'Proof of payment must be a JPG, PNG, or PDF file',
+            'proof_of_payment.max' => 'Proof of payment size must not exceed 5MB',
         ]);
 
         DB::beginTransaction();
         try {
             $tds = Tds::findOrFail($id);
             $oldStatus = $tds->status;
-
-            $tds->update([
+            
+            $updateData = [
                 'status' => $request->status,
-            ]);
+            ];
+            
+            if ($request->hasFile('proof_of_payment')) {
+                $file = $request->file('proof_of_payment');
+                $filename = time() . '_proof_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                
+                $uploadPath = public_path('uploads/tds_payments');
+                if (!file_exists($uploadPath)) {
+                    mkdir($uploadPath, 0777, true);
+                }
+                
+                $file->move($uploadPath, $filename);
+                $updateData['proof_of_payment'] = $filename;
+            }
 
-            $tds->logActivity('status_updated', [
+            $tds->update($updateData);
+
+            $logDetails = [
                 'customer_name' => $tds->customer_name,
                 'old_status' => $oldStatus,
                 'new_status' => $request->status,
-            ]);
+            ];
+            
+            if (isset($updateData['proof_of_payment'])) {
+                $logDetails['proof_of_payment'] = $updateData['proof_of_payment'];
+            }
+            
+            $tds->logActivity('status_updated', $logDetails);
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Status updated successfully!',
+                'message' => 'Status updated successfully!' . ($request->hasFile('proof_of_payment') ? ' Proof of payment uploaded.' : ''),
                 'new_status' => $request->status
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
+            
+            if (isset($filename) && $filename) {
+                $filePath = public_path('uploads/tds_payments/' . $filename);
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
+            }
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update status: ' . $e->getMessage()
             ], 500);
         }
     }
+    
     public function destroy($id)
     {
         DB::beginTransaction();

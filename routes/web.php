@@ -119,6 +119,8 @@
     Route::get('/tds/get-all-users', 'TDSController@getAllUsers')->name('tds.get-all-users');
     Route::get('/tds/activity-logs', 'TDSController@getActivityLogs')->name('tds.activity-logs');
 
+    Route::get('/tds/existing-customers', 'TdsController@getExistingCustomers')->name('tds.existing-customers');
+
     Route::get('/tds/records', 'TDSController@allSubmissions')->name('tds.records');
     Route::get('/tds/records/export', 'TDSController@exportRecords')->name('tds.records.export');
 

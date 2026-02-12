@@ -145,12 +145,14 @@
                               </div>
                               <div class='col-md-4'>
                                 Location
-                                <select data-placeholder="Location" class="form-control form-control-sm required js-example-basic-single " style='width:100%;' name='location' required>
-                                    <option value="">--Select Location--</option>
-                                    @foreach($locations as $location)
-                                      <option value="{{$location->location}}">{{$location->location}}</option>
-                                    @endforeach
-                                </select>
+                                <input 
+                                    type="text" 
+                                    name="location" 
+                                    class="form-control form-control-sm required" 
+                                    placeholder="Location" 
+                                    style="width:100%;" 
+                                    required
+                                >
                               </div>
                               <div class='col-md-4'>
                                 Project

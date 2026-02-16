@@ -28,6 +28,7 @@ class Tds extends Model
         'program_area',
         'lead_generator',
         'lead_reference',
+        'fb_name',
         'supplier_name',
         'status',
         'timeline',

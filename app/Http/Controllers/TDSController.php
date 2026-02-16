@@ -672,6 +672,21 @@ class TDSController extends Controller
         fclose($output);
         exit;
     }
+    
+    public function create()
+    {
+        $users = User::all();
+        $regions = Region::orderBy('region')->orderBy('province')->get();
+        
+        return view(
+            'forms.tds.create',
+            array(
+                'header'  => 'tdsModule',
+                'users' => $users,
+                'regions' => $regions,
+            )
+        );
+    }
 
     public function store(Request $request)
     {
@@ -692,7 +707,7 @@ class TDSController extends Controller
             'program_area' => 'required_if:program_type,Roadshow,Mini-Roadshow|nullable|string|max:255',
             'lead_generator' => 'required|in:FB,Shopee,Gaz Lite Website,Events,Kaagapay,Referral,MFI,MD,PD,AD,Own Accounts',
             'lead_reference' => 'required_if:lead_generator,FB,Shopee,Gaz Lite Website|nullable|string|max:500',
-            'supplier_name' => 'required|string|max:255',
+            'supplier_name' => 'nullable|string|max:255',
             'status' => 'required|in:Decline,Interested,For Delivery,Delivered',
             'timeline' => 'nullable|date',
             'delivery_date' => 'nullable|date',
@@ -760,6 +775,7 @@ class TDSController extends Controller
                 'program_area' => $request->program_area,
                 'lead_generator' => $request->lead_generator,
                 'lead_reference' => $request->lead_reference,
+                'fb_name' => $request->fb_name,
                 'supplier_name' => $request->supplier_name,
                 'status' => $request->status,
                 'timeline' => $request->timeline,

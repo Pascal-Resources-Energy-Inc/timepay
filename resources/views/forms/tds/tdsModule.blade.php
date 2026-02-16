@@ -71,6 +71,10 @@
                   <i class="ti-plus btn-icon-prepend"></i>                                                    
                   Register New Sales
                 </button>
+                {{-- <a href="{{ route('tds.create') }}" class="btn btn-outline-success btn-icon-text">
+                  <i class="ti-plus btn-icon-prepend"></i>
+                  Register New Sales
+                </a> --}}
                 @if (auth()->user()->role == 'Admin' || checkUserPrivilege('sales_target', auth()->user()->id) == 'yes')
                     <button type="button" class="btn btn-outline-warning btn-icon-text" data-toggle="modal" data-target="#setSalesTarget">
                         <i class="ti-settings btn-icon-prepend"></i>                                                    
@@ -599,6 +603,13 @@ $(document).ready(function() {
       $('#program_area').prop('required', false);
       $('.program-area-required').hide();
     }
+  });
+
+  $(document).on('shown.bs.modal', '.select2-modal', function () {
+      const $modal = $(this);
+      $modal.find('.select2').select2({
+          dropdownParent: $modal
+      });
   });
 
   $('#program_type').trigger('change');

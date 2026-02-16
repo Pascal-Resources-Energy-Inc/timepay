@@ -111,6 +111,7 @@
 
     //TDS
     Route::get('/tdsModule', 'TDSController@index')->name('tds.tdsModule');
+    Route::get('/tds/create', 'TDSController@create')->name('tds.create');
     Route::post('/tds/store', 'TDSController@store')->name('tds.store');
     Route::get('/tds/history', 'TDSController@history')->name('tds.history');
     Route::get('/tds/export', 'TDSController@export')->name('tds.export');

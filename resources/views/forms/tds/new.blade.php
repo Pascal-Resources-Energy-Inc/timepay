@@ -20,6 +20,22 @@
 .select2-container--default .select2-selection--single .select2-selection__arrow {
     height: calc(1.5em + .75rem + 2px);
 }
+
+.supplier-wrapper {
+  overflow: hidden;
+  transition: all 0.35s ease;
+  max-height: 200px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.supplier-wrapper.hidden-field {
+  max-height: 0 !important;
+  opacity: 0;
+  transform: translateY(-10px);
+  margin: 0 !important;
+  pointer-events: none;
+}
 </style>
 
 <div class="modal fade" id="registerDealer" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
@@ -333,12 +349,21 @@
               </div>
             </div>
 
-            <div class="col-md-4" id="reference_field" style="display: none;">
+            <div class="col-md-4 reference_field" style="display: none;">
               <div class="form-group">
                 <label>Reference Number <span class="text-danger reference-required">*</span></label>
                 <input type="text" class="form-control" 
                       name="lead_reference" id="lead_reference" value="{{ old('lead_reference') }}" 
                       placeholder="Enter reference number or link">
+                <small class="form-text text-muted">Required for FB, Shopee, and Gaz Lite Website</small>
+              </div>
+            </div>
+            <div class="col-md-4 reference_field" style="display: none;">
+              <div class="form-group">
+                <label>FB Name <span class="text-danger reference-required">*</span></label>
+                <input type="text" class="form-control" 
+                      name="fb_name" id="fb_name" value="{{ old('fb_name') }}" 
+                      placeholder="Enter fb name">
                 <small class="form-text text-muted">Required for FB, Shopee, and Gaz Lite Website</small>
               </div>
             </div>
@@ -373,22 +398,29 @@
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
-                <label>Supplier Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" 
-                       name="supplier_name" value="{{ old('supplier_name') }}" 
-                       placeholder="e.g., MD Monicarl, AD Gorospe, PDI" required>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group">
                 <label>Status <span class="text-danger">*</span></label>
-                <select class="form-control" name="status" required onclick="event.stopPropagation();">
+                <select class="form-control select2" name="status" id="status" required>
                   <option value="">-- Select Status --</option>
                   <option value="Decline" {{ old('status') == 'Decline' ? 'selected' : '' }}>Decline</option>
                   <option value="Interested" {{ old('status') == 'Interested' ? 'selected' : '' }}>Interested</option>
                   <option value="For Delivery" {{ old('status') == 'For Delivery' ? 'selected' : '' }}>For Delivery</option>
                   <option value="Delivered" {{ old('status') == 'Delivered' ? 'selected' : '' }}>Delivered</option>
                 </select>
+              </div>
+            </div>
+
+            <div class="col-md-6 supplier-wrapper">
+              <div class="form-group">
+                <label>
+                  Supplier Name 
+                  <span class="text-danger supplier-required">*</span>
+                </label>
+                <input type="text"
+                      class="form-control"
+                      name="supplier_name"
+                      id="supplier_name"
+                      value="{{ old('supplier_name') }}"
+                      placeholder="e.g., MD Monicarl, AD Gorospe, PDI">
               </div>
             </div>
           </div>
@@ -447,24 +479,43 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    document.getElementById('lead_generator').addEventListener('change', function() {
-      const referenceField = document.getElementById('reference_field');
+    document.getElementById('lead_generator').addEventListener('change', function () {
+      const referenceFields = document.querySelectorAll('.reference_field');
+      const referenceRequired = document.querySelectorAll('.reference-required');
+
       const referenceInput = document.getElementById('lead_reference');
-      const referenceRequired = document.querySelector('.reference-required');
-      
+      const fbNameInput = document.getElementById('fb_name');
+
       const requiresReference = ['FB', 'Shopee', 'Gaz Lite Website'].includes(this.value);
-      
+
       if (requiresReference) {
-          referenceField.style.display = 'block';
-          referenceInput.setAttribute('required', 'required');
-          referenceRequired.style.display = 'inline';
+
+          // SHOW ALL reference fields
+          referenceFields.forEach(el => el.style.display = 'block');
+
+          // REQUIRED
+          referenceInput.required = true;
+          fbNameInput.required = true;
+
+          referenceRequired.forEach(el => el.style.display = 'inline');
+
       } else {
-          referenceField.style.display = 'none';
-          referenceInput.removeAttribute('required');
+
+          // HIDE ALL reference fields
+          referenceFields.forEach(el => el.style.display = 'none');
+
+          // REMOVE REQUIRED
+          referenceInput.required = false;
+          fbNameInput.required = false;
+
+          // CLEAR VALUES
           referenceInput.value = '';
-          referenceRequired.style.display = 'none';
+          fbNameInput.value = '';
+
+          referenceRequired.forEach(el => el.style.display = 'none');
       }
   });
+
 
   document.addEventListener('DOMContentLoaded', function() {
       const leadGenerator = document.getElementById('lead_generator');
@@ -977,6 +1028,53 @@ document.addEventListener('DOMContentLoaded', function() {
             map.invalidateSize();
         }
     });
+
+    const statusSelect = document.getElementById('status');
+    const supplierWrapper = document.querySelector('.supplier-wrapper');
+    const supplierInput = document.getElementById('supplier_name');
+    const supplierRequired = document.querySelector('.supplier-required');
+
+    function hideSupplier() {
+        supplierWrapper.classList.add('hidden-field');
+        supplierInput.required = false;
+        supplierRequired.style.display = 'none';
+
+        setTimeout(() => {
+            supplierInput.value = '';
+        }, 300);
+    }
+
+    function showSupplier() {
+        supplierWrapper.classList.remove('hidden-field');
+        supplierInput.required = true;
+        supplierRequired.style.display = 'inline';
+    }
+
+    function toggleSupplier() {
+
+        const value = statusSelect.value;
+
+        if (value === 'Decline' || value === 'Interested') {
+            hideSupplier();
+        } else if (value === 'For Delivery' || value === 'Delivered') {
+            showSupplier();
+        } else {
+            hideSupplier();
+        }
+    }
+
+    // Normal change
+    statusSelect.addEventListener('change', toggleSupplier);
+
+    // If using Select2
+    if ($('.select2').length) {
+        $('#status').on('select2:select', function () {
+            toggleSupplier();
+        });
+    }
+
+    // Run on page load (important for old() after validation)
+    toggleSupplier();
 });
 </script>
 

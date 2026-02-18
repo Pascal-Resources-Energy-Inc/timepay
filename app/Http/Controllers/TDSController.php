@@ -52,7 +52,11 @@ class TDSController extends Controller
         if ($request->program) {
             $query->where('program_type', $request->program);
         }
-
+         // ⭐ MULTI LEAD GENERATOR FILTER ⭐
+        if ($request->lead_generator && count($request->lead_generator) > 0) {
+            $query->whereIn('lead_generator', $request->lead_generator);
+        }
+        
         $tdsRecords = $query->latest()->get();
 
         $currentMonth = Carbon::now()->format('Y-m');
@@ -1162,6 +1166,10 @@ class TDSController extends Controller
             });
         }
 
+        if ($request->lead_generator && count($request->lead_generator) > 0) {
+            $query->whereIn('lead_generator', $request->lead_generator);
+        }
+
         $query->latest('created_at');
 
         $perPage = $request->input('per_page', 25);
@@ -1190,6 +1198,10 @@ class TDSController extends Controller
             $query->whereBetween('date_of_registration', [$request->from, $request->to]);
         }
 
+        if (!empty($request->lead_generator)) {
+            $query->whereIn('lead_generator', (array) $request->lead_generator);
+        }
+    
         if ($request->search) {
             $search = $request->search;
             $query->where(function($q) use ($search) {

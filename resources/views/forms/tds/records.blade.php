@@ -49,19 +49,38 @@
 
                         <form method='get' action="{{ route('tds.records') }}" id="filterForm" class="mb-4">
                             <div class="row">
-                                <div class='col-md-3'>
+                                <div class='col-md-2'>
                                     <div class="form-group">
                                         <label>From Date</label>
                                         <input type="date" value='{{ request("from") }}' class="form-control form-control-sm" name="from" id="fromDate" max='{{ date("Y-m-d") }}' />
                                     </div>
                                 </div>
-                                <div class='col-md-3'>
+                                <div class='col-md-2'>
                                     <div class="form-group">
                                         <label>To Date</label>
                                         <input type="date" value='{{ request("to") }}' class="form-control form-control-sm" name="to" id="toDate" max='{{ date("Y-m-d") }}' />
                                     </div>
                                 </div>
-                                <div class='col-md-3'>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Lead Generator</label>
+                                        <select class="form-control select2" name="lead_generator[]" id="lead_generator" multiple>
+                                            <option value="FB" {{ collect(request('lead_generator'))->contains('FB') ? 'selected' : '' }}>FB</option>
+                                            <option value="Shopee" {{ collect(request('lead_generator'))->contains('Shopee') ? 'selected' : '' }}>Shopee</option>
+                                            <option value="Gaz Lite Website" {{ collect(request('lead_generator'))->contains('Gaz Lite Website') ? 'selected' : '' }}>Gaz Lite Website</option>
+                                            <option value="Events" {{ collect(request('lead_generator'))->contains('Events') ? 'selected' : '' }}>Events</option>
+                                            <option value="Kaagapay" {{ collect(request('lead_generator'))->contains('Kaagapay') ? 'selected' : '' }}>Kaagapay</option>
+                                            <option value="Referral" {{ collect(request('lead_generator'))->contains('Referral') ? 'selected' : '' }}>Referral</option>
+                                            <option value="MFI" {{ collect(request('lead_generator'))->contains('MFI') ? 'selected' : '' }}>MFI</option>
+                                            <option value="MD" {{ collect(request('lead_generator'))->contains('MD') ? 'selected' : '' }}>MD</option>
+                                            <option value="PD" {{ collect(request('lead_generator'))->contains('PD') ? 'selected' : '' }}>PD</option>
+                                            <option value="AD" {{ collect(request('lead_generator'))->contains('AD') ? 'selected' : '' }}>AD</option>
+                                            <option value="Own Accounts" {{ collect(request('lead_generator'))->contains('Own Accounts') ? 'selected' : '' }}>Own Accounts</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class='col-md-2'>
                                     <div class="form-group">
                                         <label>Search</label>
                                         <input type="text" value='{{ request("search") }}' class="form-control form-control-sm" name="search" id="searchInput" placeholder="Customer name or business name" />
@@ -78,7 +97,6 @@
                                                 <i class="ti-download"></i> Export to CSV
                                             </button>
                                         </div>
-                                        
                                     </div>
                                 </div>
                             </div>
@@ -108,6 +126,9 @@
                                         <th>Area</th>
                                         <th>Customer Name</th>
                                         <th>Business Name</th>
+                                        <th>Program Type</th>
+                                        <th>Lead Generator</th>
+                                        <th>Lead Reference</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
@@ -123,6 +144,9 @@
                                         </td>
                                         <td>{{ $record->customer_name }}</td>
                                         <td>{{ $record->business_name }}</td>
+                                        <td>{{ $record->program_type }}</td>
+                                        <td>{{ $record->lead_generator }}</td>
+                                        <td>{{ $record->lead_reference }}</td>
                                         <td>
                                             @if($record->status == 'Delivered')
                                                 <span class="badge badge-success">Delivered</span>
@@ -145,7 +169,7 @@
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="8" class="text-center">No submissions found</td>
+                                        <td colspan="11" class="text-center">No submissions found</td>
                                     </tr>
                                     @endforelse
                                 </tbody>
@@ -169,7 +193,8 @@
     </div>
 </div>
 
-@include('forms/tds/view-details', ['tdsRecords' => $submissions])
+{{-- @include('forms/tds/view-details', ['tdsRecords' => $submissions]) --}}
+@include('forms/tds/view-details', ['tdsRecords' => $tdsRecords])
 
 @endsection
 
@@ -177,27 +202,46 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  document.getElementById('entries').addEventListener('change', function() {
-      document.getElementById('per_page_input').value = this.value;
-      document.getElementById('filterForm').submit();
-  });
+    $(document).ready(function() {
+        $('#lead_generator').select2({
+            placeholder: "Filter Lead Generator",
+            allowClear: true,
+            width: '100%'
+        });
+    });
+    document.getElementById('entries').addEventListener('change', function() {
+        document.getElementById('per_page_input').value = this.value;
+        document.getElementById('filterForm').submit();
+    });
 
-  document.getElementById('exportBtn').addEventListener('click', function() {
-      const from = document.getElementById('fromDate').value;
-      const to = document.getElementById('toDate').value;
-      const search = document.getElementById('searchInput').value;
+    document.getElementById('exportBtn').addEventListener('click', function() {
+
+        const form = document.getElementById('filterForm');
+        const formData = new FormData(form);
+
+        let exportUrl = '{{ route("tds.records.export") }}?';
+        const params = new URLSearchParams(formData).toString();
+
+        window.location.href = exportUrl + params;
+    });
+
+
+//   document.getElementById('exportBtn').addEventListener('click', function() {
+//       const from = document.getElementById('fromDate').value;
+//       const to = document.getElementById('toDate').value;
+//       const search = document.getElementById('searchInput').value;
       
-      let exportUrl = '{{ route("tds.records.export") }}?';
-      const params = [];
+//       let exportUrl = '{{ route("tds.records.export") }}?';
+//       const params = [];
       
-      if (from) params.push('from=' + from);
-      if (to) params.push('to=' + to);
-      if (search) params.push('search=' + encodeURIComponent(search));
+//       if (from) params.push('from=' + from);
+//       if (to) params.push('to=' + to);
+//       if (search) params.push('search=' + encodeURIComponent(search));
       
-      exportUrl += params.join('&');
+//       exportUrl += params.join('&');
       
-      window.location.href = exportUrl;
-  });
+//       window.location.href = exportUrl;
+//   });
 
   @if(session('success'))
     Swal.fire({

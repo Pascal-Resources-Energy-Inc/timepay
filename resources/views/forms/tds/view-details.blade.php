@@ -174,6 +174,10 @@
                 <td>{{ $record->lead_reference ?? 'N/A' }}</td>
               </tr>
               <tr>
+                <th>FB Name:</th>
+                <td>{{ $record->fb_name ?? 'N/A' }}</td>
+              </tr>
+              <tr>
                 <th>Supplier Name:</th>
                 <td>{{ $record->supplier_name }}</td>
               </tr>

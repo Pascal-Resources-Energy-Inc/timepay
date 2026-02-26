@@ -457,8 +457,150 @@ $('#documentPreviewModal').on('hidden.bs.modal', function () {
     });
   });
 
+  // $(document).on('click', '.edit-status-btn', function(e) {
+  //   e.preventDefault();
+  //   var recordId = $(this).data('id');
+  //   var currentStatus = $(this).data('status');
+  //   var customerName = $(this).data('customer');
+
+  //   Swal.fire({
+  //     title: 'Update Status',
+  //     html: `
+  //       <p>Customer: <strong>${customerName}</strong></p>
+  //       <p>Current Status: <strong>${currentStatus}</strong></p>
+  //       <select id="new-status" class="swal2-input" style="width: 70%;">
+  //         <option value="">-- Select New Status --</option>
+  //         <option value="Decline" ${currentStatus === 'Decline' ? 'selected' : ''}>Decline</option>
+  //         <option value="Interested" ${currentStatus === 'Interested' ? 'selected' : ''}>Interested</option>
+  //         <option value="For Delivery" ${currentStatus === 'For Delivery' ? 'selected' : ''}>For Delivery</option>
+  //         <option value="Delivered" ${currentStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
+  //       </select>
+  //       <div id="amount-section mt-2" style="display:none">
+  //         <input type="number" class="form-control" name="purchase_amount" value="{{ old('purchase_amount') }}" placeholder="25000" min="0" step="0.01" required>
+  //       </div>
+  //       <div id="proof-of-payment-section mt-2" style="display: none">
+  //         <label for="proof-of-payment" style="display: block; margin-bottom: 5px; font-weight: bold;">
+  //           Proof of Payment <span style="color: red;">*</span>
+  //         </label>
+  //         <input type="file" id="proof-of-payment" class="swal2-file" 
+  //                accept=".jpg,.jpeg,.png,.pdf" 
+  //                style="width: 70%; padding: 8px; border: 1px solid #d9d9d9; border-radius: 4px;">
+  //         <small style="display: block; margin-top: 5px; color: #666;">
+  //           Accepted formats: JPG, PNG, PDF (Max: 5MB)
+  //         </small>
+  //       </div>
+  //     `,
+  //     showCancelButton: true,
+  //     confirmButtonColor: '#ffc107',
+  //     cancelButtonColor: '#6c757d',
+  //     confirmButtonText: 'Update Status',
+  //     cancelButtonText: 'Cancel',
+  //     didOpen: () => {
+  //       const statusSelect = document.getElementById('new-status');
+  //       const proofSection = document.getElementById('proof-of-payment-section');
+  //       const amountSection = document.getElementById('amount-section');
+
+  //       // Show/hide proof of payment field based on status
+  //       statusSelect.addEventListener('change', function() {
+  //         if (this.value === 'Delivered') {
+  //           proofSection.style.display = 'block';
+  //           amountSection.style.display = 'block';
+  //         } else {
+  //           proofSection.style.display = 'none';
+  //           amountSection.style.display = 'none';
+  //         }
+  //       });
+        
+  //       if (statusSelect.value === 'Delivered') {
+  //         proofSection.style.display = 'block';
+  //         amountSection.style.display = 'block';
+  //       }
+  //     },
+  //     preConfirm: () => {
+  //       const newStatus = document.getElementById('new-status').value;
+  //       const proofOfPayment = document.getElementById('proof-of-payment').files[0];
+        
+  //       if (!newStatus) {
+  //         Swal.showValidationMessage('Please select a status');
+  //         return false;
+  //       }
+        
+  //       if (newStatus === 'Delivered' && !proofOfPayment) {
+  //         Swal.showValidationMessage('Proof of payment is required for Delivered status');
+  //         return false;
+  //       }
+        
+  //       if (proofOfPayment && proofOfPayment.size > 5 * 1024 * 1024) {
+  //         Swal.showValidationMessage('File size must not exceed 5MB');
+  //         return false;
+  //       }
+        
+  //       if (proofOfPayment) {
+  //         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+  //         if (!allowedTypes.includes(proofOfPayment.type)) {
+  //           Swal.showValidationMessage('Only JPG, PNG, and PDF files are allowed');
+  //           return false;
+  //         }
+  //       }
+        
+  //       return { status: newStatus, file: proofOfPayment };
+  //     }
+  //   }).then((result) => {
+  //     if (result.isConfirmed) {
+  //       const newStatus = result.value.status;
+  //       const proofFile = result.value.file;
+        
+  //       Swal.fire({
+  //         title: 'Updating...',
+  //         text: 'Please wait',
+  //         allowOutsideClick: false,
+  //         didOpen: () => {
+  //           Swal.showLoading();
+  //         }
+  //       });
+
+  //       const formData = new FormData();
+  //       formData.append('_token', '{{ csrf_token() }}');
+  //       formData.append('status', newStatus);
+        
+  //       if (proofFile) {
+  //         formData.append('proof_of_payment', proofFile);
+  //       }
+
+  //       $.ajax({
+  //         url: '{{ url("/tds") }}/' + recordId + '/update-status',
+  //         method: 'POST',
+  //         data: formData,
+  //         processData: false,
+  //         contentType: false,
+  //         success: function(response) {
+  //           Swal.fire({
+  //             icon: 'success',
+  //             title: 'Status Updated!',
+  //             text: response.message,
+  //             timer: 2000,
+  //             showConfirmButton: true,
+  //             confirmButtonColor: '#28a745'
+  //           }).then(() => {
+  //             location.reload();
+  //           });
+  //         },
+  //         error: function(xhr) {
+  //           Swal.fire({
+  //             icon: 'error',
+  //             title: 'Update Failed',
+  //             text: xhr.responseJSON?.message || 'Failed to update status',
+  //             confirmButtonColor: '#dc3545'
+  //           });
+  //         }
+  //       });
+  //     }
+  //   });
+  // });
+
   $(document).on('click', '.edit-status-btn', function(e) {
     e.preventDefault();
+
     var recordId = $(this).data('id');
     var currentStatus = $(this).data('status');
     var customerName = $(this).data('customer');
@@ -466,127 +608,145 @@ $('#documentPreviewModal').on('hidden.bs.modal', function () {
     Swal.fire({
       title: 'Update Status',
       html: `
-        <p>Customer: <strong>${customerName}</strong></p>
-        <p>Current Status: <strong>${currentStatus}</strong></p>
-        <select id="new-status" class="swal2-input" style="width: 70%;">
-          <option value="">-- Select New Status --</option>
-          <option value="Decline" ${currentStatus === 'Decline' ? 'selected' : ''}>Decline</option>
-          <option value="Interested" ${currentStatus === 'Interested' ? 'selected' : ''}>Interested</option>
-          <option value="For Delivery" ${currentStatus === 'For Delivery' ? 'selected' : ''}>For Delivery</option>
-          <option value="Delivered" ${currentStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
-        </select>
-        <div id="proof-of-payment-section" style="display: none; margin-top: 15px;">
-          <label for="proof-of-payment" style="display: block; margin-bottom: 5px; font-weight: bold;">
-            Proof of Payment <span style="color: red;">*</span>
-          </label>
-          <input type="file" id="proof-of-payment" class="swal2-file" 
-                 accept=".jpg,.jpeg,.png,.pdf" 
-                 style="width: 70%; padding: 8px; border: 1px solid #d9d9d9; border-radius: 4px;">
-          <small style="display: block; margin-top: 5px; color: #666;">
-            Accepted formats: JPG, PNG, PDF (Max: 5MB)
-          </small>
-        </div>
+          <p>Customer: <strong>${customerName}</strong></p>
+          <p>Current Status: <strong>${currentStatus}</strong></p>
+
+          <select id="new-status" class="swal2-input mb-3">
+              <option value="">-- Select New Status --</option>
+              <option value="Decline" ${currentStatus === 'Decline' ? 'selected' : ''}>Decline</option>
+              <option value="Interested" ${currentStatus === 'Interested' ? 'selected' : ''}>Interested</option>
+              <option value="For Delivery" ${currentStatus === 'For Delivery' ? 'selected' : ''}>For Delivery</option>
+              <option value="Delivered" ${currentStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
+          </select>
+
+          <div id="amount-section" style="display:none;" class="mb-3">
+            <label style="font-weight:bold;">Purchase Amount <span style="color:red;">*</span></label><br>
+            <input type="number" class="swal2-input" id="purchase-amount" placeholder="Enter Purchase Amount" min="0" step="0.01" style="margin: 0px">
+          </div>
+
+          <div id="proof-of-payment-section" style="display:none; margin-top:10px;">
+              <label style="font-weight:bold;">
+                  Proof of Payment <span style="color:red;">*</span>
+              </label>
+              <input type="file" id="proof-of-payment" class="swal2-file"
+                      accept=".jpg,.jpeg,.png,.pdf" style="margin: 0px">
+              <small style="display:block; margin-top:5px; color:#666;">
+                  Accepted: JPG, PNG, PDF (Max: 5MB)
+              </small>
+          </div>
       `,
       showCancelButton: true,
+      confirmButtonText: 'Update Status',
       confirmButtonColor: '#ffc107',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Update Status',
-      cancelButtonText: 'Cancel',
+
       didOpen: () => {
-        const statusSelect = document.getElementById('new-status');
-        const proofSection = document.getElementById('proof-of-payment-section');
-        
-        // Show/hide proof of payment field based on status
-        statusSelect.addEventListener('change', function() {
-          if (this.value === 'Delivered') {
-            proofSection.style.display = 'block';
-          } else {
-            proofSection.style.display = 'none';
+          const statusSelect = document.getElementById('new-status');
+          const proofSection = document.getElementById('proof-of-payment-section');
+          const amountSection = document.getElementById('amount-section');
+
+          function toggleFields() {
+              if (statusSelect.value === 'Delivered') {
+                  proofSection.style.display = 'block';
+                  amountSection.style.display = 'block';
+              } else {
+                  proofSection.style.display = 'none';
+                  amountSection.style.display = 'none';
+              }
           }
-        });
-        
-        if (statusSelect.value === 'Delivered') {
-          proofSection.style.display = 'block';
-        }
+
+          statusSelect.addEventListener('change', toggleFields);
+          toggleFields(); // run on open
       },
+
       preConfirm: () => {
-        const newStatus = document.getElementById('new-status').value;
-        const proofOfPayment = document.getElementById('proof-of-payment').files[0];
-        
-        if (!newStatus) {
-          Swal.showValidationMessage('Please select a status');
-          return false;
-        }
-        
-        if (newStatus === 'Delivered' && !proofOfPayment) {
-          Swal.showValidationMessage('Proof of payment is required for Delivered status');
-          return false;
-        }
-        
-        if (proofOfPayment && proofOfPayment.size > 5 * 1024 * 1024) {
-          Swal.showValidationMessage('File size must not exceed 5MB');
-          return false;
-        }
-        
-        if (proofOfPayment) {
-          const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-          if (!allowedTypes.includes(proofOfPayment.type)) {
-            Swal.showValidationMessage('Only JPG, PNG, and PDF files are allowed');
-            return false;
+          const newStatus = document.getElementById('new-status').value;
+          const proofFile = document.getElementById('proof-of-payment').files[0];
+          const amount = document.getElementById('purchase-amount').value;
+
+          if (!newStatus) {
+              Swal.showValidationMessage('Please select a status');
+              return false;
           }
-        }
-        
-        return { status: newStatus, file: proofOfPayment };
+
+          if (newStatus === 'Delivered') {
+
+              if (!amount || amount <= 0) {
+                  Swal.showValidationMessage('Purchase amount is required');
+                  return false;
+              }
+
+              if (!proofFile) {
+                  Swal.showValidationMessage('Proof of payment is required');
+                  return false;
+              }
+
+              if (proofFile.size > 5 * 1024 * 1024) {
+                  Swal.showValidationMessage('File must not exceed 5MB');
+                  return false;
+              }
+
+              const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+              if (!allowedTypes.includes(proofFile.type)) {
+                  Swal.showValidationMessage('Only JPG, PNG, and PDF allowed');
+                  return false;
+              }
+          }
+
+          return {
+              status: newStatus,
+              file: proofFile,
+              amount: amount
+          };
       }
     }).then((result) => {
       if (result.isConfirmed) {
-        const newStatus = result.value.status;
-        const proofFile = result.value.file;
-        
-        Swal.fire({
-          title: 'Updating...',
-          text: 'Please wait',
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          }
-        });
 
-        const formData = new FormData();
-        formData.append('_token', '{{ csrf_token() }}');
-        formData.append('status', newStatus);
-        
-        if (proofFile) {
-          formData.append('proof_of_payment', proofFile);
-        }
+          Swal.fire({
+              title: 'Updating...',
+              allowOutsideClick: false,
+              didOpen: () => Swal.showLoading()
+          });
 
-        $.ajax({
-          url: '{{ url("/tds") }}/' + recordId + '/update-status',
-          method: 'POST',
-          data: formData,
-          processData: false,
-          contentType: false,
-          success: function(response) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Status Updated!',
-              text: response.message,
-              timer: 2000,
-              showConfirmButton: true,
-              confirmButtonColor: '#28a745'
-            }).then(() => {
-              location.reload();
-            });
-          },
-          error: function(xhr) {
-            Swal.fire({
-              icon: 'error',
-              title: 'Update Failed',
-              text: xhr.responseJSON?.message || 'Failed to update status',
-              confirmButtonColor: '#dc3545'
-            });
+          const formData = new FormData();
+          formData.append('_token', '{{ csrf_token() }}');
+          formData.append('status', result.value.status);
+
+          if (result.value.amount) {
+              formData.append('purchase_amount', result.value.amount);
           }
-        });
+
+          if (result.value.file) {
+              formData.append('proof_of_payment', result.value.file);
+          }
+
+          $.ajax({
+              url: '{{ url("/tds") }}/' + recordId + '/update-status',
+              method: 'POST',
+              data: formData,
+              processData: false,
+              contentType: false,
+
+              success: function(response) {
+                  Swal.fire({
+                      icon: 'success',
+                      title: 'Status Updated!',
+                      text: response.message,
+                      timer: 2000,
+                      showConfirmButton: false
+                  }).then(() => {
+                      location.reload();
+                  });
+              },
+
+              error: function(xhr) {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Update Failed',
+                      text: xhr.responseJSON?.message || 'Something went wrong'
+                  });
+              }
+          });
       }
     });
   });
@@ -693,7 +853,7 @@ $(document).ready(function() {
     }
     $('#salesTargetForm')[0].reset();
     $('#current_target_info').html('');
-    $('#target_amount').val(200000);
+    // $('#target_amount').val(200000);
     $('#target_month').val('{{ date('Y-m') }}');
   });
 
@@ -714,7 +874,7 @@ $(document).ready(function() {
             '</span>'
           );
         } else {
-          $('#target_amount').val(200000);
+          // $('#target_amount').val(200000);
           $('#current_target_info').html(
             '<span class="text-muted">No existing target for this month</span>'
           );
@@ -727,12 +887,69 @@ $(document).ready(function() {
         }
       },
       error: function() {
-        $('#target_amount').val(200000);
+        // $('#target_amount').val(200000);
         $('#current_target_info').html('');
         $('#target_notes').val('');
       }
     });
   }
+
+  // Ian 
+  $(document).on('change', '#type', function () {
+
+    const type = $(this).val();
+    $('#show_started, #show_prorate, #show_month, #show_target').hide();
+
+    $('#date_started').prop('required', false);
+    $('#target_month').prop('required', false);
+    $('#target_amount').prop('required', false);
+
+    if (type === 'New') {
+      // Existing employee → prorated
+      $('#show_started, #show_prorate').fadeIn(200);
+      $('#date_started').prop('required', true);
+
+    } else if (type === 'Existing') {
+      // New → full month
+      $('#show_month, #show_target').fadeIn(200);
+      $('#target_month, #target_amount').prop('required', true);
+      $('#target_amount').val(200000);
+    }
+  });
+
+  const monthlyTarget = 200000;
+  const totalDays = 30; // Fixed as you requested
+
+  $(document).on('change', '#date_started', function () {
+
+    const selectedDate = new Date($(this).val());
+    if (!$(this).val()) return;
+
+    const monthlyTarget = 200000;
+    const totalDays = 30;
+
+    const day = selectedDate.getDate();
+    const remainingDays = totalDays - day + 1;
+    const dailyRate = monthlyTarget / totalDays;
+    const proratedAmount = dailyRate * remainingDays;
+
+    // Format properly
+    const formattedAmount = proratedAmount.toLocaleString('en-PH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+    const formattedDaily = dailyRate.toLocaleString('en-PH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+    $('#prorate_amount').val(proratedAmount.toFixed(2)); // keep raw number for form submit
+
+    $('#current_target_info').text(`Pro Rate Amount: ₱${formattedDaily} × ${remainingDays} days = ₱${formattedAmount}`);
+
+  });
+
 });
 </script>
 @endsection

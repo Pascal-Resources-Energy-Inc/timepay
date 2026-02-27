@@ -129,6 +129,7 @@
                                         <th>Program Type</th>
                                         <th>Lead Generator</th>
                                         <th>Lead Reference</th>
+                                        <th>Purchase Amount</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
@@ -147,6 +148,11 @@
                                         <td>{{ $record->program_type }}</td>
                                         <td>{{ $record->lead_generator }}</td>
                                         <td>{{ $record->lead_reference }}</td>
+                                        <td>
+                                            {{ $record->purchase_amount !== null 
+                                            ? number_format($record->purchase_amount, 2) 
+                                            : '-' }}
+                                        </td>
                                         <td>
                                             @if($record->status == 'Delivered')
                                                 <span class="badge badge-success">Delivered</span>

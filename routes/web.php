@@ -119,6 +119,7 @@
     Route::get('/tds/get-employee-target', 'TDSController@getEmployeeTarget')->name('tds.get-employee-target');
     Route::get('/tds/get-all-users', 'TDSController@getAllUsers')->name('tds.get-all-users');
     Route::get('/tds/activity-logs', 'TDSController@getActivityLogs')->name('tds.activity-logs');
+    Route::post('/tds/get-zipcode', 'TDSController@getZipCode')->name('get.zipcode');
 
     Route::post('/geocode-location', 'TDSController@geocodeLocation')->name('geocode.location');
     Route::get('/tds/existing-customers', 'TDSController@getExistingCustomers')->name('tds.existing-customers');
@@ -201,6 +202,16 @@
     Route::post('/planning/upload-files', 'HomeController@uploadFiles')->name('planning.upload-files');
     Route::get('/planning/{id}/files', 'HomeController@getFiles')->name('planning.get-files');
     Route::get('/disable-planning/{id}', 'EmployeePlanningController@disablePlanning')->name('planning.disable');
+
+    // ID & Uniform Request
+    Route::get('iur', 'IurController@index');
+    Route::get('/iur/create', 'IurController@create')->name('iur.create');
+    Route::post('/iur/store', 'IurController@store')->name('iur.store');
+    Route::post('edit-wfh/{id}','EmployeeWfhController@edit_wfh');
+    Route::get('disable-wfh/{id}','EmployeeWfhController@disable_wfh');
+    // Route::post('approve-wfh-all','FormApprovalController@approveWfhAll');
+    // Route::post('disapprove-wfh-all','FormApprovalController@disapproveWfhAll');
+
 
     //Dar 
     Route::get('dar', 'DarController@index');

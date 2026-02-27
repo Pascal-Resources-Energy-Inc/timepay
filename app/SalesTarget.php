@@ -8,6 +8,8 @@ class SalesTarget extends Model
 {
     protected $fillable = [
         'user_id',
+        'type',
+        'date_started',
         'month',
         'target_amount',
         'notes',

@@ -395,8 +395,8 @@
                                 @if(checkUserAllowedOvertime(auth()->user()->id) == 'yes' || $user_allowed_overtime == 'on')
                                     <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li>
                                 @endif -->
-                                <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li> -->
-                               {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/work-from-home') }}">Work from home</a></li> --}}
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li>
+                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/work-from-home') }}">Work from home</a></li> --}}
 
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
@@ -410,6 +410,7 @@
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/number-enrollment') }}">Number Enrollment </a></li> -->
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/232350967124051">COE Request</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/coe-request') }}">COE Request</a></li> -->
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/iur') }}">ID & Uniform Request</a></li>
                             </ul>
                         </div>
                     </li>

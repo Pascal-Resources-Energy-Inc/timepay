@@ -334,6 +334,13 @@
 
 @endsection
 
+<style>
+  .swal2-modal .swal2-icon, .swal2-modal .swal2-success-ring
+  {
+    margin: 10px 0px !important;
+  }
+</style>
+
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -619,6 +626,11 @@ $('#documentPreviewModal').on('hidden.bs.modal', function () {
               <option value="Delivered" ${currentStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
           </select>
 
+          <div id="supplier-section" class="mb-3">
+            <label style="font-weight:bold;">Supplier Name </label><br>
+            <input type="text" class="swal2-input" id="supplier-name" placeholder="Enter Supplier Name" style="margin: 0px">
+          </div>
+
           <div id="amount-section" style="display:none;" class="mb-3">
             <label style="font-weight:bold;">Purchase Amount <span style="color:red;">*</span></label><br>
             <input type="number" class="swal2-input" id="purchase-amount" placeholder="Enter Purchase Amount" min="0" step="0.01" style="margin: 0px">
@@ -644,14 +656,17 @@ $('#documentPreviewModal').on('hidden.bs.modal', function () {
           const statusSelect = document.getElementById('new-status');
           const proofSection = document.getElementById('proof-of-payment-section');
           const amountSection = document.getElementById('amount-section');
+          const supplierSection = document.getElementById('supplier-section');
 
           function toggleFields() {
               if (statusSelect.value === 'Delivered') {
                   proofSection.style.display = 'block';
                   amountSection.style.display = 'block';
+                  supplierSection.style.display = 'block';
               } else {
                   proofSection.style.display = 'none';
                   amountSection.style.display = 'none';
+                  supplierSection.style.display = 'none';
               }
           }
 
@@ -663,6 +678,7 @@ $('#documentPreviewModal').on('hidden.bs.modal', function () {
           const newStatus = document.getElementById('new-status').value;
           const proofFile = document.getElementById('proof-of-payment').files[0];
           const amount = document.getElementById('purchase-amount').value;
+          const supplier = document.getElementById('supplier-name').value;
 
           if (!newStatus) {
               Swal.showValidationMessage('Please select a status');
@@ -696,59 +712,94 @@ $('#documentPreviewModal').on('hidden.bs.modal', function () {
           return {
               status: newStatus,
               file: proofFile,
-              amount: amount
+              amount: amount,
+              supplier: supplier
           };
       }
     }).then((result) => {
-      if (result.isConfirmed) {
+      if (!result.isConfirmed) return;
+
+      // 🔵 If Delivered, show confirmation first
+      if (result.value.status === 'Delivered') {
 
           Swal.fire({
-              title: 'Updating...',
-              allowOutsideClick: false,
-              didOpen: () => Swal.showLoading()
-          });
+              icon: 'question',
+              title: 'Confirm Delivery',
+              html: `
+                  <p><strong>Purchase Amount:</strong></p>
+                  <h3 style="color:#28a745;">₱ ${parseFloat(result.value.amount).toFixed(2)}</h3>
+                  <p>Are you sure you want to mark this as <b>Delivered</b>?</p>
+              `,
+              showCancelButton: true,
+              confirmButtonText: 'Yes, Confirm',
+              confirmButtonColor: '#28a745',
+              cancelButtonColor: '#6c757d'
+          }).then((confirmResult) => {
 
-          const formData = new FormData();
-          formData.append('_token', '{{ csrf_token() }}');
-          formData.append('status', result.value.status);
-
-          if (result.value.amount) {
-              formData.append('purchase_amount', result.value.amount);
-          }
-
-          if (result.value.file) {
-              formData.append('proof_of_payment', result.value.file);
-          }
-
-          $.ajax({
-              url: '{{ url("/tds") }}/' + recordId + '/update-status',
-              method: 'POST',
-              data: formData,
-              processData: false,
-              contentType: false,
-
-              success: function(response) {
-                  Swal.fire({
-                      icon: 'success',
-                      title: 'Status Updated!',
-                      text: response.message,
-                      timer: 2000,
-                      showConfirmButton: false
-                  }).then(() => {
-                      location.reload();
-                  });
-              },
-
-              error: function(xhr) {
-                  Swal.fire({
-                      icon: 'error',
-                      title: 'Update Failed',
-                      text: xhr.responseJSON?.message || 'Something went wrong'
-                  });
+              if (confirmResult.isConfirmed) {
+                  submitStatusUpdate(result.value);
               }
+
           });
+
+      } else {
+          // 🔵 For other statuses, submit immediately
+          submitStatusUpdate(result.value);
       }
     });
+
+    function submitStatusUpdate(data) {
+
+      Swal.fire({
+          title: 'Updating...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading()
+      });
+
+      const formData = new FormData();
+      formData.append('_token', '{{ csrf_token() }}');
+      formData.append('status', data.status);
+
+      if (data.amount) {
+          formData.append('purchase_amount', data.amount);
+      }
+
+      if (data.supplier) {
+          formData.append('supplier_name', data.supplier);
+      }
+
+      if (data.file) {
+          formData.append('proof_of_payment', data.file);
+      }
+
+      $.ajax({
+          url: '{{ url("/tds") }}/' + recordId + '/update-status',
+          method: 'POST',
+          data: formData,
+          processData: false,
+          contentType: false,
+
+          success: function(response) {
+              Swal.fire({
+                  icon: 'success',
+                  title: 'Status Updated!',
+                  text: response.message,
+                  timer: 2000,
+                  showConfirmButton: false
+              }).then(() => {
+                  location.reload();
+              });
+          },
+
+          error: function(xhr) {
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Update Failed',
+                  text: xhr.responseJSON?.message || 'Something went wrong'
+              });
+          }
+      });
+    } 
   });
 </script>
 
@@ -762,6 +813,17 @@ $(document).ready(function() {
     } else {
       $('#program_area').prop('required', false);
       $('.program-area-required').hide();
+    }
+  });
+  
+  $('#lead_generator').on('change', function() {
+    var leadGen = $(this).val();
+    if (leadGen === 'Events') {
+      $('#program_type').prop('required', true);
+      $('.program-type-required').show();
+    } else {
+      $('#program_type').prop('required', false);
+      $('.program-type-required').hide();
     }
   });
 

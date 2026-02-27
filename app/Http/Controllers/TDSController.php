@@ -8,6 +8,7 @@ use App\SalesTarget;
 use App\TdsActivityLog;
 use App\User;
 use Illuminate\Http\Request;
+use GuzzleHttp\Client;
 use Carbon\Carbon;
 use DB;
 
@@ -118,7 +119,8 @@ class TDSController extends Controller
             ->get();
         
         $query = Tds::with(['user', 'region'])
-            ->whereYear('date_of_registration', $selectedYear);
+            // ->whereYear('date_of_registration', $selectedYear);
+            ->whereYear('delivery_date', $selectedYear);
         
         if ($selectedRegion) {
             $query->where('area', $selectedRegion);
@@ -392,21 +394,32 @@ class TDSController extends Controller
         ];
     }
 
+    // public function getEmployeeTarget(Request $request)
+    // {
+    //     $userId = $request->input('user_id');
+    //     $month = $request->input('month');
+        
+    //     $target = SalesTarget::where('user_id', $userId)
+    //         ->where('month', $month)
+    //         ->first();
+        
+    //     return response()->json([
+    //         // 'target_amount' => $target ? $target->target_amount : 200000,
+    //         'notes' => $target ? $target->notes : '',
+    //     ]);
+    // }
+
     public function getEmployeeTarget(Request $request)
     {
-        $userId = $request->input('user_id');
-        $month = $request->input('month');
-        
-        $target = SalesTarget::where('user_id', $userId)
-            ->where('month', $month)
+        $target = SalesTarget::where('user_id', $request->user_id)
+            ->where('month', $request->month)
             ->first();
-        
+
         return response()->json([
-            'target_amount' => $target ? $target->target_amount : 200000,
-            'notes' => $target ? $target->notes : '',
+            'target_amount' => $target ? $target->target_amount : null,
+            'notes' => $target ? $target->notes : null,
         ]);
     }
-
 
     public function getExistingCustomers(Request $request)
     {
@@ -588,7 +601,8 @@ class TDSController extends Controller
         $selectedEmployee = $request->input('employee', null); 
         
         $query = Tds::with(['user', 'region'])
-            ->whereYear('date_of_registration', $selectedYear);
+            // ->whereYear('date_of_registration', $selectedYear);
+            ->whereYear('delivery_date', $selectedYear);
         
         if ($selectedRegion) {
             $query->where('area', $selectedRegion);
@@ -850,7 +864,17 @@ class TDSController extends Controller
             
             $updateData = [
                 'status' => $request->status,
+                // 'purchase_amount' => $request->purchase_amount,
+                // 'supplier_name' => $request->supplier_name,
             ];
+
+            if ($request->status === 'Delivered') {
+                $updateData['purchase_amount'] = $request->purchase_amount;
+                $updateData['supplier_name'] = $request->supplier_name;
+            } else {
+                unset($updateData['purchase_amount']);
+                unset($updateData['supplier_name']);
+            }
             
             if ($request->hasFile('proof_of_payment')) {
                 $file = $request->file('proof_of_payment');
@@ -937,10 +961,19 @@ class TDSController extends Controller
                 ->with('error', 'Unauthorized access. Only admins can set sales targets.');
         }
 
+        // $validated = $request->validate([
+        //     'user_id' => 'required|exists:users,id',
+        //     'month' => 'required|date_format:Y-m',
+        //     // 'target_amount' => 'required|numeric|min:0',
+        //     'notes' => 'nullable|string|max:500',
+        // ]);
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'month' => 'required|date_format:Y-m',
-            'target_amount' => 'required|numeric|min:0',
+            'type' => 'required|in:New,Existing',
+            'month' => 'nullable|date_format:Y-m',
+            'date_started' => 'nullable|date',
+            'target_amount' => 'nullable|numeric|min:0',
+            'prorate_amount' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:500',
         ]);
 
@@ -949,10 +982,14 @@ class TDSController extends Controller
             $salesTarget = SalesTarget::updateOrCreate(
                 [
                     'user_id' => $request->user_id,
-                    'month' => $request->month
+                    'month' => $request->month,
                 ],
                 [
-                    'target_amount' => $request->target_amount,
+                    'type' => $request->type,
+                    'date_started' => $request->date_started,
+                    'target_amount' => $request->type === 'New'
+                        ? $request->prorate_amount
+                        : $request->target_amount,
                     'notes' => $request->notes,
                 ]
             );
@@ -962,6 +999,8 @@ class TDSController extends Controller
             $user = User::find($request->user_id);
             $salesTarget->logActivity($action, [
                 'employee' => $user->name,
+                'type' => $request->type,
+                'date_started' => $request->date_started,
                 'month' => $request->month,
                 'target_amount' => $request->target_amount,
                 'notes' => $request->notes,
@@ -1183,6 +1222,41 @@ class TDSController extends Controller
             'submissions' => $submissions,
             'tdsRecords' => $submissions
         ]);
+    }
+
+    public function getZipCode(Request $request)
+    {
+        $lat = $request->lat;
+        $lng = $request->lng;
+
+        try {
+            $client = new Client();
+
+            $response = $client->get('https://nominatim.openstreetmap.org/reverse', [
+                'headers' => [
+                    'User-Agent' => 'TDS'
+                ],
+                'query' => [
+                    'format' => 'json',
+                    'lat' => $lat,
+                    'lon' => $lng,
+                    'addressdetails' => 1
+                ]
+            ]);
+
+            $data = json_decode($response->getBody(), true);
+
+            return response()->json([
+                'success' => true,
+                'postcode' => $data['address']['postcode'] ?? null
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     public function exportRecords(Request $request)

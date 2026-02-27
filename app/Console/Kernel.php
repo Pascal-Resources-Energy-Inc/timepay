@@ -44,6 +44,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('command:email_attendance')->dailyAt('10:00');
         // $schedule->command('command:auto_earned_leave')->dailyAt('8:00');
         $schedule->command('purchases:forfeit-expired')->everyFifteenMinutes();
+        $schedule->command('sales:generate-monthly')->monthlyOn(1, '00:10'); // every 1st day of month 12:10AM
     }
 
     /**

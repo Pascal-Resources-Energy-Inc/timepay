@@ -134,7 +134,7 @@
               <div class="col-md-6">
                 <div class="form-group">
                   <label>Contact Number <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" 
+                  <input type="number" class="form-control" 
                         name="contact_no" id="contact_no" value="{{ old('contact_no') }}" 
                         placeholder="09453658795" required>
                   <small class="form-text text-muted">Mobile number</small>
@@ -372,7 +372,7 @@
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
-                <label>Program Type <span class="text-danger">*</span></label>
+                <label>Program Type <span class="text-danger program-type-required" style="display: none;">*</span></label>
                 <select class="form-control" name="program_type" id="program_type" onclick="event.stopPropagation();" required>
                   <option value="">-- Select Program Type --</option>
                   <option value="Roadshow" {{ old('program_type') == 'Roadshow' ? 'selected' : '' }}>Roadshow</option>
@@ -763,60 +763,118 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function isNCR(regionCode) {
-        return regionCode === '130000000';
+    function isNCR(regionCode, regionName) {
+      return regionCode.startsWith('13') || 
+            regionName.toLowerCase().includes('ncr') ||
+            regionName.toLowerCase().includes('national capital');
     }
 
-    document.getElementById('location_region').addEventListener('change', async function() {
-        const regionCode = this.value;
-        currentRegionCode = regionCode;
-        currentRegionName = this.options[this.selectedIndex]?.text || '';
+    // document.getElementById('location_region').addEventListener('change', async function() {
+    //     const regionCode = this.value;
+    //     currentRegionCode = regionCode;
+    //     currentRegionName = this.options[this.selectedIndex]?.text || '';
         
-        const provinceSelect = document.getElementById('location_province');
-        const citySelect = document.getElementById('location_city');
-        const barangaySelect = document.getElementById('location_barangay');
+    //     const provinceSelect = document.getElementById('location_province');
+    //     const citySelect = document.getElementById('location_city');
+    //     const barangaySelect = document.getElementById('location_barangay');
 
-        citySelect.innerHTML = '<option value="">-- Select City First --</option>';
-        barangaySelect.innerHTML = '<option value="">-- Select City First --</option>';
-        citySelect.disabled = true;
-        barangaySelect.disabled = true;
+    //     citySelect.innerHTML = '<option value="">-- Select City First --</option>';
+    //     barangaySelect.innerHTML = '<option value="">-- Select City First --</option>';
+    //     citySelect.disabled = true;
+    //     barangaySelect.disabled = true;
 
-        if (regionCode) {
-            if (isNCR(regionCode)) {
-                provinceSelect.innerHTML = '<option value="NCR" selected>Metro Manila</option>';
-                provinceSelect.disabled = true;
-                currentProvinceName = 'Metro Manila';
+    //     if (regionCode) {
+    //         if (isNCR(regionCode, currentRegionName))
+    //             provinceSelect.innerHTML = '<option value="NCR" selected>Metro Manila</option>';
+    //             provinceSelect.disabled = true;
+    //             currentProvinceName = 'Metro Manila';
                 
-                await loadNCRCities(regionCode);
-            } else {
-                provinceSelect.innerHTML = '<option value="">-- Select Province --</option>';
-                provinceSelect.disabled = false;
+    //             await loadNCRCities(regionCode);
+    //         } else {
+    //             provinceSelect.innerHTML = '<option value="">-- Select Province --</option>';
+    //             provinceSelect.disabled = false;
                 
-                try {
-                    provinceSelect.innerHTML = '<option value="">Loading...</option>';
-                    const response = await fetch(`${BASE_URL}/regions/${regionCode}/provinces`);
-                    const provinces = await response.json();
+    //             try {
+    //                 provinceSelect.innerHTML = '<option value="">Loading...</option>';
+    //                 const response = await fetch(`${BASE_URL}/regions/${regionCode}/provinces`);
+    //                 const provinces = await response.json();
                     
-                    provinceSelect.innerHTML = '<option value="">-- Select Province --</option>';
+    //                 provinceSelect.innerHTML = '<option value="">-- Select Province --</option>';
                     
-                    provinces.forEach(province => {
-                        const option = document.createElement('option');
-                        option.value = province.code;
-                        option.textContent = province.name;
-                        provinceSelect.appendChild(option);
-                    });
-                } catch (error) {
-                    console.error('Error loading provinces:', error);
-                    provinceSelect.innerHTML = '<option value="">-- Error loading --</option>';
-                    alert('Failed to load provinces.');
-                }
-            }
-        } else {
-            provinceSelect.innerHTML = '<option value="">-- Select Region First --</option>';
-            provinceSelect.disabled = true;
-        }
-        updateFullAddress();
-    });
+    //                 provinces.forEach(province => {
+    //                     const option = document.createElement('option');
+    //                     option.value = province.code;
+    //                     option.textContent = province.name;
+    //                     provinceSelect.appendChild(option);
+    //                 });
+    //             } catch (error) {
+    //                 console.error('Error loading provinces:', error);
+    //                 provinceSelect.innerHTML = '<option value="">-- Error loading --</option>';
+    //                 alert('Failed to load provinces.');
+    //             }
+    //         }
+    //     } else {
+    //         provinceSelect.innerHTML = '<option value="">-- Select Region First --</option>';
+    //         provinceSelect.disabled = true;
+    //     }
+    //     updateFullAddress();
+    // });
+    document.getElementById('location_region').addEventListener('change', async function() {
+      const regionCode = this.value;
+      currentRegionCode = regionCode;
+      currentRegionName = this.options[this.selectedIndex]?.text || '';
+
+      const provinceSelect = document.getElementById('location_province');
+      const citySelect = document.getElementById('location_city');
+      const barangaySelect = document.getElementById('location_barangay');
+
+      citySelect.innerHTML = '<option value="">-- Select City First --</option>';
+      barangaySelect.innerHTML = '<option value="">-- Select City First --</option>';
+      citySelect.disabled = true;
+      barangaySelect.disabled = true;
+
+      if (regionCode) {
+
+          if (isNCR(regionCode, currentRegionName)) {
+
+              provinceSelect.innerHTML = '<option value="NCR" selected>Metro Manila</option>';
+              provinceSelect.disabled = true;
+              currentProvinceName = 'Metro Manila';
+
+              await loadNCRCities(regionCode);
+
+          } else {
+
+              provinceSelect.innerHTML = '<option value="">-- Select Province --</option>';
+              provinceSelect.disabled = false;
+
+              try {
+                  provinceSelect.innerHTML = '<option value="">Loading...</option>';
+                  const response = await fetch(`${BASE_URL}/regions/${regionCode}/provinces`);
+                  const provinces = await response.json();
+
+                  provinceSelect.innerHTML = '<option value="">-- Select Province --</option>';
+
+                  provinces.forEach(province => {
+                      const option = document.createElement('option');
+                      option.value = province.code;
+                      option.textContent = province.name;
+                      provinceSelect.appendChild(option);
+                  });
+
+              } catch (error) {
+                  console.error('Error loading provinces:', error);
+                  provinceSelect.innerHTML = '<option value="">-- Error loading --</option>';
+              }
+          }
+
+      } else {
+          provinceSelect.innerHTML = '<option value="">-- Select Region First --</option>';
+          provinceSelect.disabled = true;
+      }
+
+      updateFullAddress();
+  });
 
     async function loadNCRCities(regionCode) {
         const citySelect = document.getElementById('location_city');
@@ -943,11 +1001,37 @@ document.addEventListener('DOMContentLoaded', function() {
             
             geocodeTimeout = setTimeout(() => {
                 geocodeAddress(barangayName, currentCityName, currentProvinceName, currentRegionName);
+                if (currentLat && currentLng) {
+                  fetchZipCode(currentLat, currentLng);
+                }
             }, 300);
         }
         
         updateFullAddress();
     });
+    
+    async function fetchZipCode(lat, lng) {
+      try {
+          const response = await fetch("{{ route('get.zipcode') }}", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+                  "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+              },
+              body: JSON.stringify({ lat: lat, lng: lng })
+          });
+
+          const data = await response.json();
+
+          if (data.success && data.postcode) {
+              document.getElementById('postal_code').value = data.postcode;
+              updateFullAddress();
+          }
+
+      } catch (error) {
+          console.error("ZIP code fetch error:", error);
+      }
+  }
 
     document.getElementById('postal_code').addEventListener('input', updateFullAddress);
     document.getElementById('street_address').addEventListener('input', updateFullAddress);

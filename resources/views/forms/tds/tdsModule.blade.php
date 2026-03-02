@@ -243,6 +243,7 @@
                                       title="View Details">
                                   <i class="ti-eye"></i>
                               </button>
+                              @if($record->status != 'Delivered')
                               <button class="btn btn-sm btn-warning edit-status-btn" 
                                       data-id="{{ $record->id }}"
                                       data-status="{{ $record->status }}"
@@ -250,6 +251,7 @@
                                       title="Update Status">
                                   <i class="ti-pencil"></i>
                               </button>
+                              @endif
                               <button type="button" class="btn btn-sm btn-danger delete-record" 
                                       data-id="{{ $record->id }}"
                                       data-customer="{{ $record->customer_name }}"
@@ -890,12 +892,36 @@ $(document).ready(function() {
       }
     });
 
+    // $('.select2-employee').on('select2:select', function (e) {
+
+    //   const data = e.params.data;
+    //   const selectedUserId = data.id;
+    //   const selectedMonth = $('#target_month').val();
+
+    //   // 🔥 Auto-fill Date of Joining
+    //   if (data.original_date_hired) {
+    //       $('#date_started').val(data.original_date_hired).trigger('change');
+    //   } else {
+    //       $('#date_started').val('');
+    //   }
+
+    //   if (selectedUserId && selectedMonth) {
+    //       loadEmployeeTarget(selectedUserId, selectedMonth);
+    //   }
+
+    // });
+
     $('.select2-employee').on('select2:select', function (e) {
-      const selectedUserId = e.params.data.id;
+      const selectedData = e.params.data;
+      const selectedUserId = selectedData.id;
+
+      if (selectedData.original_date_hired) {
+          $('#date_started').val(selectedData.original_date_hired).trigger('change');
+      }
+
       const selectedMonth = $('#target_month').val();
-      
       if (selectedUserId && selectedMonth) {
-        loadEmployeeTarget(selectedUserId, selectedMonth);
+          loadEmployeeTarget(selectedUserId, selectedMonth);
       }
     });
   });
@@ -935,12 +961,7 @@ $(document).ready(function() {
             parseFloat(response.target_amount).toLocaleString('en-PH', {minimumFractionDigits: 2}) + 
             '</span>'
           );
-        } else {
-          // $('#target_amount').val(200000);
-          $('#current_target_info').html(
-            '<span class="text-muted">No existing target for this month</span>'
-          );
-        }
+        } 
         
         if (response.notes) {
           $('#target_notes').val(response.notes);
@@ -982,20 +1003,62 @@ $(document).ready(function() {
   const monthlyTarget = 200000;
   const totalDays = 30; // Fixed as you requested
 
-  $(document).on('change', '#date_started', function () {
+  // $(document).on('change', '#date_started', function () {
 
-    const selectedDate = new Date($(this).val());
-    if (!$(this).val()) return;
+  //   const selectedDate = new Date($(this).val());
+  //   if (!$(this).val()) return;
+
+  //   const monthlyTarget = 200000;
+  //   const totalDays = 30;
+
+  //   const day = selectedDate.getDate();
+  //   const remainingDays = totalDays - day + 1;
+  //   const dailyRate = monthlyTarget / totalDays;
+  //   const proratedAmount = dailyRate * remainingDays;
+
+  //   // Format properly
+  //   const formattedAmount = proratedAmount.toLocaleString('en-PH', {
+  //       minimumFractionDigits: 2,
+  //       maximumFractionDigits: 2
+  //   });
+
+  //   const formattedDaily = dailyRate.toLocaleString('en-PH', {
+  //       minimumFractionDigits: 2,
+  //       maximumFractionDigits: 2
+  //   });
+
+  //   $('#prorate_amount').val(proratedAmount.toFixed(2)); // keep raw number for form submit
+
+  //   $('#current_target_info').text(`Pro Rate Amount: ₱${formattedDaily} × ${remainingDays} days = ₱${formattedAmount}`);
+
+  // });
+
+  $(document).on('change', '#date_started, #target_month', function () {
+
+    const startDate = $('#date_started').val();
+    const targetMonth = $('#target_month').val();
+
+    if (!startDate || !targetMonth) return;
+
+    const selectedDate = new Date(startDate);
+    const monthDate = new Date(targetMonth + '-01');
+
+    const year = monthDate.getFullYear();
+    const month = monthDate.getMonth();
+
+    // Get total days in selected month
+    const totalDays = new Date(year, month + 1, 0).getDate();
 
     const monthlyTarget = 200000;
-    const totalDays = 30;
 
-    const day = selectedDate.getDate();
-    const remainingDays = totalDays - day + 1;
+    const dayStarted = selectedDate.getDate();
+
+    const remainingDays = totalDays - dayStarted + 1;
+
     const dailyRate = monthlyTarget / totalDays;
+
     const proratedAmount = dailyRate * remainingDays;
 
-    // Format properly
     const formattedAmount = proratedAmount.toLocaleString('en-PH', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -1006,10 +1069,11 @@ $(document).ready(function() {
         maximumFractionDigits: 2
     });
 
-    $('#prorate_amount').val(proratedAmount.toFixed(2)); // keep raw number for form submit
+    $('#prorate_amount').val(proratedAmount.toFixed(2));
 
-    $('#current_target_info').text(`Pro Rate Amount: ₱${formattedDaily} × ${remainingDays} days = ₱${formattedAmount}`);
-
+    $('#current_target_info').html(
+        `Pro Rate Amount: ₱${formattedDaily} × ${remainingDays} days = ₱${formattedAmount}`
+    );
   });
 
 });

@@ -25,10 +25,7 @@
             <div class="col-lg-6">
               <div class="form-group">
                 <label for="employee_select">Employee <span class="text-danger">*</span></label>
-                <select class="form-control select2-employee" 
-                        name="user_id" 
-                        id="employee_select" 
-                        required>
+                <select class="form-control select2-employee" name="user_id" id="employee_select" required>
                   <option value="">-- Type to search employee --</option>
                 </select>
                 <small class="form-text text-muted">Start typing to search for employees (minimum 2 characters)</small>

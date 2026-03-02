@@ -246,7 +246,12 @@ class TDSController extends Controller
             $query = DB::table('users')
                 ->leftJoin('employees', 'users.id', '=', 'employees.user_id')
                 ->whereIn('employees.department_id', [3, 15])
-                ->select('users.id', 'users.name', 'employees.employee_number')
+                ->select(
+                    'users.id',
+                    'users.name',
+                    'employees.employee_number',
+                    'employees.original_date_hired'
+                )
                 ->orderBy('users.name');
             
             if ($search) {
@@ -269,7 +274,8 @@ class TDSController extends Controller
                 }
                 return [
                     'id' => $user->id,
-                    'text' => $displayText
+                    'text' => $displayText,
+                    'original_date_hired' => $user->original_date_hired
                 ];
             });
             

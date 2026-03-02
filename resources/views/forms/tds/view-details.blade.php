@@ -219,7 +219,7 @@
                       <img src="{{ asset('uploads/tds_payments/' . $record->proof_of_payment) }}" 
                            alt="Proof of Payment" 
                            class="img-fluid img-thumbnail"
-                           style="max-height: 200px; cursor: pointer; border: 2px solid #28a745; border-radius: 8px;"
+                           style="max-height: 100px; cursor: pointer; border: 2px solid #28a745; border-radius: 8px;"
                            onclick="window.open(this.src, '_blank')"
                            onerror="this.onerror=null; this.src='{{ asset('images/no-image.png') }}'; this.alt='Image not found';">
                       <p class="text-muted mt-1 mb-0"><small><i class="ti-info-alt"></i> Click to view full size</small></p>
@@ -241,6 +241,45 @@
               @else
                 <div class="alert alert-warning mb-3">
                   <i class="ti-alert"></i> No proof of payment uploaded yet.
+                </div>
+              @endif
+              @if($record->upload_docs)
+                <div class="alert alert-success mb-3">
+                  <strong><i class="ti-check-box"></i>Proof of Documents:</strong><br>
+                  <span class="text-muted small">{{ $record->upload_docs }}</span><br>
+                  
+                  @php
+                    $fileExtension = pathinfo($record->upload_docs, PATHINFO_EXTENSION);
+                    $isImage = in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png']);
+                  @endphp
+                  
+                  @if($isImage)
+                    <div class="mt-2">
+                      <img src="{{ asset('uploads/tds_payments/' . $record->upload_docs) }}" 
+                           alt="Proof of Payment" 
+                           class="img-fluid img-thumbnail"
+                           style="max-height: 100px; cursor: pointer; border: 2px solid #28a745; border-radius: 8px;"
+                           onclick="window.open(this.src, '_blank')"
+                           onerror="this.onerror=null; this.src='{{ asset('images/no-image.png') }}'; this.alt='Image not found';">
+                      <p class="text-muted mt-1 mb-0"><small><i class="ti-info-alt"></i> Click to view full size</small></p>
+                    </div>
+                  @else
+                    <a href="{{ asset('uploads/tds_payments/' . $record->upload_docs) }}" 
+                       target="_blank" 
+                       class="btn btn-sm btn-success mt-2">
+                      <i class="ti-eye"></i> View PDF
+                    </a>
+                  @endif
+                  
+                  <a href="{{ asset('uploads/tds_payments/' . $record->upload_docs) }}" 
+                     download 
+                     class="btn btn-sm btn-outline-success mt-2">
+                    <i class="ti-download"></i> Download
+                  </a>
+                </div>
+              @else
+                <div class="alert alert-warning mb-3">
+                  <i class="ti-alert"></i> No proof of documents uploaded yet.
                 </div>
               @endif
             @endif

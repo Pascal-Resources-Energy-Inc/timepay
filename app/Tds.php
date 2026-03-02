@@ -47,6 +47,11 @@ class Tds extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function employees()
+    {
+        return $this->belongsTo(Employee::class, 'user_id', 'user_id');
+    }
+
     public function region()
     {
         return $this->belongsTo(Region::class, 'area');

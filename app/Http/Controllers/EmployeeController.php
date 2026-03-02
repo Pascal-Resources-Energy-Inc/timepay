@@ -1224,6 +1224,7 @@ class EmployeeController extends Controller
         $employee->schedule_id = $request->schedule;
         $employee->bank_name = $request->bank_name;
         $employee->bank_account_number = $request->bank_account_number;
+        $employee->allowed_tds_amount = $request->has('allowed_tds_amount') ? 1 : 0;
 
         if(checkUserPrivilege('employees_rate',auth()->user()->id) == 'yes'){
             $employee->work_description = $request->work_description;

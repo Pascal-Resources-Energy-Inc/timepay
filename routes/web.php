@@ -134,6 +134,7 @@
     Route::get('/tds/{id}', 'TDSController@show')->name('tds.show');
     Route::put('/tds/{id}', 'TDSController@update')->name('tds.update');
     Route::post('/tds/{id}/update-status', 'TDSController@updateStatus')->name('tds.update-status');
+    Route::post('tds/update/{id}', 'TdsController@updateAmount')->name('tds.update');
     Route::delete('/tds/{id}', 'TDSController@destroy')->name('tds.destroy');
 
     Route::get('overtime','EmployeeOvertimeController@overtime');

@@ -252,6 +252,16 @@
                                   <i class="ti-pencil"></i>
                               </button>
                               @endif
+                              @if($record->status == 'Delivered' && $record->employees->allowed_tds_amount == 1)
+                              <button class="btn btn-sm btn-warning edit-amount-btn"
+                                      data-id="{{ $record->id }}"
+                                      data-status="{{ $record->status }}"
+                                      data-customer="{{ $record->customer_name }}"
+                                      data-amount="{{ $record->purchase_amount }}"
+                                      title="Update Amount">
+                                  <i class="ti-pencil"></i>
+                              </button>
+                              @endif
                               <button type="button" class="btn btn-sm btn-danger delete-record" 
                                       data-id="{{ $record->id }}"
                                       data-customer="{{ $record->customer_name }}"
@@ -324,6 +334,48 @@
         </div>
     </div>
 </div> --}}
+
+<div class="modal fade" id="editAmountModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="updateAmountForm" method="POST" enctype="multipart/form-data">
+        @csrf
+        <div class="modal-header">
+          <h5 class="modal-title">Update Amount</h5>
+          <button type="button" class="close" data-dismiss="modal" style="color: red">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="record_id">
+          <div class="form-group">
+            <label>Customer</label>
+            <input type="text" id="customer_name" class="form-control" readonly>
+          </div>
+
+          <div class="form-group">
+            <label>Status</label>
+            <input type="text" id="status" class="form-control" readonly>
+          </div>
+
+          <div class="form-group">
+            <label>Purchase Amount&nbsp;<span style="color:red;">*</span></label>
+            <input type="number" step="0.01" name="purchase_amount" id="purchase_amount" class="form-control" placeholder="Enter Purchase Amount" required>
+          </div>
+          <div class="form-group">
+            <label>Upload Documents&nbsp;<span style="color:red;">*</span></label>
+            <input type="file" name="upload_docs" id="upload_docs" class="swal2-file" accept=".jpg,.jpeg,.png,.pdf" style="margin: 0px" required>
+              <small style="display:block; margin-top:5px; color:#666;">
+                Accepted: JPG, PNG, PDF (Max: 5MB)
+              </small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <form id="deleteForm" method="POST" style="display: none;">
   @csrf
@@ -640,7 +692,7 @@ $('#documentPreviewModal').on('hidden.bs.modal', function () {
 
           <div id="proof-of-payment-section" style="display:none; margin-top:10px;">
               <label style="font-weight:bold;">
-                  Proof of Payment <span style="color:red;">*</span>
+                  Proof of Transaction <span style="color:red;">*</span>
               </label>
               <input type="file" id="proof-of-payment" class="swal2-file"
                       accept=".jpg,.jpeg,.png,.pdf" style="margin: 0px">
@@ -1074,6 +1126,23 @@ $(document).ready(function() {
     $('#current_target_info').html(
         `Pro Rate Amount: ₱${formattedDaily} × ${remainingDays} days = ₱${formattedAmount}`
     );
+  });
+
+  $(document).on('click', '.edit-amount-btn', function () {
+    var id       = $(this).data('id');
+    var customer = $(this).data('customer');
+    var status   = $(this).data('status');
+    var amount   = $(this).data('amount');
+
+    $('#customer_name').val(customer);
+    $('#status').val(status);
+    $('#purchase_amount').val(amount);
+
+    var url = "{{ route('tds.update', ':id') }}";
+    url = url.replace(':id', id);
+
+    $('#updateAmountForm').attr('action', url);
+    $('#editAmountModal').modal('show');
   });
 
 });

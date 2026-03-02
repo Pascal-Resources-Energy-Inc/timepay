@@ -202,6 +202,15 @@
                   Seperation Date
                   <input type="date" name="date_resigned" value="{{ $user->employee->date_resigned }}" class='form-control form-control-sm' placeholder="Date"/>
                 </div>
+                <div class="col-md-4">
+                  Allowable to Edit TDS Amount
+                  <div class="form-check" style="padding-left: 20px">
+                    <input class="form-check-input" type="checkbox" name="allowed_tds_amount" id="flexCheckDefault" {{ old('allowed_tds_amount', $user->employee->allowed_tds_amount == 0) ? '' : 'checked' }}>
+                    <label class="form-check-label" for="flexCheckDefault">
+                        Yes
+                    </label>
+                  </div>
+                </div>
 
               </div>
               <hr>

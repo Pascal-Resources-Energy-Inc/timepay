@@ -8,6 +8,7 @@ use App\SalesTarget;
 use App\TdsActivityLog;
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use GuzzleHttp\Client;
 use Carbon\Carbon;
 use DB;
@@ -35,7 +36,7 @@ class TDSController extends Controller
             abort(403, 'Unauthorized access to TDS.');
         }
         
-        $query = Tds::with(['user', 'region'])
+        $query = Tds::with(['user', 'region', 'employees'])
             ->where('user_id', $currentUserId);
 
         if ($request->from && $request->to) {
@@ -59,7 +60,7 @@ class TDSController extends Controller
         }
         
         $tdsRecords = $query->latest()->get();
-
+        // dd($tdsRecords);
         $currentMonth = Carbon::now()->format('Y-m');
         $currentUserId = auth()->id();
         
@@ -113,7 +114,7 @@ class TDSController extends Controller
         $selectedYear = $request->input('year', date('Y'));
         $selectedRegion = $request->input('region', null);
         $selectedEmployee = $request->input('employee', null);
-        
+
         $regions = Region::orderBy('region')
             ->orderBy('province')
             ->get();
@@ -1228,6 +1229,43 @@ class TDSController extends Controller
             'submissions' => $submissions,
             'tdsRecords' => $submissions
         ]);
+    }
+
+    public function updateAmount(Request $request, $id)
+    {
+        $request->validate([
+            'purchase_amount' => 'required|numeric|min:0',
+            'upload_docs' => 'nullable|mimes:jpg,jpeg,png,pdf|max:5120'
+        ]);
+
+        $record = Tds::findOrFail($id);
+
+        $record->purchase_amount = $request->purchase_amount;
+
+        if ($request->hasFile('upload_docs')) {
+
+            $uploadPath = public_path('uploads/tds_payments');
+
+            if (!File::exists($uploadPath)) {
+                File::makeDirectory($uploadPath, 0755, true);
+            }
+
+            if (!empty($record->upload_docs) &&
+                File::exists($uploadPath.'/'.$record->upload_docs)) {
+                File::delete($uploadPath.'/'.$record->upload_docs);
+            }
+
+            $file = $request->file('upload_docs');
+            $filename = time().'_proof_'.uniqid().'.'.$file->getClientOriginalExtension();
+
+            $file->move($uploadPath, $filename);
+
+            $record->upload_docs = $filename;
+        }
+
+        $record->save();
+
+        return redirect()->back()->with('success', 'Amount updated successfully!');
     }
 
     public function getZipCode(Request $request)

@@ -393,6 +393,17 @@
   {
     margin: 10px 0px !important;
   }
+  .loader {
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background: url("{{ asset('login_css/images/loader.gif') }}") 50% 50% no-repeat white;
+    opacity: .8;
+    background-size: 120px 120px;
+  }
 </style>
 
 @section('js')
@@ -517,7 +528,26 @@ $('#documentPreviewModal').on('hidden.bs.modal', function () {
       }
     });
   });
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('dealerForm');
+    const submitBtn = form.querySelector('button[type="submit"]');
 
+    form.addEventListener('submit', function (e) {
+      if (!form.checkValidity()) {
+        return;
+      }
+
+      submitBtn.disabled = true;
+
+      // Show loader
+      show();
+    });
+
+  });
+
+  function show() {
+      document.getElementById("loader").style.display = "block";
+  }
   // $(document).on('click', '.edit-status-btn', function(e) {
   //   e.preventDefault();
   //   var recordId = $(this).data('id');
@@ -880,7 +910,7 @@ $(document).ready(function() {
       $('.program-type-required').hide();
     }
   });
-
+  
   $(document).on('shown.bs.modal', '.select2-modal', function () {
       const $modal = $(this);
       $modal.find('.select2').select2({

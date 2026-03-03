@@ -21,21 +21,6 @@
     height: calc(1.5em + .75rem + 2px);
 }
 
-.supplier-wrapper {
-  overflow: hidden;
-  transition: all 0.35s ease;
-  max-height: 200px;
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.supplier-wrapper.hidden-field {
-  max-height: 0 !important;
-  opacity: 0;
-  transform: translateY(-10px);
-  margin: 0 !important;
-  pointer-events: none;
-}
 </style>
 
 <div class="modal fade" id="registerDealer" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
@@ -399,7 +384,7 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label>Status <span class="text-danger">*</span></label>
-                <select class="form-control select2" name="status" id="status" required>
+                <select class="form-control" name="status" id="status-select" required>
                   <option value="">-- Select Status --</option>
                   <option value="Decline" {{ old('status') == 'Decline' ? 'selected' : '' }}>Decline</option>
                   <option value="Interested" {{ old('status') == 'Interested' ? 'selected' : '' }}>Interested</option>
@@ -409,7 +394,7 @@
               </div>
             </div>
 
-            <div class="col-md-6 supplier-wrapper">
+            <div class="col-md-6 supplier-wrapper hidden">
               <div class="form-group">
                 <label>
                   Supplier Name 
@@ -438,7 +423,7 @@
               <div class="form-group">
                 <label>Delivery Date</label>
                 <input type="date" class="form-control" 
-                       name="delivery_date" value="{{ old('delivery_date') }}">
+                       name="delivery_date" id="delivery_date" value="{{ old('delivery_date') }}">
                 <small class="form-text text-muted">Actual delivery date</small>
               </div>
             </div>
@@ -1113,57 +1098,49 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    const statusSelect = document.getElementById('status');
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const statusSelect = document.getElementById('status-select');
     const supplierWrapper = document.querySelector('.supplier-wrapper');
     const supplierInput = document.getElementById('supplier_name');
-    const supplierRequired = document.querySelector('.supplier-required');
-
-    function hideSupplier() {
-        supplierWrapper.classList.add('hidden-field');
-        supplierInput.required = false;
-        supplierRequired.style.display = 'none';
-
-        setTimeout(() => {
-            supplierInput.value = '';
-        }, 300);
-    }
-
-    function showSupplier() {
-        supplierWrapper.classList.remove('hidden-field');
-        supplierInput.required = true;
-        supplierRequired.style.display = 'inline';
-    }
-
+    const deliveryDateInput = document.getElementById('delivery_date');
+    
     function toggleSupplier() {
-
         const value = statusSelect.value;
 
-        if (value === 'Decline' || value === 'Interested') {
-            hideSupplier();
-        } else if (value === 'For Delivery' || value === 'Delivered') {
-            showSupplier();
+        if (value === 'For Delivery' || value === 'Delivered') {
+            supplierWrapper.style.display = 'block';
+            supplierInput.required = true;
+            deliveryDateInput.required = true;
         } else {
-            hideSupplier();
+            supplierWrapper.style.display = 'none';
+            supplierInput.required = false;
+            supplierInput.value = '';
+            deliveryDateInput.required = false;
+            deliveryDateInput.value = '';
         }
     }
 
-    // Normal change
+    // Normal change event
     statusSelect.addEventListener('change', toggleSupplier);
 
     // If using Select2
-    if ($('.select2').length) {
-        $('#status').on('select2:select', function () {
-            toggleSupplier();
-        });
+    if (window.jQuery) {
+      $('#status-select').on('change', function () {
+          toggleSupplier();
+      });
     }
 
-    // Run on page load (important for old() after validation)
+    // On page load (for old() value)
     toggleSupplier();
+
 });
 </script>
-
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener('DOMContentLoaded', function () {
     const customerTypeSelect = document.getElementById('customer_type');
     const existingCustomerSection = document.getElementById('existing_customer_section');
     let initialized = false;
@@ -1252,5 +1229,5 @@ document.addEventListener('DOMContentLoaded', function () {
             $('#existing_customer_select').val(null).trigger('change');
         }
     });
-});
+  });
 </script>

@@ -47,7 +47,7 @@
                             </div>
                         </div>
 
-                        <form method='get' action="{{ route('tds.records') }}" id="filterForm" class="mb-4">
+                        <form method='get' action="{{ route('tds.records') }}" id="filterForm" class="mb-2">
                             <div class="row">
                                 <div class='col-md-2'>
                                     <div class="form-group">
@@ -59,6 +59,12 @@
                                     <div class="form-group">
                                         <label>To Date</label>
                                         <input type="date" value='{{ request("to") }}' class="form-control form-control-sm" name="to" id="toDate" max='{{ date("Y-m-d") }}' />
+                                    </div>
+                                </div>
+                                <div class='col-md-3'>
+                                    <div class="form-group">
+                                        <label>Search</label>
+                                        <input type="text" value='{{ request("search") }}' class="form-control form-control-sm" name="search" id="searchInput" placeholder="Enter Name" />
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -79,24 +85,21 @@
                                         </select>
                                     </div>
                                 </div>
-
-                                <div class='col-md-2'>
+                                <div class="col-md-2">
                                     <div class="form-group">
-                                        <label>Search</label>
-                                        <input type="text" value='{{ request("search") }}' class="form-control form-control-sm" name="search" id="searchInput" placeholder="Customer name or business name" />
+                                        <label>Status</label>
+                                        <select class="form-control select2" name="status[]" id="status" multiple>
+                                            <option value="Interested" {{ collect(request('status'))->contains('Interested') ? 'selected' : '' }}>Interested</option>
+                                            <option value="Decline" {{ collect(request('status'))->contains('Decline') ? 'selected' : '' }}>Decline</option>
+                                            <option value="For Delivery" {{ collect(request('status'))->contains('For Delivery') ? 'selected' : '' }}>For Delivery</option>
+                                            <option value="Delivered" {{ collect(request('status'))->contains('Delivered') ? 'selected' : '' }}>Delivered</option>
+                                        </select>
                                     </div>
                                 </div>
-                                <div class='col-md-3' style="margin-top: -5px;">
+                                <div class='col-md-6'>
                                     <div class="form-group">
-                                        <label>&nbsp;</label>
-                                        <div>
-                                            <button type="submit" class="btn btn-primary mb-2" style="height: 50px;">
-                                                Filter
-                                            </button>
-                                            <button type="button" class="btn btn-success" id="exportBtn" style="margin-top: -10px; height: 50px;">
-                                                <i class="ti-download"></i> Export to CSV
-                                            </button>
-                                        </div>
+                                        <button type="submit" class="btn btn-primary">Filter</button>
+                                        <button type="button" class="btn btn-success" id="exportBtn">Export to CSV</button>
                                     </div>
                                 </div>
                             </div>
@@ -104,15 +107,15 @@
                         </form>
 
                         <div class="table-controls">
-                            <div class="entries-control">
-                                <label for="entries">Show</label>
+                            <div class="entries-control" style="display: ruby-text">
+                                <label for="entries">Show</label>&nbsp;
                                 <select class="form-control form-control-sm" id="entries" style="width: 80px;">
                                     <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
                                     <option value="25" {{ request('per_page', 25) == 25 ? 'selected' : '' }}>25</option>
                                     <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
                                     <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
                                 </select>
-                                <label>entries</label>
+                                &nbsp;<label>entries</label>
                             </div>
                         </div>
 
@@ -137,17 +140,17 @@
                                 <tbody>
                                     @forelse($submissions as $record)
                                     <tr>
-                                        <td>{{ \Carbon\Carbon::parse($record->date_of_registration)->format('M d, Y') }}</td>
-                                        <td>{{ \Carbon\Carbon::parse($record->created_at)->format('M d, Y h:i A') }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($record->date_of_registration)->format('M. d, Y') }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($record->created_at)->format('M. d, Y h:i A') }}</td>
                                         <td>{{ $record->user->name ?? 'N/A' }}</td>
                                         <td>
                                             {{ optional($record->region)->region ? optional($record->region)->region . ' - ' . optional($record->region)->province . (optional($record->region)->district ? ' - ' . optional($record->region)->district : '') : 'N/A' }}
                                         </td>
                                         <td>{{ $record->customer_name }}</td>
-                                        <td>{{ $record->business_name }}</td>
-                                        <td>{{ $record->program_type }}</td>
+                                        <td>{{ $record->business_name ?? '-' }}</td>
+                                        <td>{{ $record->program_type ?? '-' }}</td>
                                         <td>{{ $record->lead_generator }}</td>
-                                        <td>{{ $record->lead_reference }}</td>
+                                        <td>{{ $record->lead_reference ?? '-' }}</td>
                                         <td>
                                             {{ $record->purchase_amount !== null 
                                             ? number_format($record->purchase_amount, 2) 
@@ -211,6 +214,11 @@
     $(document).ready(function() {
         $('#lead_generator').select2({
             placeholder: "Filter Lead Generator",
+            allowClear: true,
+            width: '100%'
+        });
+        $('#status').select2({
+            placeholder: "Filter Status",
             allowClear: true,
             width: '100%'
         });

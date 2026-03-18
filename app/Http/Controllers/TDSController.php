@@ -1199,21 +1199,29 @@ class TDSController extends Controller
         }
 
         $query = Tds::with(['user', 'region']);
-
+        // dd($query->get());
         if ($request->from && $request->to) {
             $query->whereBetween('date_of_registration', [$request->from, $request->to]);
         }
 
         if ($request->search) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+
+            $query->where(function ($q) use ($search) {
                 $q->where('customer_name', 'LIKE', "%{$search}%")
-                ->orWhere('business_name', 'LIKE', "%{$search}%");
+                ->orWhere('business_name', 'LIKE', "%{$search}%")
+                ->orWhereHas('user', function ($q2) use ($search) {
+                    $q2->where('name', 'LIKE', "%{$search}%");
+                });
             });
         }
 
         if ($request->lead_generator && count($request->lead_generator) > 0) {
             $query->whereIn('lead_generator', $request->lead_generator);
+        }
+
+        if ($request->status && count($request->status) > 0) {
+            $query->whereIn('status', $request->status);
         }
 
         $query->latest('created_at');

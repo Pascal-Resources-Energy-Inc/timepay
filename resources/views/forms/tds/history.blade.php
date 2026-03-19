@@ -99,7 +99,7 @@
 
             <form method='get' action="{{ route('tds.history') }}" id="filterForm" class="mb-4">
               <div class="row">
-                <div class='col-md-3'>
+                <div class='col-md-2'>
                   <div class="form-group">
                     <label>From Date</label>
                     <input type="date" 
@@ -109,7 +109,7 @@
                            max='{{ date('Y-m-d') }}' />
                   </div>
                 </div>
-                <div class='col-md-3'>
+                <div class='col-md-2'>
                   <div class="form-group">
                     <label>To Date</label>
                     <input type="date" 
@@ -120,6 +120,12 @@
                   </div>
                 </div>
                 <div class='col-md-3'>
+                  <div class="form-group">
+                    <label>Search</label>
+                    <input type="text" value='{{ request("search") }}' class="form-control form-control-sm" name="search" placeholder="Enter Name" />
+                  </div>
+                </div>
+                <div class='col-md-2'>
                   <div class="form-group">
                     <label>Action Type</label>
                     <select class="form-control form-control-sm" name='action'>

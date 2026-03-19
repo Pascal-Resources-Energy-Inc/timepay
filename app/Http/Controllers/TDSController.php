@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use GuzzleHttp\Client;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TdsAmountUpdated;
 use DB;
 
 class TDSController extends Controller
@@ -29,15 +31,22 @@ class TDSController extends Controller
     public function index(Request $request)
     {
         $currentUserId = auth()->id();
-
+        $currentMonth = Carbon::now()->format('Y-m');
+        
         if (auth()->user()->role != 'Admin' 
             && checkUserPrivilege('tds', auth()->user()->id) != 'yes'
             && checkUserPrivilege('sales_performance', auth()->user()->id) != 'yes') {
             abort(403, 'Unauthorized access to TDS.');
         }
         
-        $query = Tds::with(['user', 'region', 'employees'])
-            ->where('user_id', $currentUserId);
+        if($currentUserId == 102)
+        {
+            $query = Tds::with(['user', 'region', 'employees'])
+                ->where('status', 'Delivered');
+        } else {
+            $query = Tds::with(['user', 'region', 'employees'])
+                ->where('user_id', $currentUserId);
+        }
 
         if ($request->from && $request->to) {
             $query->whereBetween('date_of_registration', [$request->from, $request->to]);
@@ -61,13 +70,14 @@ class TDSController extends Controller
         
         $tdsRecords = $query->latest()->get();
         // dd($tdsRecords);
-        $currentMonth = Carbon::now()->format('Y-m');
-        $currentUserId = auth()->id();
-        
-        $userTarget = SalesTarget::where('user_id', $currentUserId)
-            ->where('month', $currentMonth)
-            ->first();
-        
+        // $currentUserId = auth()->id();
+        if($currentUserId == 102)
+        {
+            $userTarget = SalesTarget::where('month', $currentMonth)->first();
+        } else {
+            $userTarget = SalesTarget::where('user_id', $currentUserId)->where('month', $currentMonth)->first();
+        }
+       
         $monthlyTarget = $userTarget ? $userTarget->target_amount : 0;
 
         $actualSales = Tds::whereYear('date_of_registration', Carbon::now()->year)
@@ -120,7 +130,7 @@ class TDSController extends Controller
             ->get();
         
         $query = Tds::with(['user', 'region'])
-            // ->whereYear('date_of_registration', $selectedYear);
+            // ->whereYear('date_of_registration', $selectedYear);  
             ->whereYear('delivery_date', $selectedYear);
         
         if ($selectedRegion) {
@@ -331,9 +341,9 @@ class TDSController extends Controller
             $userRecords = $records->where('user_id', $userId);
             
             $employeeYearlyTarget = SalesTarget::where('user_id', $userId)
-                ->whereYear('month', $year)
+                // ->whereYear('month', $year)
                 ->sum('target_amount');
-            
+                
             $employeeYearlyTarget = $employeeYearlyTarget ?: 0;
             
             $employeeData = [
@@ -353,7 +363,8 @@ class TDSController extends Controller
             foreach ($months as $month) {
                 $monthNum = $monthNumbers[$month];
                 $monthRecords = $userRecords->filter(function($record) use ($year, $monthNum) {
-                    $date = \Carbon\Carbon::parse($record->date_of_registration);
+                    // $date = \Carbon\Carbon::parse($record->date_of_registration);
+                    $date = \Carbon\Carbon::parse($record->delivery_date);
                     return $date->year == $year && $date->month == $monthNum;
                 });
                 
@@ -1146,6 +1157,22 @@ class TDSController extends Controller
         $query = TdsActivityLog::with(['user', 'tds.region'])
             ->latest();
 
+        // dd($query->get()->take(10));
+        if ($request->search) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('record_type', 'LIKE', "%{$search}%")
+                ->orWhereHas('user', function ($q2) use ($search) {
+                    $q2->where('name', 'LIKE', "%{$search}%");
+                })
+                ->orWhereHas('tds', function ($q3) use ($search) {
+                    $q3->where('customer_name', 'LIKE', "%{$search}%")
+                        ->orWhere('business_name', 'LIKE', "%{$search}%");
+                });
+            });
+        }
+
         if ($request->from && $request->to) {
             $query->whereBetween('created_at', [$request->from . ' 00:00:00', $request->to . ' 23:59:59']);
         }
@@ -1250,6 +1277,8 @@ class TDSController extends Controller
 
         $record->purchase_amount = $request->purchase_amount;
 
+        $filePath = null;
+
         if ($request->hasFile('upload_docs')) {
 
             $uploadPath = public_path('uploads/tds_payments');
@@ -1263,17 +1292,19 @@ class TDSController extends Controller
                 File::delete($uploadPath.'/'.$record->upload_docs);
             }
 
-            $file = $request->file('upload_docs');
+             $file = $request->file('upload_docs');
             $filename = time().'_proof_'.uniqid().'.'.$file->getClientOriginalExtension();
 
             $file->move($uploadPath, $filename);
 
             $record->upload_docs = $filename;
+
+            $filePath = $uploadPath.'/'.$filename;
         }
 
-        $record->save();
+        Mail::to(['warren.banal@pascalresources.com.ph', 'maricel.solis@pascalresources.com.ph'])->send(new TdsAmountUpdated($record, $filePath));
 
-        return redirect()->back()->with('success', 'Amount updated successfully!');
+        return redirect()->back()->with('success', 'Amount updated and email sent!');
     }
 
     public function getZipCode(Request $request)

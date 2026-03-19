@@ -252,7 +252,7 @@
                                   <i class="ti-pencil"></i>
                               </button>
                               @endif
-                              @if($record->status == 'Delivered' && $record->employees->allowed_tds_amount == 1)
+                              @if($record->status == 'Delivered' && auth()->user()->employee->allowed_tds_amount == 1)
                               <button class="btn btn-sm btn-warning edit-amount-btn"
                                       data-id="{{ $record->id }}"
                                       data-status="{{ $record->status }}"
@@ -338,7 +338,7 @@
 <div class="modal fade" id="editAmountModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <form id="updateAmountForm" method="POST" enctype="multipart/form-data">
+      <form id="updateAmountForm" method="POST" enctype="multipart/form-data" onsubmit='show();'>
         @csrf
         <div class="modal-header">
           <h5 class="modal-title">Update Amount</h5>

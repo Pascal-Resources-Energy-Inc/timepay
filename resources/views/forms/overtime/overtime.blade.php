@@ -50,10 +50,10 @@
                     <i class="ti-plus btn-icon-prepend"></i>                                                    
                     Apply Overtime
                   </button>
-                   <button type="button" class="btn btn-outline-success btn-icon-text" data-toggle="modal" data-target="#applyoffset">
+                  {{-- <button type="button" class="btn btn-outline-success btn-icon-text" data-toggle="modal" data-target="#applyoffset">
                     <i class="ti-plus btn-icon-prepend"></i>                                                    
                     Apply Offset
-                </button>
+                  </button> --}}
                 </p>
 
                 <form method='get' onsubmit='show();' enctype="multipart/form-data">
@@ -103,7 +103,7 @@
                         <th>OT Requested (Hrs)</th>
                         <th>Break (Hrs)</th>
                         <th>OT Approved (Hrs)</th>
-                        <th>Total OT Approved (Hrs)</th>
+                        {{-- <th>Total OT Approved (Hrs)</th> --}}
                         <th>Status </th>
                         <th>Approvers </th>
                         <th>View Attachments</th>
@@ -169,9 +169,9 @@
                           @endphp
                           {{ number_format($total,2)}}
                         </td>
-                        <td> {{$overtime->break_hrs}}</td>
-                        <td> {{$overtime->ot_approved_hrs}}</td>
-                        <td>{{$overtime->ot_approved_hrs - $overtime->break_hrs}}</td>
+                        <td> {{$overtime->break_hrs ?? '-'}}</td>
+                        <td> {{$overtime->ot_approved_hrs ?? '-'}}</td>
+                        {{-- <td>{{$overtime->ot_approved_hrs - $overtime->break_hrs}}</td> --}}
                         <td id="tdStatus{{ $overtime->id }}">
                           @if ($overtime->status == 'Pending')
                             <label class="badge badge-warning">{{ $overtime->status }}</label>
@@ -221,8 +221,8 @@
                             @endif
                         </td>
                         <td>
-                          @if(!empty($overtime->file_path))
-                          <a href="{{url($overtime->file_path)}}" target="_blank">{{$overtime->file_name}}</a>
+                          @if(!empty($overtime->attachment))
+                            <a href="{{url($overtime->attachment)}}" target="_blank"><button type="button" class="btn btn-outline-info btn-sm ">View Attachment</button></a>
                           @endif
                         </td>
                           

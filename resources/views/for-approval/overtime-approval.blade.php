@@ -89,7 +89,7 @@
                         <th>OT Requested (Hrs)</th>
                         <th>Break (Hrs)</th>
                         <th>OT Approved (Hrs)</th>
-                        <th>Total Approved (Hrs)</th>
+                        {{-- <th>Total Approved (Hrs)</th> --}}
                         <th>Remarks </th>
                         <th>Attachments</th>
                         <th>Approvers </th>
@@ -136,9 +136,9 @@
                           {{ number_format($total,2)}}</td>
                         <td>{{$form_approval->break_hrs}}</td>
                         <td>{{$form_approval->ot_approved_hrs}}</td>
-                        <td>
+                        {{-- <td>
                           {{ $form_approval->ot_approved_hrs ? $form_approval->ot_approved_hrs - $form_approval->break_hrs : ""}}
-                        </td>
+                        </td> --}}
 
                         <td>
                           <p title="{{$form_approval->remarks}}" style="width: 250px;white-space: nowrap; overflow: hidden;text-overflow: ellipsis;">

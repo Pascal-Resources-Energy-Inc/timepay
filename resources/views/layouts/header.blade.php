@@ -387,7 +387,7 @@
                             <i class="menu-arrow"></i>
                         </a>
                         <div class="collapse @if ($header == 'forms') show @endif" id="forms">
-                            <ul class="nav flex-column sub-menu @if ($header == 'forms') show @endif">
+                            <ul class="nav flex-column sub-menu">
                                 <!-- <li class="nav-item "> <a class="nav-link active" href="{{ url('/file-leave') }}">Leave</a></li> -->
                                 <!-- @php
                                     $user_allowed_overtime = auth()->user()->allowed_overtime ? auth()->user()->allowed_overtime->allowed_overtime : "";
@@ -410,7 +410,11 @@
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/number-enrollment') }}">Number Enrollment </a></li> -->
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/232350967124051">COE Request</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/coe-request') }}">COE Request</a></li> -->
-                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/iur') }}">ID & Uniform Request</a></li> --}}
+                                <li class="nav-item">
+                                    <a class="nav-link @if (request()->is('iur*')) active @endif" href="{{ url('/iur') }}">
+                                        ID & Uniform Request
+                                    </a>
+                                </li>                                
                             </ul>
                         </div>
                     </li>
@@ -534,6 +538,7 @@
                             <ul class="nav flex-column sub-menu">
                                 <li class="nav-item "><a class="nav-link active" href="{{ url('/coe-approval') }}" >COE Request<span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) }}</span></a></li>
                             </ul>
+                        </div>
                     </li>
                     @endif
                     @php
@@ -1023,8 +1028,6 @@
             document.getElementById('logout-form').submit();
         }
         $(document).ready(function() {
-
-            
 
             $('.tablewithSearch').DataTable({
                 dom: 'Bfrtip',

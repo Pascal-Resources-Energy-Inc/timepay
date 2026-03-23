@@ -46,7 +46,8 @@ class ApproverSetting extends Model implements Auditable
             'pd' => 'Payroll Disbursement',
             'ad' => 'Authority Deduct',
             'ne' => 'Number Enrollment',
-            'coe' => 'COE Request'
+            'coe' => 'COE Request',
+            'uir' => 'Uniform and ID Request',
         ];
     }
 

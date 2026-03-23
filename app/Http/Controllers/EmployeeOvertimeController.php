@@ -64,7 +64,7 @@ class EmployeeOvertimeController extends Controller
             $new_overtime->start_time =  date('Y-m-d H:i:s',strtotime($request->start_time));
             $new_overtime->end_time = date('Y-m-d H:i:s',strtotime($request->end_time));     
             $new_overtime->break_hrs = $request->break_hrs;  
-            $new_overtime->time_compensation_type = $request->time_compensation_type;   
+            // $new_overtime->time_compensation_type = $request->time_compensation_type;   
 
             $new_overtime->remarks = $request->remarks;
 
@@ -194,6 +194,7 @@ class EmployeeOvertimeController extends Controller
             $file_name = '/images/' . $name;
             $new_overtime->attachment = $file_name;
         }
+        $new_overtime->remarks = $request->remarks;
         $new_overtime->status = 'Pending';
         $new_overtime->level = 0;
         $new_overtime->created_by = Auth::user()->id;

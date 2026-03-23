@@ -1,4 +1,3 @@
-<!-- Modal -->
 <div class="modal fade" id="edit_overtime{{ $overtime->id }}" tabindex="-1" role="dialog" aria-labelledby="editOTslabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
@@ -8,35 +7,55 @@
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-
-
       <form method='POST' action='edit-overtime/{{ $overtime->id }}' onsubmit='show()' enctype="multipart/form-data">
 				@csrf      
-      <div class="modal-body">
+        <div class="modal-body">
           <div class="form-group row">
-            <div class='col-md-2'>
-              Approver 
-            </div>
+            <div class='col-md-2'>Approver:</div>
             <div class='col-md-9'>
-              <div class='col-md-9'>
-                @foreach($all_approvers as $approvers)
-                  {{$approvers->approver_info->name}}<br>
-                @endforeach
-              </div>
+              @foreach($all_approvers as $approvers)
+                {{$approvers->approver_info->name}}<br>
+              @endforeach
             </div>
-            
           </div>
-          <div id="appOT{{$overtime->id}}">
-            <div class="form-group row">
+          <div class="row" id="appOT{{$overtime->id}}">
+            <div class="col-md-6 mb-3">
+              <label for="ot_date" class="form-label">Date <span class="text-danger">*</span></label>
+              <input id="ot_date{{$overtime->id}}" v-model="ot_date" type="date" name='ot_date' value="{{$overtime->ot_date}}" class="form-control" @change="validateDates" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="break_hrs" class="form-label">Break (Hrs)</label>
+              <input type="number" step="0.01" min="0" max="3" name='break_hrs' class="form-control" placeholder="0.00" value="{{$overtime->break_hrs}}">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="start_time" class="form-label">Start Time&nbsp;<span class="text-danger">*</span></label>
+              <input id="start_time{{$overtime->id}}" type="datetime-local" name='start_time' v-model="start_time" :min="min_date" :max="ot_max_date" class="form-control" @change="validateDates" :value="start_time" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="end_time" class="form-label">End Time&nbsp;<span class="text-danger">*</span></label>
+              <input id="end_time{{$overtime->id}}" type="datetime-local" name='end_time' v-model="end_time"  :min="start_time" :max="max_date" @change="validateDates"  class="form-control" :value="end_time" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="proof_otar" class="form-label">Proof of OTAR <span class="text-danger">*</span></label>
+              <input type="file" name="attachment" class="form-control mb-1" placeholder="Upload Supporting Documents">
+              @if($overtime->attachment)
+                <a href="{{url($overtime->attachment)}}" target='_blank'>View Attachment</a>
+              @endif
+            </div>
+            <div class="col-md-12 mb-3">
+              <label for="remarks" class="form-label">Detailed Description for Request <span class="text-danger">*</span></label>
+              <textarea class="form-control" id="remarks" name="remarks" rows="3" placeholder="Provide detail description for this transaction." required>{{$overtime->remarks}}</textarea>
+            </div>
+            {{-- <div class="form-group row">
               <div class='col-md-2'>
                 Date
               </div>
               <div class='col-md-4'>
                 <input id="ot_date{{$overtime->id}}" v-model="ot_date" type="date" name='ot_date' value="{{$overtime->ot_date}}" class="form-control" @change="validateDates" required>
               </div>
-            </div>
+            </div> --}}
             
-            <div class="form-group row">
+            {{-- <div class="form-group row">
               <div class='col-md-2'>
                 Start Time
               </div>
@@ -49,18 +68,18 @@
               <div class='col-md-4'>
                 <input id="end_time{{$overtime->id}}" type="datetime-local" name='end_time' v-model="end_time"  :min="start_time" :max="max_date" @change="validateDates"  class="form-control" :value="end_time" required>
               </div>
-            </div>
+            </div> --}}
 
-            <div class="form-group row">
+            {{-- <div class="form-group row">
               <div class='col-md-2'>
                 Break (Hrs)
               </div>
               <div class='col-md-4'>
                 <input type="number" step="0.01" min="0" max="3" name='break_hrs' class="form-control" placeholder="0.00" value="{{$overtime->break_hrs}}">
               </div>
-            </div>
+            </div> --}}
 
-            <div class="form-group row">
+            {{-- <div class="form-group row">
               <div class='col-md-2'>
                 Remarks
               </div>
@@ -77,20 +96,14 @@
                 <input type="file" name="attachment" class="form-control"  placeholder="Upload Supporting Documents">
               </div>
           
-            </div>
+            </div> --}}
           </div>
-      </div>
-      <div class="modal-footer">
-        
-        @if($overtime->attachment)
-          <a href="{{url($overtime->attachment)}}" target='_blank'><button type="button" class="btn btn-outline-info btn-fw ">View Attachment</button></a>
-        @endif
-        
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="submit" class="btn btn-primary" {{ (auth()->user()->employee->immediate_sup_data != null) ? "" : 'disabled'}}>Save</button>
-
-      </div>
-    </form>      
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary" {{ (auth()->user()->employee->immediate_sup_data != null) ? "" : 'disabled'}}>Save</button>
+        </div>
+      </form>      
     </div>
   </div>
 </div>

@@ -181,7 +181,7 @@
         }
     });
 </script>
-<script>
+{{-- <script>
 document.getElementById('proof_otar').addEventListener('change', function(e) {
     const fileInfo = document.getElementById('file-info');
     const file = e.target.files[0];
@@ -224,4 +224,4 @@ dropArea.addEventListener('drop', function(e) {
         fileInput.dispatchEvent(new Event('change'));
     }
 });
-</script>
+</script> --}}

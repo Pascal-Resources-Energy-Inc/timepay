@@ -208,8 +208,10 @@
     Route::get('iur', 'IurController@index');
     Route::get('/iur/create', 'IurController@create')->name('iur.create');
     Route::post('/iur/store', 'IurController@store')->name('iur.store');
-    Route::post('edit-wfh/{id}','EmployeeWfhController@edit_wfh');
-    Route::get('disable-wfh/{id}','EmployeeWfhController@disable_wfh');
+    Route::get('/iur/{id}/edit', 'IURController@edit')->name('iur.edit');
+    Route::put('/iur/{id}', 'IURController@update')->name('iur.update');
+    Route::get('/iur/{id}', 'IURController@show')->name('iur.show');
+    Route::put('/iur/{id}/cancel', 'IURController@cancel')->name('iur.cancel');
     // Route::post('approve-wfh-all','FormApprovalController@approveWfhAll');
     // Route::post('disapprove-wfh-all','FormApprovalController@disapproveWfhAll');
 

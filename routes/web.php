@@ -270,6 +270,13 @@
     Route::post('approve-coe-all', 'FormApprovalController@approvecoeAll');
     Route::post('disapprove-coe-all','FormApprovalController@disapprovecoeAll');
 
+    //ID and Uniform Request Approval
+    Route::get('iur-approval','FormApprovalController@form_iur_approval');
+    Route::post('approve-iur/{id}','FormApprovalController@approveIur');
+    Route::post('decline-iur/{id}','FormApprovalController@declineIur');
+    Route::post('approve-iur-all', 'FormApprovalController@approveIurAll');
+    Route::post('disapprove-iur-all','FormApprovalController@disapproveIurAll');
+
     Route::get('for-dtr-correction','FormApprovalController@form_dtr_approval');
     Route::post('approve-dtr/{id}','FormApprovalController@approveDtr');
     Route::post('decline-dtr/{id}','FormApprovalController@declineDtr');
@@ -520,9 +527,10 @@
     Route::get('/remove-hr-approver/{id}','HrApproverSettingController@remove'); 
     
     //Forms Approver Setting
-    Route::get('/approver-setting','ApproverSettingController@index');
-    Route::post('/save-approver-setting','ApproverSettingController@store');
+    Route::get('/approver-setting','ApproverSettingController@index');\
+    Route::post('/save-approver-setting', 'ApproverSettingController@store')->name('approver.store');
     Route::get('/remove-approver/{id}','ApproverSettingController@removeApprover'); 
+    Route::get('/get-user-approver-forms/{user_id}', 'ApproverSettingController@getUserForms');
 
     //Timekeeping Dashboard
     

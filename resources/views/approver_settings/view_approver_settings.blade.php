@@ -19,9 +19,9 @@
                   <table class="table table-hover table-bordered tablewithSearch">
                     <thead>
                       <tr>
-                        <th>FORM APPROVER</th>
-                        <th>Type of Form</th>
-                        <th>Action</th>
+                        <th width="45%">Form Approver</th>
+                        <th width="45%">Type of Form</th>
+                        <th width="10%">Action</th>
                       </tr>
                     </thead>
                     <tbody>

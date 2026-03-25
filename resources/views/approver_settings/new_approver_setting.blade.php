@@ -8,7 +8,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form method='POST' action='save-approver-setting' onsubmit='show()' enctype="multipart/form-data">
+            <form method="POST" action="{{ route('approver.store') }}" onsubmit='show()' enctype="multipart/form-data">
                 @csrf      
                 <div class="modal-body">
                     <div class="row">
@@ -22,8 +22,15 @@
                                 @endforeach
                             </select>
                         </div>
-                        
                         <div class="col-md-12 form-group">
+                            <label>Type of Form</label>
+                            <select class="form-control form-control-sm js-example-basic-multiple" style='width:100%;' name="type_of_forms[]" id="type_of_forms" multiple required>
+                                @foreach($form_types as $key => $value)
+                                    <option value="{{$key}}">{{$value}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        {{-- <div class="col-md-12 form-group">
                             <label for="type_of_forms">Type of Form</label>
                             <select data-placeholder="Select Type of Form" class="form-control form-control-sm required js-example-basic-single" 
                                     style='width:100%;' name='type_of_forms[]' id="type_of_forms" multiple required>
@@ -32,7 +39,7 @@
                                     <option value="{{$key}}">{{$value}}</option>
                                 @endforeach
                             </select>
-                        </div>
+                        </div> --}}
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -43,3 +50,54 @@
         </div>
     </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+
+        $('#user_id').select2({
+            dropdownParent: $('#new_approver')
+        });
+
+        $('#type_of_forms').select2({
+            dropdownParent: $('#new_approver')
+        });
+
+        $('#user_id').on('change', function () {
+            let userId = $(this).val();
+
+            // Reset all options first
+            $('#type_of_forms option').prop('disabled', false);
+
+            if (userId) {
+                $.ajax({
+                    url: '/get-user-approver-forms/' + userId,
+                    type: 'GET',
+                    success: function (data) {
+
+                        // Disable already assigned forms
+                        data.forEach(function (form) {
+                            $('#type_of_forms option[value="' + form + '"]')
+                                .prop('disabled', true);
+                        });
+
+                        // Refresh select2 UI
+                        $('#type_of_forms').val(null).trigger('change');
+                    }
+                });
+            }
+        });
+
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+@if(session('success'))
+Swal.fire({
+    icon: 'success',
+    title: 'Success',
+    text: "{{ session('success') }}"
+});
+@endif
+</script>

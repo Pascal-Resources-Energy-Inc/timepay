@@ -519,24 +519,25 @@
                     @endif
                     @php
                         $is_coe_approver = \App\ApproverSetting::where('user_id', auth()->user()->id)
-                                        ->whereIn('type_of_form', ['coe'])
+                                        ->whereIn('type_of_form', ['coe', 'uir'])
                                         ->where('status', 'Active')
                                         ->exists();
                     @endphp
                     @if ($is_coe_approver)
                     <li class="nav-item">
                         <hr>
-                        <h5>COE Request</h5>
+                        <h5>Request Approval</h5>
                     </li>
                     <li class="nav-item @if ($header == 'for-approval_coe') active @endif">
                         <a class="nav-link" data-toggle="collapse" href="#for-approval_coe" aria-expanded="@if ($header == 'for_approval_coe') true @else false @endif" aria-controls="ui-basic">
                             <i class="icon-check menu-icon"></i>
-                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id)}}</span></span>
+                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) +  pending_uir_count(auth()->user()->id) }}</span></span>
                             <i class="menu-arrow"></i>
                         </a>
                         <div class="collapse @if ($header == 'for-approval_coe') show @endif" id="for-approval_coe">
                             <ul class="nav flex-column sub-menu">
-                                <li class="nav-item "><a class="nav-link active" href="{{ url('/coe-approval') }}" >COE Request<span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) }}</span></a></li>
+                                <li class="nav-item "><a class="nav-link active" href="{{ url('/coe-approval') }}" >COE Request&nbsp;<span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) }}</span></a></li>
+                                <li class="nav-item "><a class="nav-link active" href="{{ url('/iur-approval') }}" >ID & Uniform Request&nbsp;<span class="badge badge-warning">{{ pending_uir_count(auth()->user()->id) }}</span></a></li>
                             </ul>
                         </div>
                     </li>

@@ -44,23 +44,33 @@ class ApproverSettingController extends Controller
             'form_types' => $form_types
         ));
     }
+    
+    public function getUserForms($user_id)
+    {
+        $forms = ApproverSetting::where('user_id', $user_id)
+                    ->pluck('type_of_form')
+                    ->toArray();
+
+        return response()->json($forms);
+    }
 
     public function store(Request $request)
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'type_of_forms' => 'required|array|min:1',
-            'type_of_forms.*' => 'in:leave,ot,dtr,pd,ad,ne,coe'
+            'type_of_forms.*' => 'in:leave,ot,dtr,pd,ad,ne,coe,uir'
         ]);
 
         $saved_count = 0;
 
-        foreach ($request->type_of_forms as $form_type) {
-            $existing_approver = ApproverSetting::where('user_id', $request->user_id)
-                                                ->where('type_of_form', $form_type)
-                                                ->first();
+        foreach ($request->type_of_forms ?? [] as $form_type) {
 
-            if (!$existing_approver) {
+            $exists = ApproverSetting::where('user_id', $request->user_id)
+                        ->where('type_of_form', $form_type)
+                        ->exists();
+
+            if (!$exists) {
                 ApproverSetting::create([
                     'user_id' => $request->user_id,
                     'type_of_form' => $form_type,
@@ -70,24 +80,29 @@ class ApproverSettingController extends Controller
             }
         }
 
-        if ($saved_count > 0) {
-            Alert::success("Successfully added {$saved_count} approver setting(s)")->persistent('Dismiss');
-        } else {
-            Alert::warning('No new approver settings were added (all combinations already exist)')->persistent('Dismiss');
-        }
-
-        return back();
+        return back()->with([
+            'success' => $saved_count > 0 
+                ? "Successfully added {$saved_count} approver setting(s)"
+                : "No new approver settings were added"
+        ]);
     }
 
     public function removeApprover($id)
     {
         try {
             $approver = ApproverSetting::findOrFail($id);
-            $approver->delete();
-            
-            return response()->json(['success' => true, 'message' => 'Form Approver removed successfully']);
+            $approver->delete(); 
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Form Approver removed successfully (soft deleted)'
+            ]);
+
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error removing approver']);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error removing approver'
+            ]);
         }
     }
 }

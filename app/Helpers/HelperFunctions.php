@@ -22,6 +22,7 @@ use App\EmployeeCoe;
 use App\EmployeeDtr;
 use App\ScheduleData;
 use App\Tax;
+use App\IUR;
 use App\ExitClearanceSignatory;
 use App\ExitResign;
 
@@ -1254,6 +1255,18 @@ function pending_coe_count($approver_id){
                                     $q->where('approver_id',$approver_id);
                                 })
                                 ->where('status','Pending')
+                                // ->whereDate('created_at','>=',$from_date)
+                                // ->whereDate('created_at','<=',$to_date)
+                                ->count();
+}
+
+function pending_uir_count($approver_id){
+
+    $today = date('Y-m-d');
+    $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
+    $ad_date = date('Y-m-d');
+
+    return IUR::select('user_id')->where('status','Pending')
                                 // ->whereDate('created_at','>=',$from_date)
                                 // ->whereDate('created_at','<=',$to_date)
                                 ->count();

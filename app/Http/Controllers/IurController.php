@@ -28,7 +28,7 @@ class IurController extends Controller
                         ->get();
         // dd($iurs);
         
-        // $iur_all = IUR::where('user_id',auth()->user()->id)->get();
+        $iur_all = IUR::where('user_id',auth()->user()->id)->get();
         // dd($iur_all);
         // $all_approvers = $get_approvers->get_approvers(auth()->user()->id);
 
@@ -37,7 +37,8 @@ class IurController extends Controller
             'from' => $from,
             'to' => $to,
             'status' => $status,
-            'iurs' => $iurs
+            'iurs' => $iurs,
+            'iur_all' => $iur_all
         ]);
     }
 

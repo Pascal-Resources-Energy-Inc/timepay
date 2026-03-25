@@ -125,7 +125,7 @@
                 </div>
               </div>
               <div class="col-md-12" align="right">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <a href="{{ url('iur') }}" class="btn btn-secondary">Close</a>
                 <button type="submit" class="btn btn-primary">Submit</button>
               </div>  
             </form>

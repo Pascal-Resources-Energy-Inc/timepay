@@ -32967,6 +32967,7 @@ div.tagsinput span.tag a {
 .sidebar .nav.sub-menu .nav-item .nav-link.active {
   color: #ffffff;
   background: transparent;
+  text-wrap: auto;
 }
 
 .sidebar .nav.sub-menu .nav-item:hover {
@@ -33030,6 +33031,7 @@ div.tagsinput span.tag a {
 .sidebar-dark .sidebar .nav.sub-menu .nav-item .nav-link.active {
   color: #ffffff;
   background: transparent;
+  text-wrap: auto;
 }
 
 .sidebar-dark .sidebar .nav.sub-menu .nav-item .nav-link:hover {

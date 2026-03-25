@@ -9,7 +9,7 @@
               <div class="media">                
                 <div class="media-body">
                   <h4 class="mb-4">Pending</h4>
-                  <h2 class="card-text"></h2>
+                  <h2 class="card-text">{{($iur_all->where('status','Pending'))->count()}}</h2>
                 </div>
               </div>
             </div>
@@ -21,7 +21,7 @@
               <div class="media">
                 <div class="media-body">
                   <h4 class="mb-4">Declined/Cancelled</h4>
-                  <h2 class="card-text"></h2>
+                  <h2 class="card-text">{{($iur_all->where('status','Cancelled'))->count()}}</h2>
                 </div>
               </div>
             </div>
@@ -33,7 +33,7 @@
               <div class="media">                
                 <div class="media-body">
                   <h4 class="mb-4">Approved</h4>
-                  <h2 class="card-text"></h2>
+                  <h2 class="card-text">{{($iur_all->where('status','Approved'))->count()}}</h2>
                 </div>
               </div>
             </div>
@@ -94,8 +94,9 @@
                       <th width="10%">Request For</th> 
                       <th width="12%">Type</th>
                       <th width="13%">Work Location</th>
-                      <th width="25%">Details of Work</th>
+                      <th width="15%">Details of Work</th>
                       <th width="8%">Status</th>
+                      <th width="10%">Remarks</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -129,6 +130,7 @@
                             <label class="badge badge-danger">{{ $iur->status }}</label>
                           @endif                        
                         </td>
+                        <td>{{ $iur->approval_remarks ?? '-' }}</td>
                       </tr>
                     @endforeach
                   </tbody>

@@ -17,6 +17,7 @@ use App\AttendanceLog;
 use App\Attendance;
 use App\EmployeeApprover;
 use App\EmployeeToApprovalRemark;
+use App\IUR;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -1595,225 +1596,447 @@ class FormApprovalController extends Controller
         }
 
     public function form_coe_approval(Request $request)
-        {
-            $today = date('Y-m-d');
-            $from_date = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
-            $to_date = $request->to ?? date('Y-m-d');
-            $limit = $request->limit ?? 10;
-            $filter_status = $request->status ?? 'Pending';
+    {
+        $today = date('Y-m-d');
+        $from_date = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
+        $to_date = $request->to ?? date('Y-m-d');
+        $limit = $request->limit ?? 10;
+        $filter_status = $request->status ?? 'Pending';
 
-            $user = auth()->user();
-            $approver_id = $user->id;
+        $user = auth()->user();
+        $approver_id = $user->id;
 
-            $coes = collect();
-            $coes_all = collect();
+        $coes = collect();
+        $coes_all = collect();
 
-            $is_coe_approver = \App\ApproverSetting::where('user_id', $approver_id)
-                ->where('type_of_form', 'coe')
-                ->where('status', 'Active')
-                ->exists();
+        $is_coe_approver = \App\ApproverSetting::where('user_id', $approver_id)
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->exists();
 
-            if ($is_coe_approver) {
-                $query = EmployeeCoe::with([
-                        'user.employee.department',
-                        'approvedBy', // Relationship to show who approved
-                    ])
-                    ->whereDate('created_at', '>=', $from_date)
-                    ->whereDate('created_at', '<=', $to_date);
+        if ($is_coe_approver) {
+            $query = EmployeeCoe::with([
+                    'user.employee.department',
+                    'approvedBy', // Relationship to show who approved
+                ])
+                ->whereDate('created_at', '>=', $from_date)
+                ->whereDate('created_at', '<=', $to_date);
 
-                if ($filter_status !== 'All') {
-                    $query->where('status', $filter_status);
-                } else {
-                    $query->where('status', '!=', 'Cancelled');
-                }
-
-                $coes = $query->orderBy('created_at', 'DESC')->paginate($limit);
-                
-                $coes->appends($request->query());
-
-                $coes_all = EmployeeCoe::whereDate('created_at', '>=', $from_date)
-                    ->whereDate('created_at', '<=', $to_date)
-                    ->where('status', '!=', 'Cancelled')
-                    ->get();
+            if ($filter_status !== 'All') {
+                $query->where('status', $filter_status);
+            } else {
+                $query->where('status', '!=', 'Cancelled');
             }
 
-            // Get all COE approvers for display
-            $coe_approvers = \App\ApproverSetting::with('user.employee.department')
-                ->where('type_of_form', 'coe')
-                ->where('status', 'Active')
+            $coes = $query->orderBy('created_at', 'DESC')->paginate($limit);
+            
+            $coes->appends($request->query());
+
+            $coes_all = EmployeeCoe::whereDate('created_at', '>=', $from_date)
+                ->whereDate('created_at', '<=', $to_date)
+                ->where('status', '!=', 'Cancelled')
                 ->get();
-
-            $pendingCount = $coes_all->where('status', 'Pending')->count();
-            $approvedCount = $coes_all->where('status', 'Approved')->count();
-            $declinedCount = $coes_all->whereIn('status', ['Declined', 'Cancelled'])->count();
-
-            session(['pending_coe_count' => $pendingCount]);
-
-            // Simple function to get approver for employee (same as PD system)
-            $getApproverForEmployee = function($employee) use ($coe_approvers) {
-                return $coe_approvers->first();
-            };
-
-            return view('for-approval.coe_approval', [
-                'header' => 'for-approval',
-                'coes' => $coes,
-                'coes_all' => $coes_all,
-                'for_approval' => $pendingCount,
-                'approved' => $approvedCount,
-                'declined' => $declinedCount,
-                'approver_id' => $approver_id,
-                'user_role' => $is_coe_approver ? 'coe_approver' : null,
-                'from' => $from_date,
-                'to' => $to_date,
-                'status' => $filter_status,
-                'limit' => $limit,
-                'has_payroll_privilege' => $is_coe_approver,
-                'coe_approvers' => $coe_approvers,
-                'getApproverForEmployee' => $getApproverForEmployee, // Add this function to view
-            ]);
         }
+
+        // Get all COE approvers for display
+        $coe_approvers = \App\ApproverSetting::with('user.employee.department')
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->get();
+
+        $pendingCount = $coes_all->where('status', 'Pending')->count();
+        $approvedCount = $coes_all->where('status', 'Approved')->count();
+        $declinedCount = $coes_all->whereIn('status', ['Declined', 'Cancelled'])->count();
+
+        session(['pending_coe_count' => $pendingCount]);
+
+        // Simple function to get approver for employee (same as PD system)
+        $getApproverForEmployee = function($employee) use ($coe_approvers) {
+            return $coe_approvers->first();
+        };
+
+        return view('for-approval.coe_approval', [
+            'header' => 'for-approval',
+            'coes' => $coes,
+            'coes_all' => $coes_all,
+            'for_approval' => $pendingCount,
+            'approved' => $approvedCount,
+            'declined' => $declinedCount,
+            'approver_id' => $approver_id,
+            'user_role' => $is_coe_approver ? 'coe_approver' : null,
+            'from' => $from_date,
+            'to' => $to_date,
+            'status' => $filter_status,
+            'limit' => $limit,
+            'has_payroll_privilege' => $is_coe_approver,
+            'coe_approvers' => $coe_approvers,
+            'getApproverForEmployee' => $getApproverForEmployee, // Add this function to view
+        ]);
+    }
 
     public function approveCoe(Request $request, $id)
-        {
-            $employee_coe = EmployeeCoe::find($id);
+    {
+        $employee_coe = EmployeeCoe::find($id);
 
-            if (!$employee_coe) {
-                Alert::error('COE not found.')->persistent('Dismiss');
-                return back();
-            }
-
-            $current_user = auth()->user();
-
-
-            $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
-                ->where('type_of_form', 'coe')
-                ->where('status', 'Active')
-                ->exists();
-
-            if (!$is_coe_approver) {
-                Alert::error('You do not have permission to approve COEs.')->persistent('Dismiss');
-                return back();
-            }
-
-            $employee_coe->approved_date = now();
-            $employee_coe->status = 'Approved';
-            $employee_coe->approval_remarks = $request->approval_remarks;
-            $employee_coe->approved_by = $current_user->id;
-            $employee_coe->save();
-
-            Alert::success('COE Request has been approved.')->persistent('Dismiss');
+        if (!$employee_coe) {
+            Alert::error('COE not found.')->persistent('Dismiss');
             return back();
         }
 
-        public function declineCoe(Request $request, $id)
-        {
-            $employee_coe = EmployeeCoe::find($id);
-
-            if (!$employee_coe) {
-                Alert::error('COE not found.')->persistent('Dismiss');
-                return back();
-            }
-
-            $current_user = auth()->user();
+        $current_user = auth()->user();
 
 
-            $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
-                ->where('type_of_form', 'coe')
-                ->where('status', 'Active')
-                ->exists();
+        $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->exists();
 
-            if (!$is_coe_approver) {
-                Alert::error('You do not have permission to decline COEs.')->persistent('Dismiss');
-                return back();
-            }
-
-            $employee_coe->approved_date = now();
-            $employee_coe->status = 'Declined';
-            $employee_coe->approval_remarks = $request->approval_remarks;
-            $employee_coe->approved_by = $current_user->id;
-            $employee_coe->save();
-
-            Alert::success('COE Request has been declined.')->persistent('Dismiss');
+        if (!$is_coe_approver) {
+            Alert::error('You do not have permission to approve COEs.')->persistent('Dismiss');
             return back();
         }
 
-        public function approveCoeAll(Request $request)
-        {
-            $current_user = auth()->user();
+        $employee_coe->approved_date = now();
+        $employee_coe->status = 'Approved';
+        $employee_coe->approval_remarks = $request->approval_remarks;
+        $employee_coe->approved_by = $current_user->id;
+        $employee_coe->save();
 
+        Alert::success('COE Request has been approved.')->persistent('Dismiss');
+        return back();
+    }
 
-            $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
-                ->where('type_of_form', 'coe')
-                ->where('status', 'Active')
-                ->exists();
+    public function declineCoe(Request $request, $id)
+    {
+        $employee_coe = EmployeeCoe::find($id);
 
-            if (!$is_coe_approver) {
-                return response()->json(['error' => 'You do not have permission to bulk-approve COEs.'], 403);
-            }
-
-            $ids = json_decode($request->ids, true);
-            $count = 0;
-            $approver_id = $current_user->id;
-
-            if (!empty($ids)) {
-                foreach ($ids as $id) {
-                    $employee_coe = EmployeeCoe::find($id);
-
-                    if ($employee_coe) {
-                        $employee_coe->update([
-                            'approved_date' => now(),
-                            'status' => 'Approved',
-                            'approval_remarks' => $request->approval_remarks ?? 'Bulk Approved',
-                            'approved_by' => $approver_id
-                        ]);
-                        $count++;
-                    }
-                }
-
-                return $count;
-            }
-
-            return 'error';
+        if (!$employee_coe) {
+            Alert::error('COE not found.')->persistent('Dismiss');
+            return back();
         }
 
-        public function disapproveCoeAll(Request $request)
-        {
-            $current_user = auth()->user();
+        $current_user = auth()->user();
 
 
-            $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
-                ->where('type_of_form', 'coe')
-                ->where('status', 'Active')
-                ->exists();
+        $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->exists();
 
-            if (!$is_coe_approver) {
-                return response()->json(['error' => 'You do not have permission to bulk-decline COEs.'], 403);
-            }
-
-            $ids = json_decode($request->ids, true);
-            $count = 0;
-            $approver_id = $current_user->id;
-
-            if (!empty($ids)) {
-                foreach ($ids as $id) {
-                    $employee_coe = EmployeeCoe::find($id);
-
-                    if ($employee_coe) {
-                        $employee_coe->update([
-                            'approved_date' => now(),
-                            'status' => 'Declined',
-                            'approval_remarks' => $request->approval_remarks ?? 'Bulk Declined',
-                            'approved_by' => $approver_id
-                        ]);
-                        $count++;
-                    }
-                }
-
-                return $count;
-            }
-
-            return 'error';
+        if (!$is_coe_approver) {
+            Alert::error('You do not have permission to decline COEs.')->persistent('Dismiss');
+            return back();
         }
+
+        $employee_coe->approved_date = now();
+        $employee_coe->status = 'Declined';
+        $employee_coe->approval_remarks = $request->approval_remarks;
+        $employee_coe->approved_by = $current_user->id;
+        $employee_coe->save();
+
+        Alert::success('COE Request has been declined.')->persistent('Dismiss');
+        return back();
+    }
+
+    public function approveCoeAll(Request $request)
+    {
+        $current_user = auth()->user();
+
+
+        $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_coe_approver) {
+            return response()->json(['error' => 'You do not have permission to bulk-approve COEs.'], 403);
+        }
+
+        $ids = json_decode($request->ids, true);
+        $count = 0;
+        $approver_id = $current_user->id;
+
+        if (!empty($ids)) {
+            foreach ($ids as $id) {
+                $employee_coe = EmployeeCoe::find($id);
+
+                if ($employee_coe) {
+                    $employee_coe->update([
+                        'approved_date' => now(),
+                        'status' => 'Approved',
+                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Approved',
+                        'approved_by' => $approver_id
+                    ]);
+                    $count++;
+                }
+            }
+
+            return $count;
+        }
+
+        return 'error';
+    }
+
+    public function disapproveCoeAll(Request $request)
+    {
+        $current_user = auth()->user();
+
+
+        $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_coe_approver) {
+            return response()->json(['error' => 'You do not have permission to bulk-decline COEs.'], 403);
+        }
+
+        $ids = json_decode($request->ids, true);
+        $count = 0;
+        $approver_id = $current_user->id;
+
+        if (!empty($ids)) {
+            foreach ($ids as $id) {
+                $employee_coe = EmployeeCoe::find($id);
+
+                if ($employee_coe) {
+                    $employee_coe->update([
+                        'approved_date' => now(),
+                        'status' => 'Declined',
+                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Declined',
+                        'approved_by' => $approver_id
+                    ]);
+                    $count++;
+                }
+            }
+
+            return $count;
+        }
+
+        return 'error';
+    }
+
+    // ID and Uniform Request Approval
+    public function form_iur_approval(Request $request)
+    {
+        $today = date('Y-m-d');
+        $from_date = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
+        $to_date = $request->to ?? date('Y-m-d');
+        $limit = $request->limit ?? 10;
+        $filter_status = $request->status ?? 'Pending';
+
+        $user = auth()->user();
+        $approver_id = $user->id;
+
+        $iurs = collect();
+        $iur_all = collect();
+
+        $is_iur_approver = \App\ApproverSetting::where('user_id', $approver_id)
+            ->where('type_of_form', 'uir')
+            ->where('status', 'Active')
+            ->exists();
+        // dd($is_iur_approver);
+        if ($is_iur_approver) {
+            $query = IUR::with([
+                    'user',
+                    'approvedBy', // Relationship to show who approved
+                ])
+                ->whereDate('created_at', '>=', $from_date)
+                ->whereDate('created_at', '<=', $to_date);
+
+            if ($filter_status !== 'All') {
+                $query->where('status', $filter_status);
+            } else {
+                $query->where('status', '!=', 'Cancelled');
+            }
+            // dd($query);  
+            $iurs = $query->orderBy('created_at', 'DESC')->paginate($limit);
+            
+            $iurs->appends($request->query());
+
+            $iur_all = IUR::whereDate('created_at', '>=', $from_date)
+                ->whereDate('created_at', '<=', $to_date)
+                ->where('status', '!=', 'Cancelled')
+                ->get();
+        }
+
+        // Get all COE approvers for display
+        $coe_approvers = \App\ApproverSetting::with('user.employee.department')
+            ->where('type_of_form', 'uir')
+            ->where('status', 'Active')
+            ->get();
+
+        $pendingCount = $iur_all->where('status', 'Pending')->count();
+        $approvedCount = $iur_all->where('status', 'Approved')->count();
+        $declinedCount = $iur_all->whereIn('status', ['Declined', 'Cancelled'])->count();
+
+        session(['pending_coe_count' => $pendingCount]);
+
+        // Simple function to get approver for employee (same as PD system)
+        $getApproverForEmployee = function($employee) use ($coe_approvers) {
+            return $coe_approvers->first();
+        };
+
+        return view('for-approval.iur_approval', [
+            'header' => 'for-approval',
+            'iurs' => $iurs,
+            'iur_all' => $iur_all,
+            'for_approval' => $pendingCount,
+            'approved' => $approvedCount,
+            'declined' => $declinedCount,
+            'approver_id' => $approver_id,
+            'user_role' => $is_iur_approver ? 'coe_approver' : null,
+            'from' => $from_date,
+            'to' => $to_date,
+            'status' => $filter_status,
+            'limit' => $limit,
+            'has_payroll_privilege' => $is_iur_approver,
+            'coe_approvers' => $coe_approvers,
+            'getApproverForEmployee' => $getApproverForEmployee, // Add this function to view
+        ]);
+    }
+
+    public function approveIur(Request $request, $id)
+    {
+        $employee_iur = IUR::find($id);
+
+        if (!$employee_iur) {
+            Alert::error('IUR not found.')->persistent('Dismiss');
+            return back();
+        }
+
+        $current_user = auth()->user();
+
+
+        $is_iur_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'uir')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_iur_approver) {
+            Alert::error('You do not have permission to approve IURs.')->persistent('Dismiss');
+            return back();
+        }
+
+        $employee_iur->approved_date = now();
+        $employee_iur->status = 'Approved';
+        $employee_iur->approval_remarks = $request->approval_remarks;
+        $employee_iur->approved_by = $current_user->id;
+        $employee_iur->save();
+
+        Alert::success('IUR Request has been approved.')->persistent('Dismiss');
+        return back();
+    }
+
+    public function declineIur(Request $request, $id)
+    {
+        $employee_iur = IUR::find($id);
+
+        if (!$employee_iur) {
+            Alert::error('IUR not found.')->persistent('Dismiss');
+            return back();
+        }
+
+        $current_user = auth()->user();
+
+
+        $is_iur_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'uir')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_iur_approver) {
+            Alert::error('You do not have permission to decline IURs.')->persistent('Dismiss');
+            return back();
+        }
+
+        $employee_iur->approved_date = now();
+        $employee_iur->status = 'Declined';
+        $employee_iur->approval_remarks = $request->approval_remarks;
+        $employee_iur->approved_by = $current_user->id;
+        $employee_iur->save();
+
+        Alert::success('IUR Request has been declined.')->persistent('Dismiss');
+        return back();
+    }
+
+    public function approveIurAll(Request $request)
+    {
+        $current_user = auth()->user();
+
+        $is_iur_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'uir')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_iur_approver) {
+            return response()->json(['error' => 'You do not have permission to bulk-approve IURs.'], 403);
+        }
+
+        $ids = json_decode($request->ids, true);
+        $count = 0;
+        $approver_id = $current_user->id;
+
+        if (!empty($ids)) {
+            foreach ($ids as $id) {
+                $employee_iur = IUR::find($id);
+
+                if ($employee_iur) {
+                    $employee_iur->update([
+                        'approved_date' => now(),
+                        'status' => 'Approved',
+                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Approved',
+                        'approved_by' => $approver_id
+                    ]);
+                    $count++;
+                }
+            }
+
+            return $count;
+        }
+
+        return 'error';
+    }
+
+    public function disapproveIurAll(Request $request)
+    {
+        $current_user = auth()->user();
+
+
+        $is_iur_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'uir')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_iur_approver) {
+            return response()->json(['error' => 'You do not have permission to bulk-decline IURs.'], 403);
+        }
+
+        $ids = json_decode($request->ids, true);
+        $count = 0;
+        $approver_id = $current_user->id;
+
+        if (!empty($ids)) {
+            foreach ($ids as $id) {
+                $employee_iur = IUR::find($id);
+
+                if ($employee_iur) {
+                    $employee_iur->update([
+                        'approved_date' => now(),
+                        'status' => 'Declined',
+                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Declined',
+                        'approved_by' => $approver_id
+                    ]);
+                    $count++;
+                }
+            }
+
+            return $count;
+        }
+
+        return 'error';
+    }
+
 
     public function form_ne_approval(Request $request)
     {

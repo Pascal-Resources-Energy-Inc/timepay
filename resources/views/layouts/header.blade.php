@@ -481,7 +481,7 @@
 
                                 <!-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-official-business') }}">Official Business <span class="badge badge-warning">{{ pending_ob_count(auth()->user()->id) }}</span></a></li> -->
                                 <li class="nav-item "><a class="nav-link " href="{{ url('/for-dtr-correction') }}">DTR Correction <span class="badge badge-warning">{{ pending_dtr_correction(auth()->user()->id) }}</span></a></li>
-                                {{-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-mta') }}" style="text-wrap:auto">Monetized Transportation Allowance <span class="badge badge-warning">{{ pending_mta_correction(auth()->user()->id) }}</span></a></li> --}
+                                {{-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-mta') }}" style="text-wrap:auto">Monetized Transportation Allowance <span class="badge badge-warning">{{ pending_mta_correction(auth()->user()->id) }}</span></a></li> --}}
                             </ul>
                         </div>
                     </li>

@@ -401,8 +401,8 @@
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/planning') }}">Planning</a></li>
-                                {{-- <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/260830852764058" style="text-wrap: auto">Monetized Transportation Allowance</a></li> --}}
-                                <li class="nav-item "><a class="nav-link" href="{{ url('/mta') }}" style="text-wrap: auto">Monetized Transportation Allowance</a></li>
+                                <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/260830852764058" style="text-wrap: auto">Monetized Transportation Allowance</a></li>
+                                {{-- <li class="nav-item "><a class="nav-link" href="{{ url('/mta') }}" style="text-wrap: auto">Monetized Transportation Allowance</a></li> --}}
                                 {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/dar') }}">DAR</a></li> --}}
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> -->
@@ -484,7 +484,6 @@
                                 <!-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-overtime') }}">Overtime <span class="badge badge-warning">{{ pending_overtime_count(auth()->user()->id) }}</span></a></li> -->
                                 <li class="nav-item "><a class="nav-link " href="{{ url('/travel-orderManager') }}">Travel Order <span class="badge badge-warning">{{ pending_to_count(auth()->user()->id) }}</span></a></li>
                                 {{-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-work-from-home') }}">Work From Home <span class="badge badge-warning">{{ session('pending_wfh_count') }}</span></a></li> --}}
-
                                 <!-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-official-business') }}">Official Business <span class="badge badge-warning">{{ pending_ob_count(auth()->user()->id) }}</span></a></li> -->
                                 <li class="nav-item "><a class="nav-link " href="{{ url('/for-dtr-correction') }}">DTR Correction <span class="badge badge-warning">{{ pending_dtr_correction(auth()->user()->id) }}</span></a></li>
                                 {{-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-mta') }}" style="text-wrap:auto">Monetized Transportation Allowance <span class="badge badge-warning">{{ pending_mta_correction(auth()->user()->id) }}</span></a></li> --}}

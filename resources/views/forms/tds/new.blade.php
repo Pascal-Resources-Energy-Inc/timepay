@@ -320,6 +320,7 @@
                   <option value="">-- Select Lead Generator --</option>
                   <option value="FB" {{ old('lead_generator') == 'FB' ? 'selected' : '' }}>FB</option>
                   <option value="Shopee" {{ old('lead_generator') == 'Shopee' ? 'selected' : '' }}>Shopee</option>
+                  <option value="Lazada" {{ old('lead_generator') == 'Lazada' ? 'selected' : '' }}>Lazada</option>
                   <option value="Gaz Lite Website" {{ old('lead_generator') == 'Gaz Lite Website' ? 'selected' : '' }}>Gaz Lite Website</option>
                   <option value="Events" {{ old('lead_generator') == 'Events' ? 'selected' : '' }}>Events</option>
                   <option value="Kaagapay" {{ old('lead_generator') == 'Kaagapay' ? 'selected' : '' }}>Kaagapay</option>

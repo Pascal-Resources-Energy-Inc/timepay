@@ -73,6 +73,7 @@
                                         <select class="form-control select2" name="lead_generator[]" id="lead_generator" multiple>
                                             <option value="FB" {{ collect(request('lead_generator'))->contains('FB') ? 'selected' : '' }}>FB</option>
                                             <option value="Shopee" {{ collect(request('lead_generator'))->contains('Shopee') ? 'selected' : '' }}>Shopee</option>
+                                            <option value="Lazada" {{ collect(request('lead_generator'))->contains('Lazada') ? 'selected' : '' }}>Lazada</option>
                                             <option value="Gaz Lite Website" {{ collect(request('lead_generator'))->contains('Gaz Lite Website') ? 'selected' : '' }}>Gaz Lite Website</option>
                                             <option value="Events" {{ collect(request('lead_generator'))->contains('Events') ? 'selected' : '' }}>Events</option>
                                             <option value="Kaagapay" {{ collect(request('lead_generator'))->contains('Kaagapay') ? 'selected' : '' }}>Kaagapay</option>

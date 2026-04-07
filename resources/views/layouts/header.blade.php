@@ -280,15 +280,57 @@
             line-height: 1.2 !important;
         }
         
+        .modal-header {
+            background: linear-gradient(135deg, #54abe6ff 0%, #3498DB 100%);
+            color: white;
+            border-bottom: none;
+        }
 
+        #preloaderHera {
+            background-color: white; 
+            width: 100%;
+            height: 100%;
+            /* Center the logo vertically and horizontally */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            opacity: .8;
+        }
+
+        .logo-hera {
+            /* width: 150px;
+            height: 150px; */
+            opacity: 2;
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            line-height: 150px;
+            border-radius: 10px;
+            animation: ld-swim 10s infinite linear;
+        }
+
+        /* --- Keyframes for the Bouncing Animation --- */
+        @keyframes ld-swim{0%{transform:translate(0,0) rotate(0)}8.33333%{transform:translate(-5.96462px,4.90845px) rotate(-13.66821deg)}16.66667%{transform:translate(5.25471px,-2.05606px) rotate(0.47337deg)}25%{transform:translate(2.30929px,5.79372px) rotate(13.8564deg)}33.33333%{transform:translate(-5.75556px,-4.60802px) rotate(10.94246deg)}41.66667%{transform:translate(3.73522px,5.97742px) rotate(-14.03079deg)}50%{transform:translate(4.2628px,-3.01222px) rotate(-10.61323deg)}58.33333%{transform:translate(-4.65975px,-2.51269px) rotate(5.2869deg)}66.66667%{transform:translate(1.64024px,-1.05167px) rotate(10.27343deg)}75%{transform:translate(5.55954px,-4.22763px) rotate(-5.72726deg)}83.33333%{transform:translate(-2.84602px,5.91439px) rotate(-14.99193deg)}91.66667%{transform:translate(-0.70744px,-5.43064px) rotate(6.16192deg)}100%{transform:translate(0,0) rotate(0)}}
     </style>
 </head>
 
 <body>
-    <div id="loader" style="display:none;" class="loader">
+    {{-- <div id="loader" style="display:none;" class="loader">
+    </div> --}}
+    <div id="preloaderHera">
+        <div class="logo-hera">
+            <img src="{{ asset('login_css/images/hera_loading1.png') }}" alt="" height="250">
+        </div>
     </div>
 
-    
+    @if(auth()->check() && auth()->user()->is_setup_complete != 1)
+        @include('dashboards.employee_wizard')
+    @endif
     <div class="container-scroller">
 
         <!-- partial:partials/_navbar.html -->
@@ -401,8 +443,8 @@
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/planning') }}">Planning</a></li>
-                                <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/260830852764058" style="text-wrap: auto">Monetized Transportation Allowance</a></li>
-                                {{-- <li class="nav-item "><a class="nav-link" href="{{ url('/mta') }}" style="text-wrap: auto">Monetized Transportation Allowance</a></li> --}}
+                                {{-- <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/260830852764058" style="text-wrap: auto">Monetized Transportation Allowance</a></li> --}}
+                                <li class="nav-item "><a class="nav-link" href="{{ url('/mta') }}" style="text-wrap: auto">Monetized Transportation Allowance</a></li>
                                 {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/dar') }}">DAR</a></li> --}}
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> -->
@@ -475,7 +517,7 @@
                     <li class="nav-item @if ($header == 'for-approval') active @endif">
                         <a class="nav-link" data-toggle="collapse" href="#for-approval" aria-expanded="false" aria-controls="ui-basic">
                             <i class="icon-check menu-icon"></i>
-                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id) + pending_overtime_count(auth()->user()->id) + pending_to_count(auth()->user()->id) +pending_dtr_correction(auth()->user()->id) }}</span></span>
+                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id) + pending_overtime_count(auth()->user()->id) + pending_to_count(auth()->user()->id) +pending_dtr_correction(auth()->user()->id) + pending_mta_correction(auth()->user()->id) }}</span></span>
                             <i class="menu-arrow"></i>
                         </a>
                         <div class="collapse @if ($header == 'for-approval') show @endif" id="for-approval">
@@ -486,7 +528,7 @@
                                 {{-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-work-from-home') }}">Work From Home <span class="badge badge-warning">{{ session('pending_wfh_count') }}</span></a></li> --}}
                                 <!-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-official-business') }}">Official Business <span class="badge badge-warning">{{ pending_ob_count(auth()->user()->id) }}</span></a></li> -->
                                 <li class="nav-item "><a class="nav-link " href="{{ url('/for-dtr-correction') }}">DTR Correction <span class="badge badge-warning">{{ pending_dtr_correction(auth()->user()->id) }}</span></a></li>
-                                {{-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-mta') }}" style="text-wrap:auto">Monetized Transportation Allowance <span class="badge badge-warning">{{ pending_mta_correction(auth()->user()->id) }}</span></a></li> --}}
+                                <li class="nav-item "><a class="nav-link " href="{{ url('/for-mta') }}" style="text-wrap:auto">Monetized Transportation Allowance <span class="badge badge-warning">{{ pending_mta_correction(auth()->user()->id) }}</span></a></li>
                             </ul>
                         </div>
                     </li>
@@ -1027,13 +1069,18 @@
         }
 
         function show() {
-            document.getElementById("loader").style.display = "block";
+            document.getElementById("preloaderHera").style.display = "block";
         }
 
         function logout() {
             event.preventDefault();
             document.getElementById('logout-form').submit();
         }
+        
+        window.addEventListener('load', function() {
+            document.getElementById('preloaderHera').style.display = 'none';
+        });
+
         $(document).ready(function() {
 
             $('.tablewithSearch').DataTable({
@@ -1353,6 +1400,21 @@
                 $total_approve_hours.val(total_approve_hrs);
             }
    
+
+        });
+
+        $(document).ready(function(){
+
+            let shouldShowWizard = "{{ auth()->check() && auth()->user()->is_setup_complete != 1 ? '1' : '0' }}";
+
+            if (shouldShowWizard === "1") {
+                $('#employeeWizard').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                });
+
+                $('#employeeWizard').modal('show');
+            }
 
         });
     </script>

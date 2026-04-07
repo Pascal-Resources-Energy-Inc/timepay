@@ -78,133 +78,133 @@ class EmployeePlanningController extends Controller
         }
     }
     
-    public function uploadFiles(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'planning_id' => 'required|exists:plannings,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'documents.*' => 'nullable|mimes:pdf,doc,docx,xls,xlsx|max:10240'
-        ]);
+    // public function uploadFiles(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'planning_id' => 'nullable|exists:plannings,id',
+    //         'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+    //         'documents.*' => 'nullable|mimes:pdf,doc,docx,xls,xlsx|max:10240'
+    //     ]);
         
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => $validator->errors()->first()
-            ], 422);
-        }
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => $validator->errors()->first()
+    //         ], 422);
+    //     }
         
-        try {
-            DB::beginTransaction();
+    //     try {
+    //         DB::beginTransaction();
             
-            $planning = Planning::findOrFail($request->planning_id);
+    //         $planning = Planning::findOrFail($request->planning_id);
             
-            if ($request->hasFile('image')) {
-                if ($planning->image && Storage::disk('public')->exists($planning->image)) {
-                    Storage::disk('public')->delete($planning->image);
-                }
+    //         if ($request->hasFile('image')) {
+    //             if ($planning->image && Storage::disk('public')->exists($planning->image)) {
+    //                 Storage::disk('public')->delete($planning->image);
+    //             }
                 
-                $image = $request->file('image');
-                $imageName = 'planning_' . $planning->id . '_' . time() . '.' . $image->getClientOriginalExtension();
-                $imagePath = $image->storeAs('planning_images', $imageName, 'public');
-                $planning->image = $imagePath;
-            }
+    //             $image = $request->file('image');
+    //             $imageName = 'planning_' . $planning->id . '_' . time() . '.' . $image->getClientOriginalExtension();
+    //             $imagePath = $image->storeAs('planning_images', $imageName, 'public');
+    //             $planning->image = $imagePath;
+    //         }
             
-            if ($request->hasFile('documents')) {
-                $documentPaths = [];
+    //         if ($request->hasFile('documents')) {
+    //             $documentPaths = [];
                 
-                if ($planning->documents) {
-                    $documentPaths = json_decode($planning->documents, true) ?? [];
-                }
+    //             if ($planning->documents) {
+    //                 $documentPaths = json_decode($planning->documents, true) ?? [];
+    //             }
                 
-                foreach ($request->file('documents') as $document) {
-                    $documentName = 'planning_' . $planning->id . '_' . time() . '_' . uniqid() . '.' . $document->getClientOriginalExtension();
-                    $documentPath = $document->storeAs('planning_documents', $documentName, 'public');
+    //             foreach ($request->file('documents') as $document) {
+    //                 $documentName = 'planning_' . $planning->id . '_' . time() . '_' . uniqid() . '.' . $document->getClientOriginalExtension();
+    //                 $documentPath = $document->storeAs('planning_documents', $documentName, 'public');
                     
-                    $documentPaths[] = [
-                        'name' => $document->getClientOriginalName(),
-                        'path' => $documentPath,
-                        'uploaded_at' => now()->format('Y-m-d H:i:s')
-                    ];
-                }
+    //                 $documentPaths[] = [
+    //                     'name' => $document->getClientOriginalName(),
+    //                     'path' => $documentPath,
+    //                     'uploaded_at' => now()->format('Y-m-d H:i:s')
+    //                 ];
+    //             }
                 
-                $planning->documents = json_encode($documentPaths);
-            }
+    //             $planning->documents = json_encode($documentPaths);
+    //         }
             
-            $planning->save();
+    //         $planning->save();
             
-            DB::commit();
+    //         DB::commit();
             
-            return response()->json([
-                'success' => true,
-                'message' => 'Files uploaded successfully!'
-            ]);
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Files uploaded successfully!'
+    //         ]);
             
-        } catch (\Exception $e) {
-            DB::rollBack();
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
             
-            return response()->json([
-                'success' => false,
-                'message' => 'Error uploading files: ' . $e->getMessage()
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Error uploading files: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
     
-    public function getFiles($id)
-    {
-        try {
-            $planning = Planning::findOrFail($id);
+    // public function getFiles($id)
+    // {
+    //     try {
+    //         $planning = Planning::findOrFail($id);
             
-            $response = [
-                'success' => true,
-                'image' => null,
-                'documents' => []
-            ];
+    //         $response = [
+    //             'success' => true,
+    //             'image' => null,
+    //             'documents' => []
+    //         ];
             
-            if ($planning->image && Storage::disk('public')->exists($planning->image)) {
-                $response['image'] = Storage::url($planning->image);
-            }
+    //         if ($planning->image && Storage::disk('public')->exists($planning->image)) {
+    //             $response['image'] = Storage::url($planning->image);
+    //         }
             
-            if ($planning->documents) {
-                $documents = json_decode($planning->documents, true);
+    //         if ($planning->documents) {
+    //             $documents = json_decode($planning->documents, true);
                 
-                foreach ($documents as $doc) {
-                    if (Storage::disk('public')->exists($doc['path'])) {
-                        $response['documents'][] = [
-                            'name' => $doc['name'],
-                            'url' => Storage::url($doc['path']),
-                            'uploaded_at' => $doc['uploaded_at'] ?? null
-                        ];
-                    }
-                }
-            }
+    //             foreach ($documents as $doc) {
+    //                 if (Storage::disk('public')->exists($doc['path'])) {
+    //                     $response['documents'][] = [
+    //                         'name' => $doc['name'],
+    //                         'url' => Storage::url($doc['path']),
+    //                         'uploaded_at' => $doc['uploaded_at'] ?? null
+    //                     ];
+    //                 }
+    //             }
+    //         }
             
-            return response()->json($response);
+    //         return response()->json($response);
             
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error fetching files: ' . $e->getMessage()
-            ], 500);
-        }
-    }
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Error fetching files: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
     
-    public function disablePlanning($id)
-    {
-        try {
-            $planning = Planning::findOrFail($id);
-            $planning->status = 'Cancelled';
-            $planning->save();
+    // public function disablePlanning($id)
+    // {
+    //     try {
+    //         $planning = Planning::findOrFail($id);
+    //         $planning->status = 'Cancelled';
+    //         $planning->save();
             
-            return response()->json([
-                'success' => true,
-                'message' => 'Planning cancelled successfully'
-            ]);
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Planning cancelled successfully'
+    //         ]);
             
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error cancelling planning: ' . $e->getMessage()
-            ], 500);
-        }
-    }
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Error cancelling planning: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 }

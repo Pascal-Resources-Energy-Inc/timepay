@@ -15,8 +15,10 @@
                         <img class="rounded-circle" style='width:170px;height:170px;' src='{{URL::asset(auth()->user()->employee->avatar)}}' onerror="this.src='{{URL::asset('/images/no_image.png')}}';">
 
                         <h3 class="card-text mt-3">{{auth()->user()->employee->first_name}} @if(auth()->user()->employee->middle_initial != null){{auth()->user()->employee->middle_initial}}.@endif {{auth()->user()->employee->last_name}}</h3>
-                        <h4 class="card-text mt-2">{{auth()->user()->employee->position}}</h4>
-                        <h5 class="card-text mt-2">Biometric Code : {{auth()->user()->employee->employee_number}}</h5>
+                        <h4 class="card-text mt-2 text-muted mb-1">{{auth()->user()->employee->position}}</h4>
+                        <h4 class="card-text mt-2"><span class="badge badge-primary p-2">
+                            Biometric Code: {{auth()->user()->employee->employee_number}}
+                        </span></h4>    
                         {{-- <h5 class="card-text mt-2">Employee Code : {{auth()->user()->employee->employee_code}}</h5> --}}
                         @if(URL::asset(auth()->user()->employee->signature))
                             <img class='border' src='{{URL::asset(auth()->user()->employee->signature)}}' onerror="this.src='{{URL::asset('/images/signature.png')}}';" height='100px;' width='225px;'> <br>
@@ -88,7 +90,7 @@
                                 <div class='col-md-12 text-center'>
                                     <strong>
                                         <h3><i class="fa fa-user" aria-hidden="true"></i> Personal Information
-                                             <!-- <button class="btn btn-icon btn-info btn-xs" title="Edit Information" data-toggle="modal" data-target="#editInfo"><i class="fa fa-pencil"></i></button></h3> -->
+                                        <!-- <button class="btn btn-icon btn-info btn-xs" title="Edit Information" data-toggle="modal" data-target="#editInfo"><i class="fa fa-pencil"></i></button></h3> -->
                                     </strong>
                                 </div>
                             </div>
@@ -100,17 +102,17 @@
                                     {{auth()->user()->employee->nick_name}}
                                 </div>
                             </div>
-                            <div class='row  m-2 border-bottom'>
+                            {{-- <div class='row  m-2 border-bottom'>
                                 <div class='col-md-3'>
                                     <small> Full Name </small>
                                 </div>
                                 <div class='col-md-9'>
                                     {{auth()->user()->employee->first_name}} @if(auth()->user()->employee->middle_initial != null){{auth()->user()->employee->middle_initial}}.@endif {{auth()->user()->employee->last_name}}
                                 </div>
-                            </div>
+                            </div> --}}
                             <div class='row  m-2 border-bottom'>
                                 <div class='col-md-3'>
-                                    <small> Email </small>
+                                    <small>Personal Email</small>
                                 </div>
                                 <div class='col-md-9'>
                                     {{auth()->user()->employee->personal_email}}
@@ -118,7 +120,7 @@
                             </div>
                             <div class='row  m-2 border-bottom'>
                                 <div class='col-md-3'>
-                                    <small> Phone</small>
+                                    <small>Phone</small>
                                 </div>
                                 <div class='col-md-9'>
                                     {{auth()->user()->employee->personal_number}}
@@ -165,7 +167,7 @@
                                     $d2 = new DateTime();
                                     $diff = $d2->diff($d1);
                                     @endphp
-                                    <small> Date : {{date('F d, Y',strtotime(auth()->user()->employee->birth_date))}} : {{$diff->y}} Years Old</small><br>
+                                    <small> Date : {{date('F d, Y',strtotime(auth()->user()->employee->birth_date))}} <span class="badge badge-info">{{$diff->y}} Years Old</span></small><br>
                                     <small> Place : {{auth()->user()->employee->birth_place}} </small>
                                 </div>
                             </div>
@@ -253,7 +255,7 @@
                             </div>
                             <div class='row  m-2 border-bottom'>
                                 <div class='col-md-3'>
-                                    <small> Email </small>
+                                    <small>Work Email</small>
                                 </div>
                                 <div class='col-md-9'>
                                     {{auth()->user()->email}}

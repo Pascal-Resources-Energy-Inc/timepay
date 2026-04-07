@@ -53,6 +53,10 @@ use App\SalaryMovement;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\EmployeeDisagreementMail;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class EmployeeController extends Controller
 {
@@ -2718,4 +2722,134 @@ class EmployeeController extends Controller
         
         return $get_schedules;
     }
+
+    public function setup(Request $request)
+    {
+        $request->validate([
+            'dabp' => 'required',
+            'atkp' => 'required',
+            'coc'  => 'required',
+            'consent_signature'  => 'required',
+        ]);
+
+        $user = auth()->user();
+
+        if (!$user) {
+            return back()->with('error', 'User not authenticated');
+        }
+
+        $user->update([
+            'dabp' => $request->dabp,
+            'atkp' => $request->atkp,
+            'coc'  => $request->coc,
+            'consent_signature' => $request->consent_signature,
+            'signed_date' => now(),
+            'is_setup_complete' => 1
+        ]);
+
+        // ✅ CHECK IF ANY ANSWER IS "NO"
+        $answers = [
+            $request->dabp,
+            $request->atkp,
+            $request->coc
+        ];
+
+        $hasDisagreement = collect($answers)->contains(function ($val) {
+            return strpos($val, "doesn't agree") !== false;
+        });
+
+        if ($hasDisagreement) {
+            Mail::to('it@pascalresources.com.ph') // 🔁 change this
+                ->send(new EmployeeDisagreementMail($user));
+        }
+
+        Alert::success('Successfully Updated')->persistent('Dismiss');
+        return back();
+    }
+
+    public function consentUpdate(Request $request, $id)
+    {
+        $user = User::where('id', $id)->firstOrFail();
+    
+        $type = $request->input('type');        
+
+        // ✅ VALIDATION RULES
+        $rules = [
+            'attachment' => 'nullable|file' // 2MB
+        ];
+
+        if ($type === 'dabp') {
+            $rules['dabp'] = 'required';
+        }
+
+        if ($type === 'atkp') {
+            $rules['atkp'] = 'required';
+        }
+
+        if ($type === 'coc') {
+            $rules['coc'] = 'required';
+        }
+
+        $this->validate($request, $rules);
+
+        // ✅ FILE UPLOAD
+        $filePath = null;
+
+        if ($request->hasFile('attachment')) {
+
+            // delete old file (optional but recommended)
+            if ($type === 'dabp' && $user->dabp_attachment) {
+                Storage::disk('public')->delete($user->dabp_attachment);
+            }
+
+            if ($type === 'atkp' && $user->atkp_attachment) {
+                Storage::disk('public')->delete($user->atkp_attachment);
+            }
+
+            if ($type === 'coc' && $user->coc_attachment) {
+                Storage::disk('public')->delete($user->coc_attachment);
+            }
+
+            $file = $request->file('attachment');
+            $fileName = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+
+            $filePath = $file->storeAs('attachments', $fileName, 'public');
+        }
+
+        // ✅ UPDATE USER
+        switch ($type) {
+            case 'dabp':
+                $user->dabp = $request->input('dabp');
+                if ($filePath) {
+                    $user->dabp_attachment = $filePath;
+                }
+                break;
+
+            case 'atkp':
+                $user->atkp = $request->input('atkp');
+                if ($filePath) {
+                    $user->atkp_attachment = $filePath;
+                }
+                break;
+
+            case 'coc':
+                $user->coc = $request->input('coc');
+                if ($filePath) {
+                    $user->coc_attachment = $filePath;
+                }
+                break;
+
+            default:
+                return response()->json(['error' => 'Invalid type'], 400);
+        }
+
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Consent updated successfully',
+            'type' => $type
+        ]);
+    }
+
 }

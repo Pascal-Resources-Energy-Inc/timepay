@@ -197,10 +197,17 @@
     Route::post('edit-dtr/{id}', 'EmployeeDtrController@edit_dtr');
     Route::get('disable-dtr/{id}', 'EmployeeDtrController@disable_dtr');     
 
+    // MTA
+    Route::get('mta', 'EmployeeMtaController@index');
+    Route::post('new-mta','EmployeeMtaController@store');
+    Route::post('edit-mta/{id}', 'EmployeeMtaController@update');
+    Route::get('disable-mta/{id}', 'EmployeeMtaController@cancel');     
+
     //Planning 
     Route::get('planning', 'EmployeePlanningController@index');
     Route::post('/planning/import', 'EmployeePlanningController@import')->name('planning.import');
-    Route::post('/planning/upload-files', 'HomeController@uploadFiles')->name('planning.upload-files');
+    // Route::post('/planning/upload-files', 'HomeController@uploadFiles')->name('planning.upload-files');
+    // Route::post('/planning/upload-files', 'EmployeePlanningController@uploadFiles')->name('planning.upload-files');
     Route::get('/planning/{id}/files', 'HomeController@getFiles')->name('planning.get-files');
     Route::get('/disable-planning/{id}', 'EmployeePlanningController@disablePlanning')->name('planning.disable');
 
@@ -282,6 +289,13 @@
     Route::post('decline-dtr/{id}','FormApprovalController@declineDtr');
     Route::post('approve-dtr-all','FormApprovalController@approveDtrAll');
     Route::post('disapprove-dtr-all','FormApprovalController@disapproveDtrAll');
+    
+    // MTA
+    Route::get('for-mta','FormApprovalController@form_mta_approval');
+    Route::post('approve-mta/{id}','FormApprovalController@approveMta');
+    Route::post('decline-mta/{id}','FormApprovalController@declineMta');
+    Route::post('approve-mta-all','FormApprovalController@approveMtaAll');
+    Route::post('disapprove-mta-all','FormApprovalController@disapproveMtaAll');
 
     //employees
     Route::get('employees', 'EmployeeController@view');
@@ -639,6 +653,9 @@
 
     Route::post('new-hub', 'HubPerLocationController@store');
     Route::post('edit-hub/{id}', 'HubPerLocationController@edit')->name('edit-hub');
+
+    Route::post('/employee/setup', 'EmployeeController@setup')->name('employee.setup');
+    Route::post('account-setting-hr/updateConsent/{id}', 'EmployeeController@consentUpdate')->name('employee.consent.update');
         
 });
 Route::post('new-employee', 'EmployeeController@new');

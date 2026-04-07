@@ -19,6 +19,7 @@ use App\EmployeeOvertime;
 use App\EmployeeWfh;
 use App\EmployeeOb;
 use App\EmployeeDtr;
+use App\EmployeeMta;
 use App\EmployeeLeaveCredit;
 use App\Leave;
 use App\HubPerLocation;
@@ -1583,6 +1584,19 @@ class HomeController extends Controller
                                     ->where('status','Pending')
                                     // ->whereDate('created_at','>=',$from_date)
                                     // ->whereDate('created_at','<=',$to_date)
+                                    ->count();
+    }
+
+    public function pending_mta_correction($approver_id){
+    
+        $today = date('Y-m-d');
+        $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
+        $to_date = date('Y-m-d');
+    
+        return EmployeeMta::select('user_id')->whereHas('approver',function($q) use($approver_id) {
+                                        $q->where('approver_id',$approver_id);
+                                    })
+                                    ->where('status','Pending')
                                     ->count();
     }
 }

@@ -20,6 +20,7 @@ use App\EmployeePd;
 use App\EmployeeNe;
 use App\EmployeeCoe;
 use App\EmployeeDtr;
+use App\EmployeeMta;
 use App\ScheduleData;
 use App\Tax;
 use App\IUR;
@@ -1154,6 +1155,20 @@ function pending_dtr_correction($approver_id){
                                 ->where('status','Pending')
                                 // ->whereDate('created_at','>=',$from_date)
                                 // ->whereDate('created_at','<=',$to_date)
+                                ->count();
+}
+
+function pending_mta_correction($approver_id){
+
+    $today = date('Y-m-d');
+    $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
+    $to_date = date('Y-m-d');
+
+    return EmployeeMta::select('user_id')->with('approver.approver_info')
+                                ->whereHas('approver',function($q) use($approver_id) {
+                                    $q->where('approver_id',$approver_id);
+                                })
+                                ->where('status','Pending')
                                 ->count();
 }
 

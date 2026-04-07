@@ -938,6 +938,9 @@
     @endif
 @endif
 
+{{-- @if(auth()->user()->employee->is_new_employee == '1' && auth()->user()->is_setup_complete != "1")
+    @include('dashboards.employee_wizard')
+@endif --}}
 <div class="main-panel">
     @if(auth()->user()->employee->status != "Inactive")
         <div class="content-wrapper">
@@ -1664,8 +1667,7 @@
                                     @foreach($employees_new_hire as $employee)
                                         <div class="employee-card">
                                             <div class="photo-section">
-                                                <img src="{{ $employee->image ? URL::asset($employee->image) : URL::asset('/images/no_image.png') }}" 
-                                                    onerror="this.src='{{ URL::asset('/images/no_image.png') }}';" 
+                                                <img src='{{URL::asset($employee->avatar)}}' onerror="this.src='{{URL::asset('/images/no_image.png')}}';" 
                                                     alt="employee-{{ $employee->id }}" 
                                                     id="employee-img-{{ $employee->id }}">
                                                 
@@ -1842,80 +1844,80 @@
 
 {{-- Planning function --}}
 <script>
-$(document).on('click', '.view-planning', function() {
-        $('#modal-date').text($(this).data('date'));
-        $('#modal-destination').text($(this).data('destination'));
-        $('#modal-activity').text($(this).data('activity'));
-        $('#modal-timein').text($(this).data('timein'));
-        $('#modal-timeout').text($(this).data('timeout'));
+// $(document).on('click', '.view-planning', function() {
+//         $('#modal-date').text($(this).data('date'));
+//         $('#modal-destination').text($(this).data('destination'));
+//         $('#modal-activity').text($(this).data('activity'));
+//         $('#modal-timein').text($(this).data('timein'));
+//         $('#modal-timeout').text($(this).data('timeout'));
         
-        var status = $(this).data('status');
-        var badge = $('#modal-status');
-        badge.text(status);
-        badge.removeClass('badge-success badge-warning badge-danger');
+//         var status = $(this).data('status');
+//         var badge = $('#modal-status');
+//         badge.text(status);
+//         badge.removeClass('badge-success badge-warning badge-danger');
         
-        if(status === 'Approved') {
-            badge.addClass('badge-success');
-        } else if(status === 'Pending') {
-            badge.addClass('badge-warning');
-        } else {
-            badge.addClass('badge-danger');
-        }
+//         if(status === 'Approved') {
+//             badge.addClass('badge-success');
+//         } else if(status === 'Pending') {
+//             badge.addClass('badge-warning');
+//         } else {
+//             badge.addClass('badge-danger');
+//         }
         
-        $('#planningModal').modal('show');
-});
+//         $('#planningModal').modal('show');
+// });
 
-function openPlanningModal(planningId, destination, activity, date) {
-    $('#planning_id').val(planningId);
-    $('#planningDetailsTitle').text(destination);
-    $('#planningDetailsInfo').text(`Activity: ${activity} | Date: ${date}`);
+// function openPlanningModal(planningId, destination, activity, date) {
+//     $('#planning_id').val(planningId);
+//     $('#planningDetailsTitle').text(destination);
+//     $('#planningDetailsInfo').text(`Activity: ${activity} | Date: ${date}`);
     
-    $('#planningUploadForm')[0].reset();
-    $('#imagePreview').hide();
-    $('#documentsList').empty();
+//     $('#planningUploadForm')[0].reset();
+//     $('#imagePreview').hide();
+//     $('#documentsList').empty();
     
-    loadExistingFiles(planningId);
+//     loadExistingFiles(planningId);
     
-    $('#planningUploadModal').modal('show');
-}
+//     $('#planningUploadModal').modal('show');
+// }
 
-$('#planning_image').on('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            $('#previewImg').attr('src', e.target.result);
-            $('#imagePreview').show();
-        }
-        reader.readAsDataURL(file);
-    }
-});
+// $('#planning_image').on('change', function(e) {
+//     const file = e.target.files[0];
+//     if (file) {
+//         const reader = new FileReader();
+//         reader.onload = function(e) {
+//             $('#previewImg').attr('src', e.target.result);
+//             $('#imagePreview').show();
+//         }
+//         reader.readAsDataURL(file);
+//     }
+// });
 
-function removeImage() {
-    $('#planning_image').val('');
-    $('#imagePreview').hide();
-}
+// function removeImage() {
+//     $('#planning_image').val('');
+//     $('#imagePreview').hide();
+// }
 
-$('#planning_documents').on('change', function(e) {
-    const files = e.target.files;
-    const docList = $('#documentsList');
-    docList.empty();
+// $('#planning_documents').on('change', function(e) {
+//     const files = e.target.files;
+//     const docList = $('#documentsList');
+//     docList.empty();
     
-    if (files.length > 0) {
-        let html = '<div class="list-group mt-2">';
-        Array.from(files).forEach((file, index) => {
-            const icon = getFileIcon(file.name);
-            html += `
-                <div class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>${icon} ${file.name}</span>
-                    <small class="text-muted">${formatFileSize(file.size)}</small>
-                </div>
-            `;
-        });
-        html += '</div>';
-        docList.html(html);
-    }
-});
+//     if (files.length > 0) {
+//         let html = '<div class="list-group mt-2">';
+//         Array.from(files).forEach((file, index) => {
+//             const icon = getFileIcon(file.name);
+//             html += `
+//                 <div class="list-group-item d-flex justify-content-between align-items-center">
+//                     <span>${icon} ${file.name}</span>
+//                     <small class="text-muted">${formatFileSize(file.size)}</small>
+//                 </div>
+//             `;
+//         });
+//         html += '</div>';
+//         docList.html(html);
+//     }
+// });
 
 function getFileIcon(filename) {
     const ext = filename.split('.').pop().toLowerCase();
@@ -1975,7 +1977,7 @@ function loadExistingFiles(planningId) {
     });
 }
 
-$('#planningUploadForm').on('submit', function(e) {
+{{-- $('#planningUploadForm').on('submit', function(e) {
     e.preventDefault();
     
     const loader = document.getElementById("loader");
@@ -2021,7 +2023,7 @@ $('#planningUploadForm').on('submit', function(e) {
             });
         }
     });
-});
+}); --}}
 
 function handlePlanningClick(element) {
     const isPast = element.dataset.isPast === 'true';
@@ -5423,6 +5425,7 @@ setInterval(async () => {
             });
           });
         });
+        
     </script>
     
 @foreach ($probationary_employee as $prob_emp)

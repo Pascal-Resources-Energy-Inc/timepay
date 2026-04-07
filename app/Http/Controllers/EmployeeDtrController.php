@@ -12,7 +12,6 @@ class EmployeeDtrController extends Controller
 {
     public function dtr(Request $request)
     { 
-        
         $today = date('Y-m-d');
         $from = isset($request->from) ? $request->from : date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
         $to = isset($request->to) ? $request->to : date('Y-m-d');
@@ -42,7 +41,6 @@ class EmployeeDtrController extends Controller
             'to' => $to,
             'status' => $status,
         ));
-
     }
 
     public function new(Request $request)
@@ -112,8 +110,6 @@ class EmployeeDtrController extends Controller
         }
         
     } 
-
-
 
     public function edit_dtr(Request $request, $id)
     {

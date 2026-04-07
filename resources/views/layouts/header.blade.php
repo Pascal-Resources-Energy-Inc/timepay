@@ -490,6 +490,12 @@
                             <span class="menu-title">Employee PO</span>
                         </a>
                     </li>
+                    <li class="nav-item ">
+                        <a class="nav-link" href="https://forms.gle/kvbzyjE78BYAYg4q6" target="_blank">
+                            <i class="icon-bag menu-icon"></i>
+                            <span class="menu-title">Incident Report</span>
+                        </a>
+                    </li>
 
                   @if(count(auth()->user()->employee->as_resign) > 0)
                     <li class="nav-item">

@@ -28,6 +28,7 @@
                     <option value="Plant">Plant</option>
                     <option value="Warehouse">Warehouse</option>
                     <option value="Retail">Retail Hub</option>
+                    <option value="Field">Field</option>
                   </select>
                 </div>
                 <div class="col-md-6 mb-3">

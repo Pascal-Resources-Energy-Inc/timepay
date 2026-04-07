@@ -2759,7 +2759,7 @@ class EmployeeController extends Controller
         });
 
         if ($hasDisagreement) {
-            Mail::to('it@pascalresources.com.ph') // 🔁 change this
+            Mail::to('maricel.solis@pascalresources.com.ph') // 🔁 change this
                 ->send(new EmployeeDisagreementMail($user));
         }
 

@@ -398,6 +398,7 @@ class EmployeeController extends Controller
             $employee->middle_initial = $request->middile_initial;
             $employee->name_suffix = $request->suffix;
             $employee->religion = $request->religion;
+            $employee->cost_center = $request->cost_center;
             
             $employee->bank_name = $request->bank_name;
             $employee->bank_account_number = $request->bank_account_number;
@@ -2849,6 +2850,39 @@ class EmployeeController extends Controller
             'success' => true,
             'message' => 'Consent updated successfully',
             'type' => $type
+        ]);
+    }
+
+    public function consentReport(Request $request)
+    {
+        $employeeIds = $request->employee ?? [];
+        $from = $request->from;
+        $to = $request->to;
+
+        $query = User::with('employee')
+            ->where('status', 'Active')
+            ->where('is_setup_complete', 1);
+
+        
+
+        if (!empty($from) && !empty($to)) {
+            $query->whereDate('signed_date', '>=', $from)
+                ->whereDate('signed_date', '<=', $to);
+        }
+
+        $employees = $query->orderBy('signed_date', 'desc')->get();
+
+        $employees->transform(function ($user) {
+            $user->name = optional($user->employee)->first_name . ' ' . optional($user->employee)->last_name;
+            return $user;
+        });
+
+        return view('reports.consent_report', [
+            'header'   => 'reports',
+            'employee' => $employeeIds,
+            'from'     => $from,
+            'to'       => $to,
+            'employees'=> $employees
         ]);
     }
 

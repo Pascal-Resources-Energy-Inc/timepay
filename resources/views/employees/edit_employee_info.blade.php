@@ -211,7 +211,10 @@
                     </label>
                   </div>
                 </div>
-
+                <div class='col-md-4'>
+                  Cost Center
+                  <input type="text" class="form-control" name="cost_center" value="{{$user->employee->cost_center}}">
+                </div>
               </div>
               <hr>
               <div class='row mb-2'>

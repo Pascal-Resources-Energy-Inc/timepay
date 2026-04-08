@@ -414,11 +414,13 @@
 }
 
 .initials-banner {
-    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+    /* background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%); */
+    background: linear-gradient(135deg, #00bfff 0%, #007bff 100%);
     color: white;
     text-align: center;
-    padding: 12px 0;
-    margin: 0;
+    /* padding: 12px 0; */
+    padding: 5px 0;
+    /* margin: 0; */
     position: relative;
     width: 100%;
 }
@@ -789,6 +791,126 @@
     width: 100%;
     overflow-x: auto;
 }
+/* New Hires Carousel Styles */
+.carousel-wrapper {
+    position: relative;
+}
+
+.hires-container {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding-bottom: 10px;
+}
+
+.hires-container::-webkit-scrollbar {
+    display: none;
+}
+.hire-card {
+    min-width: 240px;
+    border-radius: 15px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+.hire-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+.image-wrapper {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+}
+
+.edit-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ffffffcc;
+    border: none;
+    border-radius: 50%;
+    padding: 6px 8px;
+    cursor: pointer;
+}
+
+.content {
+    padding: 15px;
+}
+
+.name {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.position {
+    font-size: 13px;
+    color: #007bff;
+    margin-bottom: 3px;
+}
+
+.department {
+    font-size: 12px;
+    color: #666;
+}
+
+.date {
+    color: #999;
+}
+
+.nav-btn {
+    position: absolute;
+    top: 40%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: white;
+    border-radius: 50%;
+    border: none;
+    width: 35px;
+    height: 35px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    cursor: pointer;
+}
+
+.nav-btn.left { left: -10px; }
+.nav-btn.right { right: -10px; }
+
+/* Email Directory Styles */
+.email-directory-card {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.email-directory-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.icon-box {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, #007bff, #00c6ff);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+}
 
 @media (max-width: 768px) {
     .calendar-grid {
@@ -1131,6 +1253,33 @@
                                 </div>
                             </div>
                             <br>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card email-directory-card border-0 shadow-sm">
+                                <div class="card-body d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-box mr-3">
+                                            <i class="fas fa-address-book"></i>
+                                        </div>
+
+                                        <div>
+                                            <h6 class="mb-1 font-weight-bold">Email Directory</h6>
+                                            <small class="text-muted">
+                                                Access company-wide employee email list
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <a href="https://docs.google.com/spreadsheets/d/1ZfuNgeb5kvz7cQlpH1EEaGk3DYdtSdoQ/edit?usp=sharing&ouid=115033460037142806189&rtpof=true&sd=true"
+                                    target="_blank"
+                                    class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-external-link-alt mr-1"></i> Open
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1648,11 +1797,11 @@
                 </div> --}}
             </div>
 
-            <div class="row">
+            {{-- <div class="row">
                 <div class="col-md-12">
                     <div class="card mt-4">
                         <div class="card-body">
-                            <p class="card-title">Welcome New Hires</p>
+                            <p class="card-title">Welcome New Hires 🎉</p>
                             
                             <div class="new-hires-carousel-wrapper position-relative">
                                 <button class="carousel-nav-btn carousel-prev" onclick="scrollNewHires('left')">
@@ -1704,6 +1853,65 @@
                                                     Hired: {{ date('M d, Y', strtotime($employee->original_date_hired)) }}
                                                 </div>
                                             </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> --}}
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card mt-4 shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="mb-4 font-weight-bold">Welcome New Hires 🎉</h5>
+
+                            <div class="carousel-wrapper position-relative">
+                                <button class="nav-btn left" onclick="scrollNewHires1(-1)">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button class="nav-btn right" onclick="scrollNewHires1(1)">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                                <div class="hires-container" id="newHiresContainer">
+
+                                    @foreach($employees_new_hire as $employee)
+                                        <div class="hire-card">
+                                            <div class="image-wrapper">
+                                                <img src="{{ URL::asset($employee->avatar) }}"
+                                                    onerror="this.src='{{ URL::asset('/images/no_image.png') }}';">
+
+                                                <div class="overlay"></div>
+                                                @if(auth()->user()->role == 'Admin')
+                                                <button class="edit-btn"
+                                                    onclick="openImageModal({{ $employee->id }})">
+                                                    <i class="fas fa-pen"></i>
+                                                </button>
+                                                @endif
+                                            </div>
+                                            <div class="content">
+                                                <div class="initials-banner mb-2">
+                                                    {{ $employee->nick_name ?? '' }}
+                                                </div>
+                                                <h6 class="name">
+                                                    {{ $employee->first_name }} {{ $employee->last_name }}
+                                                </h6>
+
+                                                <p class="position">
+                                                    {{ $employee->position }}
+                                                </p>
+
+                                                <p class="department">
+                                                    {{ optional($employee->department)->name ?? 'N/A' }}
+                                                </p>
+
+                                                <small class="date">
+                                                    Hired: {{ date('M d, Y', strtotime($employee->original_date_hired)) }}
+                                                </small>
+                                            </div>
+
                                         </div>
                                     @endforeach
                                 </div>
@@ -2166,7 +2374,15 @@ function scrollNewHires(direction) {
         container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
 }
+function scrollNewHires1(direction) {
+    let container = document.getElementById('newHiresContainer');
+    let scrollAmount = 260;
 
+    container.scrollBy({
+        left: direction * scrollAmount,
+        behavior: 'smooth'
+    });
+}
 function centerCards() {
     const container = document.getElementById('newHiresContainer');
     const cards = container.querySelectorAll('.employee-card');

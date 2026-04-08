@@ -911,7 +911,9 @@
                     <li class="nav-item"> <a class="nav-link" href="{{ url('/attendance-report') }}">Attendance Reports</a></li>
                     {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/system-report') }}">Online In/Out Report</a></li> --}}
                     <li class="nav-item"><a class="nav-link" href="{{url('ob_files')}}">OB Uploaded Files</a></li>
-                     <li class="nav-item"><a class="nav-link" href="{{url('purchase-reports')}}">Purchase Order Report</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{url('purchase-reports')}}">Purchase Order Report</a></li>
+                    <li class="nav-item"> <a class="nav-link" href="{{ url('/ne-report') }}">Number Enrollment Reports</a></li>
+                    <li class="nav-item"> <a class="nav-link" href="{{ url('/consent-report') }}">Consent Reports</a></li>
                 </ul>
             </div>
         </li>

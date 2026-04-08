@@ -491,9 +491,6 @@
     Route::get('totalExpense-report', 'PayrollController@totalExpense_report');
     Route::get('loan-report', 'LoanController@loan_report');
     Route::get('company-loan-report','LoanController@companyLoan');
-
-
-
     Route::get('government-report', 'PayrollController@government_reports');
     Route::get('payroll-report', 'PayrollController@payroll_report');
     Route::get('overtime-report', 'OvertimeController@overtime_report');
@@ -505,6 +502,7 @@
     Route::get('dtr-report', 'DailytimerecordController@dtr_report');
     Route::get('dtr-report-export', 'DailytimerecordController@export');
     Route::get('ytd-report', 'PayslipController@ytd_report');
+    Route::get('consent-report', 'EmployeeController@consentReport');
 
 
     //13th month

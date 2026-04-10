@@ -11,9 +11,7 @@
                 <div class="form-group row">
                 <div class='col-md-2'>Approver </div>
                 <div class='col-md-9'>
-                    @foreach($all_approvers as $approvers)
-                    {{$approvers->approver_info->name}}<br>
-                    @endforeach
+                    {{ $mta->approverMta->user->name }}
                 </div>
                 </div>
                 <div class="form-group row">

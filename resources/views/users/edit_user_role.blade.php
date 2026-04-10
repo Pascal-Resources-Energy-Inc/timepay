@@ -53,7 +53,7 @@
                                                 @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-md-12 form-group">
+                                    {{-- <div class="col-md-12 form-group">
                                         Project
                                         @php
                                             $user_allowed_projects = $user->user_allowed_project ? json_decode($user->user_allowed_project->project_ids) : [];
@@ -64,10 +64,10 @@
                                                 <option value="{{$project->project_id}}" @if (in_array($project->project_id,$user_allowed_projects)) selected @endif>{{$project->project_id}}</option>
                                                 @endforeach
                                         </select>
-                                    </div>
+                                    </div> --}}
                                     {{-- Employees --}}
                                     <div class="col-md-6 form-group">
-                                        <h5>Employees</h5>
+                                        <h4 class="mb-3">Employees</h4>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->employees_view == 'on')
                                                 <input type="checkbox" name="employees_view" id="employees_view{{$user->id}}" value="{{ $user->user_privilege->employees_view }}" checked>
@@ -140,11 +140,21 @@
                                         Rate
                                         <br>
                                         <br>
+                                        @if($user->user_privilege)
+                                            @if($user->user_privilege->employees_mta == 'on')
+                                                <input type="checkbox" name="employees_mta" id="employees_mta{{$user->id}}" value="{{ $user->user_privilege->employees_mta }}" checked>
+                                            @else
+                                                <input type="checkbox" name="employees_mta" id="employees_mta{{$user->id}}">
+                                            @endif
+                                        @else
+                                            <input type="checkbox" name="employees_mta" id="employees_mta{{$user->id}}">
+                                        @endif
+                                        Monetized Transportation Allowance<br><br>
                                     </div>
                                     
                                     {{-- Reports --}}
                                     <div class="col-md-6 form-group">
-                                        <h5>Reports</h5>
+                                        <h4 class="mb-3">Reports</h4>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->reports_leave == 'on')
                                                 <input type="checkbox" name="reports_leave" id="reports_leave{{$user->id}}" value="{{ $user->user_privilege->reports_leave }}" checked>
@@ -219,8 +229,8 @@
                                     <br>
                                     </div>
                                     {{-- Biometrics --}}
-                                    <div class="col-md-6 form-group">
-                                        <h5>Biometrics</h5>
+                                    <div class="col-md-3 form-group">
+                                        <h4 class="mb-3">Biometrics</h4>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->biometrics_per_employee == 'on')
                                                 <input type="checkbox" name="biometrics_per_employee" id="biometrics_per_employee{{$user->id}}" value="{{ $user->user_privilege->biometrics_per_employee }}" checked>
@@ -230,9 +240,7 @@
                                         @else
                                             <input type="checkbox" name="biometrics_per_employee" id="biometrics_per_employee{{$user->id}}">
                                         @endif
-                                        Per Employee
-                                        <br>
-                                        <br>
+                                        Per Employee<br><br>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->biometrics_per_location == 'on')
                                                 <input type="checkbox" name="biometrics_per_location" id="biometrics_per_location{{$user->id}}" value="{{ $user->user_privilege->biometrics_per_location }}" checked>
@@ -242,9 +250,7 @@
                                         @else
                                             <input type="checkbox" name="biometrics_per_location" id="biometrics_per_location{{$user->id}}">
                                         @endif
-                                        Per Location (ZK TECO)
-                                        <br>
-                                        <br>
+                                        Per Location (ZK TECO)<br><br>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->biometrics_per_location_hik == 'on')
                                                 <input type="checkbox" name="biometrics_per_location_hik" id="biometrics_per_location_hik{{$user->id}}" value="{{ $user->user_privilege->biometrics_per_location_hik }}" checked>
@@ -254,9 +260,7 @@
                                         @else
                                             <input type="checkbox" name="biometrics_per_location_hik" id="biometrics_per_location_hik{{$user->id}}">
                                         @endif
-                                        Per Location (HIK VISION)
-                                        <br>
-                                        <br>
+                                        Per Location (HIK VISION)<br><br>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->biometrics_per_company == 'on')
                                                 <input type="checkbox" name="biometrics_per_company" id="biometrics_per_company{{$user->id}}" value="{{ $user->user_privilege->biometrics_per_company }}" checked>
@@ -266,9 +270,7 @@
                                         @else
                                             <input type="checkbox" name="biometrics_per_company" id="biometrics_per_company{{$user->id}}">
                                         @endif
-                                        Per Company
-                                        <br>
-                                        <br>
+                                        Per Company<br><br>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->biometrics_per_seabased == 'on')
                                                 <input type="checkbox" name="biometrics_per_seabased" id="biometrics_per_seabased{{$user->id}}" value="{{ $user->user_privilege->biometrics_per_seabased }}" checked>
@@ -278,9 +280,7 @@
                                         @else
                                             <input type="checkbox" name="biometrics_per_seabased" id="biometrics_per_seabased{{$user->id}}">
                                         @endif
-                                        Per Seabased
-                                        <br>
-                                        <br>
+                                        Per Seabased<br><br>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->biometrics_per_hik_vision == 'on')
                                                 <input type="checkbox" name="biometrics_per_hik_vision" id="biometrics_per_hik_vision{{$user->id}}" value="{{ $user->user_privilege->biometrics_per_hik_vision }}" checked>
@@ -290,9 +290,9 @@
                                         @else
                                             <input type="checkbox" name="biometrics_per_hik_vision" id="biometrics_per_hik_vision{{$user->id}}">
                                         @endif
-                                        Per HIK Vision
-                                        <br>
-                                        <br>
+                                        Per HIK Vision<br><br>
+                                    </div>
+                                    <div class="col-md-3 form-group mt-3">
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->biometrics_sync == 'on')
                                                 <input type="checkbox" name="biometrics_sync" id="biometrics_sync{{$user->id}}" value="{{ $user->user_privilege->biometrics_sync }}" checked>
@@ -356,7 +356,7 @@
                                     </div>
                                     {{-- Settings --}}
                                     <div class="col-md-6 form-group">
-                                        <h5>Settings</h5>
+                                        <h4 class="mb-3">Settings</h4>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->settings_view == 'on')
                                                 <input type="checkbox" name="settings_view" id="settings_view{{$user->id}}" value="{{ $user->user_privilege->settings_view }}" checked>
@@ -409,7 +409,7 @@
 
                                     {{-- Modules --}}
                                     <div class="col-md-6 form-group">
-                                        <h5>TDS Modules</h5>
+                                        <h4 class="mb-3">TDS Modules</h4>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->tds == 'on')
                                                 <input type="checkbox" name="tds" id="tds{{$user->id}}" value="{{ $user->user_privilege->tds }}" checked>
@@ -451,8 +451,8 @@
                                     </div>
 
                                     {{-- Masterfiles --}}
-                                    <div class="col-md-6 form-group">
-                                        <h5>Masterfiles</h5>
+                                    <div class="col-md-3 form-group">
+                                        <h4 class="mb-3">Masterfiles</h4>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->sales_performance == 'on')
                                                 <input type="checkbox" name="sales_performance" id="sales_performance{{$user->id}}" value="{{ $user->user_privilege->sales_performance }}" checked>
@@ -462,9 +462,7 @@
                                         @else
                                             <input type="checkbox" name="sales_performance" id="sales_performance{{$user->id}}">
                                         @endif
-                                        Sales Performance
-                                        <br>
-                                        <br>
+                                        Sales Performance<br><br>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->masterfiles_companies == 'on')
                                                 <input type="checkbox" name="masterfiles_companies" id="masterfiles_companies{{$user->id}}" value="{{ $user->user_privilege->masterfiles_companies }}" checked>
@@ -474,9 +472,7 @@
                                         @else
                                             <input type="checkbox" name="masterfiles_companies" id="masterfiles_companies{{$user->id}}">
                                         @endif
-                                        Companies
-                                        <br>
-                                        <br>
+                                        Companies<br><br>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->masterfiles_departments == 'on')
                                                 <input type="checkbox" name="masterfiles_departments" id="masterfiles_departments{{$user->id}}" value="{{ $user->user_privilege->masterfiles_departments }}" checked>
@@ -486,9 +482,7 @@
                                         @else
                                             <input type="checkbox" name="masterfiles_departments" id="masterfiles_departments{{$user->id}}">
                                         @endif
-                                        Departments
-                                        <br>
-                                        <br>
+                                        Departments<br><br>
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->masterfiles_locations == 'on')
                                                 <input type="checkbox" name="masterfiles_locations" id="masterfiles_locations{{$user->id}}" value="{{ $user->user_privilege->masterfiles_locations }}" checked>
@@ -498,10 +492,8 @@
                                         @else
                                             <input type="checkbox" name="masterfiles_locations" id="masterfiles_locations{{$user->id}}">
                                         @endif
-                                        Locations
-                                        <br>
-                                        <br>
-                                        @if($user->user_privilege)
+                                        Locations<br><br>
+                                         @if($user->user_privilege)
                                             @if($user->user_privilege->masterfiles_projects == 'on')
                                                 <input type="checkbox" name="masterfiles_projects" id="masterfiles_projects{{$user->id}}" value="{{ $user->user_privilege->masterfiles_projects }}" checked>
                                             @else
@@ -510,9 +502,9 @@
                                         @else
                                             <input type="checkbox" name="masterfiles_projects" id="masterfiles_projects{{$user->id}}">
                                         @endif
-                                        Projects
-                                        <br>
-                                        <br>
+                                        Projects<br><br>
+                                    </div>
+                                    <div class="col-md-3 form-group mt-3">
                                         @if($user->user_privilege)
                                             @if($user->user_privilege->masterfiles_loan_types == 'on')
                                                 <input type="checkbox" name="masterfiles_loan_types" id="masterfiles_loan_types{{$user->id}}" value="{{ $user->user_privilege->masterfiles_loan_types }}" checked>
@@ -565,9 +557,12 @@
 
                                 </div>
                             
-                                <a href='/users' type="button" class="btn btn-secondary">Close</a>
-                                <button type="submit" class="btn btn-primary">Save</button>
-                         
+                                {{-- <a href='/users' type="button" class="btn btn-secondary">Close</a>
+                                <button type="submit" class="btn btn-primary">Save</button> --}}
+                                <div class="text-right mt-3">
+                                    <a href="/users" class="btn btn-secondary">Close</a>
+                                    <button type="submit" class="btn btn-success px-4">💾 Save Changes</button>
+                                </div>
                             </form>
                         </div>
 

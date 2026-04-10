@@ -22,5 +22,12 @@ class EmployeeMta extends Model implements Auditable
     public function approver()
     {
         return $this->hasMany(EmployeeApprover::class,'user_id','user_id');
-    }  
+    } 
+    
+    public function approverMta()
+    {
+        return $this->belongsTo(ApproverSetting::class,'work_location','work_location')
+                ->where('type_of_form', 'mta')
+                ->where('status', 'Active');
+    } 
 }

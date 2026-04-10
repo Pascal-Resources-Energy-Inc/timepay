@@ -443,8 +443,8 @@
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/planning') }}">Planning</a></li>
-                                <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/260830852764058" style="text-wrap: auto">Monetized Transportation Allowance</a></li>
-                                {{-- <li class="nav-item "><a class="nav-link" href="{{ url('/mta') }}" style="text-wrap: auto">Monetized Transportation Allowance</a></li> --}}
+                                {{-- <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/260830852764058" style="text-wrap: auto">Monetized Transportation Allowance</a></li> --}}
+                                <li class="nav-item "><a class="nav-link" href="{{ url('/mta') }}" style="text-wrap: auto">Monetized Transportation Allowance</a></li>
                                 {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/dar') }}">DAR</a></li> --}}
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> -->
@@ -454,11 +454,11 @@
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/number-enrollment') }}">Number Enrollment </a></li> -->
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/232350967124051">COE Request</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/coe-request') }}">COE Request</a></li> -->
-                                {{-- <li class="nav-item">
+                                <li class="nav-item">
                                     <a class="nav-link @if (request()->is('iur*')) active @endif" href="{{ url('/iur') }}">
                                         ID & Uniform Request
                                     </a>
-                                </li> --}}
+                                </li>
                             </ul>
                         </div>
                     </li>
@@ -496,8 +496,23 @@
                             <span class="menu-title">Incident Report</span>
                         </a>
                     </li>
+                    
+                    <li class="nav-item "><a class="nav-link " href="{{ url('/for-mta') }}" style="text-wrap:auto">Monetized Transportation Allowance <span class="badge badge-warning">{{ pending_mta_correction(auth()->user()->id) }}</span></a></li>
+                    @if(count(auth()->user()->employee->as_resign) > 0)
 
-                  @if(count(auth()->user()->employee->as_resign) > 0)
+                    @if (checkUserPrivilege('employees_mta',auth()->user()->id) == 'yes')
+                    <li class="nav-item">
+                        <hr>
+                        <h5>For Process</h5>
+                    </li>
+                    <li class="nav-item @if ($header == 'for-process') active @endif ">
+                        <a class="nav-link" href="{{ url('/employees') }}" href="{{ url('/for-mta') }}" style="text-wrap:auto" onclick='show()'>
+                            <i class="icon-head menu-icon"></i>
+                            <span class="menu-title">Employees</span>
+                        </a>
+                    </li>
+                    @endif
+
                     <li class="nav-item">
                         <hr>
                         <h5>Clearance</h5>

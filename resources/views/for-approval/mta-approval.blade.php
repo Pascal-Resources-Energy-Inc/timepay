@@ -109,16 +109,21 @@
                 <tbody> 
                   @foreach ($mtas as $form_approval)
                     <tr>
-                      @if($status == 'Pending')
+                      {{-- @if($status == 'Pending')
                         <td align="center">
-                          @foreach($form_approval->approver as $k => $approver)
-                            @if($approver->approver_id == $approver_id && $form_approval->status == 'Pending')
+                          @foreach($form_approval->approverMta as $approver)
+                            @if($approver->user_id == $approver_id && $form_approval->status == 'Pending')
                               <input type="checkbox" class="checkbox-item" data-id="{{$form_approval->id}}">
                             @endif
                           @endforeach
                         </td>
+                      @endif --}}
+                      @if($status == 'Pending' && $form_approval->status == 'Pending')
+                        <td align="center">
+                          <input type="checkbox" class="checkbox-item" data-id="{{ $form_approval->id }}">
+                        </td>
                       @endif
-                      <td align="center" id="tdActionId{{ $form_approval->id }}" data-id="{{ $form_approval->id }}">
+                      {{-- <td align="center" id="tdActionId{{ $form_approval->id }}" data-id="{{ $form_approval->id }}">
                         @foreach($form_approval->approver as $k => $approver)
                           @if($approver->approver_id == $approver_id && $form_approval->status == 'Pending')
                             <button type="button" class="btn btn-primary btn-rounded btn-icon" data-toggle="modal" data-target="#view_mta{{ $form_approval->id }}"title="View"><i class="ti-eye"></i></button>    
@@ -130,6 +135,27 @@
                             </button> 
                           @endif<br> 
                         @endforeach
+                      </td> --}}
+                      <td>
+                        @if($form_approval->status == 'Pending')
+                          <button type="button" class="btn btn-primary btn-rounded btn-icon"
+                              data-toggle="modal"
+                              data-target="#view_mta{{ $form_approval->id }}">
+                              <i class="ti-eye"></i>
+                          </button>
+
+                          <button type="button" class="btn btn-success btn-rounded btn-icon"
+                              data-toggle="modal"
+                              data-target="#mta-approved-remarks-{{ $form_approval->id }}">
+                              <i class="ti-check"></i>
+                          </button>
+
+                          <button type="button" class="btn btn-danger btn-rounded btn-icon"
+                              data-toggle="modal"
+                              data-target="#mta-declined-remarks-{{ $form_approval->id }}">
+                              <i class="ti-close"></i>
+                          </button>
+                        @endif
                       </td>
                       <td>
                           <strong>{{$form_approval->user->name}}</strong> <br>
@@ -148,7 +174,8 @@
                         <a href="{{url($form_approval->attachment)}}" target='_blank' class="text-start"><button type="button" class="btn btn-outline-info btn-sm ">View Attachment</button></a>
                         @endif
                       </td>
-                      <td id="tdStatus{{ $form_approval->id }}">
+                      <td>{{ $form_approval->approverMta->user->name ?? 'N/A' }}</td>
+                      {{-- <td id="tdStatus{{ $form_approval->id }}">
                         @foreach($form_approval->approver as $approver)
                           @if($form_approval->level >= $approver->level)
                               @if ($form_approval->status == 'Declined')
@@ -166,7 +193,7 @@
                             @endif
                           @endif<br> 
                         @endforeach
-                      </td>
+                      </td> --}}
                       <td>
                         @if ($form_approval->status == 'Pending')
                           <label class="badge badge-warning">{{ $form_approval->status }}</label>

@@ -24,6 +24,8 @@ use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\AdStatusNotification;
+use App\Mail\MtaDeclinedNotification;
+use App\Mail\MtaApprovedNotification;
 
 class FormApprovalController extends Controller
 {
@@ -1824,7 +1826,7 @@ class FormApprovalController extends Controller
         $from_date = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
         $to_date = $request->to ?? date('Y-m-d');
         $limit = $request->limit ?? 10;
-        $filter_status = $request->status ?? 'Pending';
+        $filter_status = $request->status ?? 'In Progress';
 
         $user = auth()->user();
         $approver_id = $user->id;
@@ -1867,7 +1869,7 @@ class FormApprovalController extends Controller
             ->where('status', 'Active')
             ->get();
 
-        $pendingCount = $iur_all->where('status', 'Pending')->count();
+        $pendingCount = $iur_all->where('status', 'In Progress')->count();
         $approvedCount = $iur_all->where('status', 'Approved')->count();
         $declinedCount = $iur_all->whereIn('status', ['Declined', 'Cancelled'])->count();
 
@@ -2552,11 +2554,14 @@ class FormApprovalController extends Controller
 
         $filter_status = isset($request->status) ? $request->status : 'Pending';
         $approver_id = auth()->user()->id;
-$get_approvers = new EmployeeApproverController;
+        $get_approvers = new EmployeeApproverController;
         $all_approvers = $get_approvers->get_approvers(auth()->user()->id);
-        $mtas = EmployeeMta::with('approver.approver_info','user')
-                                ->whereHas('approver',function($q) use($approver_id) {
-                                    $q->where('approver_id',$approver_id);
+        $mtas = EmployeeMta::with('approver.approver_info','user', 'approverMta')
+                                // ->whereHas('approver',function($q) use($approver_id) {
+                                //     $q->where('approver_id',$approver_id);
+                                // })
+                                ->whereHas('approverMta',function($q) use($approver_id) {
+                                    $q->where('user_id',$approver_id);
                                 })
                                 ->where('status',$filter_status)
                                 ->whereDate('created_at','>=',$from_date)
@@ -2564,13 +2569,17 @@ $get_approvers = new EmployeeApproverController;
                                 ->orderBy('created_at','DESC')
                                 ->get();
         
-        $user_ids = EmployeeApprover::select('user_id')->where('approver_id',$approver_id)->pluck('user_id')->toArray();
-
+        $user_ids = EmployeeMta::with('approver.approver_info','user', 'approverMta')
+                                ->whereHas('approverMta',function($q) use($approver_id) {
+                                    $q->where('user_id',$approver_id);
+                                })->pluck('user_id')->toArray();
+        
         $for_approval = EmployeeMta::whereIn('user_id',$user_ids)
                                 ->where('status','Pending')
                                 ->whereDate('created_at','>=',$from_date)
                                 ->whereDate('created_at','<=',$to_date)
                                 ->count();
+        
         $approved = EmployeeMta::whereIn('user_id',$user_ids)
                                 ->where('status','Approved')
                                 ->whereDate('created_at','>=',$from_date)
@@ -2600,101 +2609,258 @@ $get_approvers = new EmployeeApproverController;
 
     }
 
-    public function approveMta(Request $request,$id){
-        $employee_mta = EmployeeMta::where('id', $id)->first();
-        if($employee_mta){
-                $employee_approver = EmployeeApprover::where('user_id', $employee_mta->user_id)
-                                                    ->where('approver_id', auth()->user()->id)
-                                                    ->first();
+    // public function approveMta(Request $request,$id){
+    //     $employee_mta = EmployeeMta::where('id', $id)->first();
+    //     if($employee_mta){
+    //             $employee_approver = EmployeeApprover::where('user_id', $employee_mta->user_id)
+    //                                                 ->where('approver_id', auth()->user()->id)
+    //                                                 ->first();
                 
-                $total_approvers = EmployeeApprover::where('user_id', $employee_mta->user_id)->count();
+    //             $total_approvers = EmployeeApprover::where('user_id', $employee_mta->user_id)->count();
                 
-                if($employee_approver->as_final == 'on' || $total_approvers == 1){
-                    EmployeeMta::Where('id', $id)->update([
-                        'approved_date' => date('Y-m-d'),
-                        'status' => 'Approved',
-                        'approval_remarks' => $request->approval_remarks,
-                        'approved_by' => auth()->user()->id,
-                        'level' => 1,
-                    ]);
-                    $employee_data = EmployeeMta::with('employee')->findOrfail($id);                               
-                } else {
-                    EmployeeMta::Where('id', $id)->update([
-                        'approval_remarks' => $request->approval_remarks,
-                        'level' => $employee_approver->level+1,
-                    ]);
-                }
+    //             if($employee_approver->as_final == 'on' || $total_approvers == 1){
+    //                 EmployeeMta::Where('id', $id)->update([
+    //                     'approved_date' => date('Y-m-d'),
+    //                     'status' => 'Approved',
+    //                     'approval_remarks' => $request->approval_remarks,
+    //                     'approved_by' => auth()->user()->id,
+    //                     'level' => 1,
+    //                 ]);
+    //                 $employee_data = EmployeeMta::with('employee')->findOrfail($id);                               
+    //             } else {
+    //                 EmployeeMta::Where('id', $id)->update([
+    //                     'approval_remarks' => $request->approval_remarks,
+    //                     'level' => $employee_approver->level+1,
+    //                 ]);
+    //             }
             
-            Alert::success('Monetized Transportation Allowance has been approved.')->persistent('Dismiss');
+    //         Alert::success('Monetized Transportation Allowance has been approved.')->persistent('Dismiss');
+    //         return back();
+    //     }
+    // }
+    public function approveMta(Request $request, $id)
+    {
+        $employee_mta = EmployeeMta::find($id);
+
+        if (!$employee_mta) {
+            Alert::error('Monetized Transportation Allowance not found.')->persistent('Dismiss');
             return back();
         }
+
+        $current_user = auth()->user();
+
+
+        $is_mta_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'mta')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_mta_approver) {
+            Alert::error('You do not have permission to approve MTA requests.')->persistent('Dismiss');
+            return back();
+        }
+
+        $employee_mta->approved_date = now();
+        $employee_mta->status = 'Approved';
+        $employee_mta->approval_remarks = $request->approval_remarks;
+        $employee_mta->approved_by = $current_user->id;
+        $employee_mta->save();
+
+        try {
+            if ($employee_mta->user && $employee_mta->user->email) {
+                Mail::to($employee_mta->user->email)
+                    ->send(new MtaApprovedNotification($employee_mta, $current_user));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to send MTA approval email: ' . $e->getMessage());
+        }
+
+        Alert::success('Monetized Transportation Allowance has been approved.')->persistent('Dismiss');
+        return back();
     }
 
-    public function declineMta(Request $request,$id){
-        EmployeeMta::Where('id', $id)->update([
-                        'status' => 'Declined',
-                        'approval_remarks' => $request->approval_remarks,
-                    ]);
-        Alert::success('Monetized Transportation Allowance has been declined.')->persistent('Dismiss');
+    // public function declineMta(Request $request,$id){
+    //     EmployeeMta::Where('id', $id)->update([
+    //                     'status' => 'Declined',
+    //                     'approval_remarks' => $request->approval_remarks,
+    //                 ]);
+    //     Alert::success('Monetized Transportation Allowance has been declined.')->persistent('Dismiss');
+    //     return back();
+    // }
+
+    // public function approveMtaAll(Request $request)
+    // {
+    //     $ids = json_decode($request->ids,true);
+    //     $count = 0;
+    //     if(count($ids) > 0){
+    //         foreach($ids as $id){
+    //             $employee_mta = EmployeeMta::with('employee')->where('id', $id)->first();
+    //             if($employee_mta){
+    //                 $level = '';
+    //                 $employee_approver = EmployeeApprover::where('user_id', $employee_mta->user_id)->where('approver_id', auth()->user()->id)->first();
+    //                 if($employee_approver->as_final == 'on'){
+    //                     $employee = Employee::where('user_id',$employee_mta->user_id)->first();
+                        
+    //                     EmployeeMta::Where('id', $id)->update([
+    //                         'approved_date' => date('Y-m-d'),
+    //                         'status' => 'Approved',
+    //                         'approval_remarks' => 'Approved',
+    //                         'level' => 1,
+    //                     ]);
+    //                     $count++;
+    //                 }else{
+    //                     EmployeeMta::Where('id', $id)->update([
+    //                         'approval_remarks' => 'Approved',
+    //                         'level' => $employee_mta->level+1
+    //                     ]);
+    //                     $count++;
+    //                 }
+    //             }
+    //         }
+    //         return $count;
+
+    //     }else{
+    //         return 'error';
+    //     }
+    // }
+
+    // public function disapproveMtaAll(Request $request){
+        
+    //     $ids = json_decode($request->ids,true);
+
+    //     $count = 0;
+    //     if(count($ids) > 0){
+            
+    //         foreach($ids as $id){
+    //             EmployeeMta::Where('id', $id)->update([
+    //                 'status' => 'Declined',
+    //                 'approval_remarks' => 'Declined',
+    //             ]);
+
+    //             $count++;
+    //         }
+
+    //         return $count;
+
+    //     }else{
+    //         return 'error';
+    //     }
+    // }
+
+    public function declineMta(Request $request, $id)
+    {
+        $employee_mta = EmployeeMta::with('user')->find($id);
+
+        if (!$employee_mta) {
+            Alert::error('Monetized Transportation Allowance not found.')->persistent('Dismiss');
+            return back();
+        }
+
+        $current_user = auth()->user();
+
+        $is_mta_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'mta')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_mta_approver) {
+            Alert::error('You do not have permission to decline Monetized Transportation Allowance requests.')->persistent('Dismiss');
+            return back();
+        }
+
+        $employee_mta->approved_date = now();
+        $employee_mta->status = 'Declined';
+        $employee_mta->approval_remarks = $request->approval_remarks;
+        $employee_mta->approved_by = $current_user->id;
+        $employee_mta->save();
+
+        try {
+            if ($employee_mta->user && $employee_mta->user->email) {
+                Mail::to($employee_mta->user->email)
+                    ->send(new MtaDeclinedNotification($employee_mta, $current_user));
+            }
+        } catch (\Exception $e) {
+                \Log::error('Failed to send MTA decline email: ' . $e->getMessage());
+        }
+
+        Alert::success('Monetized Transportation Allowance Request has been declined.')->persistent('Dismiss');
         return back();
     }
 
     public function approveMtaAll(Request $request)
     {
-        $ids = json_decode($request->ids,true);
+        $current_user = auth()->user();
+
+        $is_mta_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'mta')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_mta_approver) {
+            return response()->json(['error' => 'You do not have permission to bulk-approve Monetized Transportation Allowance requests.'], 403);
+        }
+
+        $ids = json_decode($request->ids, true);
         $count = 0;
-        if(count($ids) > 0){
-            foreach($ids as $id){
-                $employee_mta = EmployeeMta::with('employee')->where('id', $id)->first();
-                if($employee_mta){
-                    $level = '';
-                    $employee_approver = EmployeeApprover::where('user_id', $employee_mta->user_id)->where('approver_id', auth()->user()->id)->first();
-                    if($employee_approver->as_final == 'on'){
-                        $employee = Employee::where('user_id',$employee_mta->user_id)->first();
-                        
-                        EmployeeMta::Where('id', $id)->update([
-                            'approved_date' => date('Y-m-d'),
-                            'status' => 'Approved',
-                            'approval_remarks' => 'Approved',
-                            'level' => 1,
-                        ]);
-                        $count++;
-                    }else{
-                        EmployeeMta::Where('id', $id)->update([
-                            'approval_remarks' => 'Approved',
-                            'level' => $employee_mta->level+1
-                        ]);
-                        $count++;
-                    }
+        $approver_id = $current_user->id;
+
+        if (!empty($ids)) {
+            foreach ($ids as $id) {
+                $employee_mta = EmployeeMta::find($id);
+
+                if ($employee_mta) {
+                    $employee_mta->update([
+                        'approved_date' => now(),
+                        'status' => 'Approved',
+                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Approved',
+                        'approved_by' => $approver_id
+                    ]);
+                    $count++;
                 }
             }
-            return $count;
 
-        }else{
-            return 'error';
+            return $count;
         }
+
+        return 'error';
     }
 
-    public function disapproveMtaAll(Request $request){
-        
-        $ids = json_decode($request->ids,true);
+    public function disapproveMtaAll(Request $request)
+    {
+        $current_user = auth()->user();
 
+
+        $is_mta_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'mta')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_mta_approver) {
+            return response()->json(['error' => 'You do not have permission to bulk-decline Monetized Transportation Allowance requests.'], 403);
+        }
+
+        $ids = json_decode($request->ids, true);
         $count = 0;
-        if(count($ids) > 0){
-            
-            foreach($ids as $id){
-                EmployeeMta::Where('id', $id)->update([
-                    'status' => 'Declined',
-                    'approval_remarks' => 'Declined',
-                ]);
+        $approver_id = $current_user->id;
 
-                $count++;
+        if (!empty($ids)) {
+            foreach ($ids as $id) {
+                $employee_mta = EmployeeMta::find($id);
+
+                if ($employee_mta) {
+                    $employee_mta->update([
+                        'approved_date' => now(),
+                        'status' => 'Declined',
+                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Declined',
+                        'approved_by' => $approver_id
+                    ]);
+                    $count++;
+                }
             }
 
             return $count;
-
-        }else{
-            return 'error';
         }
-    }
+
+        return 'error';
+    }    
 }

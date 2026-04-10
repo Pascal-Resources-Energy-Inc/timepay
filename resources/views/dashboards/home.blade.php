@@ -808,7 +808,6 @@
     display: none;
 }
 .hire-card {
-    min-width: 240px;
     border-radius: 15px;
     overflow: hidden;
     background: #fff;

@@ -1164,12 +1164,13 @@ function pending_mta_correction($approver_id){
     $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
     $to_date = date('Y-m-d');
 
-    return EmployeeMta::select('user_id')->with('approver.approver_info')
-                                ->whereHas('approver',function($q) use($approver_id) {
-                                    $q->where('approver_id',$approver_id);
+    return EmployeeMta::select('user_id')->with('approverMta')
+                                ->whereHas('approverMta',function($q) use($approver_id) {
+                                    $q->where('user_id',$approver_id);
                                 })
                                 ->where('status','Pending')
                                 ->count();
+
 }
 
 
@@ -1281,7 +1282,7 @@ function pending_uir_count($approver_id){
     $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
     $ad_date = date('Y-m-d');
 
-    return IUR::select('user_id')->where('status','Pending')
+    return IUR::select('user_id')->where('status','In Progress')
                                 // ->whereDate('created_at','>=',$from_date)
                                 // ->whereDate('created_at','<=',$to_date)
                                 ->count();

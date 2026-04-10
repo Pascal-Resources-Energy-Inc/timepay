@@ -30,6 +30,19 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="col-md-12 form-group" id="work_location_container" style="display: none;">
+                            <label>Work Location Area</label>
+                            <select class="form-control form-control-sm js-example-basic-single" style='width:100%;' name="work_location" id="work_location">
+                                <option value="" disabled>-- Select Work Location --</option>
+                                <option value="Region 1-3">Region 1-3</option>                                    
+                                <option value="Region 4">Region 4</option>
+                                <option value="Region 5">Region 5</option>
+                                <option value="Region 6 - Panay Island">Region 6 - Panay Island</option>
+                                <option value="Region 8 - Bohol">Region 8 - Bohol</option>
+                                <option value="Region 18 - Negros Island Region">Region 18 - Negros Island Region</option>
+                                <option value="MDS - All Area">MDS - All Area</option>
+                            </select>
+                        </div> 
                         {{-- <div class="col-md-12 form-group">
                             <label for="type_of_forms">Type of Form</label>
                             <select data-placeholder="Select Type of Form" class="form-control form-control-sm required js-example-basic-single" 
@@ -64,10 +77,22 @@
             dropdownParent: $('#new_approver')
         });
 
+        // Show/hide work location based on mta selection
+        $('#type_of_forms').on('change', function () {
+            let selectedForms = $(this).val() || [];
+
+            if (selectedForms.includes('mta')) {
+                $('#work_location_container').slideDown();
+                $('#work_location').prop('required', true);
+            } else {
+                $('#work_location_container').slideUp();
+                $('#work_location').prop('required', false).val(null).trigger('change');
+            }
+        });
+
         $('#user_id').on('change', function () {
             let userId = $(this).val();
 
-            // Reset all options first
             $('#type_of_forms option').prop('disabled', false);
 
             if (userId) {
@@ -76,14 +101,17 @@
                     type: 'GET',
                     success: function (data) {
 
-                        // Disable already assigned forms
+                        // disable existing
                         data.forEach(function (form) {
                             $('#type_of_forms option[value="' + form + '"]')
                                 .prop('disabled', true);
                         });
 
-                        // Refresh select2 UI
-                        $('#type_of_forms').val(null).trigger('change');
+                        // ✅ remove disabled selections
+                        let selected = $('#type_of_forms').val() || [];
+                        selected = selected.filter(val => !data.includes(val));
+
+                        $('#type_of_forms').val(selected).trigger('change');
                     }
                 });
             }

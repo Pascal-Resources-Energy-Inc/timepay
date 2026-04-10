@@ -497,8 +497,8 @@
                         </a>
                     </li>
                     
-                    <li class="nav-item "><a class="nav-link " href="{{ url('/for-mta') }}" style="text-wrap:auto">Monetized Transportation Allowance <span class="badge badge-warning">{{ pending_mta_correction(auth()->user()->id) }}</span></a></li>
-                    @if(count(auth()->user()->employee->as_resign) > 0)
+                    {{-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-mta') }}" style="text-wrap:auto">Monetized Transportation Allowance <span class="badge badge-warning">{{ pending_mta_correction(auth()->user()->id) }}</span></a></li>
+                    @if(count(auth()->user()->employee->as_resign) > 0) --}}
 
                     @if (checkUserPrivilege('employees_mta',auth()->user()->id) == 'yes')
                     <li class="nav-item">

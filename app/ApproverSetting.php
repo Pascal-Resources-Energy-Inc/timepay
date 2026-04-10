@@ -16,6 +16,7 @@ class ApproverSetting extends Model implements Auditable
     protected $fillable = [
         'user_id',
         'type_of_form',
+        'work_location',
         'status'
     ];
 
@@ -49,9 +50,10 @@ class ApproverSetting extends Model implements Auditable
             'ne' => 'Number Enrollment',
             'coe' => 'COE Request',
             'uir' => 'Uniform and ID Request',
+            'mta' => 'Monetized Transportation Allowance',
         ];
     }
-
+    
     public function getFormTypeNameAttribute()
     {
         $formTypes = self::getFormTypes();

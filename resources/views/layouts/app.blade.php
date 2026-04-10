@@ -238,6 +238,37 @@
 		input[type=number] {
 			-moz-appearance: textfield;
 		}
+		#preloaderHera {
+            background-color: white; 
+            width: 100%;
+            height: 100%;
+            /* Center the logo vertically and horizontally */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            opacity: .8;
+        }
+
+        .logo-hera {
+            /* width: 150px;
+            height: 150px; */
+            opacity: 2;
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            line-height: 150px;
+            border-radius: 10px;
+            animation: ld-swim 10s infinite linear;
+        }
+
+        /* --- Keyframes for the Bouncing Animation --- */
+        @keyframes ld-swim{0%{transform:translate(0,0) rotate(0)}8.33333%{transform:translate(-5.96462px,4.90845px) rotate(-13.66821deg)}16.66667%{transform:translate(5.25471px,-2.05606px) rotate(0.47337deg)}25%{transform:translate(2.30929px,5.79372px) rotate(13.8564deg)}33.33333%{transform:translate(-5.75556px,-4.60802px) rotate(10.94246deg)}41.66667%{transform:translate(3.73522px,5.97742px) rotate(-14.03079deg)}50%{transform:translate(4.2628px,-3.01222px) rotate(-10.61323deg)}58.33333%{transform:translate(-4.65975px,-2.51269px) rotate(5.2869deg)}66.66667%{transform:translate(1.64024px,-1.05167px) rotate(10.27343deg)}75%{transform:translate(5.55954px,-4.22763px) rotate(-5.72726deg)}83.33333%{transform:translate(-2.84602px,5.91439px) rotate(-14.99193deg)}91.66667%{transform:translate(-0.70744px,-5.43064px) rotate(6.16192deg)}100%{transform:translate(0,0) rotate(0)}}
+
     </style>
     <!-- LogIN CSS -->
   
@@ -246,8 +277,14 @@
     {{-- <link href="{{ asset('css/app.css') }}" rel="stylesheet"> --}}
 </head>
 <body>
-    <div id = "loader" style="display:none;" class="loader">
+    {{-- <div id = "loader" style="display:none;" class="loader">
+    </div> --}}
+	<div id="preloaderHera">
+        <div class="logo-hera">
+            <img src="{{ asset('login_css/images/hera_loading1.png') }}" alt="" height="250">
+        </div>
     </div>
+
     <div id="app">
         <main class="py-4">
             @yield('content')
@@ -291,9 +328,15 @@
     <script src="{{ asset('/body_css/js/inputmask.js') }}"></script>
     @include('sweetalert::alert')
     <script type='text/javascript'>
-        function show() {
-            document.getElementById("loader").style.display="block";
+        // function show() {
+        //     document.getElementById("loader").style.display="block";
+        // }
+		function show() {
+            document.getElementById("preloaderHera").style.display = "block";
         }
+		window.addEventListener('load', function() {
+            document.getElementById('preloaderHera').style.display = 'none';
+        });
     </script>
     <script>
 		$(document).ready(function() {

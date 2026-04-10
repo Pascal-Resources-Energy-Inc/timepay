@@ -19,8 +19,9 @@
                   <table class="table table-hover table-bordered tablewithSearch">
                     <thead>
                       <tr>
-                        <th width="45%">Form Approver</th>
-                        <th width="45%">Type of Form</th>
+                        <th width="30%">Form Approver</th>
+                        <th width="30%">Type of Form</th>
+                        <th width="30%">Work Location</th>
                         <th width="10%">Action</th>
                       </tr>
                     </thead>
@@ -29,6 +30,7 @@
                         <tr>
                             <td>{{$form_approver->user->name}}</td>
                             <td>{{$form_approver->form_type_name}}</td>
+                            <td>{{$form_approver->work_location ?? 'N/A' }}</td>
                             <td id="tdActionId{{ $form_approver->id }}" data-id="{{ $form_approver->id }}">
                               @if (checkUserPrivilege('settings_delete',auth()->user()->id) == 'yes')
                                 <button title='Remove' id="{{ $form_approver->id }}" onclick="remove({{$form_approver->id}})"

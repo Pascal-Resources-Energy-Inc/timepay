@@ -98,7 +98,7 @@
                         <th>MTA Amount</th>
                         <th>Sales Invoice Number</th>
                         <th>Status</th>
-                        <th>Approvers</th>
+                        <th>Approver</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -145,7 +145,7 @@
                             </button>                                                                               
                           @endif
                         </td> 
-                        <td> {{ date('M. d, Y h:i A', strtotime($mta->created_at)) }}</td>
+                        <td> {{ date('M. d, Y', strtotime($mta->mta_date)) }}</td>
                         <td> {{ $mta->work_location }}</td>
                         <td>{{ $mta->liters_loaded }}</td>
                         <td> {{ $mta->petron_price }}</td>
@@ -160,7 +160,8 @@
                             <label class="badge badge-danger">{{ $mta->status }}</label>
                           @endif                        
                         </td>
-                        <td id="tdStatus{{ $mta->id }}">
+                        <td>{{ $mta->approverMta->user->name ?? 'N/A' }}</td>
+                        {{-- <td id="tdStatus{{ $mta->id }}">
                           @if(count($mta->approver) > 0)
                             @foreach($mta->approver as $approver)
                               @if($mta->level >= $approver->level)
@@ -180,7 +181,7 @@
                           @else
                             <label class="badge badge-danger mt-1">No Approver</label>
                           @endif
-                        </td>
+                        </td> --}}
                       </tr>
                     @endforeach  
                     </tbody>

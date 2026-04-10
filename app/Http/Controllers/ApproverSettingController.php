@@ -23,6 +23,7 @@ class ApproverSettingController extends Controller
                                            return (object) [
                                                'id' => $first_item->id,
                                                'user' => $first_item->user,
+                                               'work_location' => $first_item->work_location,
                                                'form_type_name' => $first_item->form_type_name,
                                                'type_of_form' => $first_item->type_of_form,
                                                'group_ids' => $group->pluck('id')->toArray()
@@ -59,7 +60,8 @@ class ApproverSettingController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'type_of_forms' => 'required|array|min:1',
-            'type_of_forms.*' => 'in:leave,ot,dtr,pd,ad,ne,coe,uir'
+            'type_of_forms.*' => 'in:leave,ot,dtr,pd,ad,ne,coe,uir,mta',
+            'work_location' => 'required_if:type_of_forms.*,mta'
         ]);
 
         $saved_count = 0;
@@ -74,6 +76,7 @@ class ApproverSettingController extends Controller
                 ApproverSetting::create([
                     'user_id' => $request->user_id,
                     'type_of_form' => $form_type,
+                    'work_location' => $request->work_location ?? null,
                     'status' => 'Active'
                 ]);
                 $saved_count++;

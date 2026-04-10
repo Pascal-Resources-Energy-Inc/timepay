@@ -32,8 +32,7 @@
                         </div>
                         <div class="col-md-12 form-group" id="work_location_container" style="display: none;">
                             <label>Work Location Area</label>
-                            <select class="form-control form-control-sm js-example-basic-single" style='width:100%;' name="work_location" id="work_location">
-                                <option value="" disabled>-- Select Work Location --</option>
+                            <select class="form-control form-control-sm js-example-basic-multiple" style='width:100%;' name="work_location[]" id="work_location" multiple>
                                 <option value="Region 1-3">Region 1-3</option>                                    
                                 <option value="Region 4">Region 4</option>
                                 <option value="Region 5">Region 5</option>
@@ -77,6 +76,10 @@
             dropdownParent: $('#new_approver')
         });
 
+        $('#work_location').select2({
+            dropdownParent: $('#new_approver')
+        });
+        
         // Show/hide work location based on mta selection
         $('#type_of_forms').on('change', function () {
             let selectedForms = $(this).val() || [];
@@ -86,9 +89,39 @@
                 $('#work_location').prop('required', true);
             } else {
                 $('#work_location_container').slideUp();
-                $('#work_location').prop('required', false).val(null).trigger('change');
+                $('#work_location')
+                    .prop('required', false)
+                    .val(null)
+                    .trigger('change');
             }
         });
+
+        // $('#user_id').on('change', function () {
+        //     let userId = $(this).val();
+
+        //     $('#type_of_forms option').prop('disabled', false);
+
+        //     if (userId) {
+        //         $.ajax({
+        //             url: '/get-user-approver-forms/' + userId,
+        //             type: 'GET',
+        //             success: function (data) {
+
+        //                 // disable existing
+        //                 data.forEach(function (form) {
+        //                     $('#type_of_forms option[value="' + form + '"]')
+        //                         .prop('disabled', true);
+        //                 });
+
+        //                 // ✅ remove disabled selections
+        //                 let selected = $('#type_of_forms').val() || [];
+        //                 selected = selected.filter(val => !data.includes(val));
+
+        //                 $('#type_of_forms').val(selected).trigger('change');
+        //             }
+        //         });
+        //     }
+        // });
 
         $('#user_id').on('change', function () {
             let userId = $(this).val();
@@ -101,14 +134,15 @@
                     type: 'GET',
                     success: function (data) {
 
-                        // disable existing
+                        data = data || [];
+
                         data.forEach(function (form) {
                             $('#type_of_forms option[value="' + form + '"]')
                                 .prop('disabled', true);
                         });
 
-                        // ✅ remove disabled selections
                         let selected = $('#type_of_forms').val() || [];
+
                         selected = selected.filter(val => !data.includes(val));
 
                         $('#type_of_forms').val(selected).trigger('change');

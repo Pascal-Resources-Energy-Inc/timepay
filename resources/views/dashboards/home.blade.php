@@ -810,6 +810,7 @@
 .hire-card {
     border-radius: 15px;
     overflow: hidden;
+    min-width: 200px;
     background: #fff;
     box-shadow: 0 6px 18px rgba(0,0,0,0.08);
     transition: all 0.3s ease;

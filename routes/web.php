@@ -541,7 +541,8 @@
     //Forms Approver Setting
     Route::get('/approver-setting','ApproverSettingController@index');
     Route::post('/save-approver-setting', 'ApproverSettingController@store')->name('approver.store');
-    Route::get('/remove-approver/{id}','ApproverSettingController@removeApprover'); 
+    // Route::get('/remove-approver/{id}','ApproverSettingController@removeApprover'); 
+    Route::delete('/remove-approver/{id}', 'ApproverSettingController@removeApprover');
     Route::get('/get-user-approver-forms/{user_id}', 'ApproverSettingController@getUserForms');
 
     //Timekeeping Dashboard

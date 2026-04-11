@@ -160,6 +160,25 @@ class ApproverSettingController extends Controller
         ]);
     }
 
+    // public function removeApprover($id)
+    // {
+    //     try {
+    //         $approver = ApproverSetting::findOrFail($id);
+    //         $approver->delete(); 
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Form Approver removed successfully (soft deleted)'
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Error removing approver'
+    //         ]);
+    //     }
+    // }
+
     public function removeApprover($id)
     {
         try {
@@ -168,14 +187,14 @@ class ApproverSettingController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Form Approver removed successfully (soft deleted)'
+                'message' => 'Form Approver removed successfully'
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error removing approver'
-            ]);
+            ], 500);
         }
     }
 }

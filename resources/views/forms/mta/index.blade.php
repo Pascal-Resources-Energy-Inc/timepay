@@ -97,8 +97,9 @@
                         <th>Petron Price per Liter</th>
                         <th>MTA Amount</th>
                         <th>Sales Invoice Number</th>
-                        <th>Status</th>
                         <th>Approver</th>
+                        <th>Status</th>
+                        <th>Payment Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -151,6 +152,7 @@
                         <td> {{ $mta->petron_price }}</td>
                         <td> {{ $mta->mta_amount }}</td>
                         <td> {{ $mta->sales_invoice_number }}</td>
+                        <td>{{ $mta->approverMta->user->name ?? 'N/A' }}</td>
                         <td id="tdStatus{{ $mta->id }}">
                           @if ($mta->status == 'Pending')
                             <label class="badge badge-warning">{{ $mta->status }}</label>
@@ -160,7 +162,17 @@
                             <label class="badge badge-danger">{{ $mta->status }}</label>
                           @endif                        
                         </td>
-                        <td>{{ $mta->approverMta->user->name ?? 'N/A' }}</td>
+                        <td>
+                          @if ($mta->payment_status == 'For Processing')
+                            <label class="badge badge-info">{{ $mta->payment_status }}</label>
+                          @elseif($mta->payment_status == 'Processed')
+                            <label class="badge badge-success">{{ $mta->payment_status }}</label>
+                          @elseif($mta->payment_status == 'Disapproved')
+                            <label class="badge badge-danger">{{ $mta->payment_status }}</label>
+                          @else 
+                            <label class="badge badge-warning">Awaiting Process</label>
+                          @endif  
+                        </td>
                         {{-- <td id="tdStatus{{ $mta->id }}">
                           @if(count($mta->approver) > 0)
                             @foreach($mta->approver as $approver)

@@ -34,7 +34,7 @@ class UserController extends Controller
     //
     public function index(Request $request){
 
-        if (in_array(auth()->user()->id, [1, 26, 725,62, 733])){
+        if (in_array(auth()->user()->id, [1, 26, 725,62, 733, 814])){
             $search = isset($request->search) ? $request->search : "";
             $limit = isset($request->limit) ? $request->limit : 1000;
             $companies = Company::whereHas('employee_has_company')->orderBy('company_name','ASC')->get();
@@ -164,7 +164,7 @@ class UserController extends Controller
                 $user_privilege->employees_export = $request->employees_export;
                 $user_privilege->employees_export_hr = $request->employees_export_hr;
                 $user_privilege->employees_rate = $request->employees_rate;
-
+                $user_privilege->employees_mta = $request->employees_mta;
 
                 $user_privilege->reports_leave = $request->reports_leave;
                 $user_privilege->reports_overtime = $request->reports_overtime;

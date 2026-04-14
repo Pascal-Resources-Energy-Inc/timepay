@@ -13,11 +13,12 @@
         <div class="modal-body">
           <div class="form-group row">
             <div class='col-md-2'>Approver</div>
-            <div class='col-md-9'>
+            <div class='col-md-9'>{{$mta->approverMta->user->name}}</div>
+            {{-- <div class='col-md-9'>
               @foreach($all_approvers as $approvers)
                 {{$approvers->approver_info->name}}<br>
               @endforeach
-            </div>
+            </div> --}}
           </div>
           <div class="form-group row">
             <div class='col-md-2'>Transaction Date</div>

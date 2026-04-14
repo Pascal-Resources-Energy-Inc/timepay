@@ -2662,6 +2662,7 @@ class FormApprovalController extends Controller
 
         $employee_mta->approved_date = now();
         $employee_mta->status = 'Approved';
+        $employee_mta->payment_status = 'Approved';
         $employee_mta->approval_remarks = $request->approval_remarks;
         $employee_mta->approved_by = $current_user->id;
         $employee_mta->save();
@@ -2812,6 +2813,7 @@ class FormApprovalController extends Controller
                     $employee_mta->update([
                         'approved_date' => now(),
                         'status' => 'Approved',
+                        'payment_status' => 'Approved',
                         'approval_remarks' => $request->approval_remarks ?? 'Bulk Approved',
                         'approved_by' => $approver_id
                     ]);
@@ -2828,7 +2830,6 @@ class FormApprovalController extends Controller
     public function disapproveMtaAll(Request $request)
     {
         $current_user = auth()->user();
-
 
         $is_mta_approver = \App\ApproverSetting::where('user_id', $current_user->id)
             ->where('type_of_form', 'mta')

@@ -8,6 +8,17 @@ use OwenIt\Auditing\Contracts\Auditable;
 class EmployeeMta extends Model implements Auditable
 {
     use \OwenIt\Auditing\Auditable;
+
+    protected $fillable = [
+        'status',
+        'approved_date',
+        'approval_remarks',
+        'approved_by',
+        'payment_status',
+        'processing_date',
+        'payment_remarks',
+        'processing_by',
+    ];
     
     public function user()
     {

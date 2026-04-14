@@ -202,6 +202,20 @@
     Route::post('new-mta','EmployeeMtaController@store');
     Route::post('edit-mta/{id}', 'EmployeeMtaController@update');
     Route::get('disable-mta/{id}', 'EmployeeMtaController@cancel');     
+    Route::get('mta-process', 'EmployeeMtaController@mtaProcess');
+    Route::post('process-mta-all','EmployeeMtaController@processMtaAll');
+    Route::post('process-mta/{id}','EmployeeMtaController@processMta');
+    Route::post('processed-mta-all','EmployeeMtaController@processedMtaAll');
+    Route::post('disapproved-processed-mta-all','EmployeeMtaController@disapprovedProcessedMtaAll');
+    Route::post('processed-mta/{id}','EmployeeMtaController@processedMta');
+    // Route::post('disapproved-processed-mta{id}','EmployeeMtaController@disapprovedMta');
+    Route::post('/disapproved-processed-mta/{id}', 'EmployeeMtaController@disapprovedMta')
+    ->name('mta.disapprove');
+    
+    // Route::post('approve-mta/{id}','EmployeeMtaController@approveMta');
+    // Route::post('decline-mta/{id}','EmployeeMtaController@declineMta');
+    // Route::post('approve-mta-all','FormApprovalController@approveMtaAll');
+    // Route::post('disapprove-mta-all','FormApprovalController@disapproveMtaAll');
 
     //Planning 
     Route::get('planning', 'EmployeePlanningController@index');
@@ -290,7 +304,7 @@
     Route::post('approve-dtr-all','FormApprovalController@approveDtrAll');
     Route::post('disapprove-dtr-all','FormApprovalController@disapproveDtrAll');
     
-    // MTA
+    // MTA Approval
     Route::get('for-mta','FormApprovalController@form_mta_approval');
     Route::post('approve-mta/{id}','FormApprovalController@approveMta');
     Route::post('decline-mta/{id}','FormApprovalController@declineMta');

@@ -9,7 +9,7 @@
             <div class="media">                
               <div class="media-body">
                 <h4 class="mb-4">For Approval</h4>
-                <a href="/for-dtr-correction?status=Pending" class="h2 card-text text-white">{{$for_approval}}</a>
+                <a href="/for-mta?status=Pending" class="h2 card-text text-white">{{$for_approval}}</a>
               </div>
             </div>
           </div>
@@ -21,7 +21,7 @@
             <div class="media">                
               <div class="media-body">
                 <h4 class="mb-4">Approved</h4>
-                <a href="/for-dtr-correction?status=Approved" class="h2 card-text text-white">{{$approved}}</a>
+                <a href="/for-mta?status=Approved" class="h2 card-text text-white">{{$approved}}</a>
               </div>
             </div>
           </div>
@@ -33,7 +33,7 @@
             <div class="media">                
               <div class="media-body">
                 <h4 class="mb-4">Declined / Rejected</h4>
-                <a href="/for-dtr-correction?status=Declined" class="h2 card-text text-white">{{$declined}}</a>
+                <a href="/for-mta?status=Declined" class="h2 card-text text-white">{{$declined}}</a>
               </div>
             </div>
           </div>
@@ -260,98 +260,134 @@
 
     // Submit button click event to perform the POST request
     $('#approveAllBtn').on('click', function() {
-        Swal.fire({
-          title: "Are you sure?",
-          text: "You want to approve this Monetized Transportation Allowance?",
-          icon: "warning",
-          buttons: true,
-        })
-        .then((willCancel) => {
-          if (willCancel) {
-            document.getElementById("loader").style.display = "block";
-                
-            const selectedItems = [];
-            
-            $('.checkbox-item:checked').each(function() {
-                const id = $(this).data('id'); // Get the 'data-id' attribute value
-                selectedItems.push({ id: id });
-            });
+      Swal.fire({
+        title: "Are you sure?",
+        text: "You want to approve this Monetized Transportation Allowance?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes"
+      }).then((result) => {
+        if (result.isConfirmed) {
 
-            const dataToSend = {
-                ids: JSON.stringify(selectedItems)
-            };
+            $('#loader').show(); // ✅ SAFE
+
+            const selectedItems = [];
+
+            $('.checkbox-item:checked').each(function () {
+                selectedItems.push($(this).data('id')); // ✅ FIXED FORMAT
+            });
 
             $.ajax({
                 headers: {
-                  'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 type: 'POST',
                 url: '/approve-mta-all',
-                data: dataToSend,
-                dataType: 'json',
-                success: function(response) {
-                  console.log(response)
-                  document.getElementById("loader").style.display = "none";
-                  Swal.fire("Monetized Transportation Allowance has been Approved " + "("+response+")", {
-                    icon: "success",
-                  }).then(function() {
-                    location.reload();
-                  });
+                data: {
+                    ids: JSON.stringify(selectedItems)
                 },
-                error: function(error) {
-                    console.error('Error sending AJAX POST request:', error);
+                success: function (response) {
+
+                    $('#loader').hide(); // ✅ SAFE
+
+                    Swal.fire("Monetized Transportation Allowance has been Approved (" + response + ")", "", "success")
+                        .then(() => location.reload());
+                },
+                error: function () {
+                    $('#loader').hide();
+                    Swal.fire("Error occurred", "", "error");
                 }
             });
-          }
-        });
+        }
+      });
     });
 
     // Submit button click event to perform the POST request
     $('#disApproveAllBtn').on('click', function() {
-        Swal.fire({
-          title: "Are you sure?",
-          text: "You want to disapprove this Monetized Transportation Allowance?",
-          icon: "warning",
-          buttons: true,
-        })
-        .then((willCancel) => {
-          if (willCancel) {
-            document.getElementById("loader").style.display = "block";
+        // Swal.fire({
+        //   title: "Are you sure?",
+        //   text: "You want to disapprove this Monetized Transportation Allowance?",
+        //   icon: "warning",
+        //   buttons: true,
+        // })
+        // .then((willCancel) => {
+        //   if (willCancel) {
+        //     document.getElementById("loader").style.display = "block";
             
-            const selectedItems = [];
+        //     const selectedItems = [];
             
-            $('.checkbox-item:checked').each(function() {
-                const id = $(this).data('id'); // Get the 'data-id' attribute value
-                selectedItems.push({ id: id });
-            });
+        //     $('.checkbox-item:checked').each(function() {
+        //         const id = $(this).data('id'); // Get the 'data-id' attribute value
+        //         selectedItems.push({ id: id });
+        //     });
 
-            const dataToSend = {
-                ids: JSON.stringify(selectedItems)
-            };
+        //     const dataToSend = {
+        //         ids: JSON.stringify(selectedItems)
+        //     };
+
+        //     $.ajax({
+        //         headers: {
+        //           'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        //         },
+        //         type: 'POST',
+        //         url: '/disapprove-mta-all',
+        //         data: dataToSend,
+        //         dataType: 'json',
+        //         success: function(response) {
+        //           console.log(response)
+        //           document.getElementById("loader").style.display = "none";
+        //           Swal.fire(" Monetized Transportation Allowance has been Disapproved " + "("+response+")", {
+        //             icon: "success",
+        //           }).then(function() {
+        //             location.reload();
+        //           });
+        //         },
+        //         error: function(error) {
+        //             console.error('Error sending AJAX POST request:', error);
+        //         }
+        //     });
+        //   }
+        // });
+
+      Swal.fire({
+        title: "Are you sure?",
+        text: "You want to disapprove this Monetized Transportation Allowance?",
+        icon: "warning",
+        buttons: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+
+            $('#loader').show(); // ✅ SAFE
+
+            const selectedItems = [];
+
+            $('.checkbox-item:checked').each(function () {
+                selectedItems.push($(this).data('id')); // ✅ FIXED FORMAT
+            });
 
             $.ajax({
                 headers: {
-                  'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 type: 'POST',
                 url: '/disapprove-mta-all',
-                data: dataToSend,
-                dataType: 'json',
-                success: function(response) {
-                  console.log(response)
-                  document.getElementById("loader").style.display = "none";
-                  Swal.fire(" Monetized Transportation Allowance has been Disapproved " + "("+response+")", {
-                    icon: "success",
-                  }).then(function() {
-                    location.reload();
-                  });
+                data: {
+                    ids: JSON.stringify(selectedItems)
                 },
-                error: function(error) {
-                    console.error('Error sending AJAX POST request:', error);
+                success: function (response) {
+
+                    $('#loader').hide(); // ✅ SAFE
+
+                    Swal.fire("Monetized Transportation Allowance has been Disapproved <br> (" + response + ")", "", "success")
+                        .then(() => location.reload());
+                },
+                error: function () {
+                    $('#loader').hide();
+                    Swal.fire("Error occurred", "", "error");
                 }
             });
-          }
-        });
+        }
+      });
     });
     
     function updateSelectedCount() {

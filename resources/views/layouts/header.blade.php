@@ -509,6 +509,30 @@
                         </a>
                     </li>
                     @endif
+
+                    @php
+                        $approvedMtaCount = \App\EmployeeMta::whereIn('payment_status', ['Approved', 'For Processing'])->count();
+                    @endphp
+
+                    @if (auth()->user()->role == 'Admin' && checkUserPrivilege('employees_mta', auth()->user()->id) == 'yes')
+                        <li class="nav-item">
+                            <hr>
+                            <h5>
+                                For Process
+                                @if($approvedMtaCount > 0)
+                                    <span class="badge badge-warning">{{ $approvedMtaCount }}</span>
+                                @endif
+                            </h5>
+                        </li>
+
+                        <li class="nav-item @if ($header == 'for-process') active @endif">
+                            <a class="nav-link" href="{{ url('/mta-process') }}" onclick='show()' style="text-wrap:auto">
+                                <i class="fa fa-motorcycle menu-icon" aria-hidden="true"></i>
+                                <span class="menu-title">Monetized Transportation Allowance</span>
+                            </a>
+                        </li>
+                    @endif
+                    
                     @if ( auth()->user()->employee_under->count())
                     <li class="nav-item">
                         <hr>

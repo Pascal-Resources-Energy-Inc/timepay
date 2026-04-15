@@ -36,6 +36,7 @@ class Tds extends Model
         'document_attachment',
         'proof_of_payment',
         'additional_notes',
+        'upload_docs',
         'latitude',
         'longitude',
     ];

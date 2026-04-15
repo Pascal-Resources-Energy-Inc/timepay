@@ -43,9 +43,11 @@ class TdsController extends Controller
         {
             $query = Tds::with(['user', 'region', 'employees'])
                 ->where('status', 'Delivered');
+            $userTarget = SalesTarget::where('month', $currentMonth)->first();
         } else {
             $query = Tds::with(['user', 'region', 'employees'])
                 ->where('user_id', $currentUserId);
+            $userTarget = SalesTarget::where('user_id', $currentUserId)->where('month', $currentMonth)->first();
         }
 
         if ($request->from && $request->to) {
@@ -68,16 +70,14 @@ class TdsController extends Controller
             $query->whereIn('lead_generator', $request->lead_generator);
         }
         
-        // $tdsRecords = $query->latest()->get(); 
-        $tdsRecords = $query->latest()->paginate(20);
-        // dd($tdsRecords);
-        // $currentUserId = auth()->id();
-        if($currentUserId == 102)
-        {
-            $userTarget = SalesTarget::where('month', $currentMonth)->first();
-        } else {
-            $userTarget = SalesTarget::where('user_id', $currentUserId)->where('month', $currentMonth)->first();
-        }
+        $tdsRecords = $query->latest()->get(); 
+
+        // if($currentUserId == 102)
+        // {
+        //     $userTarget = SalesTarget::where('month', $currentMonth)->first();
+        // } else {
+        //     $userTarget = SalesTarget::where('user_id', $currentUserId)->where('month', $currentMonth)->first();
+        // }
        
         $monthlyTarget = $userTarget ? $userTarget->target_amount : 0;
 
@@ -1350,9 +1350,8 @@ class TdsController extends Controller
         // ✅ Send Email safely
         try {
             Mail::to([
-                // 'warren.banal@pascalresources.com.ph',
-                // 'maricel.solis@pascalresources.com.ph'
-                'it@pascalresources.com.ph'
+                'warren.banal@pascalresources.com.ph',
+                'maricel.solis@pascalresources.com.ph'
             ])->send(new TdsAmountUpdated($record, $filePath));
         } catch (\Exception $e) {
             \Log::error('Mail Error: '.$e->getMessage());

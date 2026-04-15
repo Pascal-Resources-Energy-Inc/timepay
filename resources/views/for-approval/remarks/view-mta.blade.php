@@ -63,13 +63,42 @@
                     <textarea  name='remarks' class="form-control" rows='4' disabled>{{ $mta->notes }}</textarea>
                 </div>
                 </div>  
-                <div class="form-group row">
+                {{-- <div class="form-group row">
                 <div class='col-md-2'>Attachment</div>
                 <div class='col-md-10'>
                     @if($mta->attachment)
                     <a href="{{url($mta->attachment)}}" target='_blank'><button type="button" class="btn btn-outline-info btn-fw ">View Attachment</button></a>
                     @endif
                 </div>
+                </div> --}}
+                <div class="form-group row align-items-center">
+                    <div class="col-md-2 font-weight-bold">
+                        <i class="fa fa-paperclip"></i>&nbsp;Attachment
+                    </div>
+                    <div class="col-md-10">
+                        @if($mta->attachment)
+                        <div class="d-flex align-items-center justify-content-between border rounded p-2 bg-light">
+                            <div class="d-flex align-items-center">
+                            <i class="fa fa-file text-primary mr-2" style="font-size:18px;"></i>
+                            <span class="text-truncate" style="max-width: 250px;">
+                                {{ basename($mta->attachment) }}
+                            </span>
+                            </div>
+                            <div>
+                            <a href="{{ url($mta->attachment) }}" target="_blank" class="btn btn-sm btn-outline-primary mr-1">
+                                <i class="fa fa-eye"></i> View
+                            </a>
+                            <a href="{{ url($mta->attachment) }}" download class="btn btn-sm btn-outline-success">
+                                <i class="fa fa-download"></i> Download
+                            </a>
+                            </div>
+                        </div>
+                        @else
+                        <div class="text-muted">
+                            <i class="fa fa-ban"></i> No attachment available
+                        </div>
+                        @endif
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">

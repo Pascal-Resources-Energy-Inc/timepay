@@ -132,9 +132,11 @@
     Route::get('/tds/dashboard/export', 'TdsController@dashboardExport')->name('tds.dashboard.export');
 
     Route::get('/tds/{id}', 'TdsController@show')->name('tds.show');
-    Route::put('/tds/{id}', 'TdsController@update')->name('tds.update');
+    // Route::put('/tds/{id}', 'TdsController@update')->name('tds.update');
+    Route::put('/tds/{id}', 'TdsController@update');
     Route::post('/tds/{id}/update-status', 'TdsController@updateStatus')->name('tds.update-status');
-    Route::post('tds/update/{id}', 'TdsController@updateAmount')->name('tds.update');
+    // Route::post('tds/update/{id}', 'TdsController@updateAmount')->name('tds.update');
+    Route::put('tds/update/{id}', 'TdsController@updateAmount')->name('tds.update');
     Route::delete('/tds/{id}', 'TdsController@destroy')->name('tds.destroy');
 
     Route::get('overtime','EmployeeOvertimeController@overtime');

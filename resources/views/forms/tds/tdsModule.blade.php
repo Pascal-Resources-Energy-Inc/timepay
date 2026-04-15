@@ -340,6 +340,7 @@
     <div class="modal-content">
       <form id="updateAmountForm" method="POST" enctype="multipart/form-data" onsubmit='show();'>
         @csrf
+        @method('PUT')
         <div class="modal-header">
           <h5 class="modal-title">Update Amount</h5>
           <button type="button" class="close" data-dismiss="modal" style="color: red">&times;</button>
@@ -1159,19 +1160,21 @@ $(document).ready(function() {
   });
 
   $(document).on('click', '.edit-amount-btn', function () {
-    var id       = $(this).data('id');
-    var customer = $(this).data('customer');
-    var status   = $(this).data('status');
-    var amount   = $(this).data('amount');
+
+    let id       = $(this).data('id');
+    let customer = $(this).data('customer');
+    let status   = $(this).data('status');
+    let amount   = $(this).data('amount');
 
     $('#customer_name').val(customer);
     $('#status').val(status);
     $('#purchase_amount').val(amount);
 
-    var url = "{{ route('tds.update', ':id') }}";
-    url = url.replace(':id', id);
+    // ✅ safer route handling
+    let url = "{{ url('tds/update') }}/" + id;
 
     $('#updateAmountForm').attr('action', url);
+
     $('#editAmountModal').modal('show');
   });
 

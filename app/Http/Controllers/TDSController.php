@@ -68,7 +68,8 @@ class TdsController extends Controller
             $query->whereIn('lead_generator', $request->lead_generator);
         }
         
-        $tdsRecords = $query->latest()->get();
+        // $tdsRecords = $query->latest()->get(); 
+        $tdsRecords = $query->latest()->paginate(20);
         // dd($tdsRecords);
         // $currentUserId = auth()->id();
         if($currentUserId == 102)
@@ -1266,6 +1267,47 @@ class TdsController extends Controller
         ]);
     }
 
+    // public function updateAmount(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'purchase_amount' => 'required|numeric|min:0',
+    //         'upload_docs' => 'nullable|mimes:jpg,jpeg,png,pdf|max:5120'
+    //     ]);
+
+    //     $record = Tds::findOrFail($id);
+
+    //     $record->purchase_amount = $request->purchase_amount;
+
+    //     $filePath = null;
+
+    //     if ($request->hasFile('upload_docs')) {
+
+    //         $uploadPath = public_path('uploads/tds_payments');
+
+    //         if (!File::exists($uploadPath)) {
+    //             File::makeDirectory($uploadPath, 0755, true);
+    //         }
+
+    //         if (!empty($record->upload_docs) &&
+    //             File::exists($uploadPath.'/'.$record->upload_docs)) {
+    //             File::delete($uploadPath.'/'.$record->upload_docs);
+    //         }
+
+    //         $file = $request->file('upload_docs');
+    //         $filename = time().'_proof_'.uniqid().'.'.$file->getClientOriginalExtension();
+
+    //         $file->move($uploadPath, $filename);
+
+    //         $record->upload_docs = $filename;
+
+    //         $filePath = $uploadPath.'/'.$filename;
+    //     }
+
+    //     Mail::to(['warren.banal@pascalresources.com.ph', 'maricel.solis@pascalresources.com.ph'])->send(new TdsAmountUpdated($record, $filePath));
+
+    //     return redirect()->back()->with('success', 'Amount updated and email sent!');
+    // }
+
     public function updateAmount(Request $request, $id)
     {
         $request->validate([
@@ -1283,16 +1325,17 @@ class TdsController extends Controller
 
             $uploadPath = public_path('uploads/tds_payments');
 
+            // ✅ Create folder if not exists
             if (!File::exists($uploadPath)) {
                 File::makeDirectory($uploadPath, 0755, true);
             }
 
-            if (!empty($record->upload_docs) &&
-                File::exists($uploadPath.'/'.$record->upload_docs)) {
+            // ✅ Delete old file safely
+            if ($record->upload_docs && File::exists($uploadPath.'/'.$record->upload_docs)) {
                 File::delete($uploadPath.'/'.$record->upload_docs);
             }
 
-             $file = $request->file('upload_docs');
+            $file = $request->file('upload_docs');
             $filename = time().'_proof_'.uniqid().'.'.$file->getClientOriginalExtension();
 
             $file->move($uploadPath, $filename);
@@ -1302,7 +1345,18 @@ class TdsController extends Controller
             $filePath = $uploadPath.'/'.$filename;
         }
 
-        Mail::to(['warren.banal@pascalresources.com.ph', 'maricel.solis@pascalresources.com.ph'])->send(new TdsAmountUpdated($record, $filePath));
+        $record->save(); // ✅ IMPORTANT (you forgot this!)
+
+        // ✅ Send Email safely
+        try {
+            Mail::to([
+                // 'warren.banal@pascalresources.com.ph',
+                // 'maricel.solis@pascalresources.com.ph'
+                'it@pascalresources.com.ph'
+            ])->send(new TdsAmountUpdated($record, $filePath));
+        } catch (\Exception $e) {
+            \Log::error('Mail Error: '.$e->getMessage());
+        }
 
         return redirect()->back()->with('success', 'Amount updated and email sent!');
     }

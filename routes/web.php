@@ -110,32 +110,32 @@
     Route::get('/purchase/export', 'PurchaseController@export')->name('purchase.export');
 
     //TDS
-    Route::get('/tdsModule', 'TDSController@index')->name('tds.tdsModule');
-    Route::get('/tds/create', 'TDSController@create')->name('tds.create');
-    Route::post('/tds/store', 'TDSController@store')->name('tds.store');
-    Route::get('/tds/history', 'TDSController@history')->name('tds.history');
-    Route::get('/tds/export', 'TDSController@export')->name('tds.export');
-    Route::post('/tds/update-target', 'TDSController@updateSalesTarget')->name('tds.update-target');
-    Route::get('/tds/get-employee-target', 'TDSController@getEmployeeTarget')->name('tds.get-employee-target');
-    Route::get('/tds/get-all-users', 'TDSController@getAllUsers')->name('tds.get-all-users');
-    Route::get('/tds/activity-logs', 'TDSController@getActivityLogs')->name('tds.activity-logs');
-    Route::post('/tds/get-zipcode', 'TDSController@getZipCode')->name('get.zipcode');
+    Route::get('/tdsModule', 'TdsController@index')->name('tds.tdsModule');
+    Route::get('/tds/create', 'TdsController@create')->name('tds.create');
+    Route::post('/tds/store', 'TdsController@store')->name('tds.store');
+    Route::get('/tds/history', 'TdsController@history')->name('tds.history');
+    Route::get('/tds/export', 'TdsController@export')->name('tds.export');
+    Route::post('/tds/update-target', 'TdsController@updateSalesTarget')->name('tds.update-target');
+    Route::get('/tds/get-employee-target', 'TdsController@getEmployeeTarget')->name('tds.get-employee-target');
+    Route::get('/tds/get-all-users', 'TdsController@getAllUsers')->name('tds.get-all-users');
+    Route::get('/tds/activity-logs', 'TdsController@getActivityLogs')->name('tds.activity-logs');
+    Route::post('/tds/get-zipcode', 'TdsController@getZipCode')->name('get.zipcode');
 
-    Route::post('/geocode-location', 'TDSController@geocodeLocation')->name('geocode.location');
-    Route::get('/tds/existing-customers', 'TDSController@getExistingCustomers')->name('tds.existing-customers');
+    Route::post('/geocode-location', 'TdsController@geocodeLocation')->name('geocode.location');
+    Route::get('/tds/existing-customers', 'TdsController@getExistingCustomers')->name('tds.existing-customers');
 
-    Route::get('/tds/records', 'TDSController@allSubmissions')->name('tds.records');
-    Route::get('/tds/records/export', 'TDSController@exportRecords')->name('tds.records.export');
+    Route::get('/tds/records', 'TdsController@allSubmissions')->name('tds.records');
+    Route::get('/tds/records/export', 'TdsController@exportRecords')->name('tds.records.export');
 
-    Route::get('/tdsdashboard', 'TDSController@dashboard')->name('tds.dashboard');
-    Route::get('/tds/employees/search', 'TDSController@getEmployees')->name('tds.employees.search');
-    Route::get('/tds/dashboard/export', 'TDSController@dashboardExport')->name('tds.dashboard.export');
+    Route::get('/tdsdashboard', 'TdsController@dashboard')->name('tds.dashboard');
+    Route::get('/tds/employees/search', 'TdsController@getEmployees')->name('tds.employees.search');
+    Route::get('/tds/dashboard/export', 'TdsController@dashboardExport')->name('tds.dashboard.export');
 
-    Route::get('/tds/{id}', 'TDSController@show')->name('tds.show');
-    Route::put('/tds/{id}', 'TDSController@update')->name('tds.update');
-    Route::post('/tds/{id}/update-status', 'TDSController@updateStatus')->name('tds.update-status');
+    Route::get('/tds/{id}', 'TdsController@show')->name('tds.show');
+    Route::put('/tds/{id}', 'TdsController@update')->name('tds.update');
+    Route::post('/tds/{id}/update-status', 'TdsController@updateStatus')->name('tds.update-status');
     Route::post('tds/update/{id}', 'TdsController@updateAmount')->name('tds.update');
-    Route::delete('/tds/{id}', 'TDSController@destroy')->name('tds.destroy');
+    Route::delete('/tds/{id}', 'TdsController@destroy')->name('tds.destroy');
 
     Route::get('overtime','EmployeeOvertimeController@overtime');
     //Overtime
@@ -517,6 +517,7 @@
     Route::get('dtr-report-export', 'DailytimerecordController@export');
     Route::get('ytd-report', 'PayslipController@ytd_report');
     Route::get('consent-report', 'EmployeeController@consentReport');
+    Route::get('mta-report', 'EmployeeMtaController@mtaReport');
 
 
     //13th month

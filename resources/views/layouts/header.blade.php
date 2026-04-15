@@ -919,6 +919,7 @@
                     @if (checkUserPrivilege('reports_dtr',auth()->user()->id) == 'yes')
                     <li class="nav-item"> <a class="nav-link" href="{{ url('/dtr-report') }}">DTR Reports</a></li>
                     @endif
+                    <li class="nav-item"> <a class="nav-link" href="{{ url('/mta-report') }}">MTA Reports</a></li>
                     @if (checkUserPrivilege('reports_loan',auth()->user()->id) == 'yes')
                     <li class="nav-item"> <a class="nav-link" href="{{ url('/company-loan-report') }}">Company Loan Report</a></li>
                     @endif

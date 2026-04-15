@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 namespace App\Http\Controllers;
 
@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\TdsAmountUpdated;
 use DB;
 
-class TdsController extends Controller
+class TDS1Controller extends Controller
 {
     private function getRegionDisplayName($region)
     {

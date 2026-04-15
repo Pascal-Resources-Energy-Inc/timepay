@@ -277,6 +277,7 @@ class EmployeeMtaController extends Controller
         }
         
         $edit_mta->level = 0;
+        $edit_mta->updated_by = Auth::user()->id;
         $edit_mta->save();
 
         Alert::success('Successfully Updated')->persistent('Dismiss');
@@ -498,5 +499,47 @@ class EmployeeMtaController extends Controller
 
         Alert::success('Monetized Transportation Allowance has been processed.')->persistent('Dismiss');
         return back();
+    }
+
+    public function mtaReport(Request $request)
+    {
+        // $company = isset($request->company) ? $request->company : [];
+        $from = isset($request->from) ? $request->from : date('Y-m-d');
+        $to = isset($request->to) ? $request->to : date('Y-m-d');
+        $status =  isset($request->status) ? $request->status : "Approved";
+        $employee_mtas = [];
+        // if(isset($request->from) && isset($request->to)){
+        //     $employee_mtas = EmployeeMta::with('user','employee')
+        //                                 ->whereDate('applied_date','>=',$from)
+        //                                 ->whereDate('applied_date','<=',$to)
+        //                                 ->whereHas('employee',function($q) use($company){
+        //                                     $q->whereIn('company_id',$company);
+        //                                 })
+        //                                 ->get();
+
+        //     if($status != "ALL")
+        //     {
+        //         $employee_mtas = $employee_mtas->where('status',$status);
+        //     }
+        // }
+         $employee_mtas = EmployeeMta::with('user','employee')
+                                    ->whereDate('mta_date','>=',$from)
+                                    ->whereDate('mta_date','<=',$to)
+                                    ->get();
+
+        if($status != "ALL")
+        {
+            $employee_mtas = $employee_mtas->where('status',$status);
+        }
+
+        // dd($employee_mtas);
+        return view('reports.mta_report', array(
+            'header' => 'reports',
+            // 'company'=>$company,
+            'from'=>$from,
+            'to'=>$to,
+            'status'=>$status,
+            'employee_mtas' => $employee_mtas,
+        ));
     }
 }

@@ -115,6 +115,9 @@
               <tbody> 
                 @foreach ($mtas as $form_approval)
                   <tr>
+                    @if(!in_array($form_approval->payment_status, ['Approved', 'For Processing']))
+                      <td></td>
+                    @endif
                     @if($form_approval->payment_status == 'Approved')
                       <td align="center">
                         <input type="checkbox" class="checkbox-item" data-id="{{ $form_approval->id }}">
@@ -128,6 +131,9 @@
                     <td align="center">
                       <button type="button" class="btn btn-primary btn-rounded btn-icon" data-toggle="modal" data-target="#view_mta{{ $form_approval->id }}">
                         <i class="ti ti-eye"></i>
+                      </button>
+                      <button type="button" id="edit{{ $form_approval->id }}" class="btn btn-warning btn-rounded btn-icon" data-target="#edit_mta{{ $form_approval->id }}" data-toggle="modal" title='Edit'>
+                        <i class="ti-pencil-alt"></i>
                       </button>
                       @if($form_approval->payment_status == 'Approved')
                         <button type="button" class="btn btn-info btn-rounded btn-icon" data-toggle="modal" data-target="#mta-process-remarks-{{ $form_approval->id }}" title="For Processing">
@@ -454,6 +460,7 @@
   @include('for-approval.remarks.mta_process_remarks')
   @include('for-approval.remarks.mta_processed_remarks')
   @include('for-approval.remarks.disapprove_processed_remarks')
+  @include('forms.mta.edit')
   @include('for-approval.remarks.view-mta')
 @endforeach
 

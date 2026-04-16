@@ -2565,7 +2565,8 @@ class EmployeeController extends Controller
 
     public function updateAcctNo(Request $request, $id)
     {
-        $employeeData = Employee::findOrFail($id);        
+        $employeeData = Employee::findOrFail($id);    
+        $employeeData->bank_name = $request->bank_name;    
         $employeeData->bank_account_number = $request->account_no;
         $employeeData->save();
 
@@ -2760,7 +2761,7 @@ class EmployeeController extends Controller
         });
 
         if ($hasDisagreement) {
-            Mail::to('maricel.solis@pascalresources.com.ph') // 🔁 change this
+            Mail::to('maricel.solis@pascalresources.com.ph') 
                 ->send(new EmployeeDisagreementMail($user));
         }
 
@@ -2879,7 +2880,7 @@ class EmployeeController extends Controller
 
         return view('reports.consent_report', [
             'header'   => 'reports',
-            'employee' => $employeeIds,
+            // 'employee' => $employeeIds,
             'from'     => $from,
             'to'       => $to,
             'employees'=> $employees

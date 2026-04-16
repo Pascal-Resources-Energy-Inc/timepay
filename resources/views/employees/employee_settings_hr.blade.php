@@ -1063,7 +1063,7 @@
                         @endif
                     </div>
 
-                    <div class="tab-pane fade" id="v-pills-bank" role="tabpanel" aria-labelledby="v-pills-bank-tab">
+                    {{-- <div class="tab-pane fade" id="v-pills-bank" role="tabpanel" aria-labelledby="v-pills-bank-tab">
                         <div class="card">
                             <div class="template-demo">
                                 <div class='row m-2'>
@@ -1095,7 +1095,47 @@
                                 </div>
                             </div>
                         </div>
+                    </div> --}}
+
+                    <div class="tab-pane fade" id="v-pills-bank" role="tabpanel">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0 font-weight-bold">
+                                    <i class="fa fa-university text-primary mr-2"></i>
+                                    Bank Details
+                                </h4>
+
+                                <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#editAcctNo">
+                                    <i class="fa fa-pencil"></i> Edit
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-4 p-3 rounded bg-light">
+                                    <div class="mr-3">
+                                        <i class="fa fa-bank fa-2x text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted">Bank Name</small><br>
+                                        <strong class="text-dark">
+                                            {{ $user->employee->bank_name ?? 'N/A' }}
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center p-3 rounded bg-light">
+                                    <div class="mr-3">
+                                        <i class="fa fa-credit-card fa-2x text-success"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted">Account Number</small><br>
+                                        <strong class="text-dark">
+                                            {{ $user->employee->bank_account_number ?? 'N/A' }}
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    
                     <div class="tab-pane fade" id="v-pills-benefits" role="tabpanel" aria-labelledby="v-pills-benefits">
                         <div class="card p-5">
                           <div class="template-demo">

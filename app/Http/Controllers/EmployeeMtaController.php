@@ -136,6 +136,7 @@ class EmployeeMtaController extends Controller
 
         // ✅ DUPLICATE CHECK
         $duplicate = EmployeeMta::where('user_id', Auth::id())
+            ->where('status', '!=', 'Cancelled') 
             ->whereDate('mta_date', $request->mta_date)
             ->exists();
 
@@ -172,14 +173,31 @@ class EmployeeMtaController extends Controller
         $new_mta->sales_invoice_number = $request->sales_invoice_number;
         $new_mta->notes = $request->notes;
 
-        // ✅ FILE UPLOAD (SAFE FOR 5.7)
+        // if ($request->hasFile('attachment')) {
+        //     $file = $request->file('attachment');
+        //     $filename = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
+
+        //     $file->move(public_path('images'), $filename);
+
+        //     $new_mta->attachment = '/images/' . $filename;
+        // }
+
         if ($request->hasFile('attachment')) {
+
             $file = $request->file('attachment');
-            $filename = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
 
-            $file->move(public_path('images'), $filename);
+            $filename = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
 
-            $new_mta->attachment = '/images/' . $filename;
+            // ✅ Ensure folder exists
+            $destination = public_path('images');
+
+            if (!file_exists($destination)) {
+                mkdir($destination, 0777, true);
+            }
+
+            $file->move($destination, $filename);
+
+            $new_mta->attachment = 'images/' . $filename; // ❗ REMOVE leading slash
         }
 
         $new_mta->status = 'Pending';
@@ -199,13 +217,23 @@ class EmployeeMtaController extends Controller
 
             $users = User::whereIn('id', $approvers)->get();
 
+            // foreach ($users as $user) {
+            //     if (!empty($user->email)) {
+            //         try {
+            //             Mail::to($user->email)
+            //                 ->send(new MtaNotificationMail($new_mta, $user));
+            //         } catch (\Exception $e) {
+            //             \Log::error('Mail Error: ' . $e->getMessage());
+            //         }
+            //     }
+            // }
             foreach ($users as $user) {
                 if (!empty($user->email)) {
                     try {
                         Mail::to($user->email)
                             ->send(new MtaNotificationMail($new_mta, $user));
                     } catch (\Exception $e) {
-                        \Log::error('Mail Error: ' . $e->getMessage());
+                        \Log::error('Mail Error for ' . $user->email . ': ' . $e->getMessage());
                     }
                 }
             }
@@ -541,5 +569,50 @@ class EmployeeMtaController extends Controller
             'status'=>$status,
             'employee_mtas' => $employee_mtas,
         ));
+    }
+
+    public function printSelected(Request $request)
+    {
+        $ids = explode(',', $request->ids);
+
+        $mtas = EmployeeMta::with(['user.employee.department'])
+            ->whereIn('id', $ids)
+            ->where('payment_status', 'Processed')
+            ->get();
+
+        return view('forms.mta.print_selected', compact('mtas'));
+    }
+
+    public function emailSelected(Request $request)
+    {
+        if (!$request->ids) {
+            return response()->json(['message' => 'No IDs received'], 422);
+        }
+
+        // ✅ Convert string → array
+        $ids = explode(',', $request->ids);
+
+        $mtas = EmployeeMta::with('user')
+            ->whereIn('id', $ids)
+            ->where('payment_status', 'Processed')
+            ->get();
+
+        if ($mtas->isEmpty()) {
+            return response()->json(['message' => 'No records found'], 404);
+        }
+
+        try {
+            Mail::to('it@pascalresources.com.ph')
+                ->send(new \App\Mail\MtaSelectedMail($mtas));
+
+            return response()->json([
+                'message' => 'Email sent successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

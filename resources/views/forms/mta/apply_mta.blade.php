@@ -75,7 +75,7 @@
           <div class="form-group row">
             <div class='col-md-2'>Upload Receipt Picture</div>
             <div class='col-md-10'>
-              <input type="file" name="attachment" class="form-control" placeholder="Upload Supporting Documents">
+              <input type="file" name="attachment" class="form-control" placeholder="Upload Supporting Documents" required>
             </div>
           </div>
           <div class="modal-footer footer-mta">

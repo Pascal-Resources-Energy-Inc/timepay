@@ -440,11 +440,11 @@
                                 {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li> --}}
                                 {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/work-from-home') }}">Work from home</a></li> --}}
 
-                                <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li>
-                                <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}" onsubmit="show()">Travel Order</a></li>
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}" onsubmit="show()">DTR Correction</a></li>
                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/planning') }}">Planning</a></li>
                                 {{-- <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/260830852764058" style="text-wrap: auto">Monetized Transportation Allowance</a></li> --}}
-                                <li class="nav-item "><a class="nav-link" href="{{ url('/mta') }}" style="text-wrap: auto">Monetized Transportation Allowance</a></li>
+                                <li class="nav-item "><a class="nav-link" href="{{ url('/mta') }}" style="text-wrap: auto" onsubmit="show()">Monetized Transportation Allowance</a></li>
                                 {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/dar') }}">DAR</a></li> --}}
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> -->

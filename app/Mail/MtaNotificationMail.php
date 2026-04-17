@@ -20,9 +20,31 @@ class MtaNotificationMail extends Mailable
         $this->approver = $approver;
     }
 
+    // public function build()
+    // {
+    //     return $this->subject('New MTA Request')
+    //                 ->view('email.mta_notification');
+    // }
+
     public function build()
     {
-        return $this->subject('New MTA Request')
-                    ->view('email.mta_notification');
+        $mail = $this->subject('New MTA Request')
+            ->view('email.mta_notification')
+            ->with([
+                'mta' => $this->mta,
+                'approver' => $this->approver
+            ]);
+
+        // ✅ FIXED PATH
+        if (!empty($this->mta->attachment)) {
+
+            $filePath = public_path($this->mta->attachment);
+
+            if (file_exists($filePath)) {
+                $mail->attach($filePath);
+            }
+        }
+
+        return $mail;
     }
 }

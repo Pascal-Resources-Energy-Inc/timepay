@@ -135,10 +135,17 @@ class EmployeeMtaController extends Controller
         ]);
 
         // ✅ DUPLICATE CHECK
+        // $duplicate = EmployeeMta::where('user_id', Auth::id())
+        //     ->where('status', '!=', 'Cancelled') 
+        //     ->where('status', '!=', 'Disapproved')
+        //     ->where('payment_status', '!=', 'Disapproved')
+        //     ->whereDate('mta_date', $request->mta_date)
+        //     ->exists();
         $duplicate = EmployeeMta::where('user_id', Auth::id())
-            ->where('status', '!=', 'Cancelled') 
-            ->whereDate('mta_date', $request->mta_date)
-            ->exists();
+                ->whereNotIn('status', ['Cancelled', 'Disapproved'])
+                ->where('payment_status', '!=', 'Disapproved')
+                ->whereDate('mta_date', $request->mta_date)
+                ->exists();
 
         if ($duplicate) {
             Alert::error('Duplicate Date', 'You already have an MTA with the same transaction date.')

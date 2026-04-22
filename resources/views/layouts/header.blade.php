@@ -484,12 +484,12 @@
                             <span class="menu-title">Leave Calendar</span>
                         </a>
                     </li>
-                    {{-- <li class="nav-item @if ($header == 'purchase') active @endif">
+                    <li class="nav-item @if ($header == 'purchase') active @endif">
                         <a class="nav-link" href="{{ url('purchase') }}" onclick='show()'>
                             <i class="icon-bag menu-icon"></i>
                             <span class="menu-title">Employee PO</span>
                         </a>
-                    </li> --}}
+                    </li>
                     <li class="nav-item ">
                         <a class="nav-link" href="https://forms.gle/kvbzyjE78BYAYg4q6" target="_blank">
                             <i class="icon-bag menu-icon"></i>

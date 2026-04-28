@@ -23,7 +23,7 @@
           <div class="form-group row">
             <div class='col-md-2'>Transaction Date</div>
             <div class='col-md-4 mb-2'>
-              <input type="date" name='mta_date' class="form-control" min='{{date('Y-m-d', strtotime("-3 days"))}}' value="{{ $mta->mta_date }}" required>
+              <input type="date" name='mta_date' class="form-control" min='{{date('Y-m-d', strtotime("-20 days"))}}' value="{{ $mta->mta_date }}" required>
             </div>
             <div class='col-md-2'>Work Location</div>
             <div class='col-md-4'>

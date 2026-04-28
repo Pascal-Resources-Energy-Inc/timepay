@@ -298,7 +298,8 @@ class EmployeeMtaController extends Controller
         $edit_mta->work_location = $request->work_location;
         $edit_mta->liters_loaded = $request->liters_loaded;
         $edit_mta->petron_price = $request->petron_price;
-        $edit_mta->mta_amount = floatval(preg_replace('/[^0-9.]/', '', $request->liters_loaded)) * floatval($request->petron_price);
+        $edit_mta->mta_amount = $request->mta_amount;
+        // $edit_mta->mta_amount = floatval(preg_replace('/[^0-9.]/', '', $request->liters_loaded)) * floatval($request->petron_price);
         $edit_mta->sales_invoice_number = $request->sales_invoice_number;
         $edit_mta->notes = $request->notes;
 

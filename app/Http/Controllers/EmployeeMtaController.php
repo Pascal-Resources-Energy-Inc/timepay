@@ -293,7 +293,7 @@ class EmployeeMtaController extends Controller
     public function update(Request $request, $id)
     {
         $edit_mta = EmployeeMta::findOrFail($id);
-        $edit_mta->user_id = Auth::user()->id;
+        // $edit_mta->user_id = Auth::user()->id;
         $edit_mta->mta_date = $request->mta_date;
         $edit_mta->work_location = $request->work_location;
         $edit_mta->liters_loaded = $request->liters_loaded;
@@ -354,7 +354,7 @@ class EmployeeMtaController extends Controller
             })
             ->orderBy('mta_date', 'DESC')
             ->get();
-        
+        // dd($mtas);
             
         $for_processing =   (clone $baseQuery)->where('payment_status', 'For Processing')->count();
         $processed      =   (clone $baseQuery)->where('payment_status', 'Processed')->count();

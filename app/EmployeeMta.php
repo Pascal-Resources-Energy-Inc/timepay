@@ -10,6 +10,17 @@ class EmployeeMta extends Model implements Auditable
     use \OwenIt\Auditing\Auditable;
 
     protected $fillable = [
+        'mta_reference',
+        'user_id',
+        'mta_date',
+        'work_location',
+        'liters_loaded',
+        'petron_price',
+        'mta_amount',
+        'sales_invoice_number',
+        'notes',
+        'attachment',
+        'level',
         'status',
         'approved_date',
         'approval_remarks',
@@ -18,6 +29,8 @@ class EmployeeMta extends Model implements Auditable
         'processing_date',
         'payment_remarks',
         'processing_by',
+        'created_by',
+        'updated_by'
     ];
     
     public function user()

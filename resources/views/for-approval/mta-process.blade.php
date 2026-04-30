@@ -129,27 +129,33 @@
                       </td>
                     @endif
                     <td align="center">
-                      <button type="button" class="btn btn-primary btn-rounded btn-icon" data-toggle="modal" data-target="#view_mta{{ $form_approval->id }}">
-                        <i class="ti ti-eye"></i>
-                      </button>
-                      <button type="button" id="edit{{ $form_approval->id }}" class="btn btn-warning btn-rounded btn-icon" data-target="#edit_mta{{ $form_approval->id }}" data-toggle="modal" title='Edit'>
-                        <i class="ti-pencil-alt"></i>
-                      </button>
-                      @if($form_approval->payment_status == 'Approved')
-                        <button type="button" class="btn btn-info btn-rounded btn-icon" data-toggle="modal" data-target="#mta-process-remarks-{{ $form_approval->id }}" title="For Processing">
-                          <i class="ti ti-reload"></i>
+                      @if(auth()->user()->role == 'Admin' && checkUserPrivilege('employees_mta', auth()->user()->id) == 'yes')
+                        <button type="button" class="btn btn-primary btn-rounded btn-icon" data-toggle="modal" data-target="#view_mta{{ $form_approval->id }}">
+                          <i class="ti ti-eye"></i>
                         </button>
-                        <button type="button" class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#mta-disapproved-remarks-{{ $form_approval->id }}">
-                          <i class="ti-close"></i>
+                        <button type="button" id="edit{{ $form_approval->id }}" class="btn btn-warning btn-rounded btn-icon" data-target="#edit_mta{{ $form_approval->id }}" data-toggle="modal" title='Edit'>
+                          <i class="ti-pencil-alt"></i>
                         </button>
-                      @endif
-                      @if($form_approval->payment_status == 'For Processing')
-                        <button type="button" class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#mta-processed-remarks-{{ $form_approval->id }}" title="Processed for Payment">
-                          <i class="ti ti-upload"></i>
+                        @if($form_approval->payment_status == 'Approved')
+                          <button type="button" class="btn btn-info btn-rounded btn-icon" data-toggle="modal" data-target="#mta-process-remarks-{{ $form_approval->id }}" title="For Processing">
+                            <i class="ti ti-reload"></i>
+                          </button>
+                          <button type="button" class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#mta-disapproved-remarks-{{ $form_approval->id }}">
+                            <i class="ti-close"></i>
+                          </button>
+                        @endif
+                        @if($form_approval->payment_status == 'For Processing')
+                          <button type="button" class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#mta-processed-remarks-{{ $form_approval->id }}" title="Processed for Payment">
+                            <i class="ti ti-upload"></i>
+                          </button>
+                          {{-- <button type="button" class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#mta-disapproved-remarks-{{ $form_approval->id }}">
+                            <i class="ti-close"></i>
+                          </button> --}}
+                        @endif
+                      @else 
+                        <button type="button" class="btn btn-primary btn-rounded btn-icon" data-toggle="modal" data-target="#view_mta{{ $form_approval->id }}">
+                          <i class="ti ti-eye"></i>
                         </button>
-                        {{-- <button type="button" class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#mta-disapproved-remarks-{{ $form_approval->id }}">
-                          <i class="ti-close"></i>
-                        </button> --}}
                       @endif
                     </td>
                     <td>{{ $form_approval->mta_reference }}</td>

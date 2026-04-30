@@ -514,7 +514,7 @@
                         $approvedMtaCount = \App\EmployeeMta::whereIn('payment_status', ['Approved', 'For Processing'])->count();
                     @endphp
 
-                    @if (auth()->user()->role == 'Admin' && checkUserPrivilege('employees_mta', auth()->user()->id) == 'yes')
+                    @if (checkUserPrivilege('employees_mta', auth()->user()->id) == 'yes')
                         <li class="nav-item">
                             <hr>
                             <h5>

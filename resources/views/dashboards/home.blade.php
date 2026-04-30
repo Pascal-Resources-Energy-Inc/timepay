@@ -912,6 +912,18 @@
     font-size: 18px;
 }
 
+.icon-share {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, #ff0505, #e24949);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+}
+
 @media (max-width: 768px) {
     .calendar-grid {
         font-size: 9px !important;
@@ -1277,6 +1289,30 @@
                                     target="_blank"
                                     class="btn btn-outline-primary btn-sm">
                                         <i class="fas fa-external-link-alt mr-1"></i> Open
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card email-directory-card border-0 shadow-sm">
+                                <div class="card-body d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-share mr-3">
+                                            <i class="fas fa-legal"></i>
+                                        </div>
+
+                                        <div>
+                                            <h6 class="mb-1 font-weight-bold">Code of Conduct</h6>
+                                            <small class="text-muted">
+                                                Review the company's guidelines and expectations
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <a href="https://drive.google.com/file/d/1eeFqH1DsG4qdAXS-TglsNxYHUznxjhTR/view" target="_blank" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-file-pdf-o mr-1"></i> Open
                                     </a>
                                 </div>
                             </div>

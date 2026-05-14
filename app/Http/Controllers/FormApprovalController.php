@@ -2283,7 +2283,7 @@ class FormApprovalController extends Controller
 
         $filter_status = isset($request->status) ? $request->status : 'Pending';
         $approver_id = auth()->user()->id;
-        $dtrs = EmployeeDtr::with('approver.approver_info','user')
+        $dtrs = EmployeeDtr::with('approver.approver_info','user.employee.department')
                                 ->whereHas('approver',function($q) use($approver_id) {
                                     $q->where('approver_id',$approver_id);
                                 })
@@ -2292,7 +2292,7 @@ class FormApprovalController extends Controller
                                 ->whereDate('created_at','<=',$to_date)
                                 ->orderBy('created_at','DESC')
                                 ->get();
-        
+        // dd($dtrs);
         $user_ids = EmployeeApprover::select('user_id')->where('approver_id',$approver_id)->pluck('user_id')->toArray();
 
         $for_approval = EmployeeDtr::whereIn('user_id',$user_ids)
@@ -2392,71 +2392,174 @@ class FormApprovalController extends Controller
         return back();
     }
 
-    public function approveDtrAll(Request $request){
+    // public function approveDtrAll(Request $request){
         
-        $ids = json_decode($request->ids,true);
+    //     $ids = json_decode($request->ids,true);
    
-        $count = 0;
-        if(count($ids) > 0){
+    //     $count = 0;
+    //     if(count($ids) > 0){
             
-            foreach($ids as $id){
-                $employee_dtr = EmployeeDtr::with('employee')->where('id', $id)->first();
-                if($employee_dtr){
-                    $level = '';
-                    $employee_approver = EmployeeApprover::where('user_id', $employee_dtr->user_id)->where('approver_id', auth()->user()->id)->first();
-                        //  dd($employee_approver);
-                        if($employee_approver->as_final == 'on'){
-                            $employee = Employee::where('user_id',$employee_dtr->user_id)->first();
+    //         foreach($ids as $id){
+    //             $employee_dtr = EmployeeDtr::with('employee')->where('id', $id)->first();
+    //             if($employee_dtr){
+    //                 $level = '';
+    //                 $employee_approver = EmployeeApprover::where('user_id', $employee_dtr->user_id)->where('approver_id', auth()->user()->id)->first();
+    //                     //  dd($employee_approver);
+    //                     if($employee_approver->as_final == 'on'){
+    //                         $employee = Employee::where('user_id',$employee_dtr->user_id)->first();
                            
-                            EmployeeDtr::Where('id', $id)->update([
-                                'approved_date' => date('Y-m-d'),
-                                'status' => 'Approved',
-                                'approval_remarks' => 'Approved',
-                                'level' => 1,
-                            ]);
-                            $count++;
+    //                         EmployeeDtr::Where('id', $id)->update([
+    //                             'approved_date' => date('Y-m-d'),
+    //                             'status' => 'Approved',
+    //                             'approval_remarks' => 'Approved',
+    //                             'level' => 1,
+    //                         ]);
+    //                         $count++;
                        
-                            if($employee_dtr->time_in != null)
-                            {
-                                 $attendance = new AttendanceLog;
-                                $attendance->emp_code = $employee_dtr->employee->employee_code;
-                                $attendance->date = date('Y-m-d',strtotime($employee_dtr->dtr_date));
-                                $attendance->location = "DTR Correction";
-                                $attendance->ip_address ="DTR Correction";
-                                $attendance->date = date('Y-m-d',strtotime($employee_dtr->dtr_date));
-                                $attendance->datetime = $employee_dtr->time_in;
-                                $attendance->type = "0";
-                                $attendance->save();
-                            }
-                            if($employee_dtr->time_out != null)
-                            {
-                                $attendance = new AttendanceLog;
-                                $attendance->emp_code = $employee_dtr->employee->employee_code;
-                                $attendance->date = date('Y-m-d',strtotime($employee_dtr->dtr_date));
-                                $attendance->location = "DTR Correction";
-                                $attendance->ip_address ="DTR Correction";
-                                $attendance->datetime = $employee_dtr->time_out;
-                                $attendance->type = "1";
-                                $attendance->save();
-                            }
-                            $this->syncAttendance($employee_dtr->dtr_date,$employee_dtr->employee->employee_code);
-                        }else{
-                              dd('renz');
-                            EmployeeDtr::Where('id', $id)->update([
-                                'approval_remarks' => 'Approved',
-                                'level' => $employee_dtr->level+1
-                            ]);
-                            $count++;
-                        }
+    //                         if($employee_dtr->time_in != null)
+    //                         {
+    //                              $attendance = new AttendanceLog;
+    //                             $attendance->emp_code = $employee_dtr->employee->employee_code;
+    //                             $attendance->date = date('Y-m-d',strtotime($employee_dtr->dtr_date));
+    //                             $attendance->location = "DTR Correction";
+    //                             $attendance->ip_address ="DTR Correction";
+    //                             $attendance->date = date('Y-m-d',strtotime($employee_dtr->dtr_date));
+    //                             $attendance->datetime = $employee_dtr->time_in;
+    //                             $attendance->type = "0";
+    //                             $attendance->save();
+    //                         }
+    //                         if($employee_dtr->time_out != null)
+    //                         {
+    //                             $attendance = new AttendanceLog;
+    //                             $attendance->emp_code = $employee_dtr->employee->employee_code;
+    //                             $attendance->date = date('Y-m-d',strtotime($employee_dtr->dtr_date));
+    //                             $attendance->location = "DTR Correction";
+    //                             $attendance->ip_address ="DTR Correction";
+    //                             $attendance->datetime = $employee_dtr->time_out;
+    //                             $attendance->type = "1";
+    //                             $attendance->save();
+    //                         }
+    //                         $this->syncAttendance($employee_dtr->dtr_date,$employee_dtr->employee->employee_code);
+    //                     }else{
+    //                         EmployeeDtr::Where('id', $id)->update([
+    //                             'approval_remarks' => 'Approved',
+    //                             'level' => $employee_dtr->level+1
+    //                         ]);
+    //                         $count++;
+    //                     }
                     
                    
-                }
+    //             }
+    //         }
+
+    //         return $count;
+
+    //     }else{
+    //         return 'error';
+    //     }
+    // }
+    public function approveDtrAll(Request $request)
+    {
+        try {
+
+            $ids = json_decode($request->ids, true);
+
+            if(empty($ids) || count($ids) == 0){
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No selected DTR found.'
+                ]);
             }
 
-            return $count;
+            $count = 0;
 
-        }else{
-            return 'error';
+            foreach($ids as $id){
+
+                $employee_dtr = EmployeeDtr::with('employee')
+                    ->where('id', $id)
+                    ->first();
+
+                if(!$employee_dtr){
+                    continue;
+                }
+
+                $employee_approver = EmployeeApprover::where('user_id', $employee_dtr->user_id)
+                    ->where('approver_id', auth()->user()->id)
+                    ->first();
+
+                if(!$employee_approver){
+                    continue;
+                }
+
+                // FINAL APPROVER
+                if($employee_approver->as_final == 'on'){
+
+                    EmployeeDtr::where('id', $id)->update([
+                        'approved_date' => now(),
+                        'status' => 'Approved',
+                        'approval_remarks' => 'Approved',
+                        'level' => 1,
+                    ]);
+
+                    // TIME IN
+                    if($employee_dtr->time_in){
+
+                        AttendanceLog::create([
+                            'emp_code' => $employee_dtr->employee->employee_code,
+                            'date' => date('Y-m-d', strtotime($employee_dtr->dtr_date)),
+                            'location' => 'DTR Correction',
+                            'ip_address' => 'DTR Correction',
+                            'datetime' => $employee_dtr->time_in,
+                            'type' => '0'
+                        ]);
+                    }
+
+                    // TIME OUT
+                    if($employee_dtr->time_out){
+
+                        AttendanceLog::create([
+                            'emp_code' => $employee_dtr->employee->employee_code,
+                            'date' => date('Y-m-d', strtotime($employee_dtr->dtr_date)),
+                            'location' => 'DTR Correction',
+                            'ip_address' => 'DTR Correction',
+                            'datetime' => $employee_dtr->time_out,
+                            'type' => '1'
+                        ]);
+                    }
+
+                    // SYNC ATTENDANCE
+                    $this->syncAttendance(
+                        $employee_dtr->dtr_date,
+                        $employee_dtr->employee->employee_code
+                    );
+
+                } else {
+
+                    // NEXT LEVEL APPROVAL
+                    EmployeeDtr::where('id', $id)->update([
+                        'approval_remarks' => 'Approved',
+                        'level' => $employee_dtr->level + 1
+                    ]);
+                }
+
+                $count++;
+            }
+
+            return response()->json([
+                'success' => true,
+                'count' => $count,
+                'message' => 'DTR approved successfully.'
+            ]);
+
+        } catch (\Exception $e){
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ], 500);
         }
     }
 

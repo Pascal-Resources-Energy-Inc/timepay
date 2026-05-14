@@ -9,7 +9,7 @@
                 <div class="media">                
                   <div class="media-body">
                     <h4 class="mb-4">For Approval</h4>
-                    <a href="/for-dtr-correction?status=Pending" class="h2 card-text text-white">{{$for_approval}}</a>
+                    <a href="{{ url('for-dtr-correction') }}?status=Pending" class="h2 card-text text-white">{{$for_approval}}</a>
                   </div>
                 </div>
               </div>
@@ -21,7 +21,7 @@
                 <div class="media">                
                   <div class="media-body">
                     <h4 class="mb-4">Approved</h4>
-                    <a href="/for-dtr-correction?status=Approved" class="h2 card-text text-white">{{$approved}}</a>
+                    <a href="{{ url('for-dtr-correction') }}?status=Approved" class="h2 card-text text-white">{{$approved}}</a>
                   </div>
                 </div>
               </div>
@@ -33,7 +33,7 @@
                 <div class="media">                
                   <div class="media-body">
                     <h4 class="mb-4">Declined / Rejected</h4>
-                    <a href="/for-dtr-correction?status=Declined" class="h2 card-text text-white">{{$declined}}</a>
+                    <a href="{{ url('for-dtr-correction') }}?status=Declined" class="h2 card-text text-white">{{$declined}}</a>
                   </div>
                 </div>
               </div>
@@ -123,10 +123,10 @@
                             </td>
                           @endif
                           <td>
-                              <strong>{{$form_approval->user->name}}</strong> <br>
-                              <small>Position : {{$form_approval->user->employee->position}}</small> <br>
-                              <small>Location : {{$form_approval->user->employee->location}}</small> <br>
-                              <small>Department : {{ $form_approval->user->employee->department ? $form_approval->user->employee->department->name : ""}}</small>
+                              <strong>{{ data_get($form_approval, 'user.name', '') }}</strong> <br>
+                              <small>Position : {{ data_get($form_approval, 'user.employee.position', '') }}</small> <br>
+                              <small>Location : {{ data_get($form_approval, 'user.employee.location', '') }}</small> <br>
+                              <small>Department : {{ data_get($form_approval, 'user.employee.department.name', '') }}</small>
                           </td>
                           <td>{{date('m/d/Y', strtotime($form_approval->created_at))}}</td>
                           <td>{{date('m/d/Y', strtotime($form_approval->dtr_date))}}</td>
@@ -194,156 +194,140 @@
         </div>
     </div>
 </div>
-<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 <script>
-  $(document).ready(function() {
-      // "Select All" checkbox click event
-      $('#selectAll').on('click', function() {
-          const isChecked = $(this).prop('checked');
-          $('.checkbox-item').prop('checked', isChecked);
-          updateSelectedCount();
+$(document).ready(function() {
+    const $checkboxItems = $('.checkbox-item');
+    const $approveBtn = $('#approveAllBtn');
+    const $disapproveBtn = $('#disApproveAllBtn');
+    const $selectAll = $('#selectAll');
+    const $labelSelectAll = $('#labelSelectAll');
 
-          if ($(this).is(':checked')) {
+    function getSelectedItems() {
+        return $checkboxItems.filter(':checked').map(function() {
+            return $(this).data('id');
+        }).get();
+    }
 
-            const selectedCount = $('.checkbox-item:checked').length;
+    function updateSelectedCount() {
+        const selectedCount = getSelectedItems().length;
+        $approveBtn.text('(' + selectedCount + ') Approve');
+        $disapproveBtn.text('(' + selectedCount + ') Disapprove');
+    }
 
-            if(selectedCount > 0){
-              
-              // Checkbox is checked, show the button
-              $('#approveAllBtn').show();
-              $('#disApproveAllBtn').show();
+    function toggleButtons() {
+        const anyChecked = getSelectedItems().length > 0;
+        $approveBtn.toggle(anyChecked);
+        $disapproveBtn.toggle(anyChecked);
+        $labelSelectAll.text($selectAll.prop('checked') ? 'Unselect All' : 'Select All');
+        updateSelectedCount();
+    }
 
+    function setLoader(isVisible) {
+        const loader = document.getElementById("preloaderHera");
+
+        if (loader) {
+            loader.style.display = isVisible ? "block" : "none";
+        }
+    }
+
+    function getErrorMessage(xhr) {
+        if (xhr.responseJSON && xhr.responseJSON.message) {
+            return xhr.responseJSON.message;
+        }
+
+        if (xhr.responseText) {
+            try {
+                const response = JSON.parse(xhr.responseText);
+                return response.message || "Something went wrong.";
+            } catch (e) {
+                return xhr.responseText;
             }
-          } else {
-              // Checkbox is unchecked, hide the button
-              $('#approveAllBtn').hide();
-              $('#disApproveAllBtn').hide();
+        }
 
-              $('#labelSelectAll').text('Select All');
-          }
-      });
+        return "Something went wrong.";
+    }
 
-      $('.checkbox-item').on('click', function() {
-          if ($(this).is(':checked')) {
-              // Checkbox is checked, show the button
-              $('#approveAllBtn').show();
-              $('#disApproveAllBtn').show();
-          } else {
-              // Checkbox is unchecked, hide the button
-              $('#approveAllBtn').hide();
-              $('#disApproveAllBtn').hide();
+    function submitSelectedDtrs(options) {
+        const selectedItems = getSelectedItems();
 
-              $('#labelSelectAll').text('Select All');
-          }
+        if (selectedItems.length <= 0) {
+            Swal.fire("Warning", "Please select DTR.", "warning");
+            return;
+        }
 
-          updateSelectedCount();
-      });
-
-      // Submit button click event to perform the POST request
-      $('#approveAllBtn').on('click', function() {
-          Swal.fire({
+        Swal.fire({
             title: "Are you sure?",
-            text: "You want to approve this DTR?",
+            text: options.confirmText,
             icon: "warning",
-            buttons: true,
-          })
-          .then((willCancel) => {
-            if (willCancel) {
-              document.getElementById("loader").style.display = "block";
-                  
-              const selectedItems = [];
-              
-              $('.checkbox-item:checked').each(function() {
-                  const id = $(this).data('id'); // Get the 'data-id' attribute value
-                  selectedItems.push({ id: id });
-              });
-
-              const dataToSend = {
-                  ids: JSON.stringify(selectedItems)
-              };
-
-              $.ajax({
-                  headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                  },
-                  type: 'POST',
-                  url: '/approve-dtr-all',
-                  data: dataToSend,
-                  dataType: 'json',
-                  success: function(response) {
-                    console.log(response)
-                    document.getElementById("loader").style.display = "none";
-                    Swal.fire(" DTR has been Approved " + "("+response+")", {
-                      icon: "success",
-                    }).then(function() {
-                      location.reload();
-                    });
-                  },
-                  error: function(error) {
-                      console.error('Error sending AJAX POST request:', error);
-                  }
-              });
+            showCancelButton: true,
+            confirmButtonText: options.confirmButtonText,
+            confirmButtonColor: options.confirmButtonColor
+        }).then(function(result) {
+            if (!result.isConfirmed) {
+                return;
             }
-          });
-      });
 
-      // Submit button click event to perform the POST request
-      $('#disApproveAllBtn').on('click', function() {
-          Swal.fire({
-            title: "Are you sure?",
-            text: "You want to disapprove this DTR?",
-            icon: "warning",
-            buttons: true,
-          })
-          .then((willCancel) => {
-            if (willCancel) {
-              document.getElementById("loader").style.display = "block";
-              
-              const selectedItems = [];
-              
-              $('.checkbox-item:checked').each(function() {
-                  const id = $(this).data('id'); // Get the 'data-id' attribute value
-                  selectedItems.push({ id: id });
-              });
+            setLoader(true);
 
-              const dataToSend = {
-                  ids: JSON.stringify(selectedItems)
-              };
+            $.ajax({
+                type: 'POST',
+                url: options.url,
+                data: {
+                    ids: JSON.stringify(selectedItems),
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                dataType: 'json',
+                success: function(response) {
+                    setLoader(false);
 
-              $.ajax({
-                  headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                  },
-                  type: 'POST',
-                  url: '/disapprove-dtr-all',
-                  data: dataToSend,
-                  dataType: 'json',
-                  success: function(response) {
-                    console.log(response)
-                    document.getElementById("loader").style.display = "none";
-                    Swal.fire(" DTR has been Disapproved " + "("+response+")", {
-                      icon: "success",
-                    }).then(function() {
-                      location.reload();
+                    const message = response.message || options.successMessage;
+                    const count = response.count ? ' (' + response.count + ')' : '';
+
+                    Swal.fire("Success", message + count, "success").then(function() {
+                        location.reload();
                     });
-                  },
-                  error: function(error) {
-                      console.error('Error sending AJAX POST request:', error);
-                  }
-              });
-            }
-          });
-      });
+                },
+                error: function(xhr) {
+                    setLoader(false);
+                    console.log(xhr.responseText);
+                    Swal.fire("Error", getErrorMessage(xhr), "error");
+                }
+            });
+        });
+    }
 
-  
-      function updateSelectedCount() {
-          const selectedCount = $('.checkbox-item:checked').length;
-          $('#approveAllBtn').text( '('+ selectedCount + ') Approve');
-          $('#disApproveAllBtn').text( '('+ selectedCount + ') Disapprove');
-      }
+    $selectAll.on('click', function() {
+        $checkboxItems.prop('checked', $(this).prop('checked'));
+        toggleButtons();
+    });
 
+    $checkboxItems.on('click', function() {
+        $selectAll.prop('checked', $checkboxItems.length === $checkboxItems.filter(':checked').length);
+        toggleButtons();
+    });
 
-  });
+    $approveBtn.on('click', function() {
+        submitSelectedDtrs({
+            url: @json(url('approve-dtr-all')),
+            confirmText: "You want to approve this DTR?",
+            confirmButtonText: "Yes, approve it!",
+            confirmButtonColor: "#28a745",
+            successMessage: "DTR has been approved."
+        });
+    });
+
+    $disapproveBtn.on('click', function() {
+        submitSelectedDtrs({
+            url: @json(url('disapprove-dtr-all')),
+            confirmText: "You want to disapprove this DTR?",
+            confirmButtonText: "Yes, disapprove it!",
+            confirmButtonColor: "#dc3545",
+            successMessage: "DTR has been disapproved."
+        });
+    });
+
+    toggleButtons();
+});
 </script>
 
 @foreach ($dtrs as $dtr)

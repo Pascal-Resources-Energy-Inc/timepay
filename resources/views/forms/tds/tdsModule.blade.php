@@ -205,7 +205,7 @@
                           </td>
                           <td>
                               @if($record->delivery_date)
-                                  {{ \Carbon\Carbon::parse($record->delivery_date)->format('M d, Y') }}
+                                  {{ \Carbon\Carbon::parse($record->delivery_date)->format('M. d, Y') }}
                               @else
                                   <span class="text-muted">-</span>
                               @endif

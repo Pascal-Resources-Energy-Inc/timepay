@@ -146,6 +146,18 @@
                     <option value="Retail Shop" {{ old('business_type') == 'Retail Shop' ? 'selected' : '' }}>Retail Shop</option>
                     <option value="Wholesale" {{ old('business_type') == 'Wholesale' ? 'selected' : '' }}>Wholesale</option>
                     <option value="Grocery" {{ old('business_type') == 'Grocery' ? 'selected' : '' }}>Grocery</option>
+                    <option value="Hardware Store" {{ old('business_type') == 'Hardware Store' ? 'selected' : '' }}>Hardware Store</option>
+                    <option value="Oil & Gas" {{ old('business_type') == 'Oil & Gas' ? 'selected' : '' }}>Oil & Gas</option>
+                    <option value="Convenience Store" {{ old('business_type') == 'Convenience Store' ? 'selected' : '' }}>Convenience Store</option>
+                    <option value="Super Market" {{ old('business_type') == 'Super Market' ? 'selected' : '' }}>Super Market</option>
+                    <option value="Pharmacy" {{ old('business_type') == 'Pharmacy' ? 'selected' : '' }}>Pharmacy</option>
+                    <option value="Water Station " {{ old('business_type') == 'Water Station ' ? 'selected' : '' }}>Water Station </option>
+                    <option value="Cooperative" {{ old('business_type') == 'Cooperative' ? 'selected' : '' }}>Cooperative</option>
+                    <option value="Restaurant" {{ old('business_type') == 'Restaurant' ? 'selected' : '' }}>Restaurant</option>
+                    <option value="Bakery" {{ old('business_type') == 'Bakery' ? 'selected' : '' }}>Bakery</option>
+                    <option value="Agriculture Supply" {{ old('business_type') == 'Agriculture Supply' ? 'selected' : '' }}>Agriculture Supply</option>
+                    <option value="Veterinary Supply" {{ old('business_type') == 'Veterinary Supply' ? 'selected' : '' }}>Veterinary Supply</option>
+                    <option value="AgriVet" {{ old('business_type') == 'AgriVet' ? 'selected' : '' }}>AgriVet</option>
                   </select>
                 </div>
               </div>
@@ -326,9 +338,11 @@
                   <option value="Kaagapay" {{ old('lead_generator') == 'Kaagapay' ? 'selected' : '' }}>Kaagapay</option>
                   <option value="Referral" {{ old('lead_generator') == 'Referral' ? 'selected' : '' }}>Referral</option>
                   <option value="MFI" {{ old('lead_generator') == 'MFI' ? 'selected' : '' }}>MFI</option>
+                  <option value="Packworks" {{ old('lead_generator') == 'Packworks' ? 'selected' : '' }}>Packworks</option>
                   <option value="MD" {{ old('lead_generator') == 'MD' ? 'selected' : '' }}>MD</option>
                   <option value="PD" {{ old('lead_generator') == 'PD' ? 'selected' : '' }}>PD</option>
                   <option value="AD" {{ old('lead_generator') == 'AD' ? 'selected' : '' }}>AD</option>
+                  <option value="D" {{ old('lead_generator') == 'D' ? 'selected' : '' }}>Dealer</option>
                   <option value="Own Accounts" {{ old('lead_generator') == 'Own Accounts' ? 'selected' : '' }}>Own Accounts</option>
                 </select>
                 <small class="form-text text-muted">Source of the lead</small>

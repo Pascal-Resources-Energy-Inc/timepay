@@ -1118,6 +1118,7 @@ class TdsController extends Controller
             'Lead Generator',
             'Supplier Name',
             'Status',
+            'Delivery Date',
             'Timeline',
             'Additional Notes'
         ]);
@@ -1138,6 +1139,7 @@ class TdsController extends Controller
                 $record->lead_generator,
                 $record->supplier_name,
                 $record->status,
+                $record->delivery_date ?? 'N/A',
                 $record->timeline ?? 'N/A',
                 $record->additional_notes ?? 'N/A'
             ]);

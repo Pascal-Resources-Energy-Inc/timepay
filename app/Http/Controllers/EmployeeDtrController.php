@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\EmployeeApproverController;
 use App\Employee;
 use App\EmployeeDtr;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -60,6 +61,7 @@ class EmployeeDtrController extends Controller
             $emp = Employee::where('user_id',auth()->user()->id)->first();
             $new_dtr->schedule_id = $emp->schedule_id;
             $new_dtr->correction = $request->correction;
+            $new_dtr->adjustment_type = $request->adjustment_type;
             
             // if($request->correction == 'Both'){
             //     $stime = $request->time_in;
@@ -77,15 +79,17 @@ class EmployeeDtrController extends Controller
             //     $new_dtr->time_out = $request->dtr_date.' '.$request->time_out;
             // }      
             
+            $adjusted_times = $this->getAdjustedDtrTimes($request);
+
             if($request->correction == 'Both'){
-                $new_dtr->time_in = $request->time_in;
-                $new_dtr->time_out = $request->time_out;                
+                $new_dtr->time_in = $adjusted_times['time_in'];
+                $new_dtr->time_out = $adjusted_times['time_out'];                
             }else if($request->correction == 'Time-in'){
-                $new_dtr->time_in = $request->time_in;
+                $new_dtr->time_in = $adjusted_times['time_in'];
                 $new_dtr->time_out = null;
             }else{
                 $new_dtr->time_in = null;
-                $new_dtr->time_out = $request->time_out;
+                $new_dtr->time_out = $adjusted_times['time_out'];
             }      
 
             $new_dtr->remarks = $request->remarks;
@@ -117,6 +121,7 @@ class EmployeeDtrController extends Controller
         $new_dtr->user_id = Auth::user()->id;
         $new_dtr->dtr_date = $request->dtr_date;
         $new_dtr->correction = $request->correction;
+        $new_dtr->adjustment_type = $request->adjustment_type;
         // if($request->correction == 'Both'){
         //     $stime = $request->time_in;
         //     $etime = $request->time_out;   
@@ -133,15 +138,17 @@ class EmployeeDtrController extends Controller
         //     $new_dtr->time_out = $request->dtr_date.' '.$request->time_out;
         // }     
         
+        $adjusted_times = $this->getAdjustedDtrTimes($request);
+
         if($request->correction == 'Both'){
-            $new_dtr->time_in = $request->time_in;
-            $new_dtr->time_out = $request->time_out;                
+            $new_dtr->time_in = $adjusted_times['time_in'];
+            $new_dtr->time_out = $adjusted_times['time_out'];                
         }else if($request->correction == 'Time-in'){
-            $new_dtr->time_in = $request->time_in;
+            $new_dtr->time_in = $adjusted_times['time_in'];
             $new_dtr->time_out = null;
         }else{
             $new_dtr->time_in = null;
-            $new_dtr->time_out = $request->time_out;
+            $new_dtr->time_out = $adjusted_times['time_out'];
         }  
 
         $new_dtr->remarks = $request->remarks;
@@ -170,6 +177,25 @@ class EmployeeDtrController extends Controller
         EmployeeDtr::Where('id', $id)->update(['status' => 'Cancelled']);
         Alert::success('DTR Correction has been cancelled.')->persistent('Dismiss');
         return back();
+    }
+
+    private function getAdjustedDtrTimes(Request $request)
+    {
+        $has_penalty = EmployeeDtr::isPenaltyAdjustmentType($request->adjustment_type);
+
+        return [
+            'time_in' => $this->adjustDtrTime($request->time_in, $has_penalty ? 15 : 0),
+            'time_out' => $this->adjustDtrTime($request->time_out, $has_penalty ? -15 : 0),
+        ];
+    }
+
+    private function adjustDtrTime($time, $minutes)
+    {
+        if(!$time){
+            return null;
+        }
+
+        return Carbon::parse($time)->addMinutes($minutes)->format('Y-m-d H:i:s');
     }    
 }
 

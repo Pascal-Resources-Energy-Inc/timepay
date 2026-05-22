@@ -42,9 +42,22 @@
               <option value="Both">Both Time-In and Time-Out</option>                                    
               <option value="Time-in">Time-in Only</option>
               <option value="Time-out">Time-out Only</option>
-          </select>
+            </select>
            </div>            
           </div>           
+          <div class="form-group row">
+            <div class='col-md-2'>
+              Adjustment Type
+            </div>
+            <div class='col-md-10'>
+              <select class="form-control" name='adjustment_type' required>
+                <option value="">-- Select Adjustment Type --</option>
+                @foreach(\App\EmployeeDtr::adjustmentTypes() as $adjustment_type => $impact)
+                  <option value="{{ $adjustment_type }}">{{ $adjustment_type }} - {{ $impact }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
           <div class="form-group row" >
                 <div class='col-md-2'>
                   Time-In
@@ -106,9 +119,9 @@
           if (this.dtr_date) {
             const obDate = new Date(this.dtr_date);
             obDate.setDate(obDate.getDate() + 1);
-            this.min_date = this.dtr_date + ' 00:00:00';
-            this.dtr_max_date = this.dtr_date + ' 23:00:00';
-            this.max_date = obDate.toISOString().split('T')[0] + ' 23:00:00';
+            this.min_date = this.dtr_date + 'T00:00';
+            this.dtr_max_date = this.dtr_date + 'T23:00';
+            this.max_date = obDate.toISOString().split('T')[0] + 'T23:00';
           }
         }
       },

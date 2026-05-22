@@ -40,6 +40,14 @@
             </select>
              </div>            
             </div>           
+            <div class="form-group row">
+              <div class='col-md-2'>
+                Adjustment Type
+              </div>
+              <div class='col-md-10'>
+                <input type="text" class="form-control" value="{{ $dtr->adjustment_type ? $dtr->adjustment_type . ' - ' . data_get(\App\EmployeeDtr::adjustmentTypes(), $dtr->adjustment_type) : '' }}" disabled>
+              </div>
+            </div>
             <div class="form-group row" >
                   <div class='col-md-2'>
                     Time-In

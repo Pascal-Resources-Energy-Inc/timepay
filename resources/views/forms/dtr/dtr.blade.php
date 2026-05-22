@@ -92,6 +92,7 @@
                         <th>Date Filed</th>
                         <th>DTR Date </th>
                         <th>Correction</th>
+                        <th>Adjustment Type</th>
                         <th>Time-in</th>
                         <th>Time-Out</th>
                         <th>Reason</th>
@@ -106,6 +107,7 @@
                         <td> {{ date('M. d, Y h:i A', strtotime($dtr->created_at)) }}</td>
                         <td> {{ date('M. d, Y ', strtotime($dtr->dtr_date)) }}</td>
                         <td>{{ $dtr->correction }}</td>
+                        <td>{{ $dtr->adjustment_type ?? '----' }}</td>
                         <td> {{(isset($dtr->time_in)) ? date('M. d, Y h:i A', strtotime($dtr->time_in)) : '----'}}</td>
                         <td> {{(isset($dtr->time_out)) ? date('M. d, Y h:i A', strtotime($dtr->time_out)) : '----'}}</td>
                         <td>

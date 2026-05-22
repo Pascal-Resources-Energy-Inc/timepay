@@ -68,6 +68,7 @@
                                             <th>Date Filed</th>
                                             <th>DTR Date </th>
                                             <th>Correction</th>
+                                            <th>Adjustment Type</th>
                                             <th>Time-in</th>
                                             <th>Time-Out</th>
                                             <th>Approved Date</th>
@@ -83,6 +84,7 @@
                                             <td>{{date('d/m/Y h:i A', strtotime($form_approval->created_at))}}</td>
                                             <td>{{date('d/m/Y', strtotime($form_approval->dtr_date))}}</td>
                                             <td>{{$form_approval->correction}}</td>
+                                            <td>{{$form_approval->adjustment_type ?? '----'}}</td>
                                             <td> {{(isset($form_approval->time_in)) ? date('d/m/Y h:i A', strtotime($form_approval->time_in)) : '----'}}</td>
                                             <td> {{(isset($form_approval->time_out)) ? date('d/m/Y h:i A', strtotime($form_approval->time_out)) : '----'}}</td>
                                             <td>{{date('d/m/Y', strtotime($form_approval->approved_date))}}</td>

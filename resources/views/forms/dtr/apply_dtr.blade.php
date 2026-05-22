@@ -56,6 +56,9 @@
                   <option value="{{ $adjustment_type }}">{{ $adjustment_type }} - {{ $impact }}</option>
                 @endforeach
               </select>
+              <small class="text-danger">
+                Warning: Adjustment types with +/- 15 mins will automatically adjust your encoded time upon submission.
+              </small>
             </div>
           </div>
           <div class="form-group row" >

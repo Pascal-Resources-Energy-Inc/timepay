@@ -17,6 +17,7 @@ class Tds extends Model
         'area',
         'customer_name',
         'contact_no',
+        'mother_maiden_name',
         'business_name',
         'awarded_area',
         'business_type',

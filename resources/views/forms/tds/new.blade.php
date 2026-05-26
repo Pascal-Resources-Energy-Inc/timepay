@@ -88,8 +88,8 @@
                 <label>Customer Type <span class="text-danger">*</span></label>
                 <select class="form-control" name="customer_type" id="customer_type" required>
                   <option value="">-- Select Customer Type --</option>
-                  <option value="new">New Customer</option>
-                  <option value="existing">Existing Customer</option>
+                  <option value="new" {{ old('customer_type') == 'new' ? 'selected' : '' }}>New Customer</option>
+                  <option value="existing" {{ old('customer_type') == 'existing' ? 'selected' : '' }}>Existing Customer</option>
                 </select>
               </div>
             </div>
@@ -116,6 +116,20 @@
                         placeholder="Full name of the customer" required>
                 </div>
               </div>
+              <div class="col-md-6" id="mother_maiden_name_wrapper" style="display: none;">
+                <div class="form-group">
+                  <label>Mother Maiden Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control"
+                        name="mother_maiden_name" id="mother_maiden_name" value="{{ old('mother_maiden_name') }}"
+                        placeholder="Mother's maiden name" required>
+                  @if ($errors->has('mother_maiden_name'))
+                    <small class="text-danger">{{ $errors->first('mother_maiden_name') }}</small>
+                  @endif
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
               <div class="col-md-6">
                 <div class="form-group">
                   <label>Contact Number <span class="text-danger">*</span></label>
@@ -125,9 +139,6 @@
                   <small class="form-text text-muted">Mobile number</small>
                 </div>
               </div>
-            </div>
-
-            <div class="row">
               <div class="col-md-6">
                 <div class="form-group">
                   <label>Business Name <span class="text-danger">*</span></label>
@@ -166,6 +177,7 @@
 
           <input type="hidden" name="customer_name_hidden" id="customer_name_hidden">
           <input type="hidden" name="contact_no_hidden" id="contact_no_hidden">
+          <input type="hidden" name="mother_maiden_name_hidden" id="mother_maiden_name_hidden">
           <input type="hidden" name="business_name_hidden" id="business_name_hidden">
           <input type="hidden" name="business_type_hidden" id="business_type_hidden">
 
@@ -1158,9 +1170,13 @@ document.addEventListener('DOMContentLoaded', function () {
   document.addEventListener('DOMContentLoaded', function () {
     const customerTypeSelect = document.getElementById('customer_type');
     const existingCustomerSection = document.getElementById('existing_customer_section');
+    const motherMaidenNameWrapper = document.getElementById('mother_maiden_name_wrapper');
+    const motherMaidenNameInput = document.getElementById('mother_maiden_name');
     let initialized = false;
 
     customerTypeSelect.addEventListener('change', function () {
+        toggleMotherMaidenRequirement();
+
         if (this.value === 'existing') {
             existingCustomerSection.style.display = 'block';
             setTimeout(initSelect2, 100);
@@ -1169,6 +1185,18 @@ document.addEventListener('DOMContentLoaded', function () {
             clearFields();
         }
     });
+
+    function toggleMotherMaidenRequirement() {
+        const isNewCustomer = customerTypeSelect.value === 'new';
+
+        if (motherMaidenNameWrapper) {
+            motherMaidenNameWrapper.style.display = isNewCustomer ? 'block' : 'none';
+        }
+
+        if (motherMaidenNameInput) {
+            motherMaidenNameInput.required = isNewCustomer;
+        }
+    }
 
     function initSelect2() {
         if (initialized) {
@@ -1204,6 +1232,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const d = e.params.data;
             setVal('customer_name', d.customer_name);
             setVal('contact_no', d.contact_no);
+            setVal('mother_maiden_name', d.mother_maiden_name);
             setVal('business_name', d.business_name);
             setVal('business_type', d.business_type);
         });
@@ -1223,13 +1252,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function clearFields() {
-        ['customer_name', 'contact_no', 'business_name', 'business_type']
+        ['customer_name', 'contact_no', 'mother_maiden_name', 'business_name', 'business_type']
             .forEach(function (id) {
                 setVal(id, '');
             });
     }
 
     $('#registerDealer').on('shown.bs.modal', function () {
+        toggleMotherMaidenRequirement();
+
         if (customerTypeSelect.value === 'existing') {
             existingCustomerSection.style.display = 'block';
             setTimeout(initSelect2, 150);
@@ -1238,11 +1269,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     $('#registerDealer').on('hidden.bs.modal', function () {
         customerTypeSelect.value = '';
+        toggleMotherMaidenRequirement();
         existingCustomerSection.style.display = 'none';
         clearFields();
         if (initialized) {
             $('#existing_customer_select').val(null).trigger('change');
         }
     });
+
+    toggleMotherMaidenRequirement();
   });
 </script>

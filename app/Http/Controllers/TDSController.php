@@ -9,6 +9,7 @@ use App\TdsActivityLog;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Validator;
 use GuzzleHttp\Client;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
@@ -449,6 +450,7 @@ class TdsController extends Controller
                 DB::raw('MAX(id) as id'),
                 'customer_name',
                 'contact_no',
+                'mother_maiden_name',
                 'business_name',
                 'business_type',
                 DB::raw('MAX(created_at) as last_transaction'),
@@ -457,6 +459,7 @@ class TdsController extends Controller
             $groupByColumns = [
                 'customer_name',
                 'contact_no',
+                'mother_maiden_name',
                 'business_name',
                 'business_type',
             ];
@@ -485,6 +488,7 @@ class TdsController extends Controller
                                     . ' (' . $customer->contact_no . ')',
                     'customer_name' => $customer->customer_name,
                     'contact_no'    => $customer->contact_no,
+                    'mother_maiden_name' => $customer->mother_maiden_name,
                     'business_name' => $customer->business_name,
                     'business_type' => $customer->business_type,
                 ];
@@ -727,12 +731,14 @@ class TdsController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'date_registered' => 'required|date',
             'employee_name' => 'required|string|max:255',
             'area' => 'required|integer|exists:regions,id',
+            'customer_type' => 'required|in:new,existing',
             'customer_name' => 'required|string|max:255',
             'contact_no' => 'required|string|max:255',
+            'mother_maiden_name' => 'required_if:customer_type,new|nullable|string|max:255',
             'location' => 'required|string|max:500',
             'business_image' => 'required|file|max:5120',
             'business_name' => 'required|string|max:255',
@@ -756,6 +762,8 @@ class TdsController extends Controller
             'package_type.in' => 'Package type must be EU, D, MD, or AD',
             'status.in' => 'Status must be Decline, Interested, For Delivery, or Delivered',
             'area.exists' => 'Selected area is invalid',
+            'customer_type.required' => 'Customer type is required',
+            'mother_maiden_name.required_if' => 'Mother maiden name is required for new customers',
             'program_area.required_if' => 'Program area is required for Roadshow and Mini-Roadshow',
             'location.required' => 'Business location is required',
             'business_image.required' => 'Business image is required',
@@ -765,6 +773,33 @@ class TdsController extends Controller
             'document_attachment.mimes' => 'Document must be a PDF, DOC, DOCX, JPG, JPEG, or PNG file',
             'document_attachment.max' => 'Document size must not exceed 5MB',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            if ($request->customer_type !== 'new') {
+                return;
+            }
+
+            $customerName = trim((string) $request->customer_name);
+            $motherMaidenName = trim((string) $request->mother_maiden_name);
+
+            if ($customerName === '' || $motherMaidenName === '') {
+                return;
+            }
+
+            $existingCustomer = Tds::where('status', '!=', 'Decline')
+                ->whereRaw('LOWER(TRIM(customer_name)) = ?', [strtolower($customerName)])
+                ->whereRaw('LOWER(TRIM(mother_maiden_name)) = ?', [strtolower($motherMaidenName)])
+                ->exists();
+
+            if ($existingCustomer) {
+                $validator->errors()->add(
+                    'mother_maiden_name',
+                    'This customer name and mother maiden name already exist. Please select Existing Customer instead.'
+                );
+            }
+        });
+
+        $validated = $validator->validate();
 
         DB::beginTransaction();
         try {
@@ -801,6 +836,7 @@ class TdsController extends Controller
                 'area' => $request->area,
                 'customer_name' => $request->customer_name,
                 'contact_no' => $request->contact_no,
+                'mother_maiden_name' => $request->mother_maiden_name,
                 'location' => $request->location,
                 'business_image' => $businessImageFileName,
                 'business_name' => $request->business_name,

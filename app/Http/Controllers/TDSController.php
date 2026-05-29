@@ -1145,6 +1145,7 @@ class TdsController extends Controller
             'Employee Name',
             'Area',
             'Customer Name',
+            'Address',
             'Contact No',
             'Business Name',
             'Awarded Area',
@@ -1156,7 +1157,8 @@ class TdsController extends Controller
             'Status',
             'Delivery Date',
             'Timeline',
-            'Additional Notes'
+            'Additional Notes',
+            'Date Created',
         ]);
 
         foreach ($records as $record) {
@@ -1166,6 +1168,7 @@ class TdsController extends Controller
                 $record->user ? $record->user->name : 'N/A',
                 $this->getRegionDisplayName($record->region),
                 $record->customer_name,
+                $record->location ?? 'N/A',
                 $record->contact_no ?? 'N/A',
                 $record->business_name,
                 $record->awarded_area ?? 'N/A',
@@ -1177,7 +1180,8 @@ class TdsController extends Controller
                 $record->status,
                 $record->delivery_date ?? 'N/A',
                 $record->timeline ?? 'N/A',
-                $record->additional_notes ?? 'N/A'
+                $record->additional_notes ?? 'N/A',
+                $record->created_at,
             ]);
         }
 

@@ -748,7 +748,7 @@ class TdsController extends Controller
             'purchase_amount' => 'required|numeric|min:0',
             'program_type' => 'nullable|in:Roadshow,Mini-Roadshow,Non-Roadshow',
             'program_area' => 'required_if:program_type,Roadshow,Mini-Roadshow|nullable|string|max:255',
-            'lead_generator' => 'required|in:FB,Shopee,Gaz Lite Website,Events,Kaagapay,Referral,MFI,MD,PD,AD,Own Accounts',
+            'lead_generator' => 'required|in:FB,Shopee,Gaz Lite Website,Events,Kaagapay,Referral,MFI,MD,PD,AD,D,Own Accounts,Packworks',
             'lead_reference' => 'required_if:lead_generator,FB,Shopee,Gaz Lite Website|nullable|string|max:500',
             'supplier_name' => 'nullable|string|max:255',
             'status' => 'required|in:Decline,Interested,For Delivery,Delivered',
@@ -775,6 +775,23 @@ class TdsController extends Controller
         ]);
 
         $validator->after(function ($validator) use ($request) {
+
+            $contactNo = preg_replace('/\s+/', '', trim((string) $request->contact_no));
+
+            if ($contactNo !== '') {
+
+                $existingContact = Tds::where('status', '!=', 'Decline')
+                    ->whereRaw("REPLACE(contact_no, ' ', '') = ?", [$contactNo])
+                    ->exists();
+
+                if ($existingContact) {
+                    $validator->errors()->add(
+                        'contact_no',
+                        'This contact number already exists. Please select Existing Customer instead.'
+                    );
+                }
+            }
+
             if ($request->customer_type !== 'new') {
                 return;
             }
@@ -903,10 +920,16 @@ class TdsController extends Controller
         ];
         
         if ($request->status === 'Delivered') {
+            $rules['purchase_amount'] = 'required|numeric|min:0.01';
+            $rules['delivery_date'] = 'required|date';
             $rules['proof_of_payment'] = 'required|file|mimes:jpg,jpeg,png,pdf|max:5120';
         }
         
         $validated = $request->validate($rules, [
+            'purchase_amount.required' => 'Purchase amount is required when marking as Delivered',
+            'purchase_amount.min' => 'Purchase amount must be greater than zero',
+            'delivery_date.required' => 'Delivery date is required when marking as Delivered',
+            'delivery_date.date' => 'Delivery date must be a valid date',
             'proof_of_payment.required' => 'Proof of payment is required when marking as Delivered',
             'proof_of_payment.mimes' => 'Proof of payment must be a JPG, PNG, or PDF file',
             'proof_of_payment.max' => 'Proof of payment size must not exceed 5MB',
@@ -926,9 +949,11 @@ class TdsController extends Controller
             if ($request->status === 'Delivered') {
                 $updateData['purchase_amount'] = $request->purchase_amount;
                 $updateData['supplier_name'] = $request->supplier_name;
+                $updateData['delivery_date'] = $request->delivery_date;
             } else {
                 unset($updateData['purchase_amount']);
                 unset($updateData['supplier_name']);
+                unset($updateData['delivery_date']);
             }
             
             if ($request->hasFile('proof_of_payment')) {
@@ -954,6 +979,10 @@ class TdsController extends Controller
             
             if (isset($updateData['proof_of_payment'])) {
                 $logDetails['proof_of_payment'] = $updateData['proof_of_payment'];
+            }
+
+            if (isset($updateData['delivery_date'])) {
+                $logDetails['delivery_date'] = $updateData['delivery_date'];
             }
             
             $tds->logActivity('status_updated', $logDetails);

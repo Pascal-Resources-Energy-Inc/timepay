@@ -696,62 +696,167 @@ $('#documentPreviewModal').on('hidden.bs.modal', function () {
     var recordId = $(this).data('id');
     var currentStatus = $(this).data('status');
     var customerName = $(this).data('customer');
+    var escapeHtml = function(value) {
+        return String(value ?? '').replace(/[&<>"']/g, function(char) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[char];
+        });
+    };
+    var safeCustomerName = escapeHtml(customerName);
+    var safeCurrentStatus = escapeHtml(currentStatus);
 
     Swal.fire({
       title: 'Update Status',
       html: `
-          <p>Customer: <strong>${customerName}</strong></p>
-          <p>Current Status: <strong>${currentStatus}</strong></p>
+          <style>
+              .status-modal { text-align: left; color: #343a40; }
+              .status-summary {
+                  background: #f8f9fa;
+                  border: 1px solid #e9ecef;
+                  border-radius: 8px;
+                  padding: 14px 16px;
+                  margin-bottom: 16px;
+              }
+              .status-summary-row {
+                  display: flex;
+                  justify-content: space-between;
+                  gap: 12px;
+                  font-size: 14px;
+                  line-height: 1.4;
+              }
+              .status-summary-row + .status-summary-row { margin-top: 8px; }
+              .status-summary-label { color: #6c757d; }
+              .status-summary-value { font-weight: 700; text-align: right; }
+              .status-field { margin-bottom: 14px; }
+              .status-field label {
+                  display: block;
+                  margin-bottom: 6px;
+                  color: #495057;
+                  font-size: 13px;
+                  font-weight: 700;
+              }
+              .status-required { color: #dc3545; }
+              .status-control {
+                  width: 100% !important;
+                  height: 42px;
+                  box-sizing: border-box;
+                  margin: 0 !important;
+                  border: 1px solid #ced4da;
+                  border-radius: 6px;
+                  padding: 8px 10px;
+                  font-size: 14px;
+              }
+              .delivered-fields {
+                  display: none;
+                  border: 1px solid #d8ecdf;
+                  border-left: 4px solid #28a745;
+                  border-radius: 8px;
+                  background: #fbfffc;
+                  padding: 14px;
+                  margin-top: 8px;
+              }
+              .status-file {
+                  width: 100%;
+                  box-sizing: border-box;
+                  border: 1px dashed #adb5bd;
+                  border-radius: 6px;
+                  padding: 10px;
+                  margin: 0;
+                  background: #fff;
+              }
+              .status-help {
+                  display: block;
+                  margin-top: 6px;
+                  color: #6c757d;
+                  font-size: 12px;
+              }
+          </style>
+          <div class="status-modal">
+              <div class="status-summary">
+                  <div class="status-summary-row">
+                      <span class="status-summary-label">Customer</span>
+                      <span class="status-summary-value">${safeCustomerName}</span>
+                  </div>
+                  <div class="status-summary-row">
+                      <span class="status-summary-label">Current Status</span>
+                      <span class="status-summary-value">${safeCurrentStatus}</span>
+                  </div>
+              </div>
 
-          <select id="new-status" class="swal2-input mb-3">
-              <option value="">-- Select New Status --</option>
-              <option value="Decline" ${currentStatus === 'Decline' ? 'selected' : ''}>Decline</option>
-              <option value="Interested" ${currentStatus === 'Interested' ? 'selected' : ''}>Interested</option>
-              <option value="For Delivery" ${currentStatus === 'For Delivery' ? 'selected' : ''}>For Delivery</option>
-              <option value="Delivered" ${currentStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
-          </select>
+              <div class="status-field">
+                  <label for="new-status">New Status <span class="status-required">*</span></label>
+                  <select id="new-status" class="status-control">
+                      <option value="">-- Select New Status --</option>
+                      <option value="Decline" ${currentStatus === 'Decline' ? 'selected' : ''}>Decline</option>
+                      <option value="Interested" ${currentStatus === 'Interested' ? 'selected' : ''}>Interested</option>
+                      <option value="For Delivery" ${currentStatus === 'For Delivery' ? 'selected' : ''}>For Delivery</option>
+                      <option value="Delivered" ${currentStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                  </select>
+              </div>
 
-          <div id="supplier-section" class="mb-3">
-            <label style="font-weight:bold;">Supplier Name </label><br>
-            <input type="text" class="swal2-input" id="supplier-name" placeholder="Enter Supplier Name" style="margin: 0px">
-          </div>
+              <div id="delivered-fields" class="delivered-fields">
+                  <div id="supplier-section" class="status-field">
+                      <label for="supplier-name">Supplier Name</label>
+                      <input type="text" class="status-control" id="supplier-name" placeholder="Enter supplier name">
+                  </div>
 
-          <div id="amount-section" style="display:none;" class="mb-3">
-            <label style="font-weight:bold;">Purchase Amount <span style="color:red;">*</span></label><br>
-            <input type="number" class="swal2-input" id="purchase-amount" placeholder="Enter Purchase Amount" min="0" step="0.01" style="margin: 0px">
-          </div>
+                  <div id="amount-section" class="status-field">
+                      <label for="purchase-amount">Purchase Amount <span class="status-required">*</span></label>
+                      <input type="number" class="status-control" id="purchase-amount" placeholder="Enter purchase amount" min="0" step="0.01">
+                  </div>
 
-          <div id="proof-of-payment-section" style="display:none; margin-top:10px;">
-              <label style="font-weight:bold;">
-                  Proof of Transaction <span style="color:red;">*</span>
-              </label>
-              <input type="file" id="proof-of-payment" class="swal2-file"
-                      accept=".jpg,.jpeg,.png,.pdf" style="margin: 0px">
-              <small style="display:block; margin-top:5px; color:#666;">
-                  Accepted: JPG, PNG, PDF (Max: 5MB)
-              </small>
+                  <div id="delivery-date-section" class="status-field">
+                      <label for="delivery-date">Delivery Date <span class="status-required">*</span></label>
+                      <input type="date" class="status-control" id="delivery-date">
+                  </div>
+
+                  <div id="proof-of-payment-section" class="status-field" style="margin-bottom: 0;">
+                      <label for="proof-of-payment">Proof of Transaction <span class="status-required">*</span></label>
+                      <input type="file" id="proof-of-payment" class="status-file" accept=".jpg,.jpeg,.png,.pdf">
+                      <small class="status-help">Accepted: JPG, PNG, PDF. Max file size: 5MB.</small>
+                  </div>
+              </div>
           </div>
       `,
+      width: 520,
       showCancelButton: true,
-      confirmButtonText: 'Update Status',
+      confirmButtonText: 'Save Changes',
       confirmButtonColor: '#ffc107',
       cancelButtonColor: '#6c757d',
 
       didOpen: () => {
           const statusSelect = document.getElementById('new-status');
+          const deliveredFields = document.getElementById('delivered-fields');
           const proofSection = document.getElementById('proof-of-payment-section');
           const amountSection = document.getElementById('amount-section');
           const supplierSection = document.getElementById('supplier-section');
+          const deliveryDateSection = document.getElementById('delivery-date-section');
+          const deliveryDateInput = document.getElementById('delivery-date');
 
           function toggleFields() {
               if (statusSelect.value === 'Delivered') {
+                  deliveredFields.style.display = 'block';
                   proofSection.style.display = 'block';
                   amountSection.style.display = 'block';
                   supplierSection.style.display = 'block';
+                  deliveryDateSection.style.display = 'block';
+
+                  if (!deliveryDateInput.value) {
+                      const today = new Date();
+                      const timezoneOffset = today.getTimezoneOffset() * 60000;
+                      deliveryDateInput.value = new Date(today - timezoneOffset).toISOString().slice(0, 10);
+                  }
               } else {
+                  deliveredFields.style.display = 'none';
                   proofSection.style.display = 'none';
                   amountSection.style.display = 'none';
                   supplierSection.style.display = 'none';
+                  deliveryDateSection.style.display = 'none';
               }
           }
 
@@ -764,6 +869,7 @@ $('#documentPreviewModal').on('hidden.bs.modal', function () {
           const proofFile = document.getElementById('proof-of-payment').files[0];
           const amount = document.getElementById('purchase-amount').value;
           const supplier = document.getElementById('supplier-name').value;
+          const deliveryDate = document.getElementById('delivery-date').value;
 
           if (!newStatus) {
               Swal.showValidationMessage('Please select a status');
@@ -774,6 +880,11 @@ $('#documentPreviewModal').on('hidden.bs.modal', function () {
 
               if (!amount || amount <= 0) {
                   Swal.showValidationMessage('Purchase amount is required');
+                  return false;
+              }
+
+              if (!deliveryDate) {
+                  Swal.showValidationMessage('Delivery date is required');
                   return false;
               }
 
@@ -798,7 +909,8 @@ $('#documentPreviewModal').on('hidden.bs.modal', function () {
               status: newStatus,
               file: proofFile,
               amount: amount,
-              supplier: supplier
+              supplier: supplier,
+              delivery_date: deliveryDate
           };
       }
     }).then((result) => {
@@ -811,9 +923,15 @@ $('#documentPreviewModal').on('hidden.bs.modal', function () {
               icon: 'question',
               title: 'Confirm Delivery',
               html: `
-                  <p><strong>Purchase Amount:</strong></p>
-                  <h3 style="color:#28a745;">₱ ${parseFloat(result.value.amount).toFixed(2)}</h3>
-                  <p>Are you sure you want to mark this as <b>Delivered</b>?</p>
+                  <div style="text-align:left; border:1px solid #d8ecdf; border-radius:8px; padding:14px; background:#fbfffc;">
+                      <div style="font-size:13px; color:#6c757d; font-weight:700;">Purchase Amount</div>
+                      <div style="font-size:26px; color:#28a745; font-weight:800; margin:4px 0 12px;">&#8369; ${parseFloat(result.value.amount).toFixed(2)}</div>
+                      <div style="display:flex; justify-content:space-between; gap:12px; font-size:14px;">
+                          <span style="color:#6c757d;">Delivery Date</span>
+                          <strong>${result.value.delivery_date}</strong>
+                      </div>
+                  </div>
+                  <p style="margin-top:14px; margin-bottom:0;">Mark this record as <b>Delivered</b>?</p>
               `,
               showCancelButton: true,
               confirmButtonText: 'Yes, Confirm',
@@ -851,6 +969,10 @@ $('#documentPreviewModal').on('hidden.bs.modal', function () {
 
       if (data.supplier) {
           formData.append('supplier_name', data.supplier);
+      }
+
+      if (data.delivery_date) {
+          formData.append('delivery_date', data.delivery_date);
       }
 
       if (data.file) {

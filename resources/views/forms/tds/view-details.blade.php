@@ -18,6 +18,10 @@
             <h5 class="text-primary mb-3">General Information</h5>
             <table class="table table-borderless table-sm">
               <tr>
+                <th width="45%">Customer Type:</th>
+                <td>{{ ucfirst($record->customer_type) ?? 'N/A' }}</td>
+              </tr>
+              <tr>
                 <th width="45%">Date Registered:</th>
                 <td>{{ \Carbon\Carbon::parse($record->date_of_registration)->format('M d, Y') }}</td>
               </tr>

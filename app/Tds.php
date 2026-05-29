@@ -12,6 +12,7 @@ class Tds extends Model
     protected $table = 'tds';
 
     protected $fillable = [
+        'customer_type',
         'date_of_registration',
         'user_id',
         'area',

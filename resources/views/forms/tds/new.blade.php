@@ -440,9 +440,9 @@
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
-                <label>Target Timeline</label>
+                <label>Target Timeline <span class="text-danger timeline-required" style="display: none;">*</span></label>
                 <input type="date" class="form-control" 
-                       name="timeline" value="{{ old('timeline') }}">
+                       name="timeline" id="timeline" value="{{ old('timeline') }}">
                 <small class="form-text text-muted">Expected timeline</small>
               </div>
             </div>
@@ -1133,10 +1133,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const statusSelect = document.getElementById('status-select');
     const supplierWrapper = document.querySelector('.supplier-wrapper');
     const supplierInput = document.getElementById('supplier_name');
+    const timelineInput = document.getElementById('timeline');
+    const timelineRequired = document.querySelector('.timeline-required');
     const deliveryDateInput = document.getElementById('delivery_date');
     
     function toggleSupplier() {
         const value = statusSelect.value;
+        const requiresTimeline = value !== '' && value !== 'Decline';
+
+        timelineInput.required = requiresTimeline;
+        timelineRequired.style.display = requiresTimeline ? 'inline' : 'none';
+
+        if (!requiresTimeline) {
+            timelineInput.value = '';
+        }
 
         if (value === 'For Delivery' || value === 'Delivered') {
             supplierWrapper.style.display = 'block';

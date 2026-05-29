@@ -748,11 +748,11 @@ class TdsController extends Controller
             'purchase_amount' => 'required|numeric|min:0',
             'program_type' => 'nullable|in:Roadshow,Mini-Roadshow,Non-Roadshow',
             'program_area' => 'required_if:program_type,Roadshow,Mini-Roadshow|nullable|string|max:255',
-            'lead_generator' => 'required|in:FB,Shopee,Gaz Lite Website,Events,Kaagapay,Referral,MFI,MD,PD,AD,D,Own Accounts,Packworks',
+            'lead_generator' => 'required|in:FB,Shopee,Gaz Lite Website,Events,Kaagapay,Referral,MFI,MD,PD,AD,D,Own Accounts,Packworks,Lazada',
             'lead_reference' => 'required_if:lead_generator,FB,Shopee,Gaz Lite Website|nullable|string|max:500',
             'supplier_name' => 'nullable|string|max:255',
             'status' => 'required|in:Decline,Interested,For Delivery,Delivered',
-            'timeline' => 'nullable|date',
+            'timeline' => 'required_unless:status,Decline|date',
             'delivery_date' => 'nullable|date',
             'document_attachment' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
             'additional_notes' => 'nullable|string',
@@ -848,6 +848,7 @@ class TdsController extends Controller
             }
 
             $tds = Tds::create([
+                'customer_type' => $request->customer_type,
                 'date_of_registration' => $request->date_registered,
                 'user_id' => auth()->id(),
                 'area' => $request->area,
@@ -1169,6 +1170,7 @@ class TdsController extends Controller
         $output = fopen('php://output', 'w');
 
         fputcsv($output, [
+            'Customer Type',
             'Lead Reference',
             'Date Registered',
             'Employee Name',
@@ -1184,14 +1186,15 @@ class TdsController extends Controller
             'Lead Generator',
             'Supplier Name',
             'Status',
+            'Target Timeline',
             'Delivery Date',
-            'Timeline',
             'Additional Notes',
             'Date Created',
         ]);
 
         foreach ($records as $record) {
             fputcsv($output, [
+                ucfirst($record->customer_type) ?? 'N/A',
                 $record->lead_reference ?? 'N/A',
                 $record->date_of_registration,
                 $record->user ? $record->user->name : 'N/A',
@@ -1202,13 +1205,13 @@ class TdsController extends Controller
                 $record->business_name,
                 $record->awarded_area ?? 'N/A',
                 $record->business_type,
-                $record->package_type,
+                ucfirst($record->package_type) ?? 'N/A',
                 $record->purchase_amount,
                 $record->lead_generator,
                 $record->supplier_name,
                 $record->status,
+                ucfirst($record->timeline) ?? 'N/A',
                 $record->delivery_date ?? 'N/A',
-                $record->timeline ?? 'N/A',
                 $record->additional_notes ?? 'N/A',
                 $record->created_at,
             ]);

@@ -147,26 +147,29 @@
                 <table class="table table-hover table-bordered tablewithSearch">
                   <thead>
                       <tr>
-                          <th>Date Registered</th>
-                          <th>Employee</th>
-                          <th>Area</th>
-                          <th>Customer Name</th>
-                          <th>Business Name</th>
-                          <th>Business Type</th>
-                          <th>Package</th>
-                          <th>Program Type</th>
-                          <th>Amount</th>
-                          <th>Status</th>
-                          <th>Delivery Date</th>
-                          {{-- <th>Business Image</th>
-                          <th>Document</th> --}}
-                          <th>Action</th>
+                        <th>Customer Type</th>
+                        <th>Date Registered</th>
+                        <th>Employee</th>
+                        <th>Area</th>
+                        <th>Customer Name</th>
+                        <th>Business Name</th>
+                        <th>Business Type</th>
+                        <th>Package</th>
+                        <th>Program Type</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Target Timeline</th>
+                        <th>Delivery Date</th>
+                        {{-- <th>Business Image</th>
+                        <th>Document</th> --}}
+                        <th>Action</th>
                       </tr>
                   </thead>
 
                   <tbody>
-                      @forelse($tdsRecords as $record)
+                    @forelse($tdsRecords as $record)
                       <tr>
+                          <td>{{ ucfirst($record->customer_type) }}</td>
                           <td>{{ \Carbon\Carbon::parse($record->date_of_registration)->format('Y-m-d') }}</td>
                           <td>{{ $record->user->name ?? 'N/A' }}</td>
                           <td>{{ optional($record->region)->region ? optional($record->region)->region . ' - ' . optional($record->region)->province . (optional($record->region)->district ? ' - ' . optional($record->region)->district : '') : 'N/A' }}</td>
@@ -202,6 +205,13 @@
                               @elseif($record->status == 'Decline')
                                   <span class="badge badge-danger">Decline</span>
                               @endif
+                          </td>
+                          <td>
+                            @if($record->timeline)
+                              {{ \Carbon\Carbon::parse($record->timeline)->format('M. d, Y') }}
+                            @else
+                              <span class="text-muted">-</span>   
+                            @endif
                           </td>
                           <td>
                               @if($record->delivery_date)
@@ -270,11 +280,11 @@
                               </button>
                           </td>
                       </tr>
-                      @empty
+                    @empty
                       <tr>
-                          <td colspan="14" class="text-center">No records found</td>
+                        <td colspan="14" class="text-center">No records found</td>
                       </tr>
-                      @endforelse
+                    @endforelse
                   </tbody>
                 </table>
               </div>

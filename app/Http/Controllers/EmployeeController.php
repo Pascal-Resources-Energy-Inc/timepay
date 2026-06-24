@@ -1211,6 +1211,7 @@ class EmployeeController extends Controller
         $user->save();
 
         $employee->employee_number = $request->employee_number;
+        $employee->employee_code= $request->employee_number;
         $employee->company_id = $request->company;
         $employee->position = $request->position;
         $employee->department_id = $request->department;

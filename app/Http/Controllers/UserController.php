@@ -62,10 +62,10 @@ class UserController extends Controller
         }else{
             return redirect('/');
         }
-        
+
     }
 
-    public function export() 
+    public function export()
     {
         return Excel::download(new UsersExport, 'Users.xlsx');
     }
@@ -91,7 +91,7 @@ class UserController extends Controller
     }
     public function changePassword(User $user){
 
-        
+
         $user = User::with('user_allowed_company','user_privilege')
                         ->where('id',$user->id)
                         ->first();
@@ -113,7 +113,7 @@ class UserController extends Controller
             $user->save();
 
             if($request->company){
-                $user_allowed_company = UserAllowedCompany::where('user_id',$user->id)->first(); 
+                $user_allowed_company = UserAllowedCompany::where('user_id',$user->id)->first();
                 if($user_allowed_company){
                     $user_allowed_company->company_ids = json_encode($request->company,true);
                     $user_allowed_company->save();
@@ -127,7 +127,7 @@ class UserController extends Controller
                 $user_allowed_company = UserAllowedCompany::where('user_id',$user->id)->delete();
             }
             if($request->location){
-                $user_allowed_location = UserAllowedLocation::where('user_id',$user->id)->first(); 
+                $user_allowed_location = UserAllowedLocation::where('user_id',$user->id)->first();
                 if($user_allowed_location){
                     $user_allowed_location->location_ids = json_encode($request->location,true);
                     $user_allowed_location->save();
@@ -141,7 +141,7 @@ class UserController extends Controller
                 $user_allowed_location = UserAllowedLocation::where('user_id',$user->id)->delete();
             }
             if($request->project){
-                $user_allowed_project = UserAllowedProject::where('user_id',$user->id)->first(); 
+                $user_allowed_project = UserAllowedProject::where('user_id',$user->id)->first();
                 if($user_allowed_project){
                     $user_allowed_project->project_ids = json_encode($request->project,true);
                     $user_allowed_project->save();
@@ -156,7 +156,7 @@ class UserController extends Controller
             }
 
             $user_privilege = UserPrivilege::where('user_id',$user->id)->first();
-            
+
             if($user_privilege){
                 $user_privilege->employees_view = $request->employees_view;
                 $user_privilege->employees_edit = $request->employees_edit;
@@ -189,7 +189,7 @@ class UserController extends Controller
                 $user_privilege->settings_add = $request->settings_add;
                 $user_privilege->settings_edit = $request->settings_edit;
                 $user_privilege->settings_delete = $request->settings_delete;
-                
+
                 $user_privilege->sales_performance = $request->sales_performance;
                 $user_privilege->tds = $request->tds;
                 $user_privilege->sales_target = $request->sales_target;
@@ -254,17 +254,17 @@ class UserController extends Controller
                 $new_user_privilege->masterfiles_employee_leave_credits = $request->masterfiles_employee_leave_credits;
                 $new_user_privilege->masterfiles_employee_leave_earned = $request->masterfiles_employee_leave_earned;
                 $new_user_privilege->masterfiles_employee_allowances = $request->masterfiles_employee_allowances;
-                
+
                 $new_user_privilege->save();
                 Alert::success('Successfully Updated')->persistent('Dismiss');
                 return back();
             }
 
-            
+
         }
     }
 
-    
+
     public function enableMobileAttendance(Request $request)
     {
         try {
@@ -283,7 +283,7 @@ class UserController extends Controller
                 'message' => 'Error enabling mobile attendance'
             ]);
         }
-    } 
+    }
 
     public function disableMobileAttendance(Request $request)
     {
@@ -320,7 +320,7 @@ class UserController extends Controller
         $companies = Company::get();
         $user = User::where('id',auth()->user()->id)->with('employee.department','employee.payment_info','employee.classification_info','employee.level_info','employee.ScheduleData','employee.immediate_sup_data','approvers.approver_data','subbordinates')->first();
 
-       
+
 
         return view('users.user_settings',
         array(
@@ -337,9 +337,9 @@ class UserController extends Controller
             'schedules' => $schedules,
             'companies' => $companies,
         ));
-    
+
     }
-    
+
     public function updateInfo(Request $request, $id){
 
         $employee = Employee::findOrFail($id);
@@ -384,6 +384,7 @@ class UserController extends Controller
         $employee->immediate_sup = $request->immediate_supervisor;
         $employee->schedule_id = $request->schedule;
         $employee->employee_number = $request->biometric_code;
+        $employee->employee_code = $request->biometric_code;
         $employee->save();
 
         $approver = EmployeeApprover::where('user_id',$employee->user_id)->delete();
@@ -442,7 +443,7 @@ class UserController extends Controller
             $employee->save();
             Alert::success('Successfully avatar uploaded.')->persistent('Dismiss');
             return back();
-            
+
         }
     }
     public function uploadSignature(Request $request)
@@ -459,7 +460,7 @@ class UserController extends Controller
             $employee->save();
             Alert::success('Successfully signature uploaded.')->persistent('Dismiss');
             return back();
-            
+
         }
     }
     public function get_salary(Request $request)
@@ -483,7 +484,7 @@ class UserController extends Controller
             'password' => 'required|confirmed',
             'password_confirmation' => 'required'
         ]);
-    
+
         $user = User::findOrFail($user->id);
         $user->password = bcrypt($request->input('password'));
         $user->save();

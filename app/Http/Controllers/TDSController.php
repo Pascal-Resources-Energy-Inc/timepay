@@ -775,6 +775,9 @@ class TdsController extends Controller
         ]);
 
         $validator->after(function ($validator) use ($request) {
+            if ($request->customer_type !== 'new') {
+                return;
+            }
 
             $contactNo = preg_replace('/\s+/', '', trim((string) $request->contact_no));
 
@@ -790,10 +793,6 @@ class TdsController extends Controller
                         'This contact number already exists. Please select Existing Customer instead.'
                     );
                 }
-            }
-
-            if ($request->customer_type !== 'new') {
-                return;
             }
 
             $customerName = trim((string) $request->customer_name);

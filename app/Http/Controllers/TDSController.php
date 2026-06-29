@@ -775,6 +775,9 @@ class TdsController extends Controller
         ]);
 
         $validator->after(function ($validator) use ($request) {
+            if ($request->customer_type !== 'new') {
+                return;
+            }
 
             if ($request->customer_type !== 'new') {
                 return;

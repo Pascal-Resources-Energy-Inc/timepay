@@ -337,6 +337,61 @@ class EmployeeController extends Controller
     public function new(Request $request)
     {
         // dd($request->all());
+        $request->validate([
+            // personal details
+            'first_name'           => 'required|string|max:255',
+            'middle_name'          => 'nullable|string|max:255',
+            'last_name'            => 'required|string|max:255',
+            'suffix'               => 'nullable|string|max:50',
+            'nickname'             => 'required|string|max:255',
+            'marital_status'       => 'required|string|max:255',
+            'religion'             => 'required|string|max:255',
+            'gender'               => 'required|string|in:MALE,FEMALE',
+            'birthdate'            => 'required|date|before:today',
+            'birthplace'           => 'required|string|max:255',
+
+            // contact
+            'personal_email'       => 'required|string|max:255|regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/',
+            'personal_number'      => 'required|string|max:20',
+            'present_address'      => 'required|string|max:500',
+            'permanent_address'    => 'nullable|string|max:500',
+
+            // employeee informtiaon
+            'company'              => 'required|integer|exists:companies,id',
+            'position'             => 'required|string|max:255',
+            'department'           => 'required|integer|min:0',
+            'location'             => 'required|string|max:255',
+            'project'              => 'required|string|max:255',
+            'classification'       => 'required|integer|exists:classifications,id',
+            'level'                => 'required|integer|exists:levels,id',
+            'immediate_supervisor' => 'required|integer|exists:users,id',
+            'biometric_code'       => 'required|string|max:50',
+            'date_hired'           => 'required|date',
+            'work_email'           => 'required|string|max:255|regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/',
+            'schedule'             => 'required|integer|exists:schedules,id',
+            'cost_center'          => 'required|string|max:255',
+
+            // approvers part
+            'approver'                       => 'nullable',
+
+            // 
+            'bank_name'            => 'required|string|max:255',
+            'bank_account_number'  => 'required|string|max:255',
+            'rate'                 => 'required|numeric|min:0',
+            'work_description'     => 'required|string|in:Monthly,Non-Monthly',
+            'tax_application'      => 'required|string|in:Minimum,Non-Minimum',
+
+            // government stuffs
+            'sss'                  => 'required|string|max:50',
+            'philhealth'           => 'required|string|max:50',
+            'pagibig'              => 'required|string|max:50',
+            'tin'                  => 'required|string|max:50',
+
+            // file uploads
+            'file'                 => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'signature'            => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
         $validate_employee = Employee::where('first_name',$request->first_name)
                                         ->where('last_name',$request->last_name)
                                         ->where('company_id',$request->company)
@@ -353,7 +408,7 @@ class EmployeeController extends Controller
             $user = new User;
             $user->email = $request->work_email;
             $user->name = $request->first_name . " " . $request->last_name;
-            $password = strtolower($request->first_name) . '.'. strtolower($request->last_name);
+            $password = mb_strtolower($request->first_name) . '.' . mb_strtolower($request->last_name);
             $stripped_password = str_replace(' ', '', $password);
             $user->password = bcrypt($stripped_password);
             $user->status = "Active";
@@ -363,6 +418,7 @@ class EmployeeController extends Controller
             $employee_number = $this->generate_biometric_code(date('Y',strtotime($request->date_hired)), $company->id ,$user->id);
             $employee_number = $request->biometric_code;
             $employee_code = $request->biometric_code;
+
             $employee = new Employee;
             $employee->employee_number = $employee_number;
             $employee->employee_code = $employee_code;
@@ -581,17 +637,17 @@ class EmployeeController extends Controller
                                 $employee->employee_code =  $employee_code;
                                 $employee->first_name = $value['first_name'];
                                 $employee->last_name = $value['last_name'];
-                                $employee->middle_name = $value['middle_name'];
+                                $employee->middle_name = isset($value['middle_name']) ? $value['middle_name'] : "";
                                 $employee->name_suffix = isset($value['name_suffix']) ? $value['name_suffix'] : "";
 
-                                $employee->classification = isset($value['classification']) ? $value['classification'] : "";
-                                $employee->department_id = isset($value['department_id']) ? $value['department_id'] : "";
+                                $employee->classification = isset($value['classification']) ? $value['classification'] : null;
+                                $employee->department_id = isset($value['department_id']) ? $value['department_id'] : null;
                                 $employee->company_id = isset($value['company_id']) ? $value['company_id'] : "";
                                 $employee->original_date_hired = isset($value['date_hired']) && !empty($value['date_hired']) ? date('Y-m-d',strtotime($value['date_hired'])) : null;
 
                                 $employee->position = isset($value['position']) ? $value['position'] : "";
                                 $employee->nick_name = isset($value['nick_name']) ? $value['nick_name'] : "";
-                                $employee->level = $value['level'];
+                                $employee->level = isset($value['level']) ? $value['level'] : "";
                                 $employee->date_regularized = isset($value['date_regularized']) && !empty($value['date_regularized']) ? date('Y-m-d',strtotime($value['date_regularized'])) : null;
                                 $employee->date_resigned = isset($value['date_resigned']) && !empty($value['date_resigned']) ? date('Y-m-d',strtotime($value['date_resigned'])) : null;
                                 $employee->birth_date = isset($value['birth_date']) && !empty($value['birth_date']) ? date('Y-m-d',strtotime($value['birth_date'])) : null;
@@ -610,7 +666,7 @@ class EmployeeController extends Controller
                                 $employee->personal_email = isset($value['personal_email']) ? $value['personal_email'] : "";
                                 $employee->area = isset($value['area']) ? $value['area'] : "";
                                 $employee->religion = isset($value['religion']) ? $value['religion'] : "";
-                                $employee->schedule_id = isset($value['schedule_id']) ? $value['schedule_id'] : "1";
+                                $employee->schedule_id = isset($value['schedule_id']) ? $value['schedule_id'] : 1;
 
                                 $employee->location = isset($value['location']) ? $value['location'] : "";
                                 $employee->work_description = isset($value['work_description']) ? $value['work_description'] : "";
@@ -1179,6 +1235,24 @@ class EmployeeController extends Controller
 
     public function updateInfoHR(Request $request, $id){
 
+        $request->validate([
+            'first_name'         => 'required|string|max:255',
+            'middle_name'        => 'nullable|string|max:255',
+            'middile_initial'    => 'nullable|string|max:10',
+            'last_name'          => 'required|string|max:255',
+            'suffix'             => 'nullable|string|max:50',
+            'nickname'           => 'required|string|max:255',
+            'marital_status'     => 'required|string|max:255',
+            'religion'           => 'required|string|max:255',
+            'gender'             => 'required|string|in:MALE,FEMALE',
+            'birthdate'          => 'required|date|before:today',
+            'birthplace'         => 'required|string|max:255',
+            'personal_email'     => 'required|string|max:255|regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/',
+            'personal_number'    => 'required|string|max:20',
+            'present_address'    => 'required|string|max:500',
+            'permanent_address'  => 'nullable|string|max:500',
+        ]);
+
         $employee = Employee::findOrFail($id);
         $employee->first_name = $request->first_name;
         $employee->middle_name = $request->middle_name;
@@ -1203,6 +1277,33 @@ class EmployeeController extends Controller
     }
 
     public function updateEmpInfoHR(Request $request, $id){
+
+        $request->validate([
+            'employee_number' => 'required|string|max:50|unique:employees,employee_number,' . $id,
+            // 'company'              => 'required|integer|exists:companies,id',
+            'position'             => 'required|s   tring|max:255',
+            // 'department'           => 'required|integer|min:0',
+            // 'location'             => 'required|string|max:255',
+            // 'project'              => 'required|string|max:255',
+            'classification'       => 'required|integer|exists:classifications,id',
+            'level'                => 'required|integer|exists:levels,id',
+            'immediate_supervisor' => 'required|integer|exists:users,id',
+            'date_hired'           => 'required|date',
+            'work_email'           => 'required|string|max:255|regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/',
+            // 'schedule'             => 'required|integer|exists:schedules,id',
+            'bank_name'            => 'required|string|max:255',
+            'bank_account_number'  => 'required|string|max:255',
+            'philhealth'           => 'required|string|max:50',
+            'sss'                  => 'required|string|max:50',
+            'tin'                  => 'required|string|max:50',
+            'pagibig'              => 'required|string|max:50',
+            'work_description'     => 'nullable|string|in:Monthly,Non-Monthly',
+            'tax_application'      => 'nullable|string|in:Minimum,Non-Minimum',
+            'rate'                 => 'nullable|numeric|min:0',
+            'status'               => 'required|string|in:Active,Inactive,Resigned,Terminated',
+            'cost_center'          => 'required|string|max:255',
+            'date_resigned'        => 'nullable|required_if:status,Inactive|date',
+        ]);
 
         $employee = Employee::findOrFail($id);
 

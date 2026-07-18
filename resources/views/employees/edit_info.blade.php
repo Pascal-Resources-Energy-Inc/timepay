@@ -86,7 +86,7 @@
 						<div class='row mb-2'>
 							<div class='col-md-4'>
 								Personal Email
-								<input type="email" name="personal_email" value="{{ $user->employee->personal_email }}" class='form-control form-control-sm required'
+								<input type="text" name="personal_email" value="{{ $user->employee->personal_email }}" class='form-control form-control-sm required'
 									placeholder="Personal Email" />
 							</div>
 							<div class='col-md-4'>
@@ -144,5 +144,15 @@ function same_as_current(value)
    
     
  }
+	@if($errors->any())
+		$(document).ready(function() {
+			$('#editInfo').modal('show');
+			Swal.fire({
+				icon: 'error',
+				title: 'Validation Error',
+				html: '<ul style="text-align:left;">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>',
+			});
+		});
+	@endif
 
 </script>

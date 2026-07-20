@@ -89,7 +89,10 @@
                     <div class='row mb-2'>
                       <div class='col-md-4'>
                         <label for="personal_email">Personal Email</label>&nbsp;<span class="text-danger">*</span>
-                        <input type="email" name="personal_email" class='form-control required form-control-sm' placeholder="Example@gmail.com"/>
+                        <input type="text" name="personal_email" class='form-control required form-control-sm' placeholder="Example@gmail.com"/>
+                        @if($errors->has('personal_email'))
+                            <small class="text-danger">{{ $errors->first('personal_email') }}</small>
+                        @endif
                       </div>
                       <div class="col-md-4">
                         <label for="personal_number">Personal Contact Number</label>&nbsp;<span class="text-danger">*</span>
@@ -190,7 +193,10 @@
                       </div>
                       <div class='col-md-4 mb-2'>
                         <label for="work_email">Work Email</label>&nbsp;<span class="text-danger">*</span>
-                        <input type="email" name="work_email" class='form-control form-control-sm required' placeholder="Work Email" required/>
+                        <input type="text" name="work_email" class='form-control form-control-sm required' placeholder="Work Email" required/>
+                        @if($errors->has('work_email'))
+                            <small class="text-danger">{{ $errors->first('work_email') }}</small>
+                        @endif
                       </div>
                       <div class='col-md-4 mb-2'>
                         <label for="schedule">Schedule</label>&nbsp;<span class="text-danger">*</span>
@@ -490,6 +496,17 @@
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   }
+
+   @if($errors->any())
+    $(document).ready(function() {
+        $('#newEmployee').modal('show');
+        Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            html: '<ul style="text-align:left;">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>',
+        });
+    });
+  @endif
 
 </script>
 

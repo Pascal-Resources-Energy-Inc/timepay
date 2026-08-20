@@ -1,10 +1,10 @@
 <!-- Modal -->
 <div class="modal fade" id="dtrc" tabindex="-1" role="dialog" aria-labelledby="dtrdata" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
+    <div class="modal-content border-0">
       <div class="modal-header">
         <h5 class="modal-title" id="dtrdata">Apply DTR Correction</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="btn-close btn-danger" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -96,7 +96,7 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-light border" data-dismiss="modal">Close</button>
         <button name="btnDtr" type="submit" class="btn btn-primary">Save</button>
       </div>
     </form>      

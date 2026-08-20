@@ -19,6 +19,7 @@ class EmployeeDtr extends Model implements Auditable
             'Late In due to late opening of office' => 'No penalty time',
             'Late Time In/ Out due to poor signal' => 'No penalty time',
             'Correction of In/Out due to travel time' => 'No penalty time',
+            'Early Out' => 'No penalty time' 
         ];
     }
 

@@ -74,7 +74,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form method='POST' action='timein-capture' onsubmit="show();" enctype="multipart/form-data">
+        <form method='POST' id='timeInAttendanceForm' action='timein-capture' onsubmit="show();" enctype="multipart/form-data">
             @csrf   
         <div id="app" class=' '>
           <div class="row mb-2 ">
@@ -108,7 +108,7 @@
                     <i class="ti-reload"></i> <small>Retake Photo</small>
                 </button>
                 
-                <button id="submitButton" type="submit" style='font-size:10px;'  class="btn-sm btn btn-success btn-fill">
+                <button id="submitButton" type="submit" disabled style='font-size:10px;'  class="btn-sm btn btn-success btn-fill">
                     <i class="ti-check"></i><small> Submit</small>
                 </button>
               </div>
@@ -395,19 +395,54 @@
       
       wrapText(ctx, "Address: "+address, 5, 65, canvas.width - 60, 10);
       
-      canvas.toBlob((blob) => {
-            const file = new File([blob], 'captured-image.png', { type: 'image/png' });
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            imageInput.files = dataTransfer.files;
-        });
-        
-      canvas.style.display = 'block';
-      video.style.display = 'none';
-      captureButton.style.display = 'none';
-      retakeButton.style.display = 'inline-block';
-      submitButton.style.display = 'inline-block';
-      if(alertBox) alertBox.style.display = 'block';
+        submitButton.disabled = true;
+        submitButton.style.display = 'none';
+
+        canvas.toBlob((blob) => {
+            if (!blob || blob.size === 0) {
+                alert('The photo could not be captured. Please retake it.');
+                return;
+            }
+
+            try {
+                const file = new File(
+                    [blob],
+                    'captured-image.png',
+                    { type: 'image/png' }
+                );
+
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                imageInput.files = dataTransfer.files;
+
+                if (!imageInput.files || imageInput.files.length !== 1) {
+                    throw new Error('The image was not attached to the form.');
+                }
+
+                // Only allow submission after the image exists.
+                submitButton.disabled = false;
+                submitButton.style.display = 'inline-block';
+            } catch (error) {
+                console.error('Unable to prepare attendance image:', error);
+
+                submitButton.disabled = true;
+                submitButton.style.display = 'none';
+
+                alert(
+                    'Your browser could not prepare the attendance photo. ' +
+                    'Please retake it or try another browser.'
+                );
+            }
+        }, 'image/png');
+
+        canvas.style.display = 'block';
+        video.style.display = 'none';
+        captureButton.style.display = 'none';
+        retakeButton.style.display = 'inline-block';
+
+        if (alertBox) {
+            alertBox.style.display = 'block';
+        }
     }
   
     function wrapText(context, text, x, y, maxWidth, lineHeight) {
@@ -433,12 +468,17 @@
     }
     
     function retakePhoto() {
-      canvas.style.display = 'none';
-      video.style.display = 'block';
-      captureButton.style.display = 'inline-block';
-      retakeButton.style.display = 'none';
-      submitButton.style.display = 'none';
-      if(alertBox) alertBox.style.display = 'none';
+        imageInput.value = '';
+
+        canvas.style.display = 'none';
+        video.style.display = 'block';
+        captureButton.style.display = 'inline-block';
+        retakeButton.style.display = 'none';
+        // Prevent submitting until a new selfie finishes processing.
+        submitButton.disabled = true;
+        submitButton.style.display = 'none';
+
+        if(alertBox) alertBox.style.display = 'none';
     }
   
     startCamera();
@@ -448,3 +488,17 @@
   </script>
   
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDXeIzjHN5haDfX4BckC7u-jzc8fok1MtA&callback=getLocation"></script>
+
+@if($errors->has('image'))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    Swal.fire({
+        icon: 'error',
+        title: 'Selfie Submission Failed',
+        text: @json($errors->first('image')),
+        confirmButtonText: 'Try Again',
+        allowOutsideClick: false
+    });
+});
+</script>
+@endif

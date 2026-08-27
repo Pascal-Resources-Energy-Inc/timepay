@@ -320,8 +320,8 @@
 </head>
 
 <body>
-    {{-- <div id="loader" style="display:none;" class="loader">
-    </div> --}}
+    <div id="loader" style="display:none;" class="loader">
+    </div>
     <div id="preloaderHera">
         <div class="logo-hera">
             <img src="{{ asset('login_css/images/hera_loading1.png') }}" alt="" height="250">

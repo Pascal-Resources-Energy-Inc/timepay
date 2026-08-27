@@ -206,15 +206,16 @@
 		function cancel(id) {
 			var element = document.getElementById('tdActionId'+id);
 			var dataID = element.getAttribute('data-id');
-			swal({
+			Swal.fire({
 					title: "Are you sure?",
 					text: "You want to cancel this DTR Correction?",
 					icon: "warning",
-					buttons: true,
+					showCancelButton: true,
+					confirmButtonColor: "#d33",
 					dangerMode: true,
 				})
-				.then((willCancel) => {
-					if (willCancel) {
+				.then((result) => {
+					if (result.isConfirmed) {
 						document.getElementById("loader").style.display = "block";
 						$.ajax({
 							url: "disable-dtr/" + id,
@@ -227,7 +228,7 @@
 							},
 							success: function(data) {
 								document.getElementById("loader").style.display = "none";
-								swal("DTR Correction has been cancelled!", {
+								Swal.fire("DTR Correction has been cancelled!", {
 									icon: "success",
 								}).then(function() {
 									document.getElementById("tdStatus" + id).innerHTML =
@@ -239,7 +240,7 @@
 						})
 
 					} else {
-            swal({text:"You stop the cancelation of DTR Correction.",icon:"success"});
+            Swal.fire({text:"You stop the cancelation of DTR Correction.",icon:"success"});
 					}
 				});
 		}

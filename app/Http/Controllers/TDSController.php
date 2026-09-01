@@ -467,6 +467,7 @@ class TdsController extends Controller
             $query = DB::table('tds')
                 ->select($selectColumns)
                 ->where('status', '!=', 'Decline')
+                ->whereNull('deleted_at')
                 ->groupBy($groupByColumns)
                 ->orderByDesc('last_transaction');
 

@@ -729,18 +729,17 @@ class TdsController extends Controller
         );
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $validator = Validator::make($request->all(), [
             'date_registered' => 'required|date',
             'employee_name' => 'required|string|max:255',
             'area' => 'required|integer|exists:regions,id',
             'customer_type' => 'required|in:new,existing',
             'customer_name' => 'required|string|max:255',
-            'contact_no' => 'required|string|max:255',
+            'contact_no' => 'required|string|regex:/^09[0-9]{9}$/',
             'mother_maiden_name' => 'required_if:customer_type,new|nullable|string|max:255',
             'location' => 'required|string|max:500',
-            'business_image' => 'required|file|max:5120',
+            'business_image' => 'required|file|max:10240',
             'business_name' => 'required|string|max:255',
             'business_type' => 'required|string|max:255',
             'awarded_area' => 'nullable|string|max:255',
@@ -749,7 +748,7 @@ class TdsController extends Controller
             'program_type' => 'nullable|in:Roadshow,Mini-Roadshow,Non-Roadshow',
             'program_area' => 'required_if:program_type,Roadshow,Mini-Roadshow|nullable|string|max:255',
             'lead_generator' => 'required|in:FB,Shopee,Gaz Lite Website,Events,Kaagapay,Referral,MFI,MD,PD,AD,D,Own Accounts,Packworks,Lazada',
-            'lead_reference' => 'required_if:lead_generator,FB,Shopee,Gaz Lite Website|nullable|string|max:500',
+            'lead_reference' => 'required_if:lead_generator,FB,Shopee,Gaz Lite Website,Packworks|nullable|string|max:500',
             'supplier_name' => 'nullable|string|max:255',
             'status' => 'required|in:Decline,Interested,For Delivery,Delivered',
             'timeline' => 'required_unless:status,Decline|date',
@@ -769,18 +768,16 @@ class TdsController extends Controller
             'business_image.required' => 'Business image is required',
             'business_image.image' => 'File must be an image',
             'business_image.mimes' => 'Image must be JPG, JPEG, or PNG',
-            'business_image.max' => 'Image size must not exceed 5MB',
+            'business_image.max' => 'Image size must not exceed 10MB',
             'document_attachment.mimes' => 'Document must be a PDF, DOC, DOCX, JPG, JPEG, or PNG file',
             'document_attachment.max' => 'Document size must not exceed 5MB',
         ]);
 
         $validator->after(function ($validator) use ($request) {
-            $contactNo = preg_replace('/\s+/', '', trim((string) $request->contact_no));
 
-            if ($contactNo !== '') {
-
+            if (!empty($request->contact_no) && $request->customer_type === 'new') {
                 $existingContact = Tds::where('status', '!=', 'Decline')
-                    ->whereRaw("REPLACE(contact_no, ' ', '') = ?", [$contactNo])
+                    ->whereRaw("REPLACE(contact_no, ' ', '') = ?", [$request->contact_no])
                     ->exists();
 
                 if ($existingContact) {
@@ -809,9 +806,30 @@ class TdsController extends Controller
                     'This customer name and mother maiden name already exist. Please select Existing Customer instead.'
                 );
             }
+
+            if ($request->lead_generator === 'Packworks') {
+                $ref = trim((string) $request->lead_reference);
+
+                if ($ref !== '' && !ctype_digit($ref)) {
+                    $validator->errors()->add(
+                        'lead_reference',
+                        'Reference number must be numeric only.'
+                    );
+                }
+
+                if ($ref !== '') {
+                    $exists = Tds::where('packworks_ref', $ref)->exists();
+                    if ($exists) {
+                        $validator->errors()->add(
+                            'lead_reference',
+                            'This Packworks reference number already exists.'
+                        );
+                    }
+                }
+            }
         });
 
-        $validated = $validator->validate();
+        $validator->validate();
 
         DB::beginTransaction();
         try {
@@ -870,6 +888,8 @@ class TdsController extends Controller
                 'additional_notes' => $request->additional_notes,
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
+                'packworks_ref' => $request->lead_generator === 'Packworks' ? $request->lead_reference : null,
+                'store_name' => $request->lead_generator === 'Packworks' ? $request->fb_name : null,
             ]);
 
             $tds->logActivity('created', [

@@ -25,7 +25,7 @@
 
 <div class="modal fade" id="registerDealer" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-xl" role="document">
-    <div class="modal-content">
+    <div class="modal-content border-0">
       <form action="{{ route('tds.store') }}" method="POST" id="dealerForm" enctype="multipart/form-data">
         @csrf
         <input type="hidden" name="latitude" id="hidden_latitude">
@@ -33,7 +33,7 @@
         
         <div class="modal-header text-black">
           <h5 class="modal-title">Register New Dealer</h5>
-          <button type="button" class="close text-white" data-dismiss="modal">
+          <button type="button" class="btn-close btn-danger" data-dismiss="modal">
             <span>&times;</span>
           </button>
         </div>
@@ -133,9 +133,11 @@
               <div class="col-md-6">
                 <div class="form-group">
                   <label>Contact Number <span class="text-danger">*</span></label>
-                  <input type="number" class="form-control" 
+                  <input type="text" class="form-control" 
                         name="contact_no" id="contact_no" value="{{ old('contact_no') }}" 
-                        placeholder="09453658795" required>
+                        placeholder="PH number e.g., 09xxxxxxxxx" 
+                        maxlength="11"
+                        required>
                   <small class="form-text text-muted">Mobile number</small>
                 </div>
               </div>
@@ -366,17 +368,17 @@
                 <label>Reference Number <span class="text-danger reference-required">*</span></label>
                 <input type="text" class="form-control" 
                       name="lead_reference" id="lead_reference" value="{{ old('lead_reference') }}" 
-                      placeholder="Enter reference number or link">
+                      placeholder="Enter reference number">
                 <small class="form-text text-muted">Required for FB, Shopee, and Gaz Lite Website</small>
               </div>
             </div>
             <div class="col-md-4 reference_field" style="display: none;">
               <div class="form-group">
-                <label>FB Name <span class="text-danger reference-required">*</span></label>
+                <label id="fb_name_label">FB Name <span class="text-danger reference-required">*</span></label>
                 <input type="text" class="form-control" 
                       name="fb_name" id="fb_name" value="{{ old('fb_name') }}" 
                       placeholder="Enter fb name">
-                <small class="form-text text-muted">Required for FB, Shopee, and Gaz Lite Website</small>
+                <small class="form-text text-muted fb_name_hint">Required for FB, Shopee, and Gaz Lite Website</small>
               </div>
             </div>
           </div>
@@ -479,7 +481,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-light border" data-dismiss="modal">Cancel</button>
           <button type="submit" class="btn btn-primary">Register Dealer</button>
         </div>
       </form>
@@ -491,42 +493,64 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
+    document.getElementById('contact_no').type = 'tel';
+    document.getElementById('contact_no').addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+
     document.getElementById('lead_generator').addEventListener('change', function () {
-      const referenceFields = document.querySelectorAll('.reference_field');
-      const referenceRequired = document.querySelectorAll('.reference-required');
+        const referenceFields = document.querySelectorAll('.reference_field');
+        const referenceRequired = document.querySelectorAll('.reference-required');
 
-      const referenceInput = document.getElementById('lead_reference');
-      const fbNameInput = document.getElementById('fb_name');
+        const referenceInput = document.getElementById('lead_reference');
+        const fbNameInput = document.getElementById('fb_name');
+        const fbNameLabel = document.getElementById('fb_name_label');
+        const fbNameHint = document.querySelector('.fb_name_hint');
 
-      const requiresReference = ['FB', 'Shopee', 'Gaz Lite Website'].includes(this.value);
 
-      if (requiresReference) {
 
-          // SHOW ALL reference fields
-          referenceFields.forEach(el => el.style.display = 'block');
+        const isPackworks = this.value === 'Packworks';
+        const requiresReference = ['FB', 'Shopee', 'Gaz Lite Website', 'Packworks'].includes(this.value);
 
-          // REQUIRED
-          referenceInput.required = true;
-          fbNameInput.required = true;
+        if (requiresReference) {
+            // SHOW ALL reference fields
+            referenceFields.forEach(el => el.style.display = 'block');
+            referenceRequired.forEach(el => el.style.display = 'inline');
 
-          referenceRequired.forEach(el => el.style.display = 'inline');
+            referenceInput.required = true;
+            fbNameInput.required = true;
 
-      } else {
+            if (isPackworks) {
+                // Packworks: numeric only, label becomes "Store Name"
+                referenceInput.type = 'number';
+                referenceInput.placeholder = 'Enter numeric reference number';
+                fbNameLabel.innerHTML = 'Store Name <span class="text-danger reference-required">*</span>';
+                fbNameInput.placeholder = 'Enter store name';
+                if (fbNameHint) fbNameHint.textContent = 'Required for Packworks';
+            } else {
+                // FB/Shopee/Website: text, label stays "FB Name"
+                referenceInput.type = 'text';
+                referenceInput.placeholder = 'Enter reference number';
+                fbNameLabel.innerHTML = 'FB Name <span class="text-danger reference-required">*</span>';
+                fbNameInput.placeholder = 'Enter fb name';
+                if (fbNameHint) fbNameHint.textContent = 'Required for FB, Shopee, and Gaz Lite Website';
+            }
+        } else {
+            // HIDE ALL reference fields
+            referenceFields.forEach(el => el.style.display = 'none');
+            referenceRequired.forEach(el => el.style.display = 'none');
 
-          // HIDE ALL reference fields
-          referenceFields.forEach(el => el.style.display = 'none');
+            referenceInput.required = false;
+            fbNameInput.required = false;
 
-          // REMOVE REQUIRED
-          referenceInput.required = false;
-          fbNameInput.required = false;
-
-          // CLEAR VALUES
-          referenceInput.value = '';
-          fbNameInput.value = '';
-
-          referenceRequired.forEach(el => el.style.display = 'none');
-      }
-  });
+            // RESET
+            referenceInput.type = 'text';
+            referenceInput.value = '';
+            referenceInput.placeholder = 'Enter reference number';
+            fbNameInput.value = '';
+            fbNameLabel.innerHTML = 'FB Name <span class="text-danger reference-required">*</span>';
+        }
+    });
 
 
   document.addEventListener('DOMContentLoaded', function() {

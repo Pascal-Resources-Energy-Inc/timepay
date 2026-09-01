@@ -41,6 +41,8 @@ class Tds extends Model
         'upload_docs',
         'latitude',
         'longitude',
+        'packworks_ref',
+        'store_name'
     ];
 
     protected $dates = ['date_of_registration', 'timeline', 'delivery_date', 'deleted_at'];

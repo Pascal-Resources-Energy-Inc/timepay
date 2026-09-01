@@ -28,8 +28,12 @@
     <div class="modal-content border-0">
       <form action="{{ route('tds.store') }}" method="POST" id="dealerForm" enctype="multipart/form-data">
         @csrf
-        <input type="hidden" name="latitude" id="hidden_latitude">
-        <input type="hidden" name="longitude" id="hidden_longitude">
+        <input type="hidden" name="latitude" id="hidden_latitude" value="{{ old('latitude') }}">
+        <input type="hidden" name="longitude" id="hidden_longitude" value="{{ old('longitude') }}">
+        <input type="hidden" id="old_location_region" value="{{ old('location_region') }}">
+        <input type="hidden" id="old_location_province" value="{{ old('location_province') }}">
+        <input type="hidden" id="old_location_city" value="{{ old('location_city') }}">
+        <input type="hidden" id="old_location_barangay" value="{{ old('location_barangay') }}">
         
         <div class="modal-header text-black">
           <h5 class="modal-title">Register New Dealer</h5>
@@ -271,7 +275,7 @@
                 <div id="location_map" style="height: 400px; border-radius: 8px; border: 2px solid #dee2e6;"></div>
                 <div class="mt-2 p-2 bg-light rounded">
                   <strong>Current Pin Location:</strong><br>
-                  Latitude: <span id="display_lat">--</span>, Longitude: <span id="display_lng">--</span>
+                  Latitude: <span id="display_lat">{{ old('latitude', '--') }}</span>, Longitude: <span id="display_lng">{{ old('longitude', '--') }}</span>
                 </div>
               </div>
             </div>
@@ -281,8 +285,8 @@
             <div class="col-md-12">
               <div class="form-group">
                 <label>Complete Address Preview</label>
-                <textarea class="form-control bg-light" id="full_address_preview" rows="2" readonly></textarea>
-                <input type="hidden" name="location" id="location_hidden">
+                <textarea class="form-control bg-light" id="full_address_preview" rows="2" readonly>{{ old('location') }}</textarea>
+                <input type="hidden" name="location" id="location_hidden" value="{{ old('location') }}">
               </div>
             </div>
           </div>
@@ -799,6 +803,123 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    async function restoreLocationCascade() {
+        const oldRegion = document.getElementById('old_location_region')?.value || '';
+        const oldProvince = document.getElementById('old_location_province')?.value || '';
+        const oldCity = document.getElementById('old_location_city')?.value || '';
+        const oldBarangay = document.getElementById('old_location_barangay')?.value || '';
+
+        if (!oldRegion) return;
+
+        const regionSelect = document.getElementById('location_region');
+        const provinceSelect = document.getElementById('location_province');
+        const citySelect = document.getElementById('location_city');
+        const barangaySelect = document.getElementById('location_barangay');
+
+        regionSelect.value = oldRegion;
+        currentRegionCode = oldRegion;
+        currentRegionName = regionSelect.options[regionSelect.selectedIndex]?.text || '';
+
+        if (isNCR(oldRegion, currentRegionName)) {
+            provinceSelect.innerHTML = '<option value="NCR" selected>Metro Manila</option>';
+            provinceSelect.disabled = true;
+            currentProvinceName = 'Metro Manila';
+            await loadNCRCities(oldRegion);
+        } else {
+            try {
+                const response = await fetch(`${BASE_URL}/regions/${oldRegion}/provinces`);
+                const provinces = await response.json();
+                provinceSelect.innerHTML = '<option value="">-- Select Province --</option>';
+                provinceSelect.disabled = false;
+                provinces.forEach(province => {
+                    const option = document.createElement('option');
+                    option.value = province.code;
+                    option.textContent = province.name;
+                    provinceSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error restoring provinces:', error);
+                return;
+            }
+        }
+
+        if (!oldProvince) { updateFullAddress(); return; }
+
+        provinceSelect.value = oldProvince;
+        currentProvinceName = provinceSelect.options[provinceSelect.selectedIndex]?.text || '';
+
+        if (oldProvince !== 'NCR') {
+            try {
+                const [citiesResponse, municipalitiesResponse] = await Promise.all([
+                    fetch(`${BASE_URL}/provinces/${oldProvince}/cities`),
+                    fetch(`${BASE_URL}/provinces/${oldProvince}/municipalities`)
+                ]);
+                const cities = await citiesResponse.json();
+                const municipalities = await municipalitiesResponse.json();
+                const allCities = [...cities, ...municipalities].sort((a, b) => a.name.localeCompare(b.name));
+                citySelect.innerHTML = '<option value="">-- Select City --</option>';
+                citySelect.disabled = false;
+                allCities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.code;
+                    option.textContent = city.name;
+                    citySelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error restoring cities:', error);
+                return;
+            }
+        }
+
+        if (!oldCity) { updateFullAddress(); return; }
+
+        citySelect.value = oldCity;
+        currentCityName = citySelect.options[citySelect.selectedIndex]?.text || '';
+
+        try {
+            const response = await fetch(`${BASE_URL}/cities-municipalities/${oldCity}/barangays`);
+            const barangays = await response.json();
+            barangays.sort((a, b) => a.name.localeCompare(b.name));
+            barangaySelect.innerHTML = '<option value="">-- Select Barangay --</option>';
+            barangaySelect.disabled = false;
+            barangays.forEach(barangay => {
+                const option = document.createElement('option');
+                option.value = barangay.code;
+                option.textContent = barangay.name;
+                barangaySelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error restoring barangays:', error);
+            return;
+        }
+
+        if (!oldBarangay) { updateFullAddress(); return; }
+
+        barangaySelect.value = oldBarangay;
+        const barangayName = barangaySelect.options[barangaySelect.selectedIndex]?.text || '';
+
+        updateFullAddress();
+
+        const oldLat = document.getElementById('hidden_latitude')?.value || '';
+        const oldLng = document.getElementById('hidden_longitude')?.value || '';
+
+        if (oldLat && oldLng) {
+            const lat = parseFloat(oldLat);
+            const lng = parseFloat(oldLng);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                map.setView([lat, lng], 16);
+                marker.setLatLng([lat, lng]);
+                updateCoordinates(lat, lng);
+                return;
+            }
+        }
+
+        if (barangayName && barangayName !== '-- Select Barangay --') {
+            geocodeAddress(barangayName, currentCityName, currentProvinceName, currentRegionName);
+            fetchZipCode(parseFloat(document.getElementById('hidden_latitude').value), parseFloat(document.getElementById('hidden_longitude').value));
+        }
+    }
+
     function isNCR(regionCode, regionName) {
       return regionCode.startsWith('13') || 
             regionName.toLowerCase().includes('ncr') ||
@@ -1140,13 +1261,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    $('#registerDealer').on('shown.bs.modal', function () {
-        loadRegions();
+    $('#registerDealer').on('shown.bs.modal', async function () {
+        await loadRegions();
+
+        const oldLat = document.getElementById('hidden_latitude')?.value || '';
+        const oldLng = document.getElementById('hidden_longitude')?.value || '';
+
         if (!map) {
+            if (oldLat && oldLng) {
+                currentLat = parseFloat(oldLat);
+                currentLng = parseFloat(oldLng);
+            }
             initMap();
         } else {
             map.invalidateSize();
+            if (oldLat && oldLng) {
+                const lat = parseFloat(oldLat);
+                const lng = parseFloat(oldLng);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    map.setView([lat, lng], 16);
+                    marker.setLatLng([lat, lng]);
+                    updateCoordinates(lat, lng);
+                }
+            }
         }
+
+        await restoreLocationCascade();
     });
 
 });
@@ -1302,6 +1442,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     $('#registerDealer').on('hidden.bs.modal', function () {
+        const hasOldValues = document.getElementById('old_location_region')?.value || '';
+        if (hasOldValues) return;
         customerTypeSelect.value = '';
         toggleMotherMaidenRequirement();
         existingCustomerSection.style.display = 'none';

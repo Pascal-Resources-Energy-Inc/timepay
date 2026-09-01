@@ -731,6 +731,8 @@ class TdsController extends Controller
     }
 
     public function store(Request $request) {
+        \Log::info('TDS Store:', $request->all());
+
         $validator = Validator::make($request->all(), [
             'date_registered' => 'required|date',
             'employee_name' => 'required|string|max:255',
@@ -778,6 +780,7 @@ class TdsController extends Controller
 
             if (!empty($request->contact_no) && $request->customer_type === 'new') {
                 $existingContact = Tds::where('status', '!=', 'Decline')
+                    ->whereNull('deleted_at')
                     ->whereRaw("REPLACE(contact_no, ' ', '') = ?", [$request->contact_no])
                     ->exists();
 
@@ -797,6 +800,7 @@ class TdsController extends Controller
             }
 
             $existingCustomer = Tds::where('status', '!=', 'Decline')
+                ->whereNull('deleted_at')
                 ->whereRaw('LOWER(TRIM(customer_name)) = ?', [strtolower($customerName)])
                 ->whereRaw('LOWER(TRIM(mother_maiden_name)) = ?', [strtolower($motherMaidenName)])
                 ->exists();
@@ -819,7 +823,9 @@ class TdsController extends Controller
                 }
 
                 if ($ref !== '') {
-                    $exists = Tds::where('packworks_ref', $ref)->exists();
+                    $exists = Tds::where('packworks_ref', $ref)
+                        ->whereNull('deleted_at')
+                        ->exists();
                     if ($exists) {
                         $validator->errors()->add(
                             'lead_reference',
@@ -922,6 +928,17 @@ class TdsController extends Controller
                 if (file_exists($imgPath)) {
                     unlink($imgPath);
                 }
+            }
+
+            if (str_contains($e->getMessage(), '1062 Duplicate entry')) {
+                if (str_contains($e->getMessage(), 'packworks_ref')) {
+                    return redirect()->back()
+                                     ->withInput()
+                                     ->with('error', 'This Packworks reference number already exists. Please use a different reference number.');
+                }
+                return redirect()->back()
+                                 ->withInput()
+                                 ->with('error', 'A duplicate entry was detected. Please check your submission.');
             }
             
             return redirect()->back()

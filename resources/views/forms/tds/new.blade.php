@@ -514,7 +514,7 @@
 
 
         const isPackworks = this.value === 'Packworks';
-        const requiresReference = ['FB', 'Shopee', 'Gaz Lite Website', 'Packworks'].includes(this.value);
+        const requiresReference = ['FB', 'Shopee', 'Lazada', 'Gaz Lite Website', 'Packworks'].includes(this.value);
 
         if (requiresReference) {
             // SHOW ALL reference fields

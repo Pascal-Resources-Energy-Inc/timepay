@@ -489,13 +489,40 @@
   
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDXeIzjHN5haDfX4BckC7u-jzc8fok1MtA&callback=getLocation"></script>
 
+{{--validation message for image --}}
 @if($errors->has('image'))
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     Swal.fire({
         icon: 'error',
-        title: 'Selfie Submission Failed',
+        title: 'Oops!',
         text: @json($errors->first('image')),
+        confirmButtonText: 'Try Again',
+        allowOutsideClick: false
+    });
+});
+</script>
+@endif
+
+{{--validation message for location--}}
+@if($errors->has('location') || $errors->has('location_lat') || $errors->has('location_long'))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const errors = [];
+    @if($errors->has('location'))
+        errors.push(@json($errors->first('location')));
+    @endif
+    @if($errors->has('location_lat'))
+        errors.push(@json($errors->first('location_lat')));
+    @endif
+    @if($errors->has('location_long'))
+        errors.push(@json($errors->first('location_long')));
+    @endif
+
+    Swal.fire({
+        icon: 'error',
+        title: 'Oops!',
+        text: errors.join('\n'),
         confirmButtonText: 'Try Again',
         allowOutsideClick: false
     });

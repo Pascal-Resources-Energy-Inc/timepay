@@ -455,4 +455,32 @@
 
 </script>
 
+@if($errors->has('image') || $errors->has('location') || $errors->has('location_lat') || $errors->has('location_long'))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const errors = [];
+    @if($errors->has('image'))
+        errors.push(@json($errors->first('image')));
+    @endif
+    @if($errors->has('location'))
+        errors.push(@json($errors->first('location')));
+    @endif
+    @if($errors->has('location_lat'))
+        errors.push(@json($errors->first('location_lat')));
+    @endif
+    @if($errors->has('location_long'))
+        errors.push(@json($errors->first('location_long')));
+    @endif
+
+    Swal.fire({
+        icon: 'error',
+        title: 'Oops!',
+        text: errors.join('\n'),
+        confirmButtonText: 'Try Again',
+        allowOutsideClick: false
+    });
+});
+</script>
+@endif
+
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDXeIzjHN5haDfX4BckC7u-jzc8fok1MtA&callback=getLocation"></script>

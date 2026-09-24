@@ -336,7 +336,6 @@ class EmployeeController extends Controller
 
     public function new(Request $request)
     {
-        // dd($request->all());
         $request->validate([
             // personal details
             'first_name'           => 'required|string|max:255',
@@ -387,9 +386,12 @@ class EmployeeController extends Controller
             'pagibig'              => 'required|string|max:50',
             'tin'                  => 'required|string|max:50',
 
+            'documents' => 'nullable|array',
+            'documents.*' => 'file|mimes:pdf,jpeg,jpg,png|max:2048',
+
             // file uploads
-            'file'                 => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'signature'            => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'file'                 => 'nullable|mimes:jpeg,png,jpg,gif|max:2048',
+            'signature'            => 'nullable|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $validate_employee = Employee::where('first_name',$request->first_name)

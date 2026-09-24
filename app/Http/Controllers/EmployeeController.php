@@ -387,7 +387,7 @@ class EmployeeController extends Controller
             'tin'                  => 'required|string|max:50',
 
             'documents' => 'nullable|array',
-            'documents.*' => 'file|mimes:pdf,jpeg,jpg,png|max:2048',
+            'documents.*' => 'file|mimes:pdf,jpeg,jpg,png|max:102400',
 
             // file uploads
             'file'                 => 'nullable|mimes:jpeg,png,jpg,gif|max:2048',

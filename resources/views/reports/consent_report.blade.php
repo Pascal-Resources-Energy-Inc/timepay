@@ -62,6 +62,8 @@
                                                         <th>Date Signed</th>
                                                         <th>Employee Name</th>
                                                         <th>Drug and Alcohol Abuse</th>
+                                                        <th>Prevention of Sexual Exploitation, Abuse, and Harassment</th>
+                                                        <th>Child Protection Policy</th>
                                                         <th>Attendance and Timekeeping Policy</th>
                                                         <th>Code of Conduct</th>
                                                     </tr>
@@ -81,6 +83,24 @@
                                                             </span>
                                                             @if($consent->dabp_attachment)
                                                                 <a href="{{ asset('storage/' . $consent->dabp_attachment) }}" target="_blank" class="ml-2">View Attachment</a>  
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge 
+                                                                {{ Str::contains($consent->pseah, "doesn't agree") ? 'badge-danger' : 'badge-success' }}">
+                                                                {{ $consent->pseah ?? '-' }}
+                                                            </span>
+                                                            @if($consent->pseah_attachment)
+                                                                <a href="{{ asset('storage/' . $consent->pseah_attachment) }}" target="_blank" class="ml-2">View Attachment</a>  
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge 
+                                                                {{ Str::contains($consent->cpc, "doesn't agree") ? 'badge-danger' : 'badge-success' }}">
+                                                                {{ $consent->cpc ?? '-' }}
+                                                            </span>
+                                                            @if($consent->cpc_attachment)
+                                                                <a href="{{ asset('storage/' . $consent->cpc_attachment) }}" target="_blank" class="ml-2">View Attachment</a>  
                                                             @endif
                                                         </td>
                                                         <td>

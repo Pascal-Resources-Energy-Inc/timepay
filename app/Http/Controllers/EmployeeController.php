@@ -2835,6 +2835,8 @@ class EmployeeController extends Controller
             'dabp' => 'required',
             'atkp' => 'required',
             'coc'  => 'required',
+            'pseah'  => 'required',
+            'cpc'  => 'required',
             'consent_signature'  => 'required',
         ]);
 
@@ -2848,6 +2850,8 @@ class EmployeeController extends Controller
             'dabp' => $request->dabp,
             'atkp' => $request->atkp,
             'coc'  => $request->coc,
+            'pseah'  => $request->pseah,
+            'cpc'  => $request->cpc,
             'consent_signature' => $request->consent_signature,
             'signed_date' => now(),
             'is_setup_complete' => 1
@@ -2857,8 +2861,10 @@ class EmployeeController extends Controller
         $answers = [
             $request->dabp,
             $request->atkp,
-            $request->coc
-        ];
+            $request->coc,
+            $request->pseah,
+            $request->cpc
+        ];  
 
         $hasDisagreement = collect($answers)->contains(function ($val) {
             return strpos($val, "doesn't agree") !== false;
@@ -2896,6 +2902,14 @@ class EmployeeController extends Controller
             $rules['coc'] = 'required';
         }
 
+        if ($type === 'pseah') {
+            $rules['pseah'] = 'required';
+        }
+
+        if ($type === 'cpc') {
+            $rules['cpc'] = 'required';
+        }
+
         $this->validate($request, $rules);
 
         // ✅ FILE UPLOAD
@@ -2914,6 +2928,14 @@ class EmployeeController extends Controller
 
             if ($type === 'coc' && $user->coc_attachment) {
                 Storage::disk('public')->delete($user->coc_attachment);
+            }
+
+            if ($type === 'pseah' && $user->pseah_attachment) {
+                Storage::disk('public')->delete($user->pseah_attachment);
+            }
+
+            if ($type === 'cpc' && $user->cpc_attachment) {
+                Storage::disk('public')->delete($user->cpc_attachment);
             }
 
             $file = $request->file('attachment');
@@ -2942,6 +2964,20 @@ class EmployeeController extends Controller
                 $user->coc = $request->input('coc');
                 if ($filePath) {
                     $user->coc_attachment = $filePath;
+                }
+                break;
+
+            case 'pseah':
+                $user->pseah = $request->input('pseah');
+                if ($filePath) {
+                    $user->pseah_attachment = $filePath;
+                }
+                break;
+
+            case 'cpc':
+                $user->cpc = $request->input('cpc');
+                if ($filePath) {
+                    $user->cpc_attachment = $filePath;
                 }
                 break;
 

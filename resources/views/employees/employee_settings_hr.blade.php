@@ -1328,6 +1328,159 @@
                                         </div>
                                     </div>
                                     <div class="card mb-2">
+                                        <div class="card-header bg-light" id="headingPSEAH">
+                                            <h6 class="mb-0 d-flex justify-content-between align-items-center">
+                                                <button class="btn btn-link text-left w-100" data-toggle="collapse" data-target="#collapsePSEAH">
+                                                    <b>Prevention of Sexual Exploitation, Abuse, and Harassment</b>
+                                                </button>
+                                                @if(!empty($user->pseah))
+                                                    <span class="badge badge-success">Completed</span>
+                                                @else
+                                                    <span class="badge badge-warning">Pending</span>
+                                                @endif
+                                            </h6>
+                                        </div>
+
+                                        <div id="collapsePSEAH" class="collapse" data-parent="#policyAccordion">
+                                            <div class="card-body">
+                                                <p>The Company has explained this in detail during the New Employee Orientation or Policy Cascade (whichever is applicable), which I am in attendance.</p>
+                                                <hr>
+                                                <p class="text-center"><b>ACKNOWLEDGEMENT - PSEAH</b></p>
+                                                <p>I acknowledge that I have read, understood, and agree to comply with the organization’s Prevention of Sexual Exploitation, Abuse, and Harassment (PSEAH) Policy, including the standards of conduct, reporting requirements, and responsibilities set out in the policy.</p>
+                                                <p>I understand where and how to access the PSEAH Policy and related procedures, guidelines, reporting mechanisms, and supporting documents for future reference. I also understand whom to contact within the organization should I have questions, require clarification, need guidance, or wish to raise a concern relating to PSEAH.</p>
+                                                <p>I further acknowledge the following key principles regarding PSEAH:</p>
+                                                <ol class="ml-3">
+                                                    <li><b>Zero tolerance for sexual exploitation, abuse, and harassment.</b> Sexual exploitation, sexual abuse, and sexual harassment are prohibited and may result in disciplinary or other appropriate action in accordance with organizational policy and applicable requirements.</li>
+                                                    <li><b>Duty to report concerns.</b> I understand that concerns, suspicions, allegations, or incidents relating to sexual exploitation, abuse, or harassment should be reported promptly through the organization’s designated and confidential reporting channels, in accordance with the PSEAH Policy.</li>
+                                                    <li><b>Respect, dignity, and appropriate conduct.</b> I am expected to maintain professional boundaries and treat all individuals with dignity and respect, particularly children, vulnerable persons, beneficiaries, community members, colleagues, and other persons with whom I interact in connection with my work.</li>
+                                                    <li><b>Protection against retaliation and confidentiality.</b> I understand that reports and concerns should be handled with appropriate confidentiality and sensitivity, and that retaliation against a person who raises a concern in good faith or participates in a PSEAH process is not acceptable.</li>
+                                                    <li><b>Personal Responsibility.</b> I understand that compliance with the PSEAH Policy is my personal responsibility and that I should seek guidance from the designated PSEAH focal person, safeguarding officer, Human Resources representative, or other authorized contact whenever I am uncertain about appropriate conduct, reporting obligations, or applicable procedures.</li>
+                                                </ol>
+                                                <p>By signing this acknowledgement, I confirm that I understand my responsibilities under the PSEAH Policy and commit to uphold its principles and requirements.</p>
+                                                <div class="col-md-12">
+                                                    {{-- <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="dabp"
+                                                            value="Yes, I understand and agree on this."
+                                                            {{ $user->dabp == 'Yes, I understand and agree on this.' ? 'checked' : '' }}>
+                                                        <label class="form-check-label text-success">
+                                                            ✔ Agree
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="dabp"
+                                                            value="No, I understand it but doesn't agree on this."
+                                                            {{ $user->dabp == "No, I understand it but doesn't agree on this." ? 'checked' : '' }}>
+                                                        <label class="form-check-label text-danger">
+                                                            ✖ Disagree
+                                                        </label>
+                                                    </div> --}}
+                                                    <form class="policy-form" data-id="{{ $user->id }}" enctype="multipart/form-data">
+                                                        @csrf
+                                                        <input type="hidden" name="type" value="pseah">
+
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="pseah"
+                                                                value="Yes, I understand and agree on this."
+                                                                {{ $user->pseah == 'Yes, I understand and agree on this.' ? 'checked' : '' }}>
+                                                            <label class="form-check-label text-success">✔&nbsp;Yes, I understand and agree on this.</label>
+                                                        </div>
+
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="pseah"
+                                                                value="No, I understand it but doesn't agree on this."
+                                                                {{ $user->pseah == "No, I understand it but doesn't agree on this." ? 'checked' : '' }}>
+                                                            <label class="form-check-label text-danger">✖&nbsp;No, I understand it but doesn't agree on this.</label>
+                                                        </div>
+                                                        @if($user->pseah == "No, I understand it but doesn't agree on this.")
+                                                            <input type="file" name="attachment" class="form-control mt-2">
+                                                        @endif
+                                                        @if($user->pseah_attachment)
+                                                            <a href="{{ asset('storage/'.$user->pseah_attachment) }}" class="mt-2" target="_blank">
+                                                                View Attachment
+                                                            </a>
+                                                        @endif
+                                                        @if($user->pseah == "No, I understand it but doesn't agree on this.")
+                                                            <div align="right">
+                                                                <button type="submit" class="btn btn-primary mt-2">Update</button>
+                                                            </div>
+                                                        @endif
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card mb-2">
+                                        <div class="card-header bg-light" id="headingCPC">
+                                            <h6 class="mb-0 d-flex justify-content-between align-items-center">
+                                                <button class="btn btn-link text-left w-100" data-toggle="collapse" data-target="#collapseCPC">
+                                                    <b>Child Protection Policy</b>
+                                                </button>
+                                                @if(!empty($user->cpc))
+                                                    <span class="badge badge-success">Completed</span>
+                                                @else
+                                                    <span class="badge badge-warning">Pending</span>
+                                                @endif
+                                            </h6>
+                                        </div>
+
+                                        <div id="collapseCPC" class="collapse" data-parent="#policyAccordion">
+                                            <div class="card-body">
+                                                <p>The Company has explained this in detail during the New Employee Orientation or Policy Cascade (whichever is applicable), which I am in attendance.</p>
+                                                <p class="text-center"><b>ACKNOWLEDGEMENT - CPC</b></p>
+                                                <p>I acknowledge that I have read and understood the organization’s Child Protection Policy and recognize my responsibility to comply with its provisions, standards, and procedures. I understand where and how to access the relevant policy documents and supporting materials for future reference. I also know whom to contact within the organization should I have any questions, require clarification, or need further guidance regarding the Child Protection Policy.</p>
+                                                <div class="col-md-12">
+                                                    {{-- <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="dabp"
+                                                            value="Yes, I understand and agree on this."
+                                                            {{ $user->dabp == 'Yes, I understand and agree on this.' ? 'checked' : '' }}>
+                                                        <label class="form-check-label text-success">
+                                                            ✔ Agree
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="dabp"
+                                                            value="No, I understand it but doesn't agree on this."
+                                                            {{ $user->dabp == "No, I understand it but doesn't agree on this." ? 'checked' : '' }}>
+                                                        <label class="form-check-label text-danger">
+                                                            ✖ Disagree
+                                                        </label>
+                                                    </div> --}}
+                                                    <form class="policy-form" data-id="{{ $user->id }}" enctype="multipart/form-data">
+                                                        @csrf
+                                                        <input type="hidden" name="type" value="cpc">
+
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="cpc"
+                                                                value="Yes, I understand and agree on this."
+                                                                {{ $user->cpc == 'Yes, I understand and agree on this.' ? 'checked' : '' }}>
+                                                            <label class="form-check-label text-success">✔&nbsp;Yes, I understand and agree on this.</label>
+                                                        </div>
+
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="cpc"
+                                                                value="No, I understand it but doesn't agree on this."
+                                                                {{ $user->cpc == "No, I understand it but doesn't agree on this." ? 'checked' : '' }}>
+                                                            <label class="form-check-label text-danger">✖&nbsp;No, I understand it but doesn't agree on this.</label>
+                                                        </div>
+                                                        @if($user->cpc == "No, I understand it but doesn't agree on this.")
+                                                            <input type="file" name="attachment" class="form-control mt-2">
+                                                        @endif
+                                                        @if($user->cpc_attachment)
+                                                            <a href="{{ asset('storage/'.$user->cpc_attachment) }}" class="mt-2" target="_blank">
+                                                                View Attachment
+                                                            </a>
+                                                        @endif
+                                                        @if($user->cpc == "No, I understand it but doesn't agree on this.")
+                                                            <div align="right">
+                                                                <button type="submit" class="btn btn-primary mt-2">Update</button>
+                                                            </div>
+                                                        @endif
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card mb-2">
                                         <div class="card-header bg-light" id="headingATKP">
                                             <h6 class="mb-0 d-flex justify-content-between align-items-center">
                                                 <button class="btn btn-link text-left w-100" data-toggle="collapse" data-target="#collapseATKP">

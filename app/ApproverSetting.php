@@ -4,17 +4,19 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ApproverSetting extends Model implements Auditable
 {
     use \OwenIt\Auditing\Auditable;
+    use SoftDeletes;
 
     protected $table = 'approver_settings';
     
     protected $fillable = [
         'user_id',
-        'company_id', 
         'type_of_form',
+        'work_location',
         'status'
     ];
 
@@ -46,10 +48,12 @@ class ApproverSetting extends Model implements Auditable
             'pd' => 'Payroll Disbursement',
             'ad' => 'Authority Deduct',
             'ne' => 'Number Enrollment',
-            'coe' => 'COE Request'
+            'coe' => 'COE Request',
+            'uir' => 'Uniform and ID Request',
+            'mta' => 'Monetized Transportation Allowance',
         ];
     }
-
+    
     public function getFormTypeNameAttribute()
     {
         $formTypes = self::getFormTypes();

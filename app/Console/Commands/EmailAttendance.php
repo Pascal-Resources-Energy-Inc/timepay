@@ -67,6 +67,7 @@ class EmailAttendance extends Command
             }
             
             $date_ranges = dateRange(date('Y-m-d', strtotime($att . ' +1 day')),date('Y-m-d'));
+            $date_ranges = array_reverse($date_ranges);
 
             $from_date = date('Y-m-d', strtotime($att . ' +1 day'));
             $to_date = date('Y-m-d');

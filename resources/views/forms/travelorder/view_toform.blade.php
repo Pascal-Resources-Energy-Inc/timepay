@@ -1,5 +1,5 @@
 @foreach($tos as $form_approval)
-  <div class="modal fade" id="to-view-approved-{{ $form_approval->id }}" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal fade" id="view-modal-{{ $form_approval->id }}" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document" style="max-width: 1200px;">
       <div class="modal-content">
         <div class="modal-header">
@@ -24,7 +24,7 @@
                           <input type="" id="applied_date" name="applied_date"
                               class="form-control"
                               style="width: 100px; height: 40px; font-size: 0.7rem; padding: 0.25rem 0.5rem;"
-                              value="{{ $form_approval->applied_date ? \Carbon\Carbon::parse($form_approval->applied_date)->format('F j, Y') : '' }}">
+                              value="{{ $form_approval->applied_date ? \Carbon\Carbon::parse($form_approval->applied_date)->format('Y-m-d') : '' }}">
                         </div>
                       </div>
                       <div class="col-2 p-0 text-center">T.O. No.</div>
@@ -38,7 +38,7 @@
               </div>
             
             <div class="form-sections">
-            <div class="itinerary-section">
+            <div class="">
                 <div class="desktop-itinerary">
                     <table class="itinerary-table">
                         <tr>
@@ -57,35 +57,35 @@
                         </tr>
 
                         <tr class="itinerary-row">
-                            <td><input type="text" class="form-control form-control-sm destination" name="destination" value="{{ $form_approval->destination }}" disabled></td>
+                            <td><input type="" class="form-control form-control-sm destination" name="destination" value="{{ $form_approval->destination }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="date_from" value="{{ date('M d, Y', strtotime($form_approval->date_from)) }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="departure_time" value="{{ date('h:i A', strtotime($form_approval->date_from)) }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="date_to" value="{{ date('M d, Y', strtotime($form_approval->date_to)) }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="arrival_time" value="{{ date('h:i A', strtotime($form_approval->date_to)) }}" disabled></td>
                         </tr>
                         <tr class="itinerary-row">
-                            <td><input type="text" class="form-control form-control-sm destination" name="destination_2" value="{{ $form_approval->destination_2 }}" disabled></td>
+                            <td><input type="" class="form-control form-control-sm destination" name="destination_2" value="{{ $form_approval->destination_2 }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="date_from_2" value="{{ $form_approval->date_from_2 ? date('M d, Y', strtotime($form_approval->date_from_2)) : '' }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="departure_time_2" value="{{ $form_approval->date_from_2 ? date('h:i A', strtotime($form_approval->date_from_2)) : '' }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="date_to_2" value="{{ $form_approval->date_to_2 ? date('M d, Y', strtotime($form_approval->date_to_2)) : '' }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="arrival_time_2" value="{{ $form_approval->date_to_2 ? date('h:i A', strtotime($form_approval->date_to_2)) : '' }}" disabled></td>
                         </tr>
                         <tr class="itinerary-row">
-                            <td><input type="text" class="form-control form-control-sm destination" name="destination_3" value="{{ $form_approval->destination_3 }}" disabled></td>
+                            <td><input type="" class="form-control form-control-sm destination" name="destination_3" value="{{ $form_approval->destination_3 }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="date_from_3" value="{{ $form_approval->date_from_3 ? date('M d, Y', strtotime($form_approval->date_from_3)) : '' }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="departure_time_3" value="{{ $form_approval->date_from_3 ? date('h:i A', strtotime($form_approval->date_from_3)) : '' }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="date_to_3" value="{{ $form_approval->date_to_3 ? date('M d, Y', strtotime($form_approval->date_to_3)) : '' }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="arrival_time_3" value="{{ $form_approval->date_to_3 ? date('h:i A', strtotime($form_approval->date_to_3)) : '' }}" disabled></td>
                         </tr>
                         <tr class="itinerary-row">
-                            <td><input type="text" class="form-control form-control-sm destination" name="destination_4" value="{{ $form_approval->destination_4 }}" disabled></td>
+                            <td><input type="" class="form-control form-control-sm destination" name="destination_4" value="{{ $form_approval->destination_4 }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="date_from_4" value="{{ $form_approval->date_from_4 ? date('M d, Y', strtotime($form_approval->date_from_4)) : '' }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="departure_time_4" value="{{ $form_approval->date_from_4 ? date('h:i A', strtotime($form_approval->date_from_4)) : '' }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="date_to_4" value="{{ $form_approval->date_to_4 ? date('M d, Y', strtotime($form_approval->date_to_4)) : '' }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="arrival_time_4" value="{{ $form_approval->date_to_4 ? date('h:i A', strtotime($form_approval->date_to_4)) : '' }}"disabled></td>
                         </tr>
                         <tr class="itinerary-row">
-                            <td><input type="text" class="form-control form-control-sm destination" name="destination_5" value="{{ $form_approval->destination_5 }}" disabled></td>
+                            <td><input type="" class="form-control form-control-sm destination" name="destination_5" value="{{ $form_approval->destination_5 }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="date_from_5" value="{{ $form_approval->date_from_5 ? date('M d, Y', strtotime($form_approval->date_from_5)) : '' }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="departure_time_5" value="{{ $form_approval->date_from_5 ? date('h:i A', strtotime($form_approval->date_from_5)) : '' }}" disabled></td>
                             <td><input type="" class="form-control form-control-sm" name="date_to_5" value="{{ $form_approval->date_to_5 ? date('M d, Y', strtotime($form_approval->date_to_5)) : '' }}" disabled></td>
@@ -354,7 +354,7 @@
                     </textarea>
                 </div>
                 <div class="col-lg-5 p-0 text-left">
-                  <div class="row m-0 border-bottom border-dark  payment" style="height: 40px;">
+                  <div class="row m-0 border-bottom border-dark payment" style="height: 40px;">
                       <div class="col-6 p-2 d-flex align-items-center justify-content-center">
                         <input 
                           type="checkbox" 
@@ -429,6 +429,7 @@
                   </div>
                   @endif
 
+                  <!-- Other Instructions -->
                   <div class="p-1">
                     <label>OTHER INSTRUCTIONS</label>
                     <input 
@@ -436,7 +437,7 @@
                       class="form-control form-control-sm" 
                       name="other_instruct" 
                       id="other_instruct" 
-                      value="{{ $form_approval->other_instruct }}"
+                      value="{{ $form_approval->other_instruct}}"
                     readonly>
                   </div>
                 </div>
@@ -455,11 +456,11 @@
                     <input type="text"
                       style="background: transparent; font-size: 11px; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding: 5px 0; line-height: 20px; text-align: center; width: 100%;"
                       name="department" value="{{ $form_approval->user->employee->department->name }}"
-                      readonly></input>
+                      readonly>
                     </div>
                 </div>
                 <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
-                  <div class="border-dark p-3 text-center">RC CODE</div>
+                  <div class="border-dark p-3 text-center">Cost Center</div>
                   <div class="p-1 text-center"> 
                     <input type="text"
                       class="text-center"
@@ -471,8 +472,8 @@
                 </div>
                 <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
                   <div class="border-dark p-3 text-center">REQUESTED BY</div>
-                  <div class="p-1 text-center"> 
-                    @if($form_approval->sig_image)
+                  <div class="p-1 text-center">
+                     @if($form_approval->sig_image)
                        @php
                             try {
                                 $decryptedSig = Crypt::decryptString($form_approval->sig_image);
@@ -483,64 +484,182 @@
                         @if($decryptedSig)
                                 <img src="data:image/png;base64,{{ $decryptedSig }}" 
                                     alt="Signature" 
-                                    style="height: 55px; position: absolute; right: 35px; top: 32px; border: none;">                         
+                                    style="height: 55px; position: absolute; right: 35px; top: 32px; border: none;">
+                          <input type="hidden" name="sig_image" value="{{ $decryptedSig }}">                            
                         @endif
                     @endif
-                    <input type="hidden" name="sig_image" value="{{ $decryptedSig }}">
-                    <textarea type="text"
-                      style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
-                      name="requestor_name"
-                      readonly>{{ $form_approval->employee->first_name }} @if($form_approval->employee->middle_initial) {{ $form_approval->employee->middle_initial }}. @endif{{ $form_approval->employee->last_name }}</textarea>
+                     <input type="text"
+                      style="background: transparent; font-size: 15px; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding: 5px 0; line-height: 20px; text-align: center; width: 100%;"
+                      name="requestor_name" 
+                      value="{{ $form_approval->employee->first_name }} @if($form_approval->employee->middle_initial) {{ $form_approval->employee->middle_initial }}. @endif{{ $form_approval->employee->last_name }}"
+                      readonly>
                       <small class="text-center d-block">(Requestor's Signature Over Printed Name)</small>
                   </div>
                 </div>
-                <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
-                  <div class="border-dark p-3 text-center">CHECKED BY</div>
-                  <div class="p-1 text-center">
-                    <input type="text" 
-                    style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
-                    name="checked_by" 
-                    value="{{ $form_approval->approvedBy->name ?? $form_approval->approver->first()->approver_info->name ?? ($form_approval->employee->immediateSupervisor->first_name . ($form_approval->employee->immediateSupervisor->middle_initial ? ' ' . $form_approval->employee->immediateSupervisor->middle_initial . '.' : '') . ' ' . $form_approval->employee->immediateSupervisor->last_name)}}"
-                    readonly>
-                    <small class="text-center d-block">Immediate Supervisor</small>
-                  </div>
-                </div>
-                <div class="col-lg col-md-12 col-sm-12 p-1">
-                    <div class="border-dark p-3 text-center">APPROVED BY</div>
-                      <div class="p-1">
-                        @if ($form_approval->totalamount_total > $approvalThreshold)
-                            @if ($form_approval->final_approver)
-                                <input type="text"
-                                    style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
-                                    name="approved_by"
-                                    value="{{ $form_approval->final_approver->name }}"
-                                    readonly>
-                            @else
-                                <p>No final approver found.</p>
-                            @endif
-                            @else
-                                <input type="text"
-                                    style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
-                                    name="approved_by"
-                                    value="{{ $form_approval->approver->first()->approver_info->name ?? ($form_approval->employee->immediateSupervisor->first_name . ($form_approval->employee->immediateSupervisor->middle_initial ? ' ' . $form_approval->employee->immediateSupervisor->middle_initial . '.' : '') . ' ' . $form_approval->employee->immediateSupervisor->last_name) }}"
-                                    readonly>
+                  @if ($to->status == 'Pending' || $to->status == "Cancelled")
+                    <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
+                      <div class="border-dark p-3 text-center">CHECKED BY</div>
+                      <div class="p-1 text-center">
+                        <input type="text" 
+                          style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
+                          name="checked_by" 
+                          value="{{ $form_approval->approver->first()->approver_info->name ?? ($form_approval->employee->immediateSupervisor->first_name . ($form_approval->employee->immediateSupervisor->middle_initial ? ' ' . $form_approval->employee->immediateSupervisor->middle_initial . '.' : '') . ' ' . $form_approval->employee->immediateSupervisor->last_name)}}"
+                          readonly>
+                        <small class="text-center d-block">Immediate Supervisor</small>
+                      </div>
+                    </div>
+
+                      <div class="col-lg col-md-12 col-sm-12 p-1">
+                        <div class="border-dark p-3 text-center">APPROVED BY</div>
+                        <div class="p-1">
+                          @if ($form_approval->final_approver)
+                            <input type="text"
+                              style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
+                              name="approved_by"
+                              value="{{ $form_approval->final_approver->name }}"
+                              readonly>
+                          @else
+                            <p>No final approver found.</p>
                           @endif
                           <small class="text-center d-block">Division/Cluster Head</small>
+                        </div>
                       </div>
+                    </div>
+                  @endif
+                  @if ($to->status == 'Approved' || $to->status == "Declined")
+                    <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
+                      <div class="border-dark p-3 text-center">CHECKED BY</div>
+                      <div style="position: relative;">
+                        <span style="position: absolute; top: -5px; right: 17px; font-size: 0.7rem;" name="approved">
+                          <small>System Approved Date: {{ $form_approval->approved_date ? \Carbon\Carbon::parse($form_approval->approved_date)->format('F j, Y') : '' }}</small>
+                        </span>
+                        <input type="hidden" name="display_approved_date" value="{{ $form_approval->approved_date ? \Carbon\Carbon::parse($form_approval->approved_date)->format('F j, Y') : '' }}">
+                      </div>
+                      <div class="p-1 text-center" style="position: relative;">
+                        @php
+                          $showStampOnCheckedBy = !$form_approval->approved_by_head_division;
+                        @endphp
+                        
+                        @if ($showStampOnCheckedBy && $form_approval->totalamount_total)
+                          @if ($form_approval->status === 'Approved')
+                            <img src="{{ asset('signed/APPROVED.png') }}"
+                                alt="Approved"
+                                style="position: absolute; top: -80%; left: 50%; transform: translateX(-50%); width: 170px; opacity: 0.5; pointer-events: none; z-index: 10;">
+                          @elseif ($form_approval->status === 'Declined')
+                            <img src="{{ asset('signed/DENIED.png') }}"
+                                alt="Declined"
+                                style="position: absolute; top: -80%; left: 50%; transform: translateX(-50%); width: 170px; opacity: 0.5; pointer-events: none; z-index: 10;">
+                          @endif
+                        @endif
+                        
+                        <input type="text" 
+                          style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
+                          name="checked_by" 
+                          value="{{ $form_approval->approvedBy->name ?? '' }}"
+                          readonly>
+                        <small class="text-center d-block">Immediate Supervisor</small>
+                      </div>
+                    </div>
+                    
+                    <div class="col-lg col-md-12 col-sm-12 p-1">
+                      <div class="border-dark p-3 text-center">APPROVED BY</div>
+                      <div class="p-1 text-center">
+                        <div style="position: relative;">
+                          <span style="position: absolute; top: -5px; right: 17px; font-size: 0.7rem;">
+                            <small>System Approved Date: 
+                                {{ $form_approval->approved_head_division 
+                                    ? \Carbon\Carbon::parse($form_approval->approved_head_division)->format('F j, Y') 
+                                    : ($form_approval->approved_date 
+                                        ? \Carbon\Carbon::parse($form_approval->approved_date)->format('F j, Y') 
+                                        : '') 
+                                }}
+                            </small>
+                          </span>
+                          <input type="hidden" name="display_approved_final" value="{{ $form_approval->approved_head_division ? \Carbon\Carbon::parse($form_approval->approved_head_division)->format('F j, Y') : ($form_approval->approved_date ? \Carbon\Carbon::parse($form_approval->approved_date)->format('F j, Y') : '') }}">
+                        </div>
+                        <div class="p-1" style="position: relative;">
+                          @php
+                            $showStampOnApprovedBy = $form_approval->approved_by_head_division;
+                          @endphp
+                          
+                          @if ($showStampOnApprovedBy && $form_approval->totalamount_total)
+                            @if ($form_approval->status === 'Approved')
+                              <img src="{{ asset('signed/APPROVED.png') }}"
+                                  name="status"
+                                  alt="Approved"
+                                  style="position: absolute; top: -80%; left: 50%; transform: translateX(-50%); width: 170px; opacity: 0.5; pointer-events: none; z-index: 10;">
+                            @elseif ($form_approval->status === 'Declined')
+                              <img src="{{ asset('signed/DENIED.png') }}"
+                                  name="status"
+                                  alt="Declined"
+                                  style="position: absolute; top: -80%; left: 50%; transform: translateX(-50%); width: 170px; opacity: 0.5; pointer-events: none; z-index: 10;">
+                            @endif
+                          @endif
+                          <input type="hidden" name="status" value="{{ $form_approval->status }}" />
+                          
+                          @php
+                            $finalApproverNameApproved = '';
+                            
+                            if ($form_approval->approved_by_head_division) {
+                                $finalApproverNameApproved = $form_approval->approvedByHeadDivision->name ?? '';
+                            } else {
+                                $allUserApproversApproved = \App\EmployeeApprover::where('user_id', auth()->user()->id)
+                                                                      ->with('approver_info')
+                                                                      ->get();
+                                
+                                $finalApproverApproved = $allUserApproversApproved->firstWhere('as_final', 'on');
+                                
+                                if ($finalApproverApproved && $finalApproverApproved->approver_info) {
+                                    $finalApproverNameApproved = $finalApproverApproved->approver_info->name;
+                                }
+                            }
+                          @endphp
+                          
+                          <input type="text"
+                              style="background: transparent; text-align: center; border: none; border-bottom: 1px solid #000; box-shadow: none; height: 30px; padding-left: 0;"
+                              name="approved_by"
+                              value="{{ $finalApproverNameApproved }}"
+                              readonly>
+                          
+                          <small class="text-center d-block">Division/Cluster Head</small>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-              </div>
+                @endif
               <div class="row m-0 border border-dark border-top-0">
                 <div class="col-12 border-bottom border-dark p-1 text-center fw-bold" style="color: white; background-color: #3490dc; border-color: #3490dc;">REMARKS AND LIQUIDATION DETAILS</div>
                 <div class="col-md-7 col-sm-12 border-right border-dark p-1">
                   <div class="border-dark p-1">
                     REMARKS
                   </div>
-                  <textarea class="form-control" name="approval_remarks" rows="1" readonly>{{ $form_approval->approval_remarks }}</textarea>
+                  @if ($form_approval->approvalRemarks->count() > 0)
+                    @foreach($form_approval->approvalRemarks as $remark)
+                      <div class="mb-2 p-2" style="background-color: #f8f9fa; border-left: 3px solid #3490dc;">
+                        <small class="d-block">
+                          <strong>{{ $remark->approver->name ?? 'N/A' }}</strong>
+                        </small>
+                        <small class="text-muted d-block">
+                          <i class="ti-calendar"></i> 
+                          {{ $remark->action_date ? $remark->action_date->format('F j, Y h:i A') : 'N/A' }}
+                        </small>
+                        @if($remark->remarks)
+                          <div class="mt-1">
+                            <small>{{ $remark->remarks }}</small>
+                          </div>
+                        @endif
+                      </div>
+                    @endforeach
+                  @else
+                    <div class="p-2">
+                      <small class="text-muted"><em>No remarks yet</em></small>
+                    </div>
+                  @endif
                 </div>
                 <div class="col-md-3 col-sm-6 border-end border-dark p-1">
                   <div class="border-dark p-1">LIQUIDATION DUE ON:</div>
-                  <div class="text-center">
-                    <input type="" class="form-control" name=""  value="{{ $form_approval->liquidation_date ? \Carbon\Carbon::parse($form_approval->liquidation_date)->format('F j, Y') : '' }}" readonly>
+                  <div style="margin-top: 17px;">
+                    <input class="form-control" name="liquidation_date" id="liquidation_date" value="{{ $form_approval->liquidation_date ? \Carbon\Carbon::parse($form_approval->liquidation_date)->format('F j, Y') : '' }}" readonly>
                   </div>
                 </div>
               </div>
@@ -548,8 +667,11 @@
         </div>
       </div>
       <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="printModalContentSameWindow('view-modal-{{ $form_approval->id }}')">
+            <i class="bi bi-printer"></i> Print
+        </button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-      </div>
+        </div>
       </div>
     </div>
   </div>
@@ -591,12 +713,14 @@
   order: 2;
 }
 
+
 .desktop-itinerary {
     display: block;
 }
 
 .mobile-itinerary {
     display: none;
+    border-right: none;
 }
 
 .expense-table {
@@ -1094,37 +1218,96 @@
 }
 </style>
 
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    @foreach($tos as $form_approval)
-        (function() {
-            const modal = document.querySelector('#to-view-approved-{{ $form_approval->id }}');
-            const caCheckbox = document.querySelector('#ca_checkbox_{{ $form_approval->id }}');
-            const paCheckbox = document.querySelector('#pa_checkbox_{{ $form_approval->id }}');
-            const modeOfPaymentSection = document.querySelector('#modeOfPaymentSection_{{ $form_approval->id }}');
-            
-            function toggleModeOfPayment() {
-                if (paCheckbox && paCheckbox.checked) {
-                    if (modeOfPaymentSection) {
-                        modeOfPaymentSection.style.display = 'none';
-                    }
-                } else {
-                    if (modeOfPaymentSection) {
-                        modeOfPaymentSection.style.display = 'block';
-                    }
-                }
-            }
-            
-            toggleModeOfPayment();
-          
-            if (modal) {
-                modal.addEventListener('shown.bs.modal', function() {
-                    toggleModeOfPayment();
-                });
-            }
-        })();
-    @endforeach
-});
+  window.approvalThreshold = {{ $approvalThreshold ?? 0 }};
+  window.allApprovers = @json($approversForJs ?? []);
 </script>
 
+
+<script>
+function calculateTotals($container) {
+  let totalAmount = 0;
+  let totalDays = 0;
+  let grandTotal = 0;
+
+  $container.find('.amount-input').each(function () {
+    const row = $(this).data('row');
+    const amount = parseFloat($(this).val()) || 0;
+
+    if (row == 3) {
+      $container.find(`.total-field[data-row="${row}"]`).val(amount.toFixed(2));
+      totalAmount += amount;
+      grandTotal += amount;
+    } else {
+      const days = parseFloat($container.find(`.days-input[data-row="${row}"]`).val()) || 0;
+      const total = amount * days;
+      $container.find(`.total-field[data-row="${row}"]`).val(total.toFixed(2));
+
+      totalAmount += amount;
+      totalDays += days;
+      grandTotal += total;
+    }
+  });
+
+  $container.find('input[name="totalamount_amount"]').val(totalAmount.toFixed(2));
+  $container.find('input[name="totalamount_numofday"]').val(totalDays.toFixed(2));
+  $container.find('input[name="totalamount_total"]').val(grandTotal.toFixed(2));
+
+  updateApproverDisplay(grandTotal);
+}
+
+function updateApproverDisplay(totalAmount) {
+  const approvalThreshold = window.approvalThreshold || 0;
+  const allApprovers = window.allApprovers || [];
+  
+  const approverInput = $('#approved_by_head_inputs');
+  const finalTag = $('#finalApproverTag');
+  
+  if (!approverInput.length) return;
+  
+  approverInput.val('');
+  finalTag.hide().text('');
+  
+  const finalApprover = allApprovers.find(approver => 
+    approver.as_final === 'on' || approver.as_final === true
+  );
+  
+  if (finalApprover && finalApprover.approver_info) {
+    approverInput.val(finalApprover.approver_info.full_name || finalApprover.approver_info.name || '');
+    
+    
+  } else {
+    const sortedApprovers = allApprovers.sort((a, b) => (b.level || 1) - (a.level || 1));
+    const highestApprover = sortedApprovers[0];
+    
+    if (highestApprover && highestApprover.approver_info) {
+      approverInput.val(highestApprover.approver_info.full_name || highestApprover.approver_info.name || '');
+    }
+  }
+}
+
+$(document).ready(function () {
+  $('.cash-advance').each(function () {
+    const $this = $(this);
+    $this.find('.amount-input, .days-input').on('input', function () {
+      calculateTotals($this);
+    });
+
+    calculateTotals($this);
+  });
+  
+  $('input[name="totalamount_total"]').on('input change', function() {
+    const totalAmount = parseFloat($(this).val()) || 0;
+    updateApproverDisplay(totalAmount);
+  });
+  
+  triggerApproverUpdate();
+});
+
+function triggerApproverUpdate() {
+  const totalAmount = parseFloat($('input[name="totalamount_total"]').val()) || 0;
+  updateApproverDisplay(totalAmount);
+}
+</script>
+
+@include('for-approval.print-toManager') 

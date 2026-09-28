@@ -135,28 +135,37 @@
                       <tr>
                         @if(empty($status) || $status == 'Pending')
                           <td align="center">
-                            @foreach($form_approval->approver as $k => $approver)
-                              @if($approver->approver_id == $approver_id && $form_approval->level == $k && $form_approval->status == 'Pending')
-                                
-                                  <input type="checkbox" class="checkbox-item" data-id="{{$form_approval->id}}">
-                                </td>
-                              @endif
-                            @endforeach
+                            @php
+                              $current_approver = $form_approval->approver->firstWhere('approver_id', $approver_id);
+                              $canApprove = $current_approver && 
+                                            $form_approval->level == $current_approver->level && 
+                                            $form_approval->status == 'Pending';
+                            @endphp
+                            
+                            @if($canApprove)
+                              <input type="checkbox" class="checkbox-item" data-id="{{$form_approval->id}}">
+                            @endif
                           </td>
                         @endif
-                       <td align="center" id="tdActionId{{ $form_approval->id }}" data-id="{{ $form_approval->id }}">
-                        @if($form_approval->status == 'Approved')
-                          <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#to-view-approved{{ $form_approval->id }}" title="View Approved">
-                            <i class="ti-eye btn-icon-prepend"></i> View
-                          </button>
-                        @elseif($form_approval->status == 'Declined')
-                          <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#to-view-declined-{{ $form_approval->id }}" title="View Declined Remarks">
-                            <i class="ti-eye btn-icon-prepend"></i> View
-                          </button>
-                        @else
-                          @foreach($form_approval->approver as $k => $approver)
-                            @if($approver->approver_id == $approver_id && $form_approval->level == $k && $form_approval->status == 'Pending')
-                              <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#to-view-modal-{{ $form_approval->id }}" title="View">
+                        <td align="center" id="tdActionId{{ $form_approval->id }}" data-id="{{ $form_approval->id }}">
+                          @php
+                            $current_approver = $form_approval->approver->firstWhere('approver_id', $approver_id);
+                            $canApprove = $current_approver && 
+                                          $form_approval->level == $current_approver->level && 
+                                          $form_approval->status == 'Pending';
+                          @endphp
+                          
+                          @if($form_approval->status == 'Approved')
+                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#view-modal-{{ $form_approval->id }}" title="View Approved">
+                              <i class="ti-eye btn-icon-prepend"></i> View
+                            </button>
+                          @elseif($form_approval->status == 'Declined')
+                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#view-modal-{{ $form_approval->id }}" title="View Declined Remarks">
+                              <i class="ti-eye btn-icon-prepend"></i> View
+                            </button>
+                          @else
+                            @if($canApprove)
+                              <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#view-modal-{{ $form_approval->id }}" title="View">
                                 <i class="ti-eye btn-icon-prepend"></i> 
                               </button>
                               <button type="button" class="btn btn-success btn-sm" id="{{ $form_approval->id }}" data-target="#to-approved-remarks-{{ $form_approval->id }}" data-toggle="modal" title="Approve">
@@ -165,10 +174,13 @@
                               <button type="button" class="btn btn-danger btn-sm" id="{{ $form_approval->id }}" data-target="#to-declined-remarks-{{ $form_approval->id }}" data-toggle="modal" title="Decline">
                                 <i class="ti-close btn-icon-prepend"></i>                                                    
                               </button>
+                            @else
+                              <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#view-modal-{{ $form_approval->id }}" title="View Only">
+                                <i class="ti-eye btn-icon-prepend"></i> View
+                              </button>
                             @endif
-                          @endforeach
-                        @endif
-                      </td>
+                          @endif
+                        </td>
                         <td>
                             <strong>{{$form_approval->user->name}}</strong> <br>
                             <small>Position : {{$form_approval->user->employee->position}}</small> <br>
@@ -183,35 +195,58 @@
                         <td> {{$form_approval->purpose}}</td>
                         <td id="tdStatus{{ $form_approval->id }}">
                           @foreach($form_approval->approver as $approver)
-                              @php
-                                  $name = $approver->approver_info->name;
-                                  $statusLabel = '';
-                                  $badgeClass = '';
+                            @php
+                                $name = $approver->approver_info->name ?? 'N/A';
+                                $statusLabel = '';
+                                $badgeClass = '';
 
-                                  if ($form_approval->level >= $approver->level) {
-                                      if ($form_approval->level == 0 && $form_approval->status == 'Declined') {
-                                          $statusLabel = 'Declined';
-                                          $badgeClass = 'danger';
-                                      } else {
-                                          $statusLabel = 'Approved';
-                                          $badgeClass = 'success';
-                                      }
-                                  } else {
-                                      if ($form_approval->status == 'Approved') {
-                                          $statusLabel = 'Approved';
-                                          $badgeClass = 'success';
-                                      } elseif ($form_approval->status == 'Declined') {
-                                          $statusLabel = 'Declined';
-                                          $badgeClass = 'danger';
-                                      } else {
-                                          $statusLabel = 'Pending';
-                                          $badgeClass = 'warning';
-                                      }
-                                  }
-                              @endphp
+                                if ($form_approval->level > $approver->level) {
+                                    $statusLabel = 'Approved';
+                                    $badgeClass = 'success';
+                                } 
+                                
+                                elseif ($form_approval->level == $approver->level) {
+                                    if ($form_approval->status == 'Declined') {
+                                        $statusLabel = 'Declined';
+                                        $badgeClass = 'danger';
+                                    } elseif ($form_approval->status == 'Approved') {
+                                        $statusLabel = 'Approved';
+                                        $badgeClass = 'success';
+                                    } else {
+                                        $statusLabel = 'Pending';
+                                        $badgeClass = 'warning';
+                                    }
+                                }
+                                
+                                else {
+                                    if ($form_approval->status == 'Approved') {
+                                        $statusLabel = 'Approved';
+                                        $badgeClass = 'success';
+                                    } elseif ($form_approval->status == 'Declined') {
+                                        $statusLabel = 'Skipped';
+                                        $badgeClass = 'secondary';
+                                    } else {
+                                        $statusLabel = 'Pending';
+                                        $badgeClass = 'warning';
+                                    }
+                                }
+                            @endphp
 
-                              <div>{{ $name }} - <label class="badge badge-{{ $badgeClass }} mt-1">{{ $statusLabel }}</label></div>
-                          @endforeach
+                            <div>
+                                {{ $name }}
+                                @if(($approver->as_final ?? '') === 'on')
+                                    <small class="text-muted">(Final)</small>
+                                @endif
+                                - <label class="badge badge-{{ $badgeClass }} mt-1">{{ $statusLabel }}</label>
+                            </div>
+                        @endforeach
+
+                          
+                          @if($form_approval->approver->count() == 1 && isset($approvalThreshold))
+                              <small class="text-muted">
+                                  <em>Amount below threshold. Only first approver required.</em>
+                              </small>
+                          @endif
                         </td>
                         <td>
                           @if ($form_approval->status == 'Pending')
@@ -351,11 +386,11 @@ $(document).ready(function() {
     }
 
     $approveBtn.on('click', function() {
-        sendAjax('/approve-to-all', 'Approved');
+        sendAjax('approve-to-all', 'Approved');
     });
 
     $disapproveBtn.on('click', function() {
-        sendAjax('/disapprove-to-all', 'Disapproved');
+        sendAjax('disapprove-to-all', 'Disapproved');
     });
 
     console.log('jQuery version:', $.fn.jquery);

@@ -11,15 +11,15 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-   use App\Http\Controllers\EmployeeObController;
-use App\HikAttLog2;
-Route::get('get-location','AttendanceController@getLocation');
-Auth::routes();
-Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
-Route::get('/upload-pay-reg', 'PayslipController@uploadpayreg');
-Route::post('/upload-pay-reg', 'PayslipController@postuploadpayreg');
-Route::get('get-devices','AttendanceController@devices');
-Route::group(['middleware' => 'auth'], function () {
+    use App\Http\Controllers\EmployeeObController;
+    use App\HikAttLog2;
+    Route::get('get-location','AttendanceController@getLocation');
+    Auth::routes();
+    Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
+    Route::get('/upload-pay-reg', 'PayslipController@uploadpayreg');
+    Route::post('/upload-pay-reg', 'PayslipController@postuploadpayreg');
+    Route::get('get-devices','AttendanceController@devices');
+    Route::group(['middleware' => 'auth'], function () {
 
     Route::post('timein-capture','AttendanceController@storeTimeIn');
     Route::post('timeout-capture','AttendanceController@storeTimeOut');
@@ -36,14 +36,17 @@ Route::group(['middleware' => 'auth'], function () {
     
     //employees
     Route::get('/dashboard', 'HomeController@index')->name('home');
+    Route::get('/Admindashboard', 'HomeController@dashboardAdmin')->name('Admindashboard');
     Route::post('/edit-prob/{id}','HomeController@edit_prob');
     Route::get('', 'HomeController@index');
     Route::get('/', 'HomeController@index');
     Route::get('/home', 'HomeController@index')->name('home');
+    Route::post('/upload-employee-image', [App\Http\Controllers\HomeController::class, 'uploadEmployeeImage'])->name('upload.employee.image');
 
-    Route::post('/check-location-proximity', [App\Http\Controllers\HomeController::class, 'checkUserLocationProximity'])
+    Route::post('/check-location-proximity', [App\Http\Controllers\HomeController::class, 'checkUserLocationProximity'])    
     ->name('check.location.proximity')
     ->middleware('auth');
+    Route::post('/check-user-access', 'HomeController@checkUserAccess')->name('check.user.access');
 
     Route::get('/dashboard/get-employees', 'HomeController@getEmployees')->name('dashboard.getEmployees');
     Route::get('/dashboard/get-present-employees', 'HomeController@getPresentEmployees')->name('dashboard.get-present-employees');
@@ -94,9 +97,47 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::get('show','EmployeeObController@ob');
 
+    //Purchase
+    Route::get('purchase','PurchaseController@index')->name('purchase');
+    Route::post('/purchases', 'PurchaseController@store')->name('purchases.store');
+    Route::post('/purchases/{id}/approve', 'PurchaseController@approve')->name('purchases.approve');
+    Route::get('products/get','PurchaseController@getProducts')->name('products.get');
 
+    Route::get('/claim/{qr_code}', 'PurchaseController@claimPage')->name('purchase.claim');
+    Route::post('/claim/process', 'PurchaseController@processClaim')->name('purchase.processClaim');
 
+    Route::get('purchase-reports', 'PurchaseController@reports')->name('purchase.reports');
+    Route::get('/purchase/export', 'PurchaseController@export')->name('purchase.export');
 
+    //TDS
+    Route::get('/tdsModule', 'TdsController@index')->name('tds.tdsModule');
+    Route::get('/tds/create', 'TdsController@create')->name('tds.create');
+    Route::post('/tds/store', 'TdsController@store')->name('tds.store');
+    Route::get('/tds/history', 'TdsController@history')->name('tds.history');
+    Route::get('/tds/export', 'TdsController@export')->name('tds.export');
+    Route::post('/tds/update-target', 'TdsController@updateSalesTarget')->name('tds.update-target');
+    Route::get('/tds/get-employee-target', 'TdsController@getEmployeeTarget')->name('tds.get-employee-target');
+    Route::get('/tds/get-all-users', 'TdsController@getAllUsers')->name('tds.get-all-users');
+    Route::get('/tds/activity-logs', 'TdsController@getActivityLogs')->name('tds.activity-logs');
+    Route::post('/tds/get-zipcode', 'TdsController@getZipCode')->name('get.zipcode');
+
+    Route::post('/geocode-location', 'TdsController@geocodeLocation')->name('geocode.location');
+    Route::get('/tds/existing-customers', 'TdsController@getExistingCustomers')->name('tds.existing-customers');
+
+    Route::get('/tds/records', 'TdsController@allSubmissions')->name('tds.records');
+    Route::get('/tds/records/export', 'TdsController@exportRecords')->name('tds.records.export');
+
+    Route::get('/tdsdashboard', 'TdsController@dashboard')->name('tds.dashboard');
+    Route::get('/tds/employees/search', 'TdsController@getEmployees')->name('tds.employees.search');
+    Route::get('/tds/dashboard/export', 'TdsController@dashboardExport')->name('tds.dashboard.export');
+
+    Route::get('/tds/{id}', 'TdsController@show')->name('tds.show');
+    // Route::put('/tds/{id}', 'TdsController@update')->name('tds.update');
+    Route::put('/tds/{id}', 'TdsController@update');
+    Route::post('/tds/{id}/update-status', 'TdsController@updateStatus')->name('tds.update-status');
+    // Route::post('tds/update/{id}', 'TdsController@updateAmount')->name('tds.update');
+    Route::put('tds/update/{id}', 'TdsController@updateAmount')->name('tds.update');
+    Route::delete('/tds/{id}', 'TdsController@destroy')->name('tds.destroy');
 
     Route::get('overtime','EmployeeOvertimeController@overtime');
     //Overtime
@@ -158,6 +199,50 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('edit-dtr/{id}', 'EmployeeDtrController@edit_dtr');
     Route::get('disable-dtr/{id}', 'EmployeeDtrController@disable_dtr');     
 
+    // MTA
+    Route::get('mta', 'EmployeeMtaController@index');
+    Route::post('new-mta','EmployeeMtaController@store');
+    Route::post('edit-mta/{id}', 'EmployeeMtaController@update');
+    Route::get('disable-mta/{id}', 'EmployeeMtaController@cancel');     
+    Route::get('mta-process', 'EmployeeMtaController@mtaProcess');
+    Route::post('process-mta-all','EmployeeMtaController@processMtaAll');
+    Route::post('process-mta/{id}','EmployeeMtaController@processMta');
+    Route::post('processed-mta-all','EmployeeMtaController@processedMtaAll');
+    Route::post('disapproved-processed-mta-all','EmployeeMtaController@disapprovedProcessedMtaAll');
+    Route::post('processed-mta/{id}','EmployeeMtaController@processedMta');
+    // Route::post('disapproved-processed-mta{id}','EmployeeMtaController@disapprovedMta');
+    Route::post('/disapproved-processed-mta/{id}', 'EmployeeMtaController@disapprovedMta')
+    ->name('mta.disapprove');
+    
+    // Route::post('approve-mta/{id}','EmployeeMtaController@approveMta');
+    // Route::post('decline-mta/{id}','EmployeeMtaController@declineMta');
+    // Route::post('approve-mta-all','FormApprovalController@approveMtaAll');
+    // Route::post('disapprove-mta-all','FormApprovalController@disapproveMtaAll');
+
+    //Planning 
+    Route::get('planning', 'EmployeePlanningController@index');
+    Route::post('/planning/import', 'EmployeePlanningController@import')->name('planning.import');
+    // Route::post('/planning/upload-files', 'HomeController@uploadFiles')->name('planning.upload-files');
+    // Route::post('/planning/upload-files', 'EmployeePlanningController@uploadFiles')->name('planning.upload-files');
+    Route::get('/planning/{id}/files', 'HomeController@getFiles')->name('planning.get-files');
+    Route::get('/disable-planning/{id}', 'EmployeePlanningController@disablePlanning')->name('planning.disable');
+
+    // ID & Uniform Request
+    Route::get('iur', 'IurController@index');
+    Route::get('/iur/create', 'IurController@create')->name('iur.create');
+    Route::post('/iur/store', 'IurController@store')->name('iur.store');
+    Route::get('/iur/{id}/edit', 'IURController@edit')->name('iur.edit');
+    Route::put('/iur/{id}', 'IURController@update')->name('iur.update');
+    Route::get('/iur/{id}', 'IURController@show')->name('iur.show');
+    Route::put('/iur/{id}/cancel', 'IURController@cancel')->name('iur.cancel');
+    // Route::post('approve-wfh-all','FormApprovalController@approveWfhAll');
+    // Route::post('disapprove-wfh-all','FormApprovalController@disapproveWfhAll');
+
+
+    //Dar 
+    Route::get('dar', 'DarController@index');
+
+
     //FOR APPROVAL
     Route::get('for-leave','FormApprovalController@form_leave_approval');
     Route::post('approve-leave/{id}','FormApprovalController@approveLeave');
@@ -208,11 +293,25 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('approve-coe-all', 'FormApprovalController@approvecoeAll');
     Route::post('disapprove-coe-all','FormApprovalController@disapprovecoeAll');
 
+    //ID and Uniform Request Approval
+    Route::get('iur-approval','FormApprovalController@form_iur_approval');
+    Route::post('approve-iur/{id}','FormApprovalController@approveIur');
+    Route::post('decline-iur/{id}','FormApprovalController@declineIur');
+    Route::post('approve-iur-all', 'FormApprovalController@approveIurAll');
+    Route::post('disapprove-iur-all','FormApprovalController@disapproveIurAll');
+
     Route::get('for-dtr-correction','FormApprovalController@form_dtr_approval');
     Route::post('approve-dtr/{id}','FormApprovalController@approveDtr');
     Route::post('decline-dtr/{id}','FormApprovalController@declineDtr');
     Route::post('approve-dtr-all','FormApprovalController@approveDtrAll');
     Route::post('disapprove-dtr-all','FormApprovalController@disapproveDtrAll');
+    
+    // MTA Approval
+    Route::get('for-mta','FormApprovalController@form_mta_approval');
+    Route::post('approve-mta/{id}','FormApprovalController@approveMta');
+    Route::post('decline-mta/{id}','FormApprovalController@declineMta');
+    Route::post('approve-mta-all','FormApprovalController@approveMtaAll');
+    Route::post('disapprove-mta-all','FormApprovalController@disapproveMtaAll');
 
     //employees
     Route::get('employees', 'EmployeeController@view');
@@ -231,6 +330,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('account-setting-hr/getBeneficiariesHR/{id}', 'EmployeeController@getBeneficiariesHR');
     Route::post('account-setting-hr/uploadAvatarHr/{id}', 'EmployeeController@uploadAvatarHr');
     Route::post('account-setting-hr/uploadSignatureHr/{id}', 'EmployeeController@uploadSignatureHr');
+
 
     Route::get('associate-employees-export','EmployeeController@export_employee_associates');
 
@@ -407,9 +507,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('totalExpense-report', 'PayrollController@totalExpense_report');
     Route::get('loan-report', 'LoanController@loan_report');
     Route::get('company-loan-report','LoanController@companyLoan');
-
-
-
     Route::get('government-report', 'PayrollController@government_reports');
     Route::get('payroll-report', 'PayrollController@payroll_report');
     Route::get('overtime-report', 'OvertimeController@overtime_report');
@@ -421,6 +518,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('dtr-report', 'DailytimerecordController@dtr_report');
     Route::get('dtr-report-export', 'DailytimerecordController@export');
     Route::get('ytd-report', 'PayslipController@ytd_report');
+    Route::get('consent-report', 'EmployeeController@consentReport');
+    Route::get('mta-report', 'EmployeeMtaController@mtaReport');
 
 
     //13th month
@@ -458,8 +557,10 @@ Route::group(['middleware' => 'auth'], function () {
     
     //Forms Approver Setting
     Route::get('/approver-setting','ApproverSettingController@index');
-    Route::post('/save-approver-setting','ApproverSettingController@store');
-    Route::get('/remove-approver/{id}','ApproverSettingController@removeApprover'); 
+    Route::post('/save-approver-setting', 'ApproverSettingController@store')->name('approver.store');
+    // Route::get('/remove-approver/{id}','ApproverSettingController@removeApprover'); 
+    Route::delete('/remove-approver/{id}', 'ApproverSettingController@removeApprover');
+    Route::get('/get-user-approver-forms/{user_id}', 'ApproverSettingController@getUserForms');
 
     //Timekeeping Dashboard
     
@@ -568,6 +669,9 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::post('new-hub', 'HubPerLocationController@store');
     Route::post('edit-hub/{id}', 'HubPerLocationController@edit')->name('edit-hub');
+
+    Route::post('/employee/setup', 'EmployeeController@setup')->name('employee.setup');
+    Route::post('account-setting-hr/updateConsent/{id}', 'EmployeeController@consentUpdate')->name('employee.consent.update');
         
 });
 Route::post('new-employee', 'EmployeeController@new');

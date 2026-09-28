@@ -6,6 +6,7 @@ use App\Http\Controllers\EmployeeApproverController;
 use App\Employee;
 use App\EmployeeTo;
 use App\ApprovalByAmount;
+use App\EmployeeApprover;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -26,7 +27,7 @@ class EmployeeTravelOrderController extends Controller
         $filter_status = $request->status ?? 'Select Status';
 
         $approvalThreshold = ApprovalByAmount::orderBy('higher_than', 'desc')->first();
-        $tos = collect(); // default to empty
+        $tos = collect();
 
         if ($filter_status !== 'Select Status' && $filter_status !== '') {
             $tos = EmployeeTo::with([
@@ -34,7 +35,8 @@ class EmployeeTravelOrderController extends Controller
                 'approver.approver_info',
                 'approvedBy', 
                 'approvedByHeadDivision',  
-                'last_approver'
+                'last_approver',
+                'approvalRemarks.approver'
             ])
                 ->where('user_id', auth()->user()->id)
                 ->whereDate('date_from', '>=', $from)
@@ -52,24 +54,35 @@ class EmployeeTravelOrderController extends Controller
                 $to->final_approver = null;
 
                 $approvers = $to->approver ?? collect();
-                $first = $approvers->first();
-                $finalApprover = $approvers->filter(fn($a) => ($a->as_final ?? '') === 'on')->first();
-
+                
+                $approvers = $approvers->sortBy('level')->values();
+                
+                $lastApprover = $approvers->last();
+                if ($lastApprover) {
+                    $to->final_approver = $lastApprover->approver_info;
+                }
+                
                 if ($approvalThreshold && $totalAmount > $approvalThreshold->higher_than) {
-                    $to->approver = collect([$first, $finalApprover])->filter()->unique('id');
-
-                    if ($finalApprover && $finalApprover->approver_info) {
+                    $finalApprover = $approvers->where('as_final', 'on')->first();
+                    
+                    if ($finalApprover) {
+                        $to->approver = $approvers->filter(function($a) use ($finalApprover) {
+                            return $a->level <= $finalApprover->level;
+                        })->values();
+                        
                         $to->final_approver = $finalApprover->approver_info;
                         $to->show_final_approver = true;
+                    } else {
+                        $to->approver = $approvers;
                     }
                 } else {
-                    $to->approver = collect([$first])->filter()->unique('id');
+                    $firstApprover = $approvers->sortBy('level')->first();
+                    $to->approver = collect([$firstApprover])->filter()->values();
                 }
 
                 return $to;
             });
         }
-
 
         $tos_all = EmployeeTo::with('user')
             ->where('user_id', auth()->user()->id)
@@ -82,12 +95,13 @@ class EmployeeTravelOrderController extends Controller
         $approversForJs = $all_approvers->map(function ($approver) {
             return [
                 'id' => $approver->id,
+                'level' => $approver->level ?? 1,
                 'as_final' => $approver->as_final ?? '',
                 'position' => $approver->position ?? '',
                 'approver_info' => $approver->approver_info ? [
-                'name' => $approver->approver_info->name ?? '',
-                'full_name' => $approver->approver_info->full_name ?? '',
-                'position' => $approver->approver_info->position ?? ''
+                    'name' => $approver->approver_info->name ?? '',
+                    'full_name' => $approver->approver_info->full_name ?? '',
+                    'position' => $approver->approver_info->position ?? ''
                 ] : null
             ];
         });
@@ -109,133 +123,135 @@ class EmployeeTravelOrderController extends Controller
 
    public function new(Request $request)
     {
-            $new_to = new EmployeeTo;
-            $new_to->user_id = Auth::user()->id;
-            $emp = Employee::where('user_id', auth()->user()->id)->first();
-            $new_to->schedule_id = $emp->schedule_id;
-            $new_to->applied_date = $request->applied_date;
-            $new_to->remarks = $request->remarks;
+        $new_to = new EmployeeTo;
+        $new_to->user_id = Auth::user()->id;
+        $emp = Employee::where('user_id', auth()->user()->id)->first();
+        $new_to->schedule_id = $emp->schedule_id;
+        $new_to->applied_date = $request->applied_date;
+        $new_to->remarks = $request->remarks;
 
-            $new_to->destination = $request->destination ?? $request->destination1 ?? null;
+        $new_to->destination = $request->destination ?? $request->destination1 ?? null;
 
-            $new_to->date_from = 
-                ($request->date_from && $request->departure_time) 
-                    ? $request->date_from . ' ' . $request->departure_time . ':00' 
-                    : (
-                        ($request->date_from1 && $request->departure_time1) 
-                            ? $request->date_from1 . ' ' . $request->departure_time1 . ':00' 
-                            : null
-                    );
+        $new_to->date_from = 
+            ($request->date_from && $request->departure_time) 
+                ? $request->date_from . ' ' . $request->departure_time . ':00' 
+                : (
+                    ($request->date_from1 && $request->departure_time1) 
+                        ? $request->date_from1 . ' ' . $request->departure_time1 . ':00' 
+                        : null
+                );
 
-            $new_to->date_to = 
-                ($request->date_to && $request->arrival_time) 
-                    ? $request->date_to . ' ' . $request->arrival_time . ':00' 
-                    : (
-                        ($request->date_to1 && $request->arrival_time1) 
-                            ? $request->date_to1 . ' ' . $request->arrival_time1 . ':00' 
-                            : null
-                    );
+        $new_to->date_to = 
+            ($request->date_to && $request->arrival_time) 
+                ? $request->date_to . ' ' . $request->arrival_time . ':00' 
+                : (
+                    ($request->date_to1 && $request->arrival_time1) 
+                        ? $request->date_to1 . ' ' . $request->arrival_time1 . ':00' 
+                        : null
+                );
 
-            $new_to->destination_2 = $request->destination_2 ?? $request->destination2 ?? null;
+        $new_to->destination_2 = $request->destination_2 ?? $request->destination2 ?? null;
 
-            $new_to->date_from_2 = 
-                ($request->date_from_2 && $request->departure_time_2) 
-                    ? $request->date_from_2 . ' ' . $request->departure_time_2 . ':00' 
-                    : (
-                        ($request->date_from2 && $request->departure_time2) 
-                            ? $request->date_from2 . ' ' . $request->departure_time2 . ':00' 
-                            : null
-                    );
+        $new_to->date_from_2 = 
+            ($request->date_from_2 && $request->departure_time_2) 
+                ? $request->date_from_2 . ' ' . $request->departure_time_2 . ':00' 
+                : (
+                    ($request->date_from2 && $request->departure_time2) 
+                        ? $request->date_from2 . ' ' . $request->departure_time2 . ':00' 
+                        : null
+                );
 
-            $new_to->date_to_2 = 
-                ($request->date_to_2 && $request->arrival_time_2) 
-                    ? $request->date_to_2 . ' ' . $request->arrival_time_2 . ':00' 
-                    : (
-                        ($request->date_to2 && $request->arrival_time2) 
-                            ? $request->date_to2 . ' ' . $request->arrival_time2 . ':00' 
-                            : null
-                    );
+        $new_to->date_to_2 = 
+            ($request->date_to_2 && $request->arrival_time_2) 
+                ? $request->date_to_2 . ' ' . $request->arrival_time_2 . ':00' 
+                : (
+                    ($request->date_to2 && $request->arrival_time2) 
+                        ? $request->date_to2 . ' ' . $request->arrival_time2 . ':00' 
+                        : null
+                );
 
-            $new_to->destination_3 = $request->destination_3 ?? null;
-            $new_to->date_from_3 = ($request->date_from_3 && $request->departure_time_3) ? $request->date_from_3 . ' ' . $request->departure_time_3 . ':00' : null;
-            $new_to->date_to_3 = ($request->date_to_3 && $request->arrival_time_3) ? $request->date_to_3 . ' ' . $request->arrival_time_3 . ':00' : null;
+        $new_to->destination_3 = $request->destination_3 ?? null;
+        $new_to->date_from_3 = ($request->date_from_3 && $request->departure_time_3) ? $request->date_from_3 . ' ' . $request->departure_time_3 . ':00' : null;
+        $new_to->date_to_3 = ($request->date_to_3 && $request->arrival_time_3) ? $request->date_to_3 . ' ' . $request->arrival_time_3 . ':00' : null;
 
-            $new_to->destination_4 = $request->destination_4 ?? null;
-            $new_to->date_from_4 = ($request->date_from_4 && $request->departure_time_4) ? $request->date_from_4 . ' ' . $request->departure_time_4 . ':00' : null;
-            $new_to->date_to_4 = ($request->date_to_4 && $request->arrival_time_4) ? $request->date_to_4 . ' ' . $request->arrival_time_4 . ':00' : null;
+        $new_to->destination_4 = $request->destination_4 ?? null;
+        $new_to->date_from_4 = ($request->date_from_4 && $request->departure_time_4) ? $request->date_from_4 . ' ' . $request->departure_time_4 . ':00' : null;
+        $new_to->date_to_4 = ($request->date_to_4 && $request->arrival_time_4) ? $request->date_to_4 . ' ' . $request->arrival_time_4 . ':00' : null;
 
-            $new_to->destination_5 = $request->destination_5 ?? null;
-            $new_to->date_from_5 = ($request->date_from_5 && $request->departure_time_5) ? $request->date_from_5 . ' ' . $request->departure_time_5 . ':00' : null;
-            $new_to->date_to_5 = ($request->date_to_5 && $request->arrival_time_5) ? $request->date_to_5 . ' ' . $request->arrival_time_5 . ':00' : null;
+        $new_to->destination_5 = $request->destination_5 ?? null;
+        $new_to->date_from_5 = ($request->date_from_5 && $request->departure_time_5) ? $request->date_from_5 . ' ' . $request->departure_time_5 . ':00' : null;
+        $new_to->date_to_5 = ($request->date_to_5 && $request->arrival_time_5) ? $request->date_to_5 . ' ' . $request->arrival_time_5 . ':00' : null;
 
-            $new_to->purpose = $request->purpose;
-            $new_to->rc_code = $request->rc_code;
+        $new_to->purpose = $request->purpose;
+        $new_to->rc_code = $request->rc_code;
 
-            $new_to->perdiem_amount = $request->perdiem_amount;
-            $new_to->perdiem_numofday = $request->perdiem_numofday;
-            $new_to->perdiem_total = $request->perdiem_total;
+        $new_to->perdiem_amount = $request->perdiem_amount;
+        $new_to->perdiem_numofday = $request->perdiem_numofday;
+        $new_to->perdiem_total = $request->perdiem_total;
 
-            $new_to->hotellodging_amount = $request->hotellodging_amount;
-            $new_to->hotellodging_numofday = $request->hotellodging_numofday;
-            $new_to->hotellodging_total = $request->hotellodging_total;
+        $new_to->hotellodging_amount = $request->hotellodging_amount;
+        $new_to->hotellodging_numofday = $request->hotellodging_numofday;
+        $new_to->hotellodging_total = $request->hotellodging_total;
 
-            $new_to->transpo_amount = $request->transpo_amount;
-            $new_to->transpo_numofday = $request->transpo_numofday;
-            $new_to->transpo_total = $request->transpo_total;
+        $new_to->transpo_amount = $request->transpo_amount;
+        $new_to->transpo_numofday = $request->transpo_numofday;
+        $new_to->transpo_total = $request->transpo_total;
 
-            $new_to->totalfees_amount = $request->totalfees_amount;
-            $new_to->totalfees_numofday = $request->totalfees_numofday;
-            $new_to->totalfees_total = $request->totalfees_total;
+        $new_to->totalfees_amount = $request->totalfees_amount;
+        $new_to->totalfees_numofday = $request->totalfees_numofday;
+        $new_to->totalfees_total = $request->totalfees_total;
 
-            $new_to->totalamount_amount = $request->totalamount_amount;
-            $new_to->totalamount_numofday = $request->totalamount_numofday;
-            $new_to->totalamount_total = $request->totalamount_total;
+        $new_to->totalamount_amount = $request->totalamount_amount;
+        $new_to->totalamount_numofday = $request->totalamount_numofday;
+        $new_to->totalamount_total = $request->totalamount_total;
 
-            $new_to->payment_type = $request->payment_type;
-            $new_to->mode_payment = $request->mode_payment;
-            $new_to->other_instruct = $request->other_instruct;
-            $new_to->liquidation_date = $request->liquidation_date;
+        $new_to->payment_type = $request->payment_type;
+        $new_to->mode_payment = $request->mode_payment;
+        $new_to->other_instruct = $request->other_instruct;
+        $new_to->liquidation_date = $request->liquidation_date;
 
-            if ($request->filled('sig_image_data')) 
-            {
-                $sigData = $request->sig_image_data;
-                $image_parts = explode(";base64,", $sigData);
-                $image_base64 = $image_parts[1];
-                $encryptedSignature = Crypt::encryptString($image_base64);
-                $new_to->sig_image = $encryptedSignature;
-            }
-
-            // Handle regular file attachment
-            if ($request->file('attachment')) {
-                $logo = $request->file('attachment');
-                $original_name = $logo->getClientOriginalName();
-                $name = time() . '_' . $original_name;
-                $logo->move(public_path() . '/images/', $name);
-                $file_name = '/images/' . $name;
-                $new_to->attachment = $file_name;
-            }
-
-            // Handle signature image - store the file path from the hidden input
-            if ($request->filled('sig_image')) {
-                $new_to->sig_image = $request->sig_image;
-            }
-
-            $latest_to = EmployeeTo::lockForUpdate()->latest('id')->first();
-            $next_id = $latest_to ? $latest_to->id + 1 : 1;
-            $new_to->to_number = 'TO-' . str_pad($next_id, 5, '0', STR_PAD_LEFT);
-
-            $new_to->status = 'Pending';
-            $new_to->level = 0;
-            $new_to->created_by = Auth::user()->id;
-            $new_to->save();
-
-            Alert::success('Successfully Stored')->persistent('Dismiss');
-            return back();
+        if ($request->filled('sig_image_data')) 
+        {
+            $sigData = $request->sig_image_data;
+            $image_parts = explode(";base64,", $sigData);
+            $image_base64 = $image_parts[1];
+            $encryptedSignature = Crypt::encryptString($image_base64);
+            $new_to->sig_image = $encryptedSignature;
         }
+
+        if ($request->file('attachment')) {
+            $logo = $request->file('attachment');
+            $original_name = $logo->getClientOriginalName();
+            $name = time() . '_' . $original_name;
+            $logo->move(public_path() . '/images/', $name);
+            $file_name = '/images/' . $name;
+            $new_to->attachment = $file_name;
+        }
+
+        if ($request->filled('sig_image')) {
+            $new_to->sig_image = $request->sig_image;
+        }
+
+        $latest_to = EmployeeTo::lockForUpdate()->latest('id')->first();
+        $next_id = $latest_to ? $latest_to->id + 1 : 1;
+        $new_to->to_number = 'TO-' . str_pad($next_id, 5, '0', STR_PAD_LEFT);
+
+        $new_to->status = 'Pending';
+        
+        $firstApprover = EmployeeApprover::where('user_id', Auth::user()->id)
+                            ->orderBy('level')
+                            ->first();
+        $new_to->level = $firstApprover ? $firstApprover->level : 1;
+        
+        $new_to->created_by = Auth::user()->id;
+        $new_to->save();
+
+        Alert::success('Successfully Stored')->persistent('Dismiss');
+        return back();
+    }
 
     public function edit_to(Request $request, $id)
         {
-            // Optional: Add validation
             $request->validate([
                 'to_number' => 'required|string|max:255',
                 'applied_date' => 'required|date',
@@ -250,10 +266,8 @@ class EmployeeTravelOrderController extends Controller
             ]);
 
             try {
-                // Find the existing travel order
                 $to = EmployeeTo::findOrFail($id);
                 
-                // Check if the user owns this travel order or has permission to edit
                 if ($to->user_id !== auth()->user()->id && !auth()->user()->hasRole('hr')) {
                     Alert::error('Unauthorized', 'You do not have permission to edit this travel order.')->persistent('Dismiss');
                     return back();
@@ -413,5 +427,3 @@ class EmployeeTravelOrderController extends Controller
     }
 
 }
-
-

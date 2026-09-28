@@ -40,9 +40,7 @@
               </div>
             
             <div class="form-sections">
-                <!-- Itinerary Section -->
                 <div class="itinerary-section">
-                    <!-- Desktop Itinerary Table -->
                     <div class="desktop-itinerary">
                         <table class="itinerary-table">
                             <tr>
@@ -102,7 +100,6 @@
                     <div class="mobile-itinerary">
                       <h5 class="text-center mb-3" style="background-color: #3490dc; color: white; padding: 10px; border-radius: 4px;">ITINERARY</h5>
                       <div id="">
-                          {{-- Destination 1 (Always Visible) --}}
                           <div class="destination-card">
                               <h6>Destination 1</h6>
                               <div class="form-group">
@@ -133,7 +130,6 @@
                               </div>
                           </div>
 
-                          {{-- Destination 2 --}}
                           @if(!empty($form_approval->destination_2))
                               <div class="destination-card">
                                   <h6>Destination 2</h6>
@@ -166,7 +162,6 @@
                               </div>
                           @endif
 
-                          {{-- Destination 3 --}}
                           @if(!empty($form_approval->destination_3))
                               <div class="destination-card">
                                   <h6>Destination 3</h6>
@@ -199,7 +194,6 @@
                               </div>
                           @endif
 
-                          {{-- Destination 4 --}}
                           @if(!empty($form_approval->destination_4))
                               <div class="destination-card">
                                   <h6>Destination 4</h6>
@@ -232,7 +226,6 @@
                               </div>
                           @endif
 
-                          {{-- Destination 5 --}}
                           @if(!empty($form_approval->destination_5))
                               <div class="destination-card">
                                   <h6>Destination 5</h6>
@@ -432,7 +425,6 @@
                         </div>
                   </div>
 
-                  <!-- Other Instructions -->
                   <div class="p-1">
                     <label>OTHER INSTRUCTIONS</label>
                     <input 
@@ -463,7 +455,7 @@
                     </div>
                 </div>
                 <div class="col-lg col-md-6 col-sm-12 border-right border-dark p-1">
-                  <div class="border-dark p-3 text-center">RC CODE</div>
+                  <div class="border-dark p-3 text-center">Cost Center</div>
                   <div class="p-1 text-center"> 
                     <input type="text"
                       class="form-control form-control-sm text-center"
@@ -533,8 +525,8 @@
                 </div>
                 <div class="col-md-3 col-sm-6 border-end border-dark p-1">
                   <div class="border-dark p-1">LIQUIDATION DUE ON:</div>
-                  <div class="p-1">
-                    <input type="" class="form-control" style="height: 30px;" name=""  value="{{ $form_approval->liquidation_date ? \Carbon\Carbon::parse($form_approval->liquidation_date)->format('F j, Y') : '' }}" readonly>
+                  <div style="margin-top: 17px;">
+                    <input class="form-control" name="liquidation_date" id="liquidation_date" value="{{ $form_approval->liquidation_date ? \Carbon\Carbon::parse($form_approval->liquidation_date)->format('F j, Y') : '' }}" readonly>
                   </div>
                 </div>
               </div>
@@ -567,17 +559,16 @@
 
   
 #sig-canvas {
-      border: 2px dotted #CCCCCC;
-      border-radius: 15px;
-      cursor: crosshair;
-    }
-    .swal2-popup textarea {
-      width: 100% !important;
-    }
-    .swal2-popup canvas {
-      max-width: 100%;
-    }
-/* Default desktop layout */
+  border: 2px dotted #CCCCCC;
+  border-radius: 15px;
+  cursor: crosshair;
+}
+.swal2-popup textarea {
+  width: 100% !important;
+}
+.swal2-popup canvas {
+  max-width: 100%;
+}
 .form-sections {
   display: flex;
 }
@@ -590,7 +581,6 @@
   order: 2;
 }
 
-/* Desktop itinerary table styles */
 .desktop-itinerary {
     display: block;
 }
@@ -599,7 +589,6 @@
     display: none;
 }
 
-/* Expense table styles */
 .expense-table {
     width: 100%;
     border-collapse: collapse;
@@ -672,7 +661,6 @@
     background-color: #e3f2fd;
 }
 
-/* Desktop itinerary styles */
 .itinerary-table {
     border-left: 1px solid #333;
     border-top: 1px solid #333;
@@ -680,12 +668,12 @@
 }
 
 .itinerary-table .form-control {
-  width: 108px !important;  /* Change to your desired width */
-  height: 32px !important;  /* Change to your desired height */
+  width: 108px !important;
+  height: 32px !important;
 }
 
 .itinerary-table .destination {
-  width: 200px !important;  /* Change to your desired height */
+  width: 200px !important;
 }
 
 .itinerary-header {
@@ -730,7 +718,6 @@
     border-right: none;
 }
 
-/* Mobile card styles */
 .destination-card {
     border: 2px solid #dee2e6;
     border-radius: 8px;
@@ -765,7 +752,6 @@
     flex: 1;
 }
 
-/* Responsive breakpoints */
 @media (max-width: 992px) {
     .form-sections {
         flex-direction: column;
@@ -778,7 +764,6 @@
 }
 
 @media (max-width: 768px) {
-    /* Hide desktop itinerary, show mobile cards */
     .desktop-itinerary {
         display: none;
     }
@@ -787,7 +772,6 @@
         display: block;
     }
 
-    /* Adjust expense table for mobile */
     .expense-table {
         font-size: 12px;
     }
@@ -967,7 +951,6 @@
   background-color: #e3f2fd;
 }
 
-/* Mobile Styles */
 @media (max-width: 768px) {
   body {
       padding: 10px;
@@ -1004,7 +987,6 @@
   }
 }
 
-/* Very small screens */
 @media (max-width: 480px) {
   .expense-table {
       font-size: 11px;
@@ -1031,7 +1013,6 @@
   }
 }
 
-/* Large screens */
 @media (min-width: 1200px) {
   .cash-advance {
       max-width: 800px;
@@ -1059,7 +1040,6 @@
     
   }
 
-/* Responsive styles */
 @media (max-width: 768px) {
   .form-sections {
     flex-direction: column;
@@ -1080,7 +1060,6 @@
   }
   
 
-  /* Hide desktop headers */
   .h.m-0:nth-child(2) {
     display: none;
   }
@@ -1090,7 +1069,6 @@
   }
 }
 
-/* Additional Modal Styles */
 .modal-xl {
   max-width: 1300px;
 }
@@ -1103,7 +1081,6 @@
 </style>
 
 <script>
-  // Add the approver data to JavaScript
   window.approvalThreshold = {{ $approvalThreshold ?? 0 }};
   window.approverData = {
       firstApprover: {
@@ -1153,7 +1130,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Function to calculate totals
     function calculateTotal(row) {
         const amountInput = document.querySelector(`input[data-row="${row}"].amount-input`);
         const daysInput = document.querySelector(`input[data-row="${row}"].days-input`);
@@ -1169,7 +1145,6 @@ document.addEventListener('DOMContentLoaded', function() {
         calculateGrandTotal();
     }
     
-    // Function to calculate grand total
     function calculateGrandTotal() {
         const totalFields = document.querySelectorAll('.total-field:not([data-row="5"])');
         let grandTotal = 0;
@@ -1186,7 +1161,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Add event listeners to amount and days inputs
     document.querySelectorAll('.amount-input, .days-input').forEach(input => {
         input.addEventListener('input', function() {
             const row = this.getAttribute('data-row');
@@ -1196,7 +1170,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Payment type toggle
     document.querySelectorAll('input[name="payment_type"]').forEach(radio => {
         radio.addEventListener('change', function() {
             const toId = this.id.split('_').pop();
@@ -1217,7 +1190,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle each modal individually using the form_approval ID
     @foreach($tos as $form_approval)
         (function() {
             const modal = document.querySelector('#to-view-approved-{{ $form_approval->id }}');
@@ -1225,25 +1197,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const paCheckbox = document.querySelector('#pa_checkbox_{{ $form_approval->id }}');
             const modeOfPaymentSection = document.querySelector('#modeOfPaymentSection_{{ $form_approval->id }}');
             
-            // Function to toggle visibility of mode of payment
             function toggleModeOfPayment() {
                 if (paCheckbox && paCheckbox.checked) {
-                    // If reimbursement selected, hide mode of payment
                     if (modeOfPaymentSection) {
                         modeOfPaymentSection.style.display = 'none';
                     }
                 } else {
-                    // Otherwise show it
                     if (modeOfPaymentSection) {
                         modeOfPaymentSection.style.display = 'block';
                     }
                 }
             }
             
-            // Call the function immediately
             toggleModeOfPayment();
             
-            // Also trigger when modal is shown
             if (modal) {
                 modal.addEventListener('shown.bs.modal', function() {
                     toggleModeOfPayment();

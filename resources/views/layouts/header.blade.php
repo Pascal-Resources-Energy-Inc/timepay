@@ -280,15 +280,57 @@
             line-height: 1.2 !important;
         }
         
+        .modal-header {
+            background: linear-gradient(135deg, #54abe6ff 0%, #3498DB 100%);
+            color: white;
+            border-bottom: none;
+        }
 
+        #preloaderHera {
+            background-color: white; 
+            width: 100%;
+            height: 100%;
+            /* Center the logo vertically and horizontally */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            opacity: .8;
+        }
+
+        .logo-hera {
+            /* width: 150px;
+            height: 150px; */
+            opacity: 2;
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            line-height: 150px;
+            border-radius: 10px;
+            animation: ld-swim 10s infinite linear;
+        }
+
+        /* --- Keyframes for the Bouncing Animation --- */
+        @keyframes ld-swim{0%{transform:translate(0,0) rotate(0)}8.33333%{transform:translate(-5.96462px,4.90845px) rotate(-13.66821deg)}16.66667%{transform:translate(5.25471px,-2.05606px) rotate(0.47337deg)}25%{transform:translate(2.30929px,5.79372px) rotate(13.8564deg)}33.33333%{transform:translate(-5.75556px,-4.60802px) rotate(10.94246deg)}41.66667%{transform:translate(3.73522px,5.97742px) rotate(-14.03079deg)}50%{transform:translate(4.2628px,-3.01222px) rotate(-10.61323deg)}58.33333%{transform:translate(-4.65975px,-2.51269px) rotate(5.2869deg)}66.66667%{transform:translate(1.64024px,-1.05167px) rotate(10.27343deg)}75%{transform:translate(5.55954px,-4.22763px) rotate(-5.72726deg)}83.33333%{transform:translate(-2.84602px,5.91439px) rotate(-14.99193deg)}91.66667%{transform:translate(-0.70744px,-5.43064px) rotate(6.16192deg)}100%{transform:translate(0,0) rotate(0)}}
     </style>
 </head>
 
 <body>
     <div id="loader" style="display:none;" class="loader">
     </div>
+    <div id="preloaderHera">
+        <div class="logo-hera">
+            <img src="{{ asset('login_css/images/hera_loading1.png') }}" alt="" height="250">
+        </div>
+    </div>
 
-    
+    @if(auth()->check() && auth()->user()->is_setup_complete != 1)
+        @include('dashboards.employee_wizard')
+    @endif
     <div class="container-scroller">
 
         <!-- partial:partials/_navbar.html -->
@@ -373,6 +415,7 @@
                             <span class="menu-title">Dashboard</span>
                         </a>
                     </li>
+                    
                     <li class="nav-item @if ($header == 'attendances') active @endif">
                         <a class="nav-link" href="{{ url('/attendances') }}" onclick='show()'>
                             <i class="icon-watch menu-icon"></i>
@@ -386,27 +429,43 @@
                             <i class="menu-arrow"></i>
                         </a>
                         <div class="collapse @if ($header == 'forms') show @endif" id="forms">
-                            <ul class="nav flex-column sub-menu @if ($header == 'forms') show @endif">
-                                
+                            <ul class="nav flex-column sub-menu">
+                                <!-- <li class="nav-item "> <a class="nav-link active" href="{{ url('/file-leave') }}">Leave</a></li> -->
+                                <!-- @php
+                                    $user_allowed_overtime = auth()->user()->allowed_overtime ? auth()->user()->allowed_overtime->allowed_overtime : "";
+                                @endphp
+                                @if(checkUserAllowedOvertime(auth()->user()->id) == 'yes' || $user_allowed_overtime == 'on')
                                     <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li>
-                   
-                                 {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li> --}}
-                               {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/work-from-home') }}">Work from home</a></li> --}}
+                                @endif -->
+                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/overtime') }}">Overtime</a></li> --}}
+                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/work-from-home') }}">Work from home</a></li> --}}
 
-                                  <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}">Travel Order</a></li>
-                                <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}">DTR Correction</a></li>
-                                {{-- <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li> --}}
-                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> 
-                                {{-- <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/231380935515052">Authority to Deduct</a></li> --}}
-                                 <li class="nav-item "> <a class="nav-link " href="{{ url('/authority-deduct') }}">Authority to Deduct</a></li>
-                                {{-- <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242770633900050">Number Enrollment </a></li> --}}
-                                <li class="nav-item "> <a class="nav-link " href="{{ url('/number-enrollment') }}">Number Enrollment </a></li>
-                                {{-- <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/232350967124051">COE Request</a></li> --}}
-                               <li class="nav-item "> <a class="nav-link " href="{{ url('/coe-request') }}">COE Request</a></li>
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/travel-order') }}" onsubmit="show()">Travel Order</a></li>
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/dtr-correction') }}" onsubmit="show()">DTR Correction</a></li>
+                                <li class="nav-item "> <a class="nav-link " href="{{ url('/planning') }}">Planning</a></li>
+                                {{-- <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/260830852764058" style="text-wrap: auto">Monetized Transportation Allowance</a></li> --}}
+                                <li class="nav-item "><a class="nav-link" href="{{ url('/mta') }}" style="text-wrap: auto" onsubmit="show()">Monetized Transportation Allowance</a></li>
+                                {{-- <li class="nav-item "> <a class="nav-link " href="{{ url('/dar') }}">DAR</a></li> --}}
+                                <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li>
+                                <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> -->
+                                <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/231380935515052">Authority to Deduct</a></li>
+                                <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/authority-deduct') }}">Authority to Deduct</a></li> -->
+                                <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242770633900050">Number Enrollment </a></li>
+                                <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/number-enrollment') }}">Number Enrollment </a></li> -->
+                                <li class="nav-item "> <a class="nav-link" target='_blank' href="https://form.jotform.com/232350967124051">COE Request</a></li>
+                                <li class="nav-item "> <a class="nav-link" href="https://docs.google.com/forms/d/e/1FAIpQLSfrIUbn6qLvHLt7rYF9e4sxTCKvNGT9zESsLkQwKHSCzmcXZg/viewform" style="text-wrap: auto">TDS/MDS Employee Referral Program</a></li> 
+                                <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdlOeSHBVOcAASbWkVOQpeVNbI1R36oVlEln-BctX7ekDlUnw/viewform">Incident Report Form</a></li>
+                                <li class="nav-item "> <a class="nav-link" target='_blank' href="https://form.jotform.com/232360985204051" style="text-wrap: auto">Uniform & ID Request Form</a></li>
+                                <!-- <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdARMLk0ncUlhtlV0DPHD9P6ZTkGx10LC72M-mTtxuTCWOnIQ/viewform?usp=send_form" style="text-wrap: auto">Mobile Device Employee Sale</a></li> -->
+                                {{-- <li class="nav-item">
+                                    <a class="nav-link @if (request()->is('iur*')) active @endif" href="{{ url('/iur') }}">
+                                        ID & Uniform Request
+                                    </a>
+                                </li> --}}
                             </ul>
                         </div>
                     </li>
-                    <li class="nav-item  @if ($header == 'hrReport') active @endif">
+                    {{-- <li class="nav-item  @if ($header == 'hrReport') active @endif">
                         <a class="nav-link" data-toggle="collapse" href="#hrReport" aria-expanded="false" aria-controls="ui-basic">
                             <i class="icon-paper menu-icon"></i>
                             <span class="menu-title">Employee</span>
@@ -421,14 +480,27 @@
                             <li class="nav-item"> <a class="nav-link" href="{{url('payslips')}}">Payslips</a></li>
                             </ul>
                         </div>
-                    </li>
+                    </li> --}}
                     <li class="nav-item @if ($header == 'leave_calendar') active @endif">
                         <a class="nav-link" href="{{ url('/leave_calendar') }}" onclick='show()'>
                             <i class="ti-calendar menu-icon"></i>
                             <span class="menu-title">Leave Calendar</span>
                         </a>
                     </li>
-                  @if(count(auth()->user()->employee->as_resign) > 0)
+                    <li class="nav-item @if ($header == 'purchase') active @endif">
+                        <a class="nav-link" href="{{ url('purchase') }}" onclick='show()'>
+                            <i class="icon-bag menu-icon"></i>
+                            <span class="menu-title">Employee PO</span>
+                        </a>
+                    </li>
+                    <li class="nav-item ">
+                        <a class="nav-link" href="https://forms.gle/kvbzyjE78BYAYg4q6" target="_blank">
+                            <i class="icon-bag menu-icon"></i>
+                            <span class="menu-title">Incident Report</span>
+                        </a>
+                    </li>
+
+                    @if(count(auth()->user()->employee->as_resign) > 0)
                     <li class="nav-item">
                         <hr>
                         <h5>Clearance</h5>
@@ -440,6 +512,30 @@
                         </a>
                     </li>
                     @endif
+
+                    @php
+                        $approvedMtaCount = \App\EmployeeMta::whereIn('payment_status', ['Approved', 'For Processing'])->count();
+                    @endphp
+
+                    @if (checkUserPrivilege('employees_mta', auth()->user()->id) == 'yes')
+                        <li class="nav-item">
+                            <hr>
+                            <h5>
+                                For Process
+                                @if($approvedMtaCount > 0)
+                                    <span class="badge badge-warning">{{ $approvedMtaCount }}</span>
+                                @endif
+                            </h5>
+                        </li>
+
+                        <li class="nav-item @if ($header == 'for-process') active @endif">
+                            <a class="nav-link" href="{{ url('/mta-process') }}" onclick='show()' style="text-wrap:auto">
+                                <i class="fa fa-motorcycle menu-icon" aria-hidden="true"></i>
+                                <span class="menu-title">Monetized Transportation Allowance</span>
+                            </a>
+                        </li>
+                    @endif
+                    
                     @if ( auth()->user()->employee_under->count())
                     <li class="nav-item">
                         <hr>
@@ -448,9 +544,7 @@
                     <li class="nav-item @if ($header == 'for-approval') active @endif">
                         <a class="nav-link" data-toggle="collapse" href="#for-approval" aria-expanded="false" aria-controls="ui-basic">
                             <i class="icon-check menu-icon"></i>
-
-                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id) + pending_overtime_count(auth()->user()->id) + pending_to_count(auth()->user()->id) +pending_dtr_correction(auth()->user()->id)}}</span></span>
-
+                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id) + pending_overtime_count(auth()->user()->id) + pending_to_count(auth()->user()->id) +pending_dtr_correction(auth()->user()->id) + pending_mta_correction(auth()->user()->id) }}</span></span>
                             <i class="menu-arrow"></i>
                         </a>
                         <div class="collapse @if ($header == 'for-approval') show @endif" id="for-approval">
@@ -459,11 +553,11 @@
                               <li class="nav-item "><a class="nav-link " href="{{ url('/for-overtime') }}">Overtime <span class="badge badge-warning">{{ pending_overtime_count(auth()->user()->id) }}</span></a></li> 
                                 <li class="nav-item "><a class="nav-link " href="{{ url('/travel-orderManager') }}">Travel Order <span class="badge badge-warning">{{ pending_to_count(auth()->user()->id) }}</span></a></li>
                                 {{-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-work-from-home') }}">Work From Home <span class="badge badge-warning">{{ session('pending_wfh_count') }}</span></a></li> --}}
-
-                                <li class="nav-item "><a class="nav-link " href="{{ url('/for-official-business') }}">Official Business <span class="badge badge-warning">{{ pending_ob_count(auth()->user()->id) }}</span></a></li> 
+                                <!-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-official-business') }}">Official Business <span class="badge badge-warning">{{ pending_ob_count(auth()->user()->id) }}</span></a></li> -->
                                 <li class="nav-item "><a class="nav-link " href="{{ url('/for-dtr-correction') }}">DTR Correction <span class="badge badge-warning">{{ pending_dtr_correction(auth()->user()->id) }}</span></a></li>
-
+                                <li class="nav-item "><a class="nav-link " href="{{ url('/for-mta') }}" style="text-wrap:auto">Monetized Transportation Allowance <span class="badge badge-warning">{{ pending_mta_correction(auth()->user()->id) }}</span></a></li>
                             </ul>
+                        </div>
                     </li>
                     <li class="nav-item @if ($header == 'subordinates') active @endif">
                         <a class="nav-link" href="{{ url('/subordinates') }}" onclick='show()'>
@@ -500,25 +594,27 @@
                     @endif
                     @php
                         $is_coe_approver = \App\ApproverSetting::where('user_id', auth()->user()->id)
-                                        ->whereIn('type_of_form', ['coe'])
+                                        ->whereIn('type_of_form', ['coe', 'uir'])
                                         ->where('status', 'Active')
                                         ->exists();
                     @endphp
                     @if ($is_coe_approver)
                     <li class="nav-item">
                         <hr>
-                        <h5>COE Request</h5>
+                        <h5>Request Approval</h5>
                     </li>
                     <li class="nav-item @if ($header == 'for-approval_coe') active @endif">
                         <a class="nav-link" data-toggle="collapse" href="#for-approval_coe" aria-expanded="@if ($header == 'for_approval_coe') true @else false @endif" aria-controls="ui-basic">
                             <i class="icon-check menu-icon"></i>
-                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id)}}</span></span>
+                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) +  pending_uir_count(auth()->user()->id) }}</span></span>
                             <i class="menu-arrow"></i>
                         </a>
                         <div class="collapse @if ($header == 'for-approval_coe') show @endif" id="for-approval_coe">
                             <ul class="nav flex-column sub-menu">
-                                <li class="nav-item "><a class="nav-link active" href="{{ url('/coe-approval') }}" >COE Request<span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) }}</span></a></li>
+                                <li class="nav-item "><a class="nav-link active" href="{{ url('/coe-approval') }}" >COE Request&nbsp;<span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) }}</span></a></li>
+                                <li class="nav-item "><a class="nav-link active" href="{{ url('/iur-approval') }}" >ID & Uniform Request&nbsp;<span class="badge badge-warning">{{ pending_uir_count(auth()->user()->id) }}</span></a></li>
                             </ul>
+                        </div>
                     </li>
                     @endif
                     @php
@@ -544,10 +640,58 @@
                             </ul>
                     </li>
                     @endif
+
+                    @if (auth()->user()->role == 'Admin' || checkUserPrivilege('sales_performance', auth()->user()->id) == 'yes' || checkUserPrivilege('tds', auth()->user()->id) == 'yes')
+                    <li class="nav-item">
+                        <hr>
+                        <h5>TDS Dashboard</h5>
+                    </li>
+                    <li class="nav-item @if ($header == 'tdsModule') active @endif">
+                        <a class="nav-link" href="{{ url('tdsModule') }}" onclick='show()'>
+                            <i class="ti-clipboard menu-icon"></i>
+                            <span class="menu-title">TDS</span>
+                        </a>
+                    </li>
+                    @endif
+
+                    @if (auth()->user()->role == 'Admin' || checkUserPrivilege('sales_performance', auth()->user()->id) == 'yes')
+                    <li class="nav-item @if ($header == 'tdsDashboard') active @endif ">
+                        <a class="nav-link" href="{{ url('/tdsdashboard') }}" onclick='show()'>
+                            <i class="ti-bar-chart menu-icon"></i>
+                            <span class="menu-title">Sales Performance</span>
+                        </a>
+                    </li>
+                    @endif
+
+                    @if (auth()->user()->role == 'Admin' || checkUserPrivilege('tds_records', auth()->user()->id) == 'yes')
+                    <li class="nav-item @if ($header == 'allSubmissions') active @endif">
+                        <a class="nav-link" href="{{ route('tds.records') }}" onclick='show()'>
+                            <i class="ti-list menu-icon"></i>
+                            <span class="menu-title">All Records</span>
+                        </a>
+                    </li>
+                    @endif
+
+                    @if (auth()->user()->role == 'Admin')
+                    <li class="nav-item @if ($header == 'history') active @endif">
+                        <a class="nav-link" href="{{ route('tds.history') }}" onclick='show()'>
+                            <i class="ti-time menu-icon"></i>
+                            <span class="menu-title">Audit Trail</span>
+                        </a>
+                    </li>
+                    @endif
+
                     @if (auth()->user()->role == 'Admin')
                     <li class="nav-item">
                         <hr>
                         <h5>Super Admin</h5>
+                    </li>
+
+                   <li class="nav-item @if ($header == 'dashboard_admin') active @endif">
+                        <a class="nav-link" href="{{ url('/Admindashboard') }}" onclick='show()'>
+                            <i class="icon-head menu-icon"></i>
+                            <span class="menu-title">Dashboard Admin</span>
+                        </a>
                     </li>
                     
                     @if (checkUserPrivilege('timekeeping_dashboard',auth()->user()->id) == 'yes')
@@ -752,7 +896,7 @@
             </div>
         </li>
         @endif
-        @if (checkUserPrivilege('reports_leave',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_overtime',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_wfh',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_ob',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_loan',auth()->user()->id) == 'yes')
+        @if (checkUserPrivilege('reports_leave',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_overtime',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_wfh',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_ob',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_loan',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_consent',auth()->user()->id) == 'yes')
         <li class="nav-item @if ($header == 'reports') active @endif">
             <a class="nav-link" data-toggle="collapse" href="#reports" aria-expanded="false" aria-controls="ui-basic">
                 <i class="icon-paper menu-icon"></i>
@@ -763,37 +907,44 @@
                 <ul class="nav flex-column sub-menu">
                     {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/employee-report') }}">Employees</a></li> --}}
                     @if (checkUserPrivilege('reports_leave',auth()->user()->id) == 'yes')
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/leave-report-per-employee') }}">Leave Reports Per Employee</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/leave-report-per-employee') }}">Leave Reports Per Employee</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/ne-report') }}">Number Enrollment Reports</a></li>
                     @endif
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/ne-report') }}">Number Enrollment Reports</a></li>
                     @if (checkUserPrivilege('reports_overtime',auth()->user()->id) == 'yes')
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/overtime-report') }}">Overtime Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/overtime-report') }}">Overtime Reports</a></li>
                     @endif
                     @if (checkUserPrivilege('reports_wfh',auth()->user()->id) == 'yes')
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/wfh-report') }}">WFH Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/wfh-report') }}">WFH Reports</a></li>
                     @endif
                     @if (checkUserPrivilege('reports_ob',auth()->user()->id) == 'yes')
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/ob-report') }}">OB Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/ob-report') }}">OB Reports</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{url('ob_files')}}">OB Uploaded Files</a></li>
                     @endif
                     @if (checkUserPrivilege('reports_dtr',auth()->user()->id) == 'yes')
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/dtr-report') }}">DTR Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/dtr-report') }}">DTR Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/attendance-report') }}">Attendance Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/mta-report') }}">MTA Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/ytd-report') }}">YTD</a></li>
                     @endif
+                    
                     @if (checkUserPrivilege('reports_loan',auth()->user()->id) == 'yes')
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/company-loan-report') }}">Company Loan Report</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/company-loan-report') }}">Company Loan Report</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/totalExpense-report') }}">Total Expenses</a></li>
+                        
+                        {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/system-report') }}">Online In/Out Report</a></li> --}}
+                        <li class="nav-item"><a class="nav-link" href="{{url('purchase-reports')}}">Purchase Order Report</a></li>
                     @endif
                     {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/dtr-report') }}">DTR Reports</a></li> --}}
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/totalExpense-report') }}">Total Expenses</a></li>
-                    
                     @if (checkUserPrivilege('payroll_view',auth()->user()->id) == 'yes')
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/loan-report') }}">Deduction Report</a></li>
-                    {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/company-loan-report') }}">Company Loan Report</a></li> --}}
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/government-report') }}">Government Reports</a></li>
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/payroll-report') }}">Payroll Reports</a></li>
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/ytd-report') }}">YTD</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/loan-report') }}">Deduction Report</a></li>
+                        {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/company-loan-report') }}">Company Loan Report</a></li> --}}
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/government-report') }}">Government Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/payroll-report') }}">Payroll Reports</a></li>
+                    
                     @endif
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/attendance-report') }}">Attendance Reports</a></li>
-                    {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/system-report') }}">Online In/Out Report</a></li> --}}
-                    <li class="nav-item"><a class="nav-link" href="{{url('ob_files')}}">OB Uploaded Files</a></li>
+                    @if (checkUserPrivilege('reports_consent',auth()->user()->id) == 'yes')
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/consent-report') }}">Consent Reports</a></li>
+                    @endif
                 </ul>
             </div>
         </li>
@@ -951,16 +1102,19 @@
         }
 
         function show() {
-            document.getElementById("loader").style.display = "block";
+            document.getElementById("preloaderHera").style.display = "block";
         }
 
         function logout() {
             event.preventDefault();
             document.getElementById('logout-form').submit();
         }
-        $(document).ready(function() {
+        
+        window.addEventListener('load', function() {
+            document.getElementById('preloaderHera').style.display = 'none';
+        });
 
-            
+        $(document).ready(function() {
 
             $('.tablewithSearch').DataTable({
                 dom: 'Bfrtip',
@@ -1281,6 +1435,21 @@
    
 
         });
+
+        $(document).ready(function(){
+
+            let shouldShowWizard = "{{ auth()->check() && auth()->user()->is_setup_complete != 1 ? '1' : '0' }}";
+
+            if (shouldShowWizard === "1") {
+                $('#employeeWizard').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                });
+
+                $('#employeeWizard').modal('show');
+            }
+
+        });
     </script>
 
     @include('sweetalert::alert')
@@ -1292,6 +1461,7 @@
     @yield('wfhScript')
     @yield('obScript')
     @yield('dtrScript')
+    @yield('mtaScript')
     @yield('ForApprovalScript')
 
     @yield('loanRegScripts')

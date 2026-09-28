@@ -53,6 +53,10 @@ use App\SalaryMovement;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\EmployeeDisagreementMail;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class EmployeeController extends Controller
 {
@@ -89,7 +93,7 @@ class EmployeeController extends Controller
                                                         $q->whereNull('classification');
                                                     }else{
                                                         $q->where('classification',$classification);
-                                                    }  
+                                                    }
                                                 })
                                                 ->when($gender,function($q) use($gender){
                                                     if($gender == 'N/A'){
@@ -123,7 +127,7 @@ class EmployeeController extends Controller
                                                         $q->whereNull('classification')->orWhere('classification','');
                                                     }else{
                                                         $q->where('classification',$classification);
-                                                    }  
+                                                    }
                                                 })
                                                 ->when($gender,function($q) use($gender){
                                                     if($gender == 'N/A'){
@@ -163,13 +167,13 @@ class EmployeeController extends Controller
                                 ->when($department,function($q) use($department){
                                     $q->where('department_id',$department);
                                 })
-                                
+
                                 ->when($classification,function($q) use($classification){
                                     if($classification == 'N/A'){
                                         $q->whereNull('classification');
                                     }else{
                                         $q->where('classification',$classification);
-                                    }  
+                                    }
                                 })
                                 ->when($gender,function($q) use($gender){
                                     if($gender == 'N/A'){
@@ -177,7 +181,7 @@ class EmployeeController extends Controller
                                     }else{
                                         $q->where('gender',$gender);
                                     }
-                                })     
+                                })
                                 ->when($allowed_locations,function($q) use($allowed_locations){
                                     $q->whereIn('location',$allowed_locations);
                                 })
@@ -191,7 +195,7 @@ class EmployeeController extends Controller
                                 ->paginate($entries)
                                 ->appends(request()->all());
 
-        $employees_active = Employee::select('id','user_id')     
+        $employees_active = Employee::select('id','user_id')
                                 ->when($allowed_locations,function($q) use($allowed_locations){
                                     $q->whereIn('location',$allowed_locations);
                                 })
@@ -201,7 +205,7 @@ class EmployeeController extends Controller
                                 ->whereIn('company_id',$allowed_companies)
                                 ->where('status','Active')
                                 ->count();
-       
+
         if($company){
 
             $department_companies = Employee::when($company,function($q) use($company){
@@ -220,7 +224,7 @@ class EmployeeController extends Controller
                                         ->orderBy('name')
                                         ->get();
         }
-        
+
         $schedules = Schedule::get();
         $banks = Bank::get();
         $users = User::get();
@@ -229,7 +233,7 @@ class EmployeeController extends Controller
         $locations = Location::orderBy('location','ASC')->get();
         $projects = Project::get();
 
-        
+
         $companies = Company::whereIn('id',$allowed_companies)
                                     ->orderBy('company_name','ASC')
                                     ->get();
@@ -261,7 +265,7 @@ class EmployeeController extends Controller
         );
     }
 
-    public function export(Request $request) 
+    public function export(Request $request)
     {
 
         $allowed_companies = getUserAllowedCompanies(auth()->user()->id);
@@ -281,12 +285,12 @@ class EmployeeController extends Controller
 
         $access_rate = checkUserPrivilege('employees_rate',auth()->user()->id);
 
-        
+
 
         return Excel::download(new EmployeesExport($company,$department,$allowed_companies,$access_rate,$allowed_locations,$allowed_projects,$status), 'Master List.xlsx');
     }
 
-    public function export_hr(Request $request) 
+    public function export_hr(Request $request)
     {
 
         $allowed_companies = getUserAllowedCompanies(auth()->user()->id);
@@ -307,7 +311,7 @@ class EmployeeController extends Controller
         return Excel::download(new EmployeeHRExport($company,$department,$allowed_companies,$allowed_locations,$allowed_projects,$status), 'Master List .xlsx');
     }
 
-    public function export_employee_associates(Request $request) 
+    public function export_employee_associates(Request $request)
     {
 
         $allowed_companies = getUserAllowedCompanies(auth()->user()->id);
@@ -332,7 +336,64 @@ class EmployeeController extends Controller
 
     public function new(Request $request)
     {
-        // dd($request->all());
+        $request->validate([
+            // personal details
+            'first_name'           => 'required|string|max:255',
+            'middle_name'          => 'nullable|string|max:255',
+            'last_name'            => 'required|string|max:255',
+            'suffix'               => 'nullable|string|max:50',
+            'nickname'             => 'required|string|max:255',
+            'marital_status'       => 'required|string|max:255',
+            'religion'             => 'required|string|max:255',
+            'gender'               => 'required|string|in:MALE,FEMALE',
+            'birthdate'            => 'required|date|before:today',
+            'birthplace'           => 'required|string|max:255',
+
+            // contact
+            'personal_email'       => 'required|string|max:255|regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/',
+            'personal_number'      => 'required|string|max:20',
+            'present_address'      => 'required|string|max:500',
+            'permanent_address'    => 'nullable|string|max:500',
+
+            // employeee informtiaon
+            'company'              => 'required|integer|exists:companies,id',
+            'position'             => 'required|string|max:255',
+            'department'           => 'required|integer|min:0',
+            'location'             => 'required|string|max:255',
+            'project'              => 'required|string|max:255',
+            'classification'       => 'required|integer|exists:classifications,id',
+            'level'                => 'required|integer|exists:levels,id',
+            'immediate_supervisor' => 'required|integer|exists:users,id',
+            'biometric_code'       => 'required|string|max:50',
+            'date_hired'           => 'required|date',
+            'work_email'           => 'required|string|max:255|regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/',
+            'schedule'             => 'required|integer|exists:schedules,id',
+            'cost_center'          => 'required|string|max:255',
+
+            // approvers part
+            'approver'                       => 'nullable',
+
+            // 
+            'bank_name'            => 'required|string|max:255',
+            'bank_account_number'  => 'required|string|max:255',
+            'rate'                 => 'required|numeric|min:0',
+            'work_description'     => 'required|string|in:Monthly,Non-Monthly',
+            'tax_application'      => 'required|string|in:Minimum,Non-Minimum',
+
+            // government stuffs
+            'sss'                  => 'required|string|max:50',
+            'philhealth'           => 'required|string|max:50',
+            'pagibig'              => 'required|string|max:50',
+            'tin'                  => 'required|string|max:50',
+
+            'documents' => 'nullable|array',
+            'documents.*' => 'file|mimes:pdf,jpeg,jpg,png|max:102400',
+
+            // file uploads
+            'file'                 => 'nullable|mimes:jpeg,png,jpg,gif|max:2048',
+            'signature'            => 'nullable|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
         $validate_employee = Employee::where('first_name',$request->first_name)
                                         ->where('last_name',$request->last_name)
                                         ->where('company_id',$request->company)
@@ -349,7 +410,7 @@ class EmployeeController extends Controller
             $user = new User;
             $user->email = $request->work_email;
             $user->name = $request->first_name . " " . $request->last_name;
-            $password = strtolower($request->first_name) . '.'. strtolower($request->last_name);
+            $password = mb_strtolower($request->first_name) . '.' . mb_strtolower($request->last_name);
             $stripped_password = str_replace(' ', '', $password);
             $user->password = bcrypt($stripped_password);
             $user->status = "Active";
@@ -359,6 +420,7 @@ class EmployeeController extends Controller
             $employee_number = $this->generate_biometric_code(date('Y',strtotime($request->date_hired)), $company->id ,$user->id);
             $employee_number = $request->biometric_code;
             $employee_code = $request->biometric_code;
+
             $employee = new Employee;
             $employee->employee_number = $employee_number;
             $employee->employee_code = $employee_code;
@@ -394,7 +456,8 @@ class EmployeeController extends Controller
             $employee->middle_initial = $request->middile_initial;
             $employee->name_suffix = $request->suffix;
             $employee->religion = $request->religion;
-            
+            $employee->cost_center = $request->cost_center;
+
             $employee->bank_name = $request->bank_name;
             $employee->bank_account_number = $request->bank_account_number;
 
@@ -431,7 +494,7 @@ class EmployeeController extends Controller
             $employeeCompany->emp_code = $request->biometric_code;
             $employeeCompany->schedule_id = 1;
             $employeeCompany->company_id = $request->company;
-            
+
             $employeeCompany->save();
 
             if(isset($request->approver)){
@@ -442,19 +505,19 @@ class EmployeeController extends Controller
                     foreach($request->approver as $k =>  $approver_item)
                     {
                         $new_approver = new EmployeeApprover;
-                        
+
                         if($count_approver == 1 && $k == 0){
                             $new_approver->as_final = "on";
                         }
-    
+
                         if($count_approver == 2 && $k == 1){
                             $new_approver->as_final = "on";
                         }
-    
+
                         $new_approver->user_id = $employee->user_id;
                         $new_approver->approver_id = $approver_item['approver_id'];
                         $new_approver->level = $level;
-                        
+
                         $new_approver->save();
                         $level = $level+1;
                     }
@@ -479,7 +542,7 @@ class EmployeeController extends Controller
             $not_save = [];
             foreach($data[0] as $key => $value)
             {
-                
+
                 $validate = Employee::where('id',$value['id'])->first();
 
                 if($validate){
@@ -492,9 +555,9 @@ class EmployeeController extends Controller
                             $employee->save();
                             $save_count++;
                         }
-                        
+
                     }
-                   
+
                 }
             }
             Alert::success('Successfully Import Employees (' . $save_count. ')')->persistent('Dismiss');
@@ -510,7 +573,7 @@ class EmployeeController extends Controller
         {
             $date_from = $request->date_from;
         }
-      
+
         $employees = Employee::whereHas('salary')
         ->where('original_date_hired','<=',date('Y-11-30'))
         ->with('company','benefits','department','salary','salaryMovement')
@@ -537,7 +600,7 @@ class EmployeeController extends Controller
     public function upload(Request $request){
 
         ini_set('memory_limit', '-1');
-        
+
         $path = $request->file('file')->getRealPath();
         $data = Excel::toArray(new EmployeesImport, $request->file('file'));
 
@@ -568,7 +631,7 @@ class EmployeeController extends Controller
                                 $user->save();
 
                                 $user_id = $user->id;
-                                    
+
                                 $employee_code = $this->generate_emp_code('Employee', $company->company_code, date('Y',strtotime($value['original_date_hired'])), $company->id);
                                 $employee = new Employee;
                                 $employee->user_id = $user_id;
@@ -576,17 +639,17 @@ class EmployeeController extends Controller
                                 $employee->employee_code =  $employee_code;
                                 $employee->first_name = $value['first_name'];
                                 $employee->last_name = $value['last_name'];
-                                $employee->middle_name = $value['middle_name'];
+                                $employee->middle_name = isset($value['middle_name']) ? $value['middle_name'] : "";
                                 $employee->name_suffix = isset($value['name_suffix']) ? $value['name_suffix'] : "";
 
-                                $employee->classification = isset($value['classification']) ? $value['classification'] : "";
-                                $employee->department_id = isset($value['department_id']) ? $value['department_id'] : "";
+                                $employee->classification = isset($value['classification']) ? $value['classification'] : null;
+                                $employee->department_id = isset($value['department_id']) ? $value['department_id'] : null;
                                 $employee->company_id = isset($value['company_id']) ? $value['company_id'] : "";
                                 $employee->original_date_hired = isset($value['date_hired']) && !empty($value['date_hired']) ? date('Y-m-d',strtotime($value['date_hired'])) : null;
 
                                 $employee->position = isset($value['position']) ? $value['position'] : "";
                                 $employee->nick_name = isset($value['nick_name']) ? $value['nick_name'] : "";
-                                $employee->level = $value['level'];
+                                $employee->level = isset($value['level']) ? $value['level'] : "";
                                 $employee->date_regularized = isset($value['date_regularized']) && !empty($value['date_regularized']) ? date('Y-m-d',strtotime($value['date_regularized'])) : null;
                                 $employee->date_resigned = isset($value['date_resigned']) && !empty($value['date_resigned']) ? date('Y-m-d',strtotime($value['date_resigned'])) : null;
                                 $employee->birth_date = isset($value['birth_date']) && !empty($value['birth_date']) ? date('Y-m-d',strtotime($value['birth_date'])) : null;
@@ -605,12 +668,12 @@ class EmployeeController extends Controller
                                 $employee->personal_email = isset($value['personal_email']) ? $value['personal_email'] : "";
                                 $employee->area = isset($value['area']) ? $value['area'] : "";
                                 $employee->religion = isset($value['religion']) ? $value['religion'] : "";
-                                $employee->schedule_id = isset($value['schedule_id']) ? $value['schedule_id'] : "1";
+                                $employee->schedule_id = isset($value['schedule_id']) ? $value['schedule_id'] : 1;
 
                                 $employee->location = isset($value['location']) ? $value['location'] : "";
                                 $employee->work_description = isset($value['work_description']) ? $value['work_description'] : "";
                                 $employee->rate = isset($value['rate']) ? Crypt::encryptString($value['rate']) : "";
-                                
+
                                 $employee->status = "Active";
                                 $employee->save();
 
@@ -667,7 +730,7 @@ class EmployeeController extends Controller
                                         }
                                     }
                                 }
-                                
+
                                 if(isset($value['sil_balance'])){
                                     if($value['sil_balance']){
                                         $sil_leave_credit = EmployeeLeaveCredit::where('user_id',$user_id)
@@ -826,7 +889,7 @@ class EmployeeController extends Controller
                                     $check_if_exist->schedule_id =  $value['schedule_id'];
                                 }
                             }
-                     
+
                             if(isset($value['location'])){
                                 if($value['location']){
                                     $check_if_exist->location =  $value['location'];
@@ -842,7 +905,7 @@ class EmployeeController extends Controller
                                     $check_if_exist->rate =  Crypt::encryptString($value['rate']);
                                 }
                             }
-                    
+
                             $check_if_exist->status = "Active";
                             $check_if_exist->save();
 
@@ -899,7 +962,7 @@ class EmployeeController extends Controller
                                     }
                                 }
                             }
-                            
+
                             if(isset($value['sil_balance'])){
                                 if($value['sil_balance']){
                                     $sil_leave_credit = EmployeeLeaveCredit::where('user_id',$check_if_exist->user_id)
@@ -921,7 +984,7 @@ class EmployeeController extends Controller
                             $save_count+=1;
                         }
                     }
-                    
+
                 }else{
 
                     $validate_employee = Employee::where('first_name',$value['first_name'])
@@ -945,7 +1008,7 @@ class EmployeeController extends Controller
                                 $user->save();
 
                                 $user_id = $user->id;
-                           
+
                                 $employee_code = $this->generate_emp_code('Employee', $company->company_code, date('Y',strtotime($value['original_date_hired'])), $company->id);
                                 $employee_number = $this->generate_biometric_code(date('Y',strtotime($value['original_date_hired'])), $company->id, $user_id);
                                 $employee = new Employee;
@@ -1044,7 +1107,7 @@ class EmployeeController extends Controller
                                         }
                                     }
                                 }
-                                
+
                                 if(isset($value['sil_balance'])){
                                     if($value['sil_balance']){
                                         $sil_leave_credit = EmployeeLeaveCredit::where('user_id',$user_id)
@@ -1073,7 +1136,7 @@ class EmployeeController extends Controller
 
             Alert::success('Successfully Import Employees (' . $save_count. ')')->persistent('Dismiss');
             return redirect('/employees');
-            
+
         }
     }
 
@@ -1085,9 +1148,9 @@ class EmployeeController extends Controller
         $classifications = Classification::get();
 
         $employees = Employee::with('department', 'payment_info', 'ScheduleData', 'immediate_sup_data', 'user_info', 'company','classification_info','level_info')->get();
-        
+
         $employee_movement = EmployeeMovement::with('department','immediate_sup_data', 'user_info', 'classification_info','level_info')->get();
-        
+
         $employee_approvers = Employee::pluck('user_id')
                                         ->toArray();
 
@@ -1113,10 +1176,10 @@ class EmployeeController extends Controller
                 ->whereIn('id',$employee_approvers)
                 ->get();
         }
-        
+
         $schedules = Schedule::get();
         $banks = Bank::get();
-       
+
         $levels = Level::get();
         $departments = Department::get();
         $locations = Location::orderBy('location','ASC')->get();
@@ -1129,7 +1192,7 @@ class EmployeeController extends Controller
                             ->first();
 
         $employeeBenefits = EmployeeBenefits::where('user_id', $user->id)->get();
-        
+
         // $employeeTraining = EmployeeTraining::where('employee_id', $user->employee->id)->get();
         $employeeTraining = EmployeeTraining::where('employee_id', $user->employee->user_id)->get();
         $employeeNte = NteFile::where('employee_id', $user->employee->id)->get();
@@ -1139,7 +1202,7 @@ class EmployeeController extends Controller
         $approval_amounts = DB::table('approval_by_amount')
                             ->select('higher_than', 'less_than')
                             ->get();
-        
+
         $higher_amounts = $approval_amounts->pluck('higher_than')->unique()->filter()->sort()->values();
         $less_amounts = $approval_amounts->pluck('less_than')->unique()->filter()->sort()->values();
 
@@ -1169,10 +1232,28 @@ class EmployeeController extends Controller
             'less_amounts' => $less_amounts,
             // 'hierarchy' => $hierarchy,
         ));
-    
+
     }
 
     public function updateInfoHR(Request $request, $id){
+
+        $request->validate([
+            'first_name'         => 'required|string|max:255',
+            'middle_name'        => 'nullable|string|max:255',
+            'middile_initial'    => 'nullable|string|max:10',
+            'last_name'          => 'required|string|max:255',
+            'suffix'             => 'nullable|string|max:50',
+            'nickname'           => 'required|string|max:255',
+            'marital_status'     => 'required|string|max:255',
+            'religion'           => 'required|string|max:255',
+            'gender'             => 'required|string|in:MALE,FEMALE',
+            'birthdate'          => 'required|date|before:today',
+            'birthplace'         => 'required|string|max:255',
+            'personal_email'     => 'required|string|max:255|regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/',
+            'personal_number'    => 'required|string|max:20',
+            'present_address'    => 'required|string|max:500',
+            'permanent_address'  => 'nullable|string|max:500',
+        ]);
 
         $employee = Employee::findOrFail($id);
         $employee->first_name = $request->first_name;
@@ -1198,9 +1279,42 @@ class EmployeeController extends Controller
     }
 
     public function updateEmpInfoHR(Request $request, $id){
-        
+
+        $request->validate([
+            'employee_number' => 'required|string|max:50|unique:employees,employee_number,' . $id,
+            // 'company'              => 'required|integer|exists:companies,id',
+            'position'             => 'required|s   tring|max:255',
+            // 'department'           => 'required|integer|min:0',
+            // 'location'             => 'required|string|max:255',
+            // 'project'              => 'required|string|max:255',
+            'classification'       => 'required|integer|exists:classifications,id',
+            'level'                => 'required|integer|exists:levels,id',
+            'immediate_supervisor' => 'required|integer|exists:users,id',
+            'date_hired'           => 'required|date',
+            'work_email'           => 'required|string|max:255|regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/',
+            // 'schedule'             => 'required|integer|exists:schedules,id',
+            'bank_name'            => 'required|string|max:255',
+            'bank_account_number'  => 'required|string|max:255',
+            'philhealth'           => 'required|string|max:50',
+            'sss'                  => 'required|string|max:50',
+            'tin'                  => 'required|string|max:50',
+            'pagibig'              => 'required|string|max:50',
+            'work_description'     => 'nullable|string|in:Monthly,Non-Monthly',
+            'tax_application'      => 'nullable|string|in:Minimum,Non-Minimum',
+            'rate'                 => 'nullable|numeric|min:0',
+            'status'               => 'required|string|in:Active,Inactive,Resigned,Terminated',
+            'cost_center'          => 'required|string|max:255',
+            'date_resigned'        => 'nullable|required_if:status,Inactive|date',
+        ]);
+
         $employee = Employee::findOrFail($id);
+
+        $user = User::findOrFail($employee->user_id);
+        $user->email = $request->work_email;
+        $user->save();
+
         $employee->employee_number = $request->employee_number;
+        $employee->employee_code= $request->employee_number;
         $employee->company_id = $request->company;
         $employee->position = $request->position;
         $employee->department_id = $request->department;
@@ -1214,18 +1328,20 @@ class EmployeeController extends Controller
         $employee->tax_number = $request->tin;
         $employee->hdmf_number = $request->pagibig;
         $employee->original_date_hired = $request->date_hired;
-        // $employee->personal_email = $request->personal_email;
+        $employee->personal_email = $request->work_email;
         $employee->immediate_sup = $request->immediate_supervisor;
         $employee->schedule_id = $request->schedule;
         $employee->bank_name = $request->bank_name;
         $employee->bank_account_number = $request->bank_account_number;
+        $employee->allowed_tds_amount = $request->has('allowed_tds_amount') ? 1 : 0;
+        $employee->cost_center = $request->cost_center;
 
         if(checkUserPrivilege('employees_rate',auth()->user()->id) == 'yes'){
             $employee->work_description = $request->work_description;
             $employee->rate = $request->rate ? Crypt::encryptString($request->rate) : "";
             $employee->tax_application = $request->tax_application;
         }
-       
+
         $employee->status = $request->status;
 
         $employee->date_resigned = $request->status == 'Inactive' ? $request->date_resigned : null;
@@ -1247,12 +1363,7 @@ class EmployeeController extends Controller
                     $new_approver->approver_id = $approver_item['approver_id'];
                     $new_approver->level = $level;
 
-                    // Set second approver
-                    if ($k == 1) {
-                        $new_approver->as_final = "on";
-                    } else {
-                        $new_approver->as_final = "";
-                    }
+                    $new_approver->as_final = isset($approver_item['as_final']) ? $approver_item['as_final'] : null;
 
                     $new_approver->save();
                     $level++;
@@ -1275,7 +1386,7 @@ class EmployeeController extends Controller
             }
         }
 
-        if($request->level != 1){ 
+        if($request->level != 1){
             $check_user_allowed_overtime = UserAllowedOvertime::where('user_id',$employee->user_id)->first();
             if(empty($check_user_allowed_overtime)){
                 $new_user_allowed_overtime = new UserAllowedOvertime;
@@ -1293,14 +1404,14 @@ class EmployeeController extends Controller
                 $check_user_allowed_overtime->save();
             }
         }
-        
+
         Alert::success('Successfully Updated')->persistent('Dismiss');
         return back();
 
     }
 
     public function updateEmpMovementHR(Request $request, $id){
-        
+
         $employee = Employee::findOrFail($id);
 
         $oldValues = [];
@@ -1313,25 +1424,25 @@ class EmployeeController extends Controller
             $newValues['department_id'] = $request->input('department_to');
             $data['department_id'] = $newValues['department_id'];
         }
-    
+
         if ($request->filled('project_name_to') && $request->project_name_to !== $employee->project_name) {
             $oldValues['project'] = $request->input('project_name_from');
             $newValues['project'] = $request->input('project_name_to');
             $data['project'] = $newValues['project'];
         }
-    
+
         if ($request->filled('position_to') && $request->position_to !== $employee->position) {
             $oldValues['position'] = $employee->position;
             $newValues['position'] = $request->input('position_to');
             $data['position'] = $newValues['position'];
         }
-    
+
         if ($request->filled('level_to') && $request->level_to !== $employee->level) {
             $oldValues['level'] = $employee->level;
             $newValues['level'] = $request->input('level_to');
             $data['level'] = $newValues['level'];
         }
-    
+
         if ($request->filled('classification_to') && $request->classification_to !== $employee->classification) {
             $oldValues['classification'] = $employee->classification;
             $newValues['classification'] = $request->input('classification_to');
@@ -1346,7 +1457,7 @@ class EmployeeController extends Controller
         if ($request->filled('date_from')) {
             $oldValues['date_from'] = $request->input('date_from');
         }
-        
+
         if ($request->filled('date_to')) {
             $newValues['date_to'] = $request->input('date_to');
         }
@@ -1358,11 +1469,11 @@ class EmployeeController extends Controller
             $file_name = '/nopa_att/' . $name;
             $nopa_attachment = $file_name;
         }
-    
-    
+
+
         if (!empty($data)) {
             $employee->update($data);
-    
+
             EmployeeMovement::create([
                 'user_id' => $employee->id,
                 'old_values' => json_encode($oldValues),
@@ -1372,7 +1483,7 @@ class EmployeeController extends Controller
                 'changed_at' => now(),
             ]);
         }
-    
+
 
         //Employee Vessel
         if($request->classification == 4 && $request->vessel_name){
@@ -1407,14 +1518,14 @@ class EmployeeController extends Controller
                 $check_user_allowed_overtime->save();
             }
         }
-        
+
         Alert::success('Successfully Updated')->persistent('Dismiss');
         return back();
 
     }
 
     public function updateEmpSalaryMovementHR(Request $request, $id){
-        
+
         // $employee = Employee::findOrFail($id);
         $salaries = EmployeeSalary::findOrFail($id);
 
@@ -1434,13 +1545,13 @@ class EmployeeController extends Controller
             $newValues['de_minimis'] = $request->input('de_minimis_to');
             $data['de_minimis'] = $newValues['de_minimis'];
         }
-    
+
         if ($request->filled('other_allowance_to') && $request->other_allowance_to !== $salaries->other_allowance) {
             $oldValues['other_allowance'] = $salaries->other_allowance;
             $newValues['other_allowance'] = $request->input('other_allowance_to');
             $data['other_allowance'] = $newValues['other_allowance'];
         }
-    
+
         if ($request->file('file')) {
             $attachment = $request->file('file');
             $original_name = $attachment->getClientOriginalName();
@@ -1449,11 +1560,11 @@ class EmployeeController extends Controller
             $file_name = '/nopa_att/' . $name;
             $nopa_attachment = $file_name;
         }
-    
-    
+
+
         if (!empty($data)) {
             $salaries->update($data);
-    
+
             SalaryMovement::create([
                 'user_id' => $salaries->user_id,
                 'old_values' => json_encode($oldValues),
@@ -1518,7 +1629,7 @@ class EmployeeController extends Controller
         Alert::success('Successfully Updated')->persistent('Dismiss');
         return back();
     }
-    
+
 
     public function updateBeneficiariesHR(Request $request, $id){
 
@@ -1535,7 +1646,7 @@ class EmployeeController extends Controller
         if($beneficiaries){
 
             $employee = Employee::findOrFail($id);
-            
+
             if($employee){
                 foreach($beneficiaries as $item){
                     if($item->id){
@@ -1579,7 +1690,7 @@ class EmployeeController extends Controller
             $employee->save();
             Alert::success('Successfully avatar uploaded.')->persistent('Dismiss');
             return back();
-            
+
         }
     }
 
@@ -1596,7 +1707,7 @@ class EmployeeController extends Controller
             $employee->save();
             Alert::success('Successfully signature uploaded.')->persistent('Dismiss');
             return back();
-            
+
         }
     }
 
@@ -1619,7 +1730,7 @@ class EmployeeController extends Controller
             }else{
                 $code_final = "00001";
             }
-            
+
             $emp_code = $code . "-" . $year . "-" . str_pad($code_final, 5, '0', STR_PAD_LEFT);
         }
 
@@ -1628,7 +1739,7 @@ class EmployeeController extends Controller
 
     public function generate_biometric_code( $year, $compId, $user_id)
     {
-       
+
         $comp_code = str_pad($compId, 2, '0', STR_PAD_LEFT);
         $user_id = str_pad($user_id, 4, '0', STR_PAD_LEFT);
         $emp_code = $comp_code . substr($year, -2) . $user_id;
@@ -1648,11 +1759,11 @@ class EmployeeController extends Controller
             )
         );
     }
-    
+
     public function employee_attendance(Request $request)
     {
         ini_set('memory_limit', '-1');
-    
+
         $allowed_companies = getUserAllowedCompanies(auth()->user()->id);
         $allowed_locations = getUserAllowedLocations(auth()->user()->id);
         $allowed_projects = getUserAllowedProjects(auth()->user()->id);
@@ -1679,8 +1790,8 @@ class EmployeeController extends Controller
         $company = isset($request->company) ? $request->company : "";
 
         if ($from_date != null) {
-            
-            
+
+
 
             $emp_data = Employee::select('id','user_id','employee_code','first_name','last_name','schedule_id','employee_number')
                                     ->with(['schedule_info','attendances' => function ($query) use ($from_date, $to_date) {
@@ -1715,10 +1826,10 @@ class EmployeeController extends Controller
                                     ->get();
 
             $date_range =  $attendance_controller->dateRange($from_date, $to_date);
-           
+
         }
         $schedules = ScheduleData::all();
-        
+
         $companies = Company::whereHas('employee_has_company')
                                 ->whereIn('id',$allowed_companies)
                                 ->get();
@@ -1743,7 +1854,7 @@ class EmployeeController extends Controller
     public function employee_attendance_report(Request $request)
     {
         ini_set('memory_limit', '-1');
-    
+
         $allowed_companies = getUserAllowedCompanies(auth()->user()->id);
         $allowed_locations = getUserAllowedLocations(auth()->user()->id);
         $allowed_projects = getUserAllowedProjects(auth()->user()->id);
@@ -1770,8 +1881,8 @@ class EmployeeController extends Controller
         $company = isset($request->company) ? $request->company : "";
 
         if ($from_date != null) {
-            
-            
+
+
 
             $emp_data = Employee::select('id','user_id','employee_number','first_name','last_name','schedule_id')
                                     ->with(['schedule_info','attendances' => function ($query) use ($from_date, $to_date) {
@@ -1798,10 +1909,10 @@ class EmployeeController extends Controller
                                     ->get();
 
             $date_range =  $attendance_controller->dateRange($from_date, $to_date);
-           
+
         }
         $schedules = ScheduleData::all();
-        
+
         $companies = Company::whereHas('employee_has_company')
                                 ->whereIn('id',$allowed_companies)
                                 ->get();
@@ -1866,7 +1977,7 @@ class EmployeeController extends Controller
         $emp_data = [];
         $attendances = [];
         $employees = [];
-        
+
         if ($from_date != null) {
             $emp_data = Employee::select('employee_number','user_id','first_name','last_name','middle_name','location','schedule_id','employee_code','company_id','work_description','original_date_hired')
                                 ->with('company')
@@ -1927,10 +2038,10 @@ class EmployeeController extends Controller
             }
 
             $emp_data =  $emp_data->where('status','Active')->get();
-            
+
             $date_range =  $attendance_controller->dateRange($from_date, $to_date);
 
-            
+
         }
         $schedules = ScheduleData::all();
 
@@ -1953,12 +2064,12 @@ class EmployeeController extends Controller
             )
         );
     }
-    
+
     public function biologs_per_location(Request $request)
     {
         $from_date = $request->from;
         $to_date = $request->to;
-        
+
         $locations = AttendanceLog::groupBy('location')->get(['location']);
         $attendances = AttendanceLog::whereBetween('date',[$from_date,$to_date])->where('location',$request->location)->get();
         return view(
@@ -1972,7 +2083,7 @@ class EmployeeController extends Controller
                 'loc' => $request->location,
             )
         );
-        
+
     }
 
     public function biologs_per_location_export(Request $request){
@@ -2110,7 +2221,7 @@ class EmployeeController extends Controller
     {
         $allowed_companies = getUserAllowedCompanies(auth()->user()->id);
         $companies = Company::get();
-        
+
         $employees = Employee::select('id','user_id','employee_number','first_name','last_name','employee_code')->where('status','Active')
         ->whereIn('company_id', $allowed_companies)
         ->get();
@@ -2129,19 +2240,19 @@ class EmployeeController extends Controller
         ->when($request->employees, fn($query) => $query->where('emp_code', $request->employees))
         ->orderBy('datetime', 'asc')
         ->get();
-    
-        if ($attendanceLogs != null) 
+
+        if ($attendanceLogs != null)
         {
             foreach($attendanceLogs as $att)
             {
                 if (($att->type == 0))
                 {
                     $attend = Attendance::where('employee_code', $att->emp_code)->where('time_in', date('Y-m-d H:i:s', strtotime($att->datetime)))->first();
-                    
+
                     if($attend == null)
                     {
                         $attendance = new Attendance;
-                        $attendance->employee_code  = $att->emp_code;   
+                        $attendance->employee_code  = $att->emp_code;
                         $attendance->time_in = date('Y-m-d H:i:s',strtotime($att->datetime));
                         $attendance->device_in = $att->location ." - ".$att->ip_address;
                         // $attendance->last_id = $att->id;
@@ -2152,39 +2263,39 @@ class EmployeeController extends Controller
                 {
                     $time_in_after = date('Y-m-d H:i:s',strtotime($att->datetime));
                     $time_in_before = date('Y-m-d H:i:s', strtotime ( '-23 hour' , strtotime ( $time_in_after ) )) ;
-                    
+
                     $update = [
                         'time_out' =>  date('Y-m-d H:i:s', strtotime($att->datetime)),
                         'device_out' => $att->location ." - ".$att->ip_address,
                         // 'last_id' =>$att->id,
                     ];
-                
+
                     $attendance_in = Attendance::where('employee_code',$att->emp_code)
                         ->whereBetween('time_in',[$time_in_before,$time_in_after])
                         ->first();
-                    
+
                     Attendance::where('employee_code',(string)$att->emp_code)
                     ->whereBetween('time_in',[$time_in_before,$time_in_after])
                     ->update($update);
-                    
+
                     if($attendance_in == null)
                     {
                         $attendance = new Attendance;
-                        $attendance->employee_code  = $att->emp_code;   
+                        $attendance->employee_code  = $att->emp_code;
                         $attendance->time_out = date('Y-m-d H:i:s', strtotime($att->datetime));
                         $attendance->device_out = $att->location ." - ".$att->ip_address;
                         // $attendance->last_id = $att->id;
-                        $attendance->save(); 
+                        $attendance->save();
                     }
                 }
             }
             Alert::success("Successfully Sync");
         }
-        else 
+        else
         {
             Alert::error("Cannot Sync. Because the employee is not existing in attendance logs");
         }
-        
+
         return back();
     }
 
@@ -2195,7 +2306,7 @@ class EmployeeController extends Controller
         $employee_code = $request->employee;
 
         $attendances = iclocktransactions_mysql::whereIn('emp_code',$employee_code)->whereBetween('punch_time',[$from." 00:00:01", $to." 23:59:59"])->orderBy('punch_time','asc')->get();
-        
+
         $count = 0;
         foreach($attendances as $att)
         {
@@ -2205,13 +2316,13 @@ class EmployeeController extends Controller
                     if($attend == null)
                     {
                         $attendance = new Attendance;
-                        $attendance->employee_code  = $att->emp_code;   
+                        $attendance->employee_code  = $att->emp_code;
                         $attendance->time_in = date('Y-m-d H:i:s',strtotime($att->punch_time));
                         $attendance->device_in = $att->terminal_alias;
-                        $attendance->save(); 
+                        $attendance->save();
                         $count++;
                     }
-                
+
             }
             else if($att->punch_state == 1 || $att->punch_state == 5)
             {
@@ -2232,10 +2343,10 @@ class EmployeeController extends Controller
                 if($attendance_in ==  null)
                 {
                     $attendance = new Attendance;
-                    $attendance->employee_code  = $att->emp_code;   
+                    $attendance->employee_code  = $att->emp_code;
                     $attendance->time_out = date('Y-m-d H:i:s', strtotime($att->punch_time));
                     $attendance->device_out = $att->terminal_alias;
-                    $attendance->save(); 
+                    $attendance->save();
                 }
 
                 $count++;
@@ -2261,7 +2372,7 @@ class EmployeeController extends Controller
                                 ->orderBy('authDate','asc')
                                 ->orderBy('direction','asc')
                                 ->get();
-        
+
         $count = 0;
         if(count($attendances) > 0){
             foreach($attendances as $att)
@@ -2274,11 +2385,11 @@ class EmployeeController extends Controller
                     if($attend == null)
                     {
                         $attendance = new Attendance;
-                        $attendance->employee_code  = $att->employeeID;   
+                        $attendance->employee_code  = $att->employeeID;
                         $attendance->time_in = date('Y-m-d H:i:s',strtotime($att->authDateTime));
                         $attendance->device_in = $att->deviceName;
                         $attendance->save();
-                        $count++; 
+                        $count++;
                     }
                 }
                 else if($direction == 'Out' || $direction == 'OUT' )
@@ -2301,10 +2412,10 @@ class EmployeeController extends Controller
                     if($attendance_in ==  null)
                     {
                         $attendance = new Attendance;
-                        $attendance->employee_code  = $att->employeeID;   
+                        $attendance->employee_code  = $att->employeeID;
                         $attendance->time_out = date('Y-m-d H:i:s', strtotime($att->authDateTime));
                         $attendance->device_out = $att->deviceName;
-                        $attendance->save(); 
+                        $attendance->save();
                     }
 
                     $count++;
@@ -2331,7 +2442,7 @@ class EmployeeController extends Controller
                                 ->orderBy('attendance_date','asc')
                                 ->orderBy('direction','asc')
                                 ->get();
-        
+
         $count = 0;
         if(count($attendances) > 0){
             foreach($attendances as $att)
@@ -2344,11 +2455,11 @@ class EmployeeController extends Controller
                     if($attend == null)
                     {
                         $attendance = new Attendance;
-                        $attendance->employee_code  = $att->employee_code;   
+                        $attendance->employee_code  = $att->employee_code;
                         $attendance->time_in = date('Y-m-d H:i:s',strtotime($att->attendance_date));
                         $attendance->device_in = $att->device;
                         $attendance->save();
-                        $count++; 
+                        $count++;
                     }
                 }
                 else if($direction == 'Out' || $direction == 'OUT' )
@@ -2371,10 +2482,10 @@ class EmployeeController extends Controller
                     if($attendance_in ==  null)
                     {
                         $attendance = new Attendance;
-                        $attendance->employee_code  = $att->employee_code;   
+                        $attendance->employee_code  = $att->employee_code;
                         $attendance->time_out = date('Y-m-d H:i:s', strtotime($att->attendance_date));
                         $attendance->device_out = $att->device;
-                        $attendance->save(); 
+                        $attendance->save();
                     }
 
                     $count++;
@@ -2399,7 +2510,7 @@ class EmployeeController extends Controller
                                 ->orderBy('attendance_date','asc')
                                 ->orderBy('direction','asc')
                                 ->get();
-        
+
         $count = 0;
         if(count($attendances) > 0){
             foreach($attendances as $att)
@@ -2412,11 +2523,11 @@ class EmployeeController extends Controller
                     if($attend == null)
                     {
                         $attendance = new Attendance;
-                        $attendance->employee_code  = $att->employee_code;   
+                        $attendance->employee_code  = $att->employee_code;
                         $attendance->time_in = date('Y-m-d H:i:s',strtotime($att->attendance_date));
                         $attendance->device_in = $att->deviceName;
                         $attendance->save();
-                        $count++; 
+                        $count++;
                     }
                 }
                 else if($direction == 'Out' || $direction == 'OUT' )
@@ -2439,10 +2550,10 @@ class EmployeeController extends Controller
                     if($attendance_in ==  null)
                     {
                         $attendance = new Attendance;
-                        $attendance->employee_code  = $att->employee_code;   
+                        $attendance->employee_code  = $att->employee_code;
                         $attendance->time_out = date('Y-m-d H:i:s', strtotime($att->authDateTime));
                         $attendance->device_out = $att->deviceName;
-                        $attendance->save(); 
+                        $attendance->save();
                     }
 
                     $count++;
@@ -2467,7 +2578,7 @@ class EmployeeController extends Controller
                                 ->orderBy('authDate','asc')
                                 ->orderBy('direction','asc')
                                 ->get();
-        
+
         $count = 0;
         if(count($attendances) > 0){
             foreach($attendances as $att)
@@ -2480,11 +2591,11 @@ class EmployeeController extends Controller
                     if($attend == null)
                     {
                         $attendance = new Attendance;
-                        $attendance->employee_code  = $att->employeeID;   
+                        $attendance->employee_code  = $att->employeeID;
                         $attendance->time_in = date('Y-m-d H:i:s',strtotime($att->authDateTime));
                         $attendance->device_in = $att->deviceName;
                         $attendance->save();
-                        $count++; 
+                        $count++;
                     }
                 }
                 else if($direction == 'Out' || $direction == 'OUT' )
@@ -2507,10 +2618,10 @@ class EmployeeController extends Controller
                     if($attendance_in ==  null)
                     {
                         $attendance = new Attendance;
-                        $attendance->employee_code  = $att->employeeID;   
+                        $attendance->employee_code  = $att->employeeID;
                         $attendance->time_out = date('Y-m-d H:i:s', strtotime($att->authDateTime));
                         $attendance->device_out = $att->deviceName;
-                        $attendance->save(); 
+                        $attendance->save();
                     }
 
                     $count++;
@@ -2530,7 +2641,7 @@ class EmployeeController extends Controller
                 'employee' => $employee
             )
         )->setPaper($customPaper);
-        
+
         return $pdf->stream($employee->employee_code.'.pdf');
     }
 
@@ -2542,6 +2653,7 @@ class EmployeeController extends Controller
         {
             $employeeData = Employee::findOrFail($id);
             $employeeData->employee_code = $request->employee_no;
+            $employeeData->employee_number = $request->employee_no;
             $employeeData->save();
 
             Alert::success('Successfully Updated')->persistent('Dismiss');
@@ -2559,14 +2671,15 @@ class EmployeeController extends Controller
 
     public function updateAcctNo(Request $request, $id)
     {
-        $employeeData = Employee::findOrFail($id);        
+        $employeeData = Employee::findOrFail($id);
+        $employeeData->bank_name = $request->bank_name;
         $employeeData->bank_account_number = $request->account_no;
         $employeeData->save();
 
         Alert::success('Successfully Updated')->persistent('Dismiss');
         return back();
     }
-    
+
     public function resetPassword(Request $request)
     {
         $user = User::findOrFail($request->id);
@@ -2581,7 +2694,7 @@ class EmployeeController extends Controller
         {
             $user->password = bcrypt('Wgr0up@1234');
             $user->save();
-    
+
             return response()->json([
                 'status' => 1,
                 'message' => 'Successfully Reset'
@@ -2595,7 +2708,7 @@ class EmployeeController extends Controller
         $client = new Client();
         $url = env('EDMS_URL', 'https://edms.wsystem.online');
         // $url = 'localhost/edms/public/api/add_users_from_wpro';
-        
+
         $data = array(
             'form_params' => [
                 'name' => $request->first_name .' '. $request->last_name,
@@ -2624,7 +2737,7 @@ class EmployeeController extends Controller
     public function ytd_report(Request $request)
     {
         ini_set('memory_limit', '-1');
-    
+
         $allowed_companies = getUserAllowedCompanies(auth()->user()->id);
         $allowed_locations = getUserAllowedLocations(auth()->user()->id);
         $allowed_projects = getUserAllowedProjects(auth()->user()->id);
@@ -2651,8 +2764,8 @@ class EmployeeController extends Controller
         $company = isset($request->company) ? $request->company : "";
 
         if ($from_date != null) {
-            
-            
+
+
 
             $emp_data = Employee::select('id','user_id','employee_code','first_name','last_name','schedule_id','employee_number')
                                     ->with(['schedule_info','attendances' => function ($query) use ($from_date, $to_date) {
@@ -2679,10 +2792,10 @@ class EmployeeController extends Controller
                                     ->get();
 
             $date_range =  $attendance_controller->dateRange($from_date, $to_date);
-           
+
         }
         $schedules = ScheduleData::all();
-        
+
         $companies = Company::whereHas('employee_has_company')
                                 ->whereIn('id',$allowed_companies)
                                 ->get();
@@ -2703,7 +2816,7 @@ class EmployeeController extends Controller
             )
         );
     }
-    
+
     public function resigned()
     {
         $employee = Employee::where('status', 'Active')->get();
@@ -2714,7 +2827,170 @@ class EmployeeController extends Controller
     public function getSchedule()
     {
         $get_schedules = Schedule::get();
-        
+
         return $get_schedules;
     }
+
+    public function setup(Request $request)
+    {
+        $request->validate([
+            'dabp' => 'required',
+            'atkp' => 'required',
+            'coc'  => 'required',
+            'consent_signature'  => 'required',
+        ]);
+
+        $user = auth()->user();
+
+        if (!$user) {
+            return back()->with('error', 'User not authenticated');
+        }
+
+        $user->update([
+            'dabp' => $request->dabp,
+            'atkp' => $request->atkp,
+            'coc'  => $request->coc,
+            'consent_signature' => $request->consent_signature,
+            'signed_date' => now(),
+            'is_setup_complete' => 1
+        ]);
+
+        // ✅ CHECK IF ANY ANSWER IS "NO"
+        $answers = [
+            $request->dabp,
+            $request->atkp,
+            $request->coc
+        ];
+
+        $hasDisagreement = collect($answers)->contains(function ($val) {
+            return strpos($val, "doesn't agree") !== false;
+        });
+
+        if ($hasDisagreement) {
+            Mail::to('maricel.solis@pascalresources.com.ph')
+                ->send(new EmployeeDisagreementMail($user));
+        }
+
+        Alert::success('Successfully Updated')->persistent('Dismiss');
+        return back();
+    }
+
+    public function consentUpdate(Request $request, $id)
+    {
+        $user = User::where('id', $id)->firstOrFail();
+
+        $type = $request->input('type');
+
+        // ✅ VALIDATION RULES
+        $rules = [
+            'attachment' => 'nullable|file' // 2MB
+        ];
+
+        if ($type === 'dabp') {
+            $rules['dabp'] = 'required';
+        }
+
+        if ($type === 'atkp') {
+            $rules['atkp'] = 'required';
+        }
+
+        if ($type === 'coc') {
+            $rules['coc'] = 'required';
+        }
+
+        $this->validate($request, $rules);
+
+        // ✅ FILE UPLOAD
+        $filePath = null;
+
+        if ($request->hasFile('attachment')) {
+
+            // delete old file (optional but recommended)
+            if ($type === 'dabp' && $user->dabp_attachment) {
+                Storage::disk('public')->delete($user->dabp_attachment);
+            }
+
+            if ($type === 'atkp' && $user->atkp_attachment) {
+                Storage::disk('public')->delete($user->atkp_attachment);
+            }
+
+            if ($type === 'coc' && $user->coc_attachment) {
+                Storage::disk('public')->delete($user->coc_attachment);
+            }
+
+            $file = $request->file('attachment');
+            $fileName = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+
+            $filePath = $file->storeAs('attachments', $fileName, 'public');
+        }
+
+        // ✅ UPDATE USER
+        switch ($type) {
+            case 'dabp':
+                $user->dabp = $request->input('dabp');
+                if ($filePath) {
+                    $user->dabp_attachment = $filePath;
+                }
+                break;
+
+            case 'atkp':
+                $user->atkp = $request->input('atkp');
+                if ($filePath) {
+                    $user->atkp_attachment = $filePath;
+                }
+                break;
+
+            case 'coc':
+                $user->coc = $request->input('coc');
+                if ($filePath) {
+                    $user->coc_attachment = $filePath;
+                }
+                break;
+
+            default:
+                return response()->json(['error' => 'Invalid type'], 400);
+        }
+
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Consent updated successfully',
+            'type' => $type
+        ]);
+    }
+
+    public function consentReport(Request $request)
+    {
+        $employeeIds = $request->employee ?? [];
+        $from = $request->from;
+        $to = $request->to;
+
+        $query = User::with('employee')
+            ->where('status', 'Active')
+            ->where('is_setup_complete', 1);
+
+
+
+        if (!empty($from) && !empty($to)) {
+            $query->whereDate('signed_date', '>=', $from)
+                ->whereDate('signed_date', '<=', $to);
+        }
+
+        $employees = $query->orderBy('signed_date', 'desc')->get();
+
+        $employees->transform(function ($user) {
+            $user->name = optional($user->employee)->first_name . ' ' . optional($user->employee)->last_name;
+            return $user;
+        });
+
+        return view('reports.consent_report', [
+            'header'   => 'reports',
+            // 'employee' => $employeeIds,
+            'from'     => $from,
+            'to'       => $to,
+            'employees'=> $employees
+        ]);
+    }
+
 }

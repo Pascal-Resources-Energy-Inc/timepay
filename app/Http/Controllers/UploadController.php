@@ -109,7 +109,7 @@ class UploadController extends Controller
                             }
                         }
                     } else if ($request->type == "VL/SL") {
-                        $types = 0;
+                        $types = 13;
                         $pay =1;
                         $halfday =0;
                         if ($row[6] == "Vacation Leave" || $row[6] == "VL") {
@@ -124,11 +124,21 @@ class UploadController extends Controller
                         if ($row[6] == "Bereavement Leave" || $row[6] == 'BL') {
                             $types = 11;
                         }
-                        if (str_contains($row[6],"without") || $row[6] == "LWOP"){
-                            $types = 13;
-                            $pay =0;
-
+                         if ($row[6] == "Paternity Leave" || $row[6] == 'PL') {
+                            $types = 4;
                         }
+                        if ($row[6] == "Maternity Leave" || $row[6] == 'ML') {
+                            $types = 3;
+                             $pay =0;
+                        }
+                        if ($row[6] == "Magna Carta" || $row[6] == 'MC') {
+                            $types = 3;
+                        }
+                        if (str_contains(strtolower($row[6]), "without") || strtolower($row[6]) == "lwop") {
+                            $types = 13;
+                            $pay = 0;
+                        }
+                        
                         if($row[5] == .5)
                         {
                             $halfday = 1;
@@ -157,6 +167,7 @@ class UploadController extends Controller
                             $leaves->halfday = $halfday;
                             $leaves->approved_date = $approved_date;
                             $leaves->status = $row[10];
+                            $leaves->reason = $row[9];
                             $leaves->created_by = auth()->user()->id;
                             $leaves->save();
                         }

@@ -34,7 +34,7 @@ class UserController extends Controller
     //
     public function index(Request $request){
 
-        if (in_array(auth()->user()->id, [1, 26, 725])){
+        if (in_array(auth()->user()->id, [1, 62, 786, 814])){
             $search = isset($request->search) ? $request->search : "";
             $limit = isset($request->limit) ? $request->limit : 1000;
             $companies = Company::whereHas('employee_has_company')->orderBy('company_name','ASC')->get();
@@ -62,10 +62,10 @@ class UserController extends Controller
         }else{
             return redirect('/');
         }
-        
+
     }
 
-    public function export() 
+    public function export()
     {
         return Excel::download(new UsersExport, 'Users.xlsx');
     }
@@ -91,7 +91,7 @@ class UserController extends Controller
     }
     public function changePassword(User $user){
 
-        
+
         $user = User::with('user_allowed_company','user_privilege')
                         ->where('id',$user->id)
                         ->first();
@@ -113,7 +113,7 @@ class UserController extends Controller
             $user->save();
 
             if($request->company){
-                $user_allowed_company = UserAllowedCompany::where('user_id',$user->id)->first(); 
+                $user_allowed_company = UserAllowedCompany::where('user_id',$user->id)->first();
                 if($user_allowed_company){
                     $user_allowed_company->company_ids = json_encode($request->company,true);
                     $user_allowed_company->save();
@@ -127,7 +127,7 @@ class UserController extends Controller
                 $user_allowed_company = UserAllowedCompany::where('user_id',$user->id)->delete();
             }
             if($request->location){
-                $user_allowed_location = UserAllowedLocation::where('user_id',$user->id)->first(); 
+                $user_allowed_location = UserAllowedLocation::where('user_id',$user->id)->first();
                 if($user_allowed_location){
                     $user_allowed_location->location_ids = json_encode($request->location,true);
                     $user_allowed_location->save();
@@ -141,7 +141,7 @@ class UserController extends Controller
                 $user_allowed_location = UserAllowedLocation::where('user_id',$user->id)->delete();
             }
             if($request->project){
-                $user_allowed_project = UserAllowedProject::where('user_id',$user->id)->first(); 
+                $user_allowed_project = UserAllowedProject::where('user_id',$user->id)->first();
                 if($user_allowed_project){
                     $user_allowed_project->project_ids = json_encode($request->project,true);
                     $user_allowed_project->save();
@@ -156,7 +156,7 @@ class UserController extends Controller
             }
 
             $user_privilege = UserPrivilege::where('user_id',$user->id)->first();
-            
+
             if($user_privilege){
                 $user_privilege->employees_view = $request->employees_view;
                 $user_privilege->employees_edit = $request->employees_edit;
@@ -164,7 +164,7 @@ class UserController extends Controller
                 $user_privilege->employees_export = $request->employees_export;
                 $user_privilege->employees_export_hr = $request->employees_export_hr;
                 $user_privilege->employees_rate = $request->employees_rate;
-
+                $user_privilege->employees_mta = $request->employees_mta;
 
                 $user_privilege->reports_leave = $request->reports_leave;
                 $user_privilege->reports_overtime = $request->reports_overtime;
@@ -172,6 +172,7 @@ class UserController extends Controller
                 $user_privilege->reports_ob = $request->reports_ob;
                 $user_privilege->reports_dtr = $request->reports_dtr;
                 $user_privilege->reports_loan = $request->reports_loan;
+                $user_privilege->reports_consent = $request->reports_consent;
 
                 $user_privilege->biometrics_per_employee = $request->biometrics_per_employee;
                 $user_privilege->biometrics_per_location = $request->biometrics_per_location;
@@ -189,7 +190,12 @@ class UserController extends Controller
                 $user_privilege->settings_add = $request->settings_add;
                 $user_privilege->settings_edit = $request->settings_edit;
                 $user_privilege->settings_delete = $request->settings_delete;
-                
+
+                $user_privilege->sales_performance = $request->sales_performance;
+                $user_privilege->tds = $request->tds;
+                $user_privilege->sales_target = $request->sales_target;
+                $user_privilege->tds_records = $request->tds_records;
+
                 $user_privilege->masterfiles_companies = $request->masterfiles_companies;
                 $user_privilege->masterfiles_departments = $request->masterfiles_departments;
                 $user_privilege->masterfiles_locations = $request->masterfiles_locations;
@@ -218,7 +224,8 @@ class UserController extends Controller
                 $new_user_privilege->reports_wfh = $request->reports_wfh;
                 $new_user_privilege->reports_ob = $request->reports_ob;
                 $new_user_privilege->reports_dtr = $request->reports_dtr;
-
+                $new_user_privilege->reports_loan = $request->reports_loan;
+                $new_user_privilege->reports_consent = $request->reports_consent;
                 $new_user_privilege->biometrics_per_employee = $request->biometrics_per_employee;
                 $new_user_privilege->biometrics_per_location = $request->biometrics_per_location;
                 $new_user_privilege->biometrics_per_location_hik = $request->biometrics_per_location_hik;
@@ -236,6 +243,11 @@ class UserController extends Controller
                 $new_user_privilege->settings_edit = $request->settings_edit;
                 $new_user_privilege->settings_delete = $request->settings_delete;
 
+                $new_user_privilege->sales_performance = $request->sales_performance;
+                $new_user_privilege->tds = $request->tds;
+                $new_user_privilege->sales_target = $request->sales_target;
+                $new_user_privilege->tds_records = $request->tds_records;
+
                 $new_user_privilege->masterfiles_companies = $request->masterfiles_companies;
                 $new_user_privilege->masterfiles_departments = $request->masterfiles_departments;
                 $new_user_privilege->masterfiles_locations = $request->masterfiles_locations;
@@ -244,17 +256,17 @@ class UserController extends Controller
                 $new_user_privilege->masterfiles_employee_leave_credits = $request->masterfiles_employee_leave_credits;
                 $new_user_privilege->masterfiles_employee_leave_earned = $request->masterfiles_employee_leave_earned;
                 $new_user_privilege->masterfiles_employee_allowances = $request->masterfiles_employee_allowances;
-                
+
                 $new_user_privilege->save();
                 Alert::success('Successfully Updated')->persistent('Dismiss');
                 return back();
             }
 
-            
+
         }
     }
 
-    
+
     public function enableMobileAttendance(Request $request)
     {
         try {
@@ -273,7 +285,7 @@ class UserController extends Controller
                 'message' => 'Error enabling mobile attendance'
             ]);
         }
-    } 
+    }
 
     public function disableMobileAttendance(Request $request)
     {
@@ -310,7 +322,7 @@ class UserController extends Controller
         $companies = Company::get();
         $user = User::where('id',auth()->user()->id)->with('employee.department','employee.payment_info','employee.classification_info','employee.level_info','employee.ScheduleData','employee.immediate_sup_data','approvers.approver_data','subbordinates')->first();
 
-       
+
 
         return view('users.user_settings',
         array(
@@ -327,9 +339,9 @@ class UserController extends Controller
             'schedules' => $schedules,
             'companies' => $companies,
         ));
-    
+
     }
-    
+
     public function updateInfo(Request $request, $id){
 
         $employee = Employee::findOrFail($id);
@@ -374,6 +386,7 @@ class UserController extends Controller
         $employee->immediate_sup = $request->immediate_supervisor;
         $employee->schedule_id = $request->schedule;
         $employee->employee_number = $request->biometric_code;
+        $employee->employee_code = $request->biometric_code;
         $employee->save();
 
         $approver = EmployeeApprover::where('user_id',$employee->user_id)->delete();
@@ -432,7 +445,7 @@ class UserController extends Controller
             $employee->save();
             Alert::success('Successfully avatar uploaded.')->persistent('Dismiss');
             return back();
-            
+
         }
     }
     public function uploadSignature(Request $request)
@@ -449,7 +462,7 @@ class UserController extends Controller
             $employee->save();
             Alert::success('Successfully signature uploaded.')->persistent('Dismiss');
             return back();
-            
+
         }
     }
     public function get_salary(Request $request)
@@ -473,7 +486,7 @@ class UserController extends Controller
             'password' => 'required|confirmed',
             'password_confirmation' => 'required'
         ]);
-    
+
         $user = User::findOrFail($user->id);
         $user->password = bcrypt($request->input('password'));
         $user->save();

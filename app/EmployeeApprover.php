@@ -30,8 +30,4 @@ class EmployeeApprover extends Model implements Auditable
         return $this->belongsTo(EmployeeLeave::class,'user_id','user_id');
 
     }       
-   
-
-
-    
 }

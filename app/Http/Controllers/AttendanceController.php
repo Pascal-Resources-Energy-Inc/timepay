@@ -60,8 +60,25 @@ class AttendanceController extends Controller
     }
     public function storeTimeIn(Request $request)
     {
-        // dd($request->all());
-        
+        $request->validate([
+            'image' => 'required|mimes:jpg,jpeg,png|max:10240',
+            'location' => 'required|string|max:1000',
+            'location_lat' => 'required|numeric',
+            'location_long' => 'required|numeric',
+        ],
+        [
+            'image.required' => 'Please capture a selfie before submitting your attendance.',
+            'image.mimes' => 'The selfie must be a JPG, JPEG, or PNG image.',
+            'image.max' => 'The selfie must not be larger than 10 MB.',
+            'image.uploaded' => 'Upload failed. Check your connection and try again.',
+
+            'location.required' => 'Unable to get your location. Enable GPS and try again.',
+            'location_lat.required' => 'Location data missing. Enable GPS and try again.',
+            'location_long.required' => 'Location data missing. Enable GPS and try again.',
+            'location_lat.numeric' => 'Invalid location data.',
+            'location_long.numeric' => 'Invalid location data.',
+        ]       
+        );
      
         $newAttendance = new AttendanceLog;
         $newAttendance->emp_code = auth()->user()->employee->employee_code;
@@ -69,6 +86,7 @@ class AttendanceController extends Controller
         $newAttendance->datetime =date('Y-m-d H:i:s');
         $newAttendance->type = 0;
         $newAttendance->location = "System";
+
         if($request->file('image')){
             $logo = $request->file('image');
             $original_name = $logo->getClientOriginalName();
@@ -86,14 +104,34 @@ class AttendanceController extends Controller
         $attendance = new Attendance;
         $attendance->employee_code  = auth()->user()->employee->employee_code;   
         $attendance->time_in = date('Y-m-d H:i:s');
-        $attendance->device_in = $request->location;
+        $attendance->device_in = preg_replace('/[^\x20-\x7E]/', '', $request->location);
         $attendance->save();
-        Alert::success("Successfully Store")->persistent('Dismiss');
+
+        Alert::success("Selfie Attendance uploaded")->persistent('Dismiss');
         return back();
     }
+
     public function storeTimeOut(Request $request)
     {
-        // dd($request->all());
+        $request->validate([
+            'image' => 'required|mimes:jpg,jpeg,png|max:10240',
+            'location' => 'required|string|max:1000',
+            'location_lat' => 'required|numeric',
+            'location_long' => 'required|numeric',
+        ],
+        [
+            'image.required' => 'Please capture a selfie before submitting your attendance.',
+            'image.mimes' => 'The selfie must be a JPG, JPEG, or PNG image.',
+            'image.max' => 'The selfie must not be larger than 10 MB.',
+            'image.uploaded' => 'Upload failed. Check your connection and try again.',
+
+            'location.required' => 'Unable to get your location. Enable GPS and try again.',
+            'location_lat.required' => 'Location data missing. Enable GPS and try again.',
+            'location_long.required' => 'Location data missing. Enable GPS and try again.',
+            'location_lat.numeric' => 'Invalid location data.',
+            'location_long.numeric' => 'Invalid location data.',
+        ]       
+        );
         
      
         $newAttendance = new AttendanceLog;
@@ -102,6 +140,7 @@ class AttendanceController extends Controller
         $newAttendance->datetime =date('Y-m-d H:i:s');
         $newAttendance->type = 1;
         $newAttendance->location = "System";
+
         if($request->file('image')){
             $logo = $request->file('image');
             $original_name = $logo->getClientOriginalName();
@@ -120,7 +159,7 @@ class AttendanceController extends Controller
         $time_in_before = date('Y-m-d H:i:s', strtotime ( '-16 hour' , strtotime ( date('Y-m-d H:i:s') ) )) ;
         $update = [
             'time_out' =>  date('Y-m-d H:i:s'),
-            'device_out' => $request->location,
+            'device_out' => preg_replace('/[^\x20-\x7E]/', '', $request->location),
         ];
 
         $attendance_in = Attendance::where('employee_code',auth()->user()->employee->employee_code)

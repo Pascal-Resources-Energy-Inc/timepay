@@ -16,7 +16,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'dabp', 'dabp_attachment', 'atkp', 'atkp_attachment', 'coc', 'coc_attachment', 'consent_signature', 'is_setup_complete', 'signed_date'
     ];
 
     /**
@@ -102,5 +102,27 @@ class User extends Authenticatable
     
     public function allowed_overtime() {
         return $this->hasOne(UserAllowedOvertime::class);
+    }
+
+    public function tdsRecords()
+    {
+        return $this->hasMany(Tds::class, 'user_id');
+    }
+
+    public function salesTargets()
+    {
+        return $this->hasMany(SalesTarget::class, 'user_id');
+    }
+
+    public function getTargetForMonth($month)
+    {
+        return $this->salesTargets()->where('month', $month)->first();
+    }
+
+    public function getYearlyTarget($year)
+    {
+        return $this->salesTargets()
+            ->whereYear('month', $year)
+            ->sum('target_amount');
     }
 }

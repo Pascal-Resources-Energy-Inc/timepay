@@ -70,6 +70,28 @@ class EmployeeTo extends Model implements Auditable
         return $this->belongsTo(User::class, 'approved_by_head_division', 'id');
     }
 
+    public function approvalRemarks()
+    {
+        return $this->hasMany(EmployeeToApprovalRemark::class, 'employee_to_id')
+                    ->orderBy('level', 'asc');
+    }
+
+    public function latestApprovalRemark()
+    {
+        return $this->hasOne(EmployeeToApprovalRemark::class, 'employee_to_id')
+                    ->latest('action_date');
+    }
+
+    public function approvalRemarkByLevel($level)
+    {
+        return $this->approvalRemarks()->where('level', $level)->first();
+    }
+
+    public function isPendingAndLevelUp()
+    {
+        return $this->status === 'Pending' && $this->level >= 1;
+    }
+
     
 
 }

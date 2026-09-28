@@ -92,6 +92,7 @@
                         <th>Date Filed</th>
                         <th>DTR Date </th>
                         <th>Correction</th>
+                        <th>Adjustment Type</th>
                         <th>Time-in</th>
                         <th>Time-Out</th>
                         <th>Reason</th>
@@ -106,6 +107,7 @@
                         <td> {{ date('M. d, Y h:i A', strtotime($dtr->created_at)) }}</td>
                         <td> {{ date('M. d, Y ', strtotime($dtr->dtr_date)) }}</td>
                         <td>{{ $dtr->correction }}</td>
+                        <td>{{ $dtr->adjustment_type ?? '----' }}</td>
                         <td> {{(isset($dtr->time_in)) ? date('M. d, Y h:i A', strtotime($dtr->time_in)) : '----'}}</td>
                         <td> {{(isset($dtr->time_out)) ? date('M. d, Y h:i A', strtotime($dtr->time_out)) : '----'}}</td>
                         <td>
@@ -204,15 +206,16 @@
 		function cancel(id) {
 			var element = document.getElementById('tdActionId'+id);
 			var dataID = element.getAttribute('data-id');
-			swal({
+			Swal.fire({
 					title: "Are you sure?",
 					text: "You want to cancel this DTR Correction?",
 					icon: "warning",
-					buttons: true,
+					showCancelButton: true,
+					confirmButtonColor: "#d33",
 					dangerMode: true,
 				})
-				.then((willCancel) => {
-					if (willCancel) {
+				.then((result) => {
+					if (result.isConfirmed) {
 						document.getElementById("loader").style.display = "block";
 						$.ajax({
 							url: "disable-dtr/" + id,
@@ -225,7 +228,7 @@
 							},
 							success: function(data) {
 								document.getElementById("loader").style.display = "none";
-								swal("DTR Correction has been cancelled!", {
+								Swal.fire("DTR Correction has been cancelled!", {
 									icon: "success",
 								}).then(function() {
 									document.getElementById("tdStatus" + id).innerHTML =
@@ -237,7 +240,7 @@
 						})
 
 					} else {
-            swal({text:"You stop the cancelation of DTR Correction.",icon:"success"});
+            Swal.fire({text:"You stop the cancelation of DTR Correction.",icon:"success"});
 					}
 				});
 		}

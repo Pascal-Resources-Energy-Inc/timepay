@@ -117,7 +117,7 @@
                 </div>
                 <div class='col-md-4'>
                   Work Email
-                  <input type="email" name="work_email" value="{{ $user->email }}" readonly="true" class='form-control form-control-sm required' placeholder="Work Email"/>
+                  <input type="text" name="work_email" value="{{ $user->email }}" class='form-control form-control-sm required' placeholder="Work Email"/>
                 </div>
                 <div class='col-md-4'>
                   Schedule
@@ -202,7 +202,19 @@
                   Seperation Date
                   <input type="date" name="date_resigned" value="{{ $user->employee->date_resigned }}" class='form-control form-control-sm' placeholder="Date"/>
                 </div>
-
+                <div class="col-md-4">
+                  Allowable to Edit TDS Amount
+                  <div class="form-check" style="padding-left: 20px">
+                    <input class="form-check-input" type="checkbox" name="allowed_tds_amount" id="flexCheckDefault" {{ old('allowed_tds_amount', $user->employee->allowed_tds_amount == 0) ? '' : 'checked' }}>
+                    <label class="form-check-label" for="flexCheckDefault">
+                        Yes
+                    </label>
+                  </div>
+                </div>
+                <div class='col-md-4'>
+                  Cost Center
+                  <input type="text" class="form-control" name="cost_center" value="{{$user->employee->cost_center}}">
+                </div>
               </div>
               <hr>
               <div class='row mb-2'>
@@ -229,11 +241,8 @@
                                 <option value="{{$user->id}}" @if($user->id == $approver->approver_id) selected @endif>{{$user->name}}</option>
                               @endforeach
                           </select>
-                          @if($approver->as_final == 'on')
-                            <input type="checkbox" value="{{$approver->as_final}}" checked  name='approver[{{$k}}][as_final]'> Tag as Final
-                          @else
-                            <input type="checkbox" value=""  name='approver[{{$k}}][as_final]'> Tag as Final
-                          @endif
+                          <input type="hidden" name='approver[{{$k}}][as_final]' value=''>
+                          <input type="checkbox" value='on' name='approver[{{$k}}][as_final]' @if($approver->as_final == 'on') checked @endif> Tag as Final
                         </div>
                       </div>
                     @endforeach
@@ -376,37 +385,42 @@ $(document).ready(function() {
 
   function add_approver()
   {
-    var lastItemID = $('.approvers-data').children().last().attr('id');
+      var lastItemID = $('.approvers-data').children().last().attr('id');
 
-    console.log(lastItemID);
-    if(lastItemID){
-        var last_id = lastItemID.split("_");
-        finalLastId = parseInt(last_id[1]) + 1;
-        level = finalLastId + 1;
-    }else{
-        finalLastId = 0;
-        level = finalLastId + 1;
-    }
+      console.log(lastItemID);
+      var finalLastId;
+      var level;
+      
+      if(lastItemID){
+          var last_id = lastItemID.split("_");
+          finalLastId = parseInt(last_id[1]) + 1;
+          level = finalLastId + 1;
+      }else{
+          finalLastId = 0;
+          level = finalLastId + 1;
+      }
+
+      var existingCount = $('.approvers-data').children().length;
+      var arrayIndex = existingCount;
+                              
+      var item = "<div class='row mb-2 mt-2' id='approver_"+finalLastId+"'>";
+          item+= "<div class='col-md-1 align-self-center'>";
+          item+= "<small class='align-items-center'>"+level+"</small>";
+          item+= "</div>";
+          item+= "<div class='col-md-11'>";
+          item+= "<select data-placeholder='Approver' class='form-control form-control-sm required js-example-basic-single' style='width:100%;' name='approver["+arrayIndex+"][approver_id]' required>";
+          item+= "<option value=''>-- Approver --</option>";
+          item+= "@foreach($users as $user)";
+          item+= "<option value='{{$user->id}}'>{{$user->name}}</option>";
+          item+= "@endforeach";
+          item+= "</select>";
+          item+= "<input type='hidden' name='approver["+arrayIndex+"][as_final]' value=''>";
+          item+= "<input type='checkbox' value='on' name='approver["+arrayIndex+"][as_final]'> Tag as Final";
+          item+= "</div>";
+          item+= "</div>";
         
-                                 
-        var item = "<div class='row mb-2  mt-2 ' id='approver_"+finalLastId+"'>";
-            item+= "<div class='col-md-1  align-self-center'>";
-            item+= "<small class='align-items-center'>"+level+"</small>";
-            item+= "</div>";
-            item+= " <div class='col-md-11'>";
-            item+= " <select data-placeholder='Approver' class='form-control form-control-sm required js-example-basic-single' style='width:100%;' name='approver["+finalLastId+"][approver_id]' required>";
-            item+= "<option value=''>-- Approver --</option>";
-            item+= " @foreach($users as $user)";
-            item+= "<option value='{{$user->id}}'>{{$user->name}}</option>";
-            item+= "@endforeach";
-            item+= "</select>";
-            item+= "<input type='checkbox' name='approver["+finalLastId+"][as_final]'> Tag as Final";
-            item+= "</div>";
-            item+= "</div>";
-          
-            $(".approvers-data").append(item);
-            $(".js-example-basic-single").select2();
-
+      $(".approvers-data").append(item);
+      $(".js-example-basic-single").select2();
   }
   function remove_approver()
   {

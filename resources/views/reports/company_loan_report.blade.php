@@ -176,7 +176,7 @@
             confirmButtonText: 'Yes, submit it!'
         }).then((result) => {
             if (result.isConfirmed) {
-                document.getElementById("loader").style.display = "flex";
+                document.getElementById("preloaderHera").style.display = "flex";
                 document.getElementById('PagRegForm').submit();
             }
         });

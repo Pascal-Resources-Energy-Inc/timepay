@@ -74,7 +74,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form method='POST' action='timein-capture' onsubmit="show();" enctype="multipart/form-data">
+        <form method='POST' id='timeInAttendanceForm' action='timein-capture' onsubmit="show();" enctype="multipart/form-data">
             @csrf   
         <div id="app" class=' '>
           <div class="row mb-2 ">
@@ -108,7 +108,7 @@
                     <i class="ti-reload"></i> <small>Retake Photo</small>
                 </button>
                 
-                <button id="submitButton" type="submit" style='font-size:10px;'  class="btn-sm btn btn-success btn-fill">
+                <button id="submitButton" type="submit" disabled style='font-size:10px;'  class="btn-sm btn btn-success btn-fill">
                     <i class="ti-check"></i><small> Submit</small>
                 </button>
               </div>
@@ -140,41 +140,47 @@
     }
     
     function success(position) {
-        userPosition = position;
-        
-        // Get address from coordinates
-        var geocodeUrl = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + 
-            position.coords.latitude + "," + position.coords.longitude + 
-            "&key=AIzaSyBZw51f1ZyJIjCbkNH2rU0Ze5nOiOBsIuE";
-            
-        fetch(geocodeUrl)
+    userPosition = position;
+    
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+    
+    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+    
+        fetch(nominatimUrl, {
+            headers: {
+                'User-Agent': 'YourAppName/1.0'
+            }
+        })
         .then(response => response.json())
         .then(data => {
-            if (data.results && data.results.length > 0) {
-                document.getElementById("location_mo").value = data.results[0].formatted_address;
-                document.getElementById("map_reference").innerHTML = data.results[0].formatted_address;
+            if (data && data.display_name) {
+                document.getElementById("location_mo").value = data.display_name;
+                document.getElementById("map_reference").innerHTML = data.display_name;
+                document.getElementById("map_reference").className = "";
+            } else {
+                const coordString = `Lat: ${lat.toFixed(6)}, Long: ${lng.toFixed(6)}`;
+                document.getElementById("location_mo").value = coordString;
+                document.getElementById("map_reference").innerHTML = coordString;
+                document.getElementById("map_reference").className = "";
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Geocoding error:', error);
+            const coordString = `Lat: ${lat.toFixed(6)}, Long: ${lng.toFixed(6)}`;
+            document.getElementById("location_mo").value = coordString;
+            document.getElementById("map_reference").innerHTML = "Address lookup failed - using coordinates";
+            document.getElementById("map_reference").className = "";
         });
 
-        document.getElementById("location_lat").value = position.coords.latitude;
-        document.getElementById("location_long").value = position.coords.longitude;
+        document.getElementById("location_lat").value = lat;
+        document.getElementById("location_long").value = lng;
 
-        // Enable capture button when location is available
-        const locationLatElement = document.getElementById("location_lat");
-        if (locationLatElement && locationLatElement.value.trim() !== "") {
-            document.getElementById("captureButton").disabled = false;
-        } else {
-            document.getElementById("captureButton").disabled = true;
-        }
+        document.getElementById("captureButton").disabled = false;
 
-        // Update hub info display
-        updateHubInfo(position.coords.latitude, position.coords.longitude);
+        updateHubInfo(lat, lng);
 
-        // Initialize map with user location and hubs
-        initializeMapWithHubs(position.coords.latitude, position.coords.longitude);
+        initializeMapWithHubs(lat, lng);
     }
 
     function updateHubInfo(userLat, userLon) {
@@ -389,19 +395,54 @@
       
       wrapText(ctx, "Address: "+address, 5, 65, canvas.width - 60, 10);
       
-      canvas.toBlob((blob) => {
-            const file = new File([blob], 'captured-image.png', { type: 'image/png' });
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            imageInput.files = dataTransfer.files;
-        });
-        
-      canvas.style.display = 'block';
-      video.style.display = 'none';
-      captureButton.style.display = 'none';
-      retakeButton.style.display = 'inline-block';
-      submitButton.style.display = 'inline-block';
-      if(alertBox) alertBox.style.display = 'block';
+        submitButton.disabled = true;
+        submitButton.style.display = 'none';
+
+        canvas.toBlob((blob) => {
+            if (!blob || blob.size === 0) {
+                alert('The photo could not be captured. Please retake it.');
+                return;
+            }
+
+            try {
+                const file = new File(
+                    [blob],
+                    'captured-image.png',
+                    { type: 'image/png' }
+                );
+
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                imageInput.files = dataTransfer.files;
+
+                if (!imageInput.files || imageInput.files.length !== 1) {
+                    throw new Error('The image was not attached to the form.');
+                }
+
+                // Only allow submission after the image exists.
+                submitButton.disabled = false;
+                submitButton.style.display = 'inline-block';
+            } catch (error) {
+                console.error('Unable to prepare attendance image:', error);
+
+                submitButton.disabled = true;
+                submitButton.style.display = 'none';
+
+                alert(
+                    'Your browser could not prepare the attendance photo. ' +
+                    'Please retake it or try another browser.'
+                );
+            }
+        }, 'image/png');
+
+        canvas.style.display = 'block';
+        video.style.display = 'none';
+        captureButton.style.display = 'none';
+        retakeButton.style.display = 'inline-block';
+
+        if (alertBox) {
+            alertBox.style.display = 'block';
+        }
     }
   
     function wrapText(context, text, x, y, maxWidth, lineHeight) {
@@ -427,12 +468,17 @@
     }
     
     function retakePhoto() {
-      canvas.style.display = 'none';
-      video.style.display = 'block';
-      captureButton.style.display = 'inline-block';
-      retakeButton.style.display = 'none';
-      submitButton.style.display = 'none';
-      if(alertBox) alertBox.style.display = 'none';
+        imageInput.value = '';
+
+        canvas.style.display = 'none';
+        video.style.display = 'block';
+        captureButton.style.display = 'inline-block';
+        retakeButton.style.display = 'none';
+        // Prevent submitting until a new selfie finishes processing.
+        submitButton.disabled = true;
+        submitButton.style.display = 'none';
+
+        if(alertBox) alertBox.style.display = 'none';
     }
   
     startCamera();
@@ -441,4 +487,45 @@
 
   </script>
   
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZw51f1ZyJIjCbkNH2rU0Ze5nOiOBsIuE&callback=getLocation"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDXeIzjHN5haDfX4BckC7u-jzc8fok1MtA&callback=getLocation"></script>
+
+{{--validation message for image --}}
+@if($errors->has('image'))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    Swal.fire({
+        icon: 'error',
+        title: 'Oops!',
+        text: @json($errors->first('image')),
+        confirmButtonText: 'Try Again',
+        allowOutsideClick: false
+    });
+});
+</script>
+@endif
+
+{{--validation message for location--}}
+@if($errors->has('location') || $errors->has('location_lat') || $errors->has('location_long'))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const errors = [];
+    @if($errors->has('location'))
+        errors.push(@json($errors->first('location')));
+    @endif
+    @if($errors->has('location_lat'))
+        errors.push(@json($errors->first('location_lat')));
+    @endif
+    @if($errors->has('location_long'))
+        errors.push(@json($errors->first('location_long')));
+    @endif
+
+    Swal.fire({
+        icon: 'error',
+        title: 'Oops!',
+        text: errors.join('\n'),
+        confirmButtonText: 'Try Again',
+        allowOutsideClick: false
+    });
+});
+</script>
+@endif

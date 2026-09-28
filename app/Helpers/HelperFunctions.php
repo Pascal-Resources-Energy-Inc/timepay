@@ -20,8 +20,10 @@ use App\EmployeePd;
 use App\EmployeeNe;
 use App\EmployeeCoe;
 use App\EmployeeDtr;
+use App\EmployeeMta;
 use App\ScheduleData;
 use App\Tax;
+use App\IUR;
 use App\ExitClearanceSignatory;
 use App\ExitResign;
 
@@ -1156,6 +1158,21 @@ function pending_dtr_correction($approver_id){
                                 ->count();
 }
 
+function pending_mta_correction($approver_id){
+
+    $today = date('Y-m-d');
+    $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
+    $to_date = date('Y-m-d');
+
+    return EmployeeMta::select('user_id')->with('approverMta')
+                                ->whereHas('approverMta',function($q) use($approver_id) {
+                                    $q->where('user_id',$approver_id);
+                                })
+                                ->where('status','Pending')
+                                ->count();
+
+}
+
 
 function pending_to_count($approver_id){
 
@@ -1254,6 +1271,18 @@ function pending_coe_count($approver_id){
                                     $q->where('approver_id',$approver_id);
                                 })
                                 ->where('status','Pending')
+                                // ->whereDate('created_at','>=',$from_date)
+                                // ->whereDate('created_at','<=',$to_date)
+                                ->count();
+}
+
+function pending_uir_count($approver_id){
+
+    $today = date('Y-m-d');
+    $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
+    $ad_date = date('Y-m-d');
+
+    return IUR::select('user_id')->where('status','In Progress')
                                 // ->whereDate('created_at','>=',$from_date)
                                 // ->whereDate('created_at','<=',$to_date)
                                 ->count();
@@ -1453,4 +1482,28 @@ function usedSlVlThisYear($user_id, $leave_type, $date_hired,$scheduleDatas = []
     }
     
     return $count;
+}
+
+//for discount LPG module
+function addBusinessDays($date, $days) {
+    $currentDate = clone $date;
+    $addedDays = 0;
+    
+    while ($addedDays < $days) {
+        $currentDate->modify('+1 day');
+        $dayOfWeek = (int)$currentDate->format('N');
+        if ($dayOfWeek < 6) {
+            $addedDays++;
+        }
+    }
+    
+    return $currentDate;
+}
+
+// Helper function to check if order is expired
+function isOrderExpired($createdAt) {
+    $created = new \DateTime($createdAt);
+    $expiresAt = addBusinessDays($created, 3);
+    $now = new \DateTime();
+    return $now > $expiresAt;
 }

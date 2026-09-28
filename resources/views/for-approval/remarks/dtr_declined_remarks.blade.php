@@ -7,7 +7,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form method='POST' action='decline-dtr/{{$dtr->id}}' onsubmit="btnApprove.disabled = true; return true;" enctype="multipart/form-data">
+            <form method='POST' action="{{ url('decline-dtr/'.$dtr->id) }}" onsubmit="btnApprove.disabled = true; return true;" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body">
                     <div class="row">

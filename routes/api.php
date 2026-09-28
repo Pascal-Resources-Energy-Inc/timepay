@@ -21,5 +21,8 @@ Route::post('save-attendance','AttendanceController@store_logs');
 Route::post('save-attendance-hk','AttendanceController@store_logs_hk');
 Route::get('get-last-id/{company}','AttendanceController@getlastId');
 Route::get('get-last-id-hk/{company}','AttendanceController@getlastIdHK');
-Route::get('get-resigned-employee', 'EmployeeController@resigned');
 Route::get('get-schedule', 'EmployeeController@getSchedule');
+
+Route::middleware('auth:api')->group(function () {
+    Route::get('get-resigned-employee', 'EmployeeController@resigned');
+});

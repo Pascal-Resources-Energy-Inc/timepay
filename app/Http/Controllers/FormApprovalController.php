@@ -12,15 +12,20 @@ use App\EmployeeTo;
 use App\EmployeeCoe;
 use App\EmployeeNe;
 use App\EmployeeDtr;
+use App\EmployeeMta;
 use App\ApprovalByAmount;
 use App\AttendanceLog;
 use App\Attendance;
 use App\EmployeeApprover;
+use App\EmployeeToApprovalRemark;
+use App\IUR;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\AdStatusNotification;
+use App\Mail\MtaDeclinedNotification;
+use App\Mail\MtaApprovedNotification;
 
 class FormApprovalController extends Controller
 {
@@ -558,97 +563,114 @@ class FormApprovalController extends Controller
     }
 
     public function form_to_approval(Request $request)
-        {
-            $today = date('Y-m-d');
-            $from_date = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
-            $to_date = $request->to ?? date('Y-m-d');
-            $limit = $request->limit ?? 10;
+    {
+        $today = date('Y-m-d');
+        $from_date = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
+        $to_date = $request->to ?? date('Y-m-d');
+        $limit = $request->limit ?? 10;
 
-            $filter_status = $request->status ?? 'Pending';
-            $approver_id = auth()->user()->id;
+        $filter_status = $request->status ?? 'Pending';
+        $approver_id = auth()->user()->id;
 
-            $tos = EmployeeTo::with(['approver.approver_info', 'user'])
-                ->whereHas('approver', function ($q) use ($approver_id) {
-                    $q->where('approver_id', $approver_id);
-                })
-                ->whereDate('created_at', '>=', $from_date)
-                ->whereDate('created_at', '<=', $to_date);
+        $tos = EmployeeTo::with([
+                'approver.approver_info', 
+                'user.employee.department', 
+                'approvedBy', 
+                'approvedByHeadDivision',
+                'approvalRemarks.approver'
+            ])
+            ->whereHas('approver', function ($q) use ($approver_id) {
+                $q->where('approver_id', $approver_id);
+            })
+            ->whereDate('created_at', '>=', $from_date)
+            ->whereDate('created_at', '<=', $to_date);
 
-            if ($filter_status !== 'All') {
-                $tos->where('status', $filter_status);
-            } else {
-                $tos->where('status', '!=', 'Cancelled');
-            }
-
-            $tos = $tos->orderBy('created_at', 'DESC')->paginate($limit);
-
-            $approvalThreshold = ApprovalByAmount::orderBy('higher_than', 'desc')->first();
-
-            $tos->getCollection()->transform(function ($to) use ($approvalThreshold) {
-                $totalAmount = $to->totalamount_total;
-                $to->show_final_approver = false;
-                $to->final_approver = null;
-
-                $approvers = $to->approver ?? collect();
-                $first = $approvers->first();
-                $finalApprover = $approvers->filter(fn($a) => ($a->as_final ?? '') === 'on')->first();
-
-                if ($approvalThreshold && $totalAmount > $approvalThreshold->higher_than) {
-                    $to->approver = collect([$first, $finalApprover])->filter()->unique('id');
-
-                    if ($finalApprover && $finalApprover->approver_info) {
-                        $to->final_approver = $finalApprover->approver_info;
-                        $to->show_final_approver = true;
-                    }
-                } else {
-                    $to->approver = collect([$first])->filter()->unique('id');
-                }
-
-                return $to;
-            });
-            
-            $user_ids = EmployeeApprover::select('user_id')
-                ->where('approver_id', $approver_id)
-                ->pluck('user_id')
-                ->toArray();
-
-            $for_approval = EmployeeTo::whereIn('user_id', $user_ids)
-                ->where('status', 'Pending')
-                ->whereDate('created_at', '>=', $from_date)
-                ->whereDate('created_at', '<=', $to_date)
-                ->count();
-
-            $approved = EmployeeTo::whereIn('user_id', $user_ids)
-                ->where('status', 'Approved')
-                ->whereDate('created_at', '>=', $from_date)
-                ->whereDate('created_at', '<=', $to_date)
-                ->count();
-
-            $declined = EmployeeTo::whereIn('user_id', $user_ids)
-                ->where('status', 'Declined')
-                ->whereDate('created_at', '>=', $from_date)
-                ->whereDate('created_at', '<=', $to_date)
-                ->count();
-
-            session(['pending_to_count' => $for_approval]);
-
-            return view('for-approval.travelordermanager', [
-                'header' => 'for-approval',
-                'tos' => $tos,
-                'for_approval' => $for_approval,
-                'approved' => $approved,
-                'declined' => $declined,
-                'approver_id' => $approver_id,
-                'from' => $from_date,
-                'to' => $to_date,
-                'status' => $filter_status,
-                'limit' => $limit,
-                'approvalThreshold' => $approvalThreshold
-            ]);
+        if ($filter_status !== 'All') {
+            $tos->where('status', $filter_status);
+        } else {
+            $tos->where('status', '!=', 'Cancelled');
         }
 
+        $tos = $tos->orderBy('created_at', 'DESC')->paginate($limit);
 
-     public function approveTo(Request $request, $id)
+        $approvalThreshold = ApprovalByAmount::orderBy('higher_than', 'desc')->first();
+
+        $tos->getCollection()->transform(function ($to) use ($approvalThreshold) {
+            $totalAmount = $to->totalamount_total;
+            $to->show_final_approver = false;
+            $to->final_approver = null;
+
+            $approvers = $to->approver ?? collect();
+            
+            $approvers = $approvers->sortBy('level')->values();
+            
+            $lastApprover = $approvers->last();
+            if ($lastApprover) {
+                $to->final_approver = $lastApprover->approver_info;
+            }
+            
+            if ($approvalThreshold && $totalAmount > $approvalThreshold->higher_than) {
+                $finalApprover = $approvers->where('as_final', 'on')->first();
+                
+                if ($finalApprover) {
+                    $to->approver = $approvers->filter(function($a) use ($finalApprover) {
+                        return $a->level <= $finalApprover->level;
+                    })->values();
+                    
+                    $to->final_approver = $finalApprover->approver_info;
+                    $to->show_final_approver = true;
+                } else {
+                    $to->approver = $approvers;
+                }
+            } else {
+                $firstApprover = $approvers->sortBy('level')->first();
+                $to->approver = collect([$firstApprover])->filter()->values();
+            }
+
+            return $to;
+        });
+        
+        $user_ids = EmployeeApprover::select('user_id')
+            ->where('approver_id', $approver_id)
+            ->pluck('user_id')
+            ->toArray();
+
+        $for_approval = EmployeeTo::whereIn('user_id', $user_ids)
+            ->where('status', 'Pending')
+            ->whereDate('created_at', '>=', $from_date)
+            ->whereDate('created_at', '<=', $to_date)
+            ->count();
+
+        $approved = EmployeeTo::whereIn('user_id', $user_ids)
+            ->where('status', 'Approved')
+            ->whereDate('created_at', '>=', $from_date)
+            ->whereDate('created_at', '<=', $to_date)
+            ->count();
+
+        $declined = EmployeeTo::whereIn('user_id', $user_ids)
+            ->where('status', 'Declined')
+            ->whereDate('created_at', '>=', $from_date)
+            ->whereDate('created_at', '<=', $to_date)
+            ->count();
+
+        session(['pending_to_count' => $for_approval]);
+
+        return view('for-approval.travelordermanager', [
+            'header' => 'for-approval',
+            'tos' => $tos,
+            'for_approval' => $for_approval,
+            'approved' => $approved,
+            'declined' => $declined,
+            'approver_id' => $approver_id,
+            'from' => $from_date,
+            'to' => $to_date,
+            'status' => $filter_status,
+            'limit' => $limit,
+            'approvalThreshold' => $approvalThreshold
+        ]);
+    }
+
+    public function approveTo(Request $request, $id)
         {
             $employee_to = EmployeeTo::find($id);
 
@@ -663,57 +685,74 @@ class FormApprovalController extends Controller
             $thresholdAmount = $approvalThreshold ? $approvalThreshold->higher_than : 5000;
 
             $approvers = EmployeeApprover::where('user_id', $employee_to->user_id)
-                                ->orderBy('id')
+                                ->orderBy('level')
                                 ->get();
 
-            $approver_ids = $approvers->pluck('approver_id')->toArray();
             $current_level = $employee_to->level;
-            $current_approver_index = array_search($current_user_id, $approver_ids);
 
-            if ($current_approver_index === false) {
+            $current_approver = $approvers->firstWhere('approver_id', $current_user_id);
+            
+            if (!$current_approver) {
                 Alert::error('You are not in the approval flow.')->persistent('Dismiss');
+                return back();
+            }
+
+            $current_approver_level = $current_approver->level;
+
+            if ($current_level != $current_approver_level) {
+                Alert::error('This TO is not at your approval level.')->persistent('Dismiss');
                 return back();
             }
 
             $amount_over_threshold = $employee_to->totalamount_total > $thresholdAmount;
 
-            $final_approver_index = $approvers->search(function($a) {
-                return ($a->as_final ?? '') === 'on';
-            });
+            $final_approver = $approvers->firstWhere('as_final', 'on');
+            $is_final_approver = $final_approver && $final_approver->approver_id == $current_user_id;
+
+            EmployeeToApprovalRemark::updateOrCreate(
+                [
+                    'employee_to_id' => $employee_to->id,
+                    'approver_id' => $current_user_id,
+                    'level' => $current_level
+                ],
+                [
+                    'action' => 'Approved',
+                    'remarks' => $request->approval_remarks ?? 'Approved',
+                    'action_date' => now()
+                ]
+            );
 
             if (!$amount_over_threshold) {
-                if ($current_approver_index === 0 && $final_approver_index !== 0) {
+                $first_approver = $approvers->sortBy('level')->first();
+                
+                if ($current_user_id == $first_approver->approver_id) {
                     $employee_to->update([
                         'approved_date' => date('Y-m-d'),
                         'status' => 'Approved',
-                        'approval_remarks' => $request->approval_remarks,
                         'level' => $current_level + 1,
                         'approved_by' => $current_user_id
                     ]);
+                    Alert::success('TO has been approved.')->persistent('Dismiss');
                 } else {
                     Alert::error('Only the first approver can approve TOs under the threshold.')->persistent('Dismiss');
                 }
                 return back();
             }
 
-            if ($current_approver_index === 0 && $final_approver_index !== 0) {
-                $employee_to->update([
-                    'approved_date' => date('Y-m-d'),
-                    'level' => $final_approver_index,
-                    'approval_remarks' => $request->approval_remarks,
-                    'approved_by' => $current_user_id,
-                    'status' => 'Pending'
-                ]);
-            } elseif ($current_approver_index === $final_approver_index) {
+            if ($is_final_approver) {
                 $employee_to->update([
                     'approved_head_division' => date('Y-m-d'),
                     'status' => 'Approved',
-                    'approval_remarks2' => $request->approval_remarks,
                     'level' => $current_level + 1,
                     'approved_by_head_division' => $current_user_id
                 ]);
             } else {
-                Alert::error('You are not allowed to approve this TO.')->persistent('Dismiss');
+                $employee_to->update([
+                    'approved_date' => date('Y-m-d'),
+                    'level' => $current_level + 1,
+                    'approved_by' => $current_user_id,
+                    'status' => 'Pending'
+                ]);
             }
 
             Alert::success('TO has been approved.')->persistent('Dismiss');
@@ -721,135 +760,162 @@ class FormApprovalController extends Controller
         }
 
         public function approveToAll(Request $request)
-            {
-                $ids = json_decode($request->ids, true);
-                $count = 0;
-                $current_user_id = auth()->id();
+        {
+            $ids = json_decode($request->ids, true);
+            $count = 0;
+            $current_user_id = auth()->id();
 
-                $approvalThreshold = ApprovalByAmount::orderBy('higher_than', 'desc')->first();
-                $thresholdAmount = $approvalThreshold ? $approvalThreshold->higher_than : 5000;
+            $approvalThreshold = ApprovalByAmount::orderBy('higher_than', 'desc')->first();
+            $thresholdAmount = $approvalThreshold ? $approvalThreshold->higher_than : 5000;
 
-                if (!is_array($ids) || empty($ids)) {
-                    return 0;
-                }
-
-                foreach ($ids as $id) {
-                    $employee_to = EmployeeTo::find($id);
-                    if (!$employee_to) {
-                        continue;
-                    }
-
-                    $approvers = EmployeeApprover::where('user_id', $employee_to->user_id)
-                                    ->orderBy('id')
-                                    ->get();
-
-                    $approver_ids = $approvers->pluck('approver_id')->toArray();
-                    $current_level = $employee_to->level;
-                    $current_approver_index = array_search($current_user_id, $approver_ids);
-
-                    if ($current_approver_index === false) {
-                        continue;
-                    }
-
-                    $amount_over_threshold = $employee_to->totalamount_total > $thresholdAmount;
-
-                    $final_approver_index = $approvers->search(function($a) {
-                        return ($a->as_final ?? '') === 'on';
-                    });
-
-                    if (!$amount_over_threshold) {
-                        if ($current_approver_index === 0 && $final_approver_index !== 0) {
-                            $employee_to->update([
-                                'approved_date' => date('Y-m-d'),
-                                'status' => 'Approved',
-                                'approval_remarks' => 'Approved',
-                                'level' => $current_level + 1,
-                                'approved_by' => $current_user_id
-                            ]);
-                            $count++;
-                        }
-                        continue;
-                    }
-
-                    if ($current_approver_index === 0 && $final_approver_index !== 0) {
-                        $employee_to->update([
-                            'approved_date' => date('Y-m-d'),
-                            'level' => $final_approver_index,
-                            'approval_remarks' => 'Approved',
-                            'approved_by' => $current_user_id,
-                            'status' => 'Pending'
-                        ]);
-                        $count++;
-                    } elseif ($current_approver_index === $final_approver_index) {
-                        $employee_to->update([
-                            'approved_head_division' => date('Y-m-d'),
-                            'status' => 'Approved',
-                            'approval_remarks2' => 'Approved',
-                            'level' => $current_level + 1,
-                            'approved_by_head_division' => $current_user_id
-                        ]);
-                        $count++;
-                    }
-                }
-
-                return $count;
+            if (!is_array($ids) || empty($ids)) {
+                return 0;
             }
 
+            foreach ($ids as $id) {
+                $employee_to = EmployeeTo::find($id);
+                if (!$employee_to) {
+                    continue;
+                }
+
+                $approvers = EmployeeApprover::where('user_id', $employee_to->user_id)
+                                ->orderBy('level')
+                                ->get();
+
+                $current_level = $employee_to->level;
+
+                $current_approver = $approvers->firstWhere('approver_id', $current_user_id);
+                
+                if (!$current_approver || $current_level != $current_approver->level) {
+                    continue;
+                }
+
+                $amount_over_threshold = $employee_to->totalamount_total > $thresholdAmount;
+
+                $final_approver = $approvers->firstWhere('as_final', 'on');
+                $is_final_approver = $final_approver && $final_approver->approver_id == $current_user_id;
+
+                if (!$amount_over_threshold) {
+                    $first_approver = $approvers->sortBy('level')->first();
+                    
+                    if ($current_user_id == $first_approver->approver_id) {
+                        $employee_to->update([
+                            'approved_date' => date('Y-m-d'),
+                            'status' => 'Approved',
+                            'approval_remarks' => 'Approved',
+                            'level' => $current_level + 1,
+                            'approved_by' => $current_user_id
+                        ]);
+                        $count++;
+                    }
+                    continue;
+                }
+
+                if ($is_final_approver) {
+                    $employee_to->update([
+                        'approved_head_division' => date('Y-m-d'),
+                        'status' => 'Approved',
+                        'approval_remarks2' => 'Approved',
+                        'level' => $current_level + 1,
+                        'approved_by_head_division' => $current_user_id
+                    ]);
+                    $count++;
+                } else {
+                    $employee_to->update([
+                        'approved_date' => date('Y-m-d'),
+                        'level' => $current_level + 1,
+                        'approval_remarks' => 'Approved',
+                        'approved_by' => $current_user_id,
+                        'status' => 'Pending'
+                    ]);
+                    $count++;
+                }
+            }
+
+            return $count;
+        }
+
         public function declineTo(Request $request, $id)
-            {
-                $employee_to = EmployeeTo::findOrFail($id);
-                $user_id = auth()->id();
+        {
+            $employee_to = EmployeeTo::findOrFail($id);
+            $user_id = auth()->id();
+
+            $current_level = $employee_to->level;
+
+            EmployeeToApprovalRemark::updateOrCreate(
+                [
+                    'employee_to_id' => $employee_to->id,
+                    'approver_id' => $user_id,
+                    'level' => $current_level
+                ],
+                [
+                    'action' => 'Declined',
+                    'remarks' => $request->approval_remarks ?? 'Declined',
+                    'action_date' => now()
+                ]
+            );
+
+            $final_approver_id = EmployeeApprover::where('user_id', $employee_to->user_id)
+                ->where('as_final', 'on')
+                ->value('approver_id');
+
+            $approvedByField = $user_id == $final_approver_id ? 'approved_by_head_division' : 'approved_by';
+
+            $employee_to->update([
+                'status' => 'Declined',
+                $approvedByField => $user_id
+            ]);
+
+            Alert::success('TO has been declined.')->persistent('Dismiss');
+            return back();
+        }
+
+        public function disapproveToAll(Request $request)
+        {
+            $ids = json_decode($request->ids, true);
+            $user_id = auth()->id();
+            $count = 0;
+
+            if (!is_array($ids) || count($ids) === 0) {
+                return 'error';
+            }
+
+            foreach ($ids as $id) {
+                $employee_to = EmployeeTo::find($id);
+                if (!$employee_to) {
+                    continue;
+                }
+
+                $current_level = $employee_to->level;
+
+                EmployeeToApprovalRemark::updateOrCreate(
+                    [
+                        'employee_to_id' => $employee_to->id,
+                        'approver_id' => $user_id,
+                        'level' => $current_level
+                    ],
+                    [
+                        'action' => 'Declined',
+                        'remarks' => 'Declined',
+                        'action_date' => now()
+                    ]
+                );
 
                 $final_approver_id = EmployeeApprover::where('user_id', $employee_to->user_id)
                     ->where('as_final', 'on')
                     ->value('approver_id');
 
-                $remarksField = $user_id == $final_approver_id ? 'approval_remarks2' : 'approval_remarks';
                 $approvedByField = $user_id == $final_approver_id ? 'approved_by_head_division' : 'approved_by';
 
                 $employee_to->update([
                     'status' => 'Declined',
-                    $remarksField => $request->approval_remarks,
                     $approvedByField => $user_id
                 ]);
 
-                Alert::success('TO has been declined.')->persistent('Dismiss');
-                return back();
+                $count++;
             }
-
-        public function disapproveToAll(Request $request)
-            {
-                $ids = json_decode($request->ids, true);
-                $user_id = auth()->id();
-                $count = 0;
-
-                if (!is_array($ids) || count($ids) === 0) {
-                    return 'error';
-                }
-
-                foreach ($ids as $id) {
-                    $employee_to = EmployeeTo::find($id);
-                    if (!$employee_to) {
-                        continue;
-                    }
-
-                    $final_approver_id = EmployeeApprover::where('user_id', $employee_to->user_id)
-                        ->where('as_final', 'on')
-                        ->value('approver_id');
-
-                    $remarksField = $user_id == $final_approver_id ? 'approval_remarks2' : 'approval_remarks';
-                    $approvedByField = $user_id == $final_approver_id ? 'approved_by_head_division' : 'approved_by';
-
-                    $employee_to->update([
-                        'status' => 'Declined',
-                        $remarksField => 'Declined',
-                        $approvedByField => $user_id
-                    ]);
-
-                    $count++;
-                }
-                return $count;
-            }
+            return $count;
+        }
 
         private function generateAdNumber()
             {
@@ -1533,225 +1599,447 @@ class FormApprovalController extends Controller
         }
 
     public function form_coe_approval(Request $request)
-        {
-            $today = date('Y-m-d');
-            $from_date = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
-            $to_date = $request->to ?? date('Y-m-d');
-            $limit = $request->limit ?? 10;
-            $filter_status = $request->status ?? 'Pending';
+    {
+        $today = date('Y-m-d');
+        $from_date = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
+        $to_date = $request->to ?? date('Y-m-d');
+        $limit = $request->limit ?? 10;
+        $filter_status = $request->status ?? 'Pending';
 
-            $user = auth()->user();
-            $approver_id = $user->id;
+        $user = auth()->user();
+        $approver_id = $user->id;
 
-            $coes = collect();
-            $coes_all = collect();
+        $coes = collect();
+        $coes_all = collect();
 
-            $is_coe_approver = \App\ApproverSetting::where('user_id', $approver_id)
-                ->where('type_of_form', 'coe')
-                ->where('status', 'Active')
-                ->exists();
+        $is_coe_approver = \App\ApproverSetting::where('user_id', $approver_id)
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->exists();
 
-            if ($is_coe_approver) {
-                $query = EmployeeCoe::with([
-                        'user.employee.department',
-                        'approvedBy', // Relationship to show who approved
-                    ])
-                    ->whereDate('created_at', '>=', $from_date)
-                    ->whereDate('created_at', '<=', $to_date);
+        if ($is_coe_approver) {
+            $query = EmployeeCoe::with([
+                    'user.employee.department',
+                    'approvedBy', // Relationship to show who approved
+                ])
+                ->whereDate('created_at', '>=', $from_date)
+                ->whereDate('created_at', '<=', $to_date);
 
-                if ($filter_status !== 'All') {
-                    $query->where('status', $filter_status);
-                } else {
-                    $query->where('status', '!=', 'Cancelled');
-                }
-
-                $coes = $query->orderBy('created_at', 'DESC')->paginate($limit);
-                
-                $coes->appends($request->query());
-
-                $coes_all = EmployeeCoe::whereDate('created_at', '>=', $from_date)
-                    ->whereDate('created_at', '<=', $to_date)
-                    ->where('status', '!=', 'Cancelled')
-                    ->get();
+            if ($filter_status !== 'All') {
+                $query->where('status', $filter_status);
+            } else {
+                $query->where('status', '!=', 'Cancelled');
             }
 
-            // Get all COE approvers for display
-            $coe_approvers = \App\ApproverSetting::with('user.employee.department')
-                ->where('type_of_form', 'coe')
-                ->where('status', 'Active')
+            $coes = $query->orderBy('created_at', 'DESC')->paginate($limit);
+            
+            $coes->appends($request->query());
+
+            $coes_all = EmployeeCoe::whereDate('created_at', '>=', $from_date)
+                ->whereDate('created_at', '<=', $to_date)
+                ->where('status', '!=', 'Cancelled')
                 ->get();
-
-            $pendingCount = $coes_all->where('status', 'Pending')->count();
-            $approvedCount = $coes_all->where('status', 'Approved')->count();
-            $declinedCount = $coes_all->whereIn('status', ['Declined', 'Cancelled'])->count();
-
-            session(['pending_coe_count' => $pendingCount]);
-
-            // Simple function to get approver for employee (same as PD system)
-            $getApproverForEmployee = function($employee) use ($coe_approvers) {
-                return $coe_approvers->first();
-            };
-
-            return view('for-approval.coe_approval', [
-                'header' => 'for-approval',
-                'coes' => $coes,
-                'coes_all' => $coes_all,
-                'for_approval' => $pendingCount,
-                'approved' => $approvedCount,
-                'declined' => $declinedCount,
-                'approver_id' => $approver_id,
-                'user_role' => $is_coe_approver ? 'coe_approver' : null,
-                'from' => $from_date,
-                'to' => $to_date,
-                'status' => $filter_status,
-                'limit' => $limit,
-                'has_payroll_privilege' => $is_coe_approver,
-                'coe_approvers' => $coe_approvers,
-                'getApproverForEmployee' => $getApproverForEmployee, // Add this function to view
-            ]);
         }
+
+        // Get all COE approvers for display
+        $coe_approvers = \App\ApproverSetting::with('user.employee.department')
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->get();
+
+        $pendingCount = $coes_all->where('status', 'Pending')->count();
+        $approvedCount = $coes_all->where('status', 'Approved')->count();
+        $declinedCount = $coes_all->whereIn('status', ['Declined', 'Cancelled'])->count();
+
+        session(['pending_coe_count' => $pendingCount]);
+
+        // Simple function to get approver for employee (same as PD system)
+        $getApproverForEmployee = function($employee) use ($coe_approvers) {
+            return $coe_approvers->first();
+        };
+
+        return view('for-approval.coe_approval', [
+            'header' => 'for-approval',
+            'coes' => $coes,
+            'coes_all' => $coes_all,
+            'for_approval' => $pendingCount,
+            'approved' => $approvedCount,
+            'declined' => $declinedCount,
+            'approver_id' => $approver_id,
+            'user_role' => $is_coe_approver ? 'coe_approver' : null,
+            'from' => $from_date,
+            'to' => $to_date,
+            'status' => $filter_status,
+            'limit' => $limit,
+            'has_payroll_privilege' => $is_coe_approver,
+            'coe_approvers' => $coe_approvers,
+            'getApproverForEmployee' => $getApproverForEmployee, // Add this function to view
+        ]);
+    }
 
     public function approveCoe(Request $request, $id)
-        {
-            $employee_coe = EmployeeCoe::find($id);
+    {
+        $employee_coe = EmployeeCoe::find($id);
 
-            if (!$employee_coe) {
-                Alert::error('COE not found.')->persistent('Dismiss');
-                return back();
-            }
-
-            $current_user = auth()->user();
-
-
-            $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
-                ->where('type_of_form', 'coe')
-                ->where('status', 'Active')
-                ->exists();
-
-            if (!$is_coe_approver) {
-                Alert::error('You do not have permission to approve COEs.')->persistent('Dismiss');
-                return back();
-            }
-
-            $employee_coe->approved_date = now();
-            $employee_coe->status = 'Approved';
-            $employee_coe->approval_remarks = $request->approval_remarks;
-            $employee_coe->approved_by = $current_user->id;
-            $employee_coe->save();
-
-            Alert::success('COE Request has been approved.')->persistent('Dismiss');
+        if (!$employee_coe) {
+            Alert::error('COE not found.')->persistent('Dismiss');
             return back();
         }
 
-        public function declineCoe(Request $request, $id)
-        {
-            $employee_coe = EmployeeCoe::find($id);
-
-            if (!$employee_coe) {
-                Alert::error('COE not found.')->persistent('Dismiss');
-                return back();
-            }
-
-            $current_user = auth()->user();
+        $current_user = auth()->user();
 
 
-            $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
-                ->where('type_of_form', 'coe')
-                ->where('status', 'Active')
-                ->exists();
+        $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->exists();
 
-            if (!$is_coe_approver) {
-                Alert::error('You do not have permission to decline COEs.')->persistent('Dismiss');
-                return back();
-            }
-
-            $employee_coe->approved_date = now();
-            $employee_coe->status = 'Declined';
-            $employee_coe->approval_remarks = $request->approval_remarks;
-            $employee_coe->approved_by = $current_user->id;
-            $employee_coe->save();
-
-            Alert::success('COE Request has been declined.')->persistent('Dismiss');
+        if (!$is_coe_approver) {
+            Alert::error('You do not have permission to approve COEs.')->persistent('Dismiss');
             return back();
         }
 
-        public function approveCoeAll(Request $request)
-        {
-            $current_user = auth()->user();
+        $employee_coe->approved_date = now();
+        $employee_coe->status = 'Approved';
+        $employee_coe->approval_remarks = $request->approval_remarks;
+        $employee_coe->approved_by = $current_user->id;
+        $employee_coe->save();
 
+        Alert::success('COE Request has been approved.')->persistent('Dismiss');
+        return back();
+    }
 
-            $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
-                ->where('type_of_form', 'coe')
-                ->where('status', 'Active')
-                ->exists();
+    public function declineCoe(Request $request, $id)
+    {
+        $employee_coe = EmployeeCoe::find($id);
 
-            if (!$is_coe_approver) {
-                return response()->json(['error' => 'You do not have permission to bulk-approve COEs.'], 403);
-            }
-
-            $ids = json_decode($request->ids, true);
-            $count = 0;
-            $approver_id = $current_user->id;
-
-            if (!empty($ids)) {
-                foreach ($ids as $id) {
-                    $employee_coe = EmployeeCoe::find($id);
-
-                    if ($employee_coe) {
-                        $employee_coe->update([
-                            'approved_date' => now(),
-                            'status' => 'Approved',
-                            'approval_remarks' => $request->approval_remarks ?? 'Bulk Approved',
-                            'approved_by' => $approver_id
-                        ]);
-                        $count++;
-                    }
-                }
-
-                return $count;
-            }
-
-            return 'error';
+        if (!$employee_coe) {
+            Alert::error('COE not found.')->persistent('Dismiss');
+            return back();
         }
 
-        public function disapproveCoeAll(Request $request)
-        {
-            $current_user = auth()->user();
+        $current_user = auth()->user();
 
 
-            $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
-                ->where('type_of_form', 'coe')
-                ->where('status', 'Active')
-                ->exists();
+        $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->exists();
 
-            if (!$is_coe_approver) {
-                return response()->json(['error' => 'You do not have permission to bulk-decline COEs.'], 403);
-            }
-
-            $ids = json_decode($request->ids, true);
-            $count = 0;
-            $approver_id = $current_user->id;
-
-            if (!empty($ids)) {
-                foreach ($ids as $id) {
-                    $employee_coe = EmployeeCoe::find($id);
-
-                    if ($employee_coe) {
-                        $employee_coe->update([
-                            'approved_date' => now(),
-                            'status' => 'Declined',
-                            'approval_remarks' => $request->approval_remarks ?? 'Bulk Declined',
-                            'approved_by' => $approver_id
-                        ]);
-                        $count++;
-                    }
-                }
-
-                return $count;
-            }
-
-            return 'error';
+        if (!$is_coe_approver) {
+            Alert::error('You do not have permission to decline COEs.')->persistent('Dismiss');
+            return back();
         }
+
+        $employee_coe->approved_date = now();
+        $employee_coe->status = 'Declined';
+        $employee_coe->approval_remarks = $request->approval_remarks;
+        $employee_coe->approved_by = $current_user->id;
+        $employee_coe->save();
+
+        Alert::success('COE Request has been declined.')->persistent('Dismiss');
+        return back();
+    }
+
+    public function approveCoeAll(Request $request)
+    {
+        $current_user = auth()->user();
+
+
+        $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_coe_approver) {
+            return response()->json(['error' => 'You do not have permission to bulk-approve COEs.'], 403);
+        }
+
+        $ids = json_decode($request->ids, true);
+        $count = 0;
+        $approver_id = $current_user->id;
+
+        if (!empty($ids)) {
+            foreach ($ids as $id) {
+                $employee_coe = EmployeeCoe::find($id);
+
+                if ($employee_coe) {
+                    $employee_coe->update([
+                        'approved_date' => now(),
+                        'status' => 'Approved',
+                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Approved',
+                        'approved_by' => $approver_id
+                    ]);
+                    $count++;
+                }
+            }
+
+            return $count;
+        }
+
+        return 'error';
+    }
+
+    public function disapproveCoeAll(Request $request)
+    {
+        $current_user = auth()->user();
+
+
+        $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_coe_approver) {
+            return response()->json(['error' => 'You do not have permission to bulk-decline COEs.'], 403);
+        }
+
+        $ids = json_decode($request->ids, true);
+        $count = 0;
+        $approver_id = $current_user->id;
+
+        if (!empty($ids)) {
+            foreach ($ids as $id) {
+                $employee_coe = EmployeeCoe::find($id);
+
+                if ($employee_coe) {
+                    $employee_coe->update([
+                        'approved_date' => now(),
+                        'status' => 'Declined',
+                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Declined',
+                        'approved_by' => $approver_id
+                    ]);
+                    $count++;
+                }
+            }
+
+            return $count;
+        }
+
+        return 'error';
+    }
+
+    // ID and Uniform Request Approval
+    public function form_iur_approval(Request $request)
+    {
+        $today = date('Y-m-d');
+        $from_date = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
+        $to_date = $request->to ?? date('Y-m-d');
+        $limit = $request->limit ?? 10;
+        $filter_status = $request->status ?? 'In Progress';
+
+        $user = auth()->user();
+        $approver_id = $user->id;
+
+        $iurs = collect();
+        $iur_all = collect();
+
+        $is_iur_approver = \App\ApproverSetting::where('user_id', $approver_id)
+            ->where('type_of_form', 'uir')
+            ->where('status', 'Active')
+            ->exists();
+        // dd($is_iur_approver);
+        if ($is_iur_approver) {
+            $query = IUR::with([
+                    'user',
+                    'approvedBy', // Relationship to show who approved
+                ])
+                ->whereDate('created_at', '>=', $from_date)
+                ->whereDate('created_at', '<=', $to_date);
+
+            if ($filter_status !== 'All') {
+                $query->where('status', $filter_status);
+            } else {
+                $query->where('status', '!=', 'Cancelled');
+            }
+            // dd($query);  
+            $iurs = $query->orderBy('created_at', 'DESC')->paginate($limit);
+            
+            $iurs->appends($request->query());
+
+            $iur_all = IUR::whereDate('created_at', '>=', $from_date)
+                ->whereDate('created_at', '<=', $to_date)
+                ->where('status', '!=', 'Cancelled')
+                ->get();
+        }
+
+        // Get all COE approvers for display
+        $coe_approvers = \App\ApproverSetting::with('user.employee.department')
+            ->where('type_of_form', 'uir')
+            ->where('status', 'Active')
+            ->get();
+
+        $pendingCount = $iur_all->where('status', 'In Progress')->count();
+        $approvedCount = $iur_all->where('status', 'Approved')->count();
+        $declinedCount = $iur_all->whereIn('status', ['Declined', 'Cancelled'])->count();
+
+        session(['pending_coe_count' => $pendingCount]);
+
+        // Simple function to get approver for employee (same as PD system)
+        $getApproverForEmployee = function($employee) use ($coe_approvers) {
+            return $coe_approvers->first();
+        };
+
+        return view('for-approval.iur_approval', [
+            'header' => 'for-approval',
+            'iurs' => $iurs,
+            'iur_all' => $iur_all,
+            'for_approval' => $pendingCount,
+            'approved' => $approvedCount,
+            'declined' => $declinedCount,
+            'approver_id' => $approver_id,
+            'user_role' => $is_iur_approver ? 'coe_approver' : null,
+            'from' => $from_date,
+            'to' => $to_date,
+            'status' => $filter_status,
+            'limit' => $limit,
+            'has_payroll_privilege' => $is_iur_approver,
+            'coe_approvers' => $coe_approvers,
+            'getApproverForEmployee' => $getApproverForEmployee, // Add this function to view
+        ]);
+    }
+
+    public function approveIur(Request $request, $id)
+    {
+        $employee_iur = IUR::find($id);
+
+        if (!$employee_iur) {
+            Alert::error('IUR not found.')->persistent('Dismiss');
+            return back();
+        }
+
+        $current_user = auth()->user();
+
+
+        $is_iur_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'uir')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_iur_approver) {
+            Alert::error('You do not have permission to approve IURs.')->persistent('Dismiss');
+            return back();
+        }
+
+        $employee_iur->approved_date = now();
+        $employee_iur->status = 'Approved';
+        $employee_iur->approval_remarks = $request->approval_remarks;
+        $employee_iur->approved_by = $current_user->id;
+        $employee_iur->save();
+
+        Alert::success('IUR Request has been approved.')->persistent('Dismiss');
+        return back();
+    }
+
+    public function declineIur(Request $request, $id)
+    {
+        $employee_iur = IUR::find($id);
+
+        if (!$employee_iur) {
+            Alert::error('IUR not found.')->persistent('Dismiss');
+            return back();
+        }
+
+        $current_user = auth()->user();
+
+
+        $is_iur_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'uir')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_iur_approver) {
+            Alert::error('You do not have permission to decline IURs.')->persistent('Dismiss');
+            return back();
+        }
+
+        $employee_iur->approved_date = now();
+        $employee_iur->status = 'Declined';
+        $employee_iur->approval_remarks = $request->approval_remarks;
+        $employee_iur->approved_by = $current_user->id;
+        $employee_iur->save();
+
+        Alert::success('IUR Request has been declined.')->persistent('Dismiss');
+        return back();
+    }
+
+    public function approveIurAll(Request $request)
+    {
+        $current_user = auth()->user();
+
+        $is_iur_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'uir')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_iur_approver) {
+            return response()->json(['error' => 'You do not have permission to bulk-approve IURs.'], 403);
+        }
+
+        $ids = json_decode($request->ids, true);
+        $count = 0;
+        $approver_id = $current_user->id;
+
+        if (!empty($ids)) {
+            foreach ($ids as $id) {
+                $employee_iur = IUR::find($id);
+
+                if ($employee_iur) {
+                    $employee_iur->update([
+                        'approved_date' => now(),
+                        'status' => 'Approved',
+                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Approved',
+                        'approved_by' => $approver_id
+                    ]);
+                    $count++;
+                }
+            }
+
+            return $count;
+        }
+
+        return 'error';
+    }
+
+    public function disapproveIurAll(Request $request)
+    {
+        $current_user = auth()->user();
+
+
+        $is_iur_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'uir')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_iur_approver) {
+            return response()->json(['error' => 'You do not have permission to bulk-decline IURs.'], 403);
+        }
+
+        $ids = json_decode($request->ids, true);
+        $count = 0;
+        $approver_id = $current_user->id;
+
+        if (!empty($ids)) {
+            foreach ($ids as $id) {
+                $employee_iur = IUR::find($id);
+
+                if ($employee_iur) {
+                    $employee_iur->update([
+                        'approved_date' => now(),
+                        'status' => 'Declined',
+                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Declined',
+                        'approved_by' => $approver_id
+                    ]);
+                    $count++;
+                }
+            }
+
+            return $count;
+        }
+
+        return 'error';
+    }
+
 
     public function form_ne_approval(Request $request)
     {
@@ -1995,7 +2283,7 @@ class FormApprovalController extends Controller
 
         $filter_status = isset($request->status) ? $request->status : 'Pending';
         $approver_id = auth()->user()->id;
-        $dtrs = EmployeeDtr::with('approver.approver_info','user')
+        $dtrs = EmployeeDtr::with('approver.approver_info','user.employee.department')
                                 ->whereHas('approver',function($q) use($approver_id) {
                                     $q->where('approver_id',$approver_id);
                                 })
@@ -2004,7 +2292,7 @@ class FormApprovalController extends Controller
                                 ->whereDate('created_at','<=',$to_date)
                                 ->orderBy('created_at','DESC')
                                 ->get();
-        
+        // dd($dtrs);
         $user_ids = EmployeeApprover::select('user_id')->where('approver_id',$approver_id)->pluck('user_id')->toArray();
 
         $for_approval = EmployeeDtr::whereIn('user_id',$user_ids)
@@ -2043,62 +2331,53 @@ class FormApprovalController extends Controller
     public function approveDtr(Request $request,$id){
         $employee_dtr = EmployeeDtr::where('id', $id)->first();
         if($employee_dtr){
-            $level = '';
-            if($employee_dtr->level == 0){
-                $employee_approver = EmployeeApprover::where('user_id', $employee_dtr->user_id)->where('approver_id', auth()->user()->id)->first();
-                if($employee_approver->as_final == 'on'){
-
-                    
+                $employee_approver = EmployeeApprover::where('user_id', $employee_dtr->user_id)
+                                                    ->where('approver_id', auth()->user()->id)
+                                                    ->first();
+                
+                $total_approvers = EmployeeApprover::where('user_id', $employee_dtr->user_id)->count();
+                
+                if($employee_approver->as_final == 'on' || $total_approvers == 1){
                     EmployeeDtr::Where('id', $id)->update([
                         'approved_date' => date('Y-m-d'),
                         'status' => 'Approved',
                         'approval_remarks' => $request->approval_remarks,
                         'level' => 1,
                     ]);
-
-                     $employee_data = EmployeeDtr::with('employee')->findOrfail($id);
-                     
-                    // dd($employee_data->time_in);
-                    if($employee_data->time_in)
-                    {
-                         $attendance = new AttendanceLog;
-                    $attendance->emp_code = $employee_data->employee->employee_code;
-                    $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
-                    $attendance->location = "DTR Correction";
-                    $attendance->ip_address ="DTR Correction";
-                        $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
-                        $attendance->datetime = $employee_data->time_in;
-                        $attendance->type = "0";
-                        $attendance->save();
-                    }
-                    if($employee_data->time_out)
-                    {
-                         $attendance = new AttendanceLog;
-                        $attendance->emp_code = $employee_data->employee->employee_code;
-                        $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
-                        $attendance->location = "DTR Correction";
-                        $attendance->ip_address ="DTR Correction";
-                        $attendance->datetime = $employee_data->time_out;
-                        $attendance->type = "1";
-                        $attendance->save();
-                    }
-                    $this->syncAttendance($employee_data->dtr_date,$employee_data->employee->employee_code);
-                    
-                }else{
+                    $employee_data = EmployeeDtr::with('employee')->findOrfail($id);    
+                           
+                            if($employee_data->time_in != null)
+                            {
+                                 $attendance = new AttendanceLog;
+                                $attendance->emp_code = $employee_data->employee->employee_code;
+                                $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
+                                $attendance->location = "DTR Correction";
+                                $attendance->ip_address ="DTR Correction";
+                                $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
+                                $attendance->datetime = $employee_data->time_in;
+                                $attendance->type = "0";
+                                $attendance->save();
+                            }
+                            if($employee_data->time_out != null)
+                            {
+                                $attendance = new AttendanceLog;
+                                $attendance->emp_code = $employee_data->employee->employee_code;
+                                $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
+                                $attendance->location = "DTR Correction";
+                                $attendance->ip_address ="DTR Correction";
+                                $attendance->datetime = $employee_data->time_out;
+                                $attendance->type = "1";
+                                $attendance->save();
+                            }
+                            $this->syncAttendance($employee_data->dtr_date,$employee_data->employee->employee_code);
+                           
+                } else {
                     EmployeeDtr::Where('id', $id)->update([
                         'approval_remarks' => $request->approval_remarks,
-                        'level' => 1
+                        'level' => $employee_approver->level+1,
                     ]);
                 }
-            }
-            else if($employee_dtr->level == 1){
-                EmployeeDtr::Where('id', $id)->update([
-                    'approved_date' => date('Y-m-d'),
-                    'status' => 'Approved',
-                    'approval_remarks' => $request->approval_remarks,
-                    'level' => 2,
-                ]);
-            }
+            
             Alert::success('DTR has been approved.')->persistent('Dismiss');
             return back();
         }
@@ -2113,73 +2392,174 @@ class FormApprovalController extends Controller
         return back();
     }
 
-    public function approveDtrAll(Request $request){
+    // public function approveDtrAll(Request $request){
         
-        $ids = json_decode($request->ids,true);
-
-        $count = 0;
-        if(count($ids) > 0){
+    //     $ids = json_decode($request->ids,true);
+   
+    //     $count = 0;
+    //     if(count($ids) > 0){
             
-            foreach($ids as $id){
-                $employee_dtr = EmployeeDtr::where('id', $id)->first();
-                if($employee_dtr){
-                    $level = '';
-                    $employee_approver = EmployeeApprover::where('user_id', $employee_dtr->user_id)->where('approver_id', auth()->user()->id)->first();
-                    if($employee_dtr->level == 0){
-                        if($employee_approver->as_final == 'on'){
-                            EmployeeDtr::Where('id', $id)->update([
-                                'approved_date' => date('Y-m-d'),
-                                'status' => 'Approved',
-                                'approval_remarks' => 'Approved',
-                                'level' => 1,
-                            ]);
-                            $count++;
-                            $employee_data = EmployeeDtr::with('employee')->findOrfail($id);
-                            $attendance = new AttendanceLog;
-                            $attendance->emp_code = $employee_data->employee->employee_code;
-                            $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
-                            $attendance->location = "DTR Correction";
-                            $attendance->ip_address ="DTR Correction";
-                            if($employee_data->time_in)
-                            {
-                                $attendance->date = date('Y-m-d',strtotime($employee_data->dtr_date));
-                                $attendance->datetime = $employee_data->time_in;
-                                $attendance->type = "0";
-                                $attendance->save();
-                            }
-                            if($employee_data->time_out)
-                            {
-                                $attendance->datetime = $employee_data->time_out;
-                                $attendance->type = "1";
-                                $attendance->save();
-                            }
-                            $this->syncAttendance($employee_data->dtr_date,$employee_data->employee->employee_code);
-                        }else{
-                            EmployeeDtr::Where('id', $id)->update([
-                                'approval_remarks' => 'Approved',
-                                'level' => 1
-                            ]);
-                            $count++;
-                        }
-                    }
-                    else if($employee_dtr->level == 1){
-                        if($employee_approver->as_final == 'on'){
-                            EmployeeDtr::Where('id', $id)->update([
-                                'approved_date' => date('Y-m-d'),
-                                'status' => 'Approved',
-                                'approval_remarks' => 'Approved',
-                                'level' => 2,
-                            ]);
-                            $count++;
-                        }
-                    }
-                }
+    //         foreach($ids as $id){
+    //             $employee_dtr = EmployeeDtr::with('employee')->where('id', $id)->first();
+    //             if($employee_dtr){
+    //                 $level = '';
+    //                 $employee_approver = EmployeeApprover::where('user_id', $employee_dtr->user_id)->where('approver_id', auth()->user()->id)->first();
+    //                     //  dd($employee_approver);
+    //                     if($employee_approver->as_final == 'on'){
+    //                         $employee = Employee::where('user_id',$employee_dtr->user_id)->first();
+                           
+    //                         EmployeeDtr::Where('id', $id)->update([
+    //                             'approved_date' => date('Y-m-d'),
+    //                             'status' => 'Approved',
+    //                             'approval_remarks' => 'Approved',
+    //                             'level' => 1,
+    //                         ]);
+    //                         $count++;
+                       
+    //                         if($employee_dtr->time_in != null)
+    //                         {
+    //                              $attendance = new AttendanceLog;
+    //                             $attendance->emp_code = $employee_dtr->employee->employee_code;
+    //                             $attendance->date = date('Y-m-d',strtotime($employee_dtr->dtr_date));
+    //                             $attendance->location = "DTR Correction";
+    //                             $attendance->ip_address ="DTR Correction";
+    //                             $attendance->date = date('Y-m-d',strtotime($employee_dtr->dtr_date));
+    //                             $attendance->datetime = $employee_dtr->time_in;
+    //                             $attendance->type = "0";
+    //                             $attendance->save();
+    //                         }
+    //                         if($employee_dtr->time_out != null)
+    //                         {
+    //                             $attendance = new AttendanceLog;
+    //                             $attendance->emp_code = $employee_dtr->employee->employee_code;
+    //                             $attendance->date = date('Y-m-d',strtotime($employee_dtr->dtr_date));
+    //                             $attendance->location = "DTR Correction";
+    //                             $attendance->ip_address ="DTR Correction";
+    //                             $attendance->datetime = $employee_dtr->time_out;
+    //                             $attendance->type = "1";
+    //                             $attendance->save();
+    //                         }
+    //                         $this->syncAttendance($employee_dtr->dtr_date,$employee_dtr->employee->employee_code);
+    //                     }else{
+    //                         EmployeeDtr::Where('id', $id)->update([
+    //                             'approval_remarks' => 'Approved',
+    //                             'level' => $employee_dtr->level+1
+    //                         ]);
+    //                         $count++;
+    //                     }
+                    
+                   
+    //             }
+    //         }
+
+    //         return $count;
+
+    //     }else{
+    //         return 'error';
+    //     }
+    // }
+    public function approveDtrAll(Request $request)
+    {
+        try {
+
+            $ids = json_decode($request->ids, true);
+
+            if(empty($ids) || count($ids) == 0){
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No selected DTR found.'
+                ]);
             }
 
-            return $count;
+            $count = 0;
 
-        }else{
-            return 'error';
+            foreach($ids as $id){
+
+                $employee_dtr = EmployeeDtr::with('employee')
+                    ->where('id', $id)
+                    ->first();
+
+                if(!$employee_dtr){
+                    continue;
+                }
+
+                $employee_approver = EmployeeApprover::where('user_id', $employee_dtr->user_id)
+                    ->where('approver_id', auth()->user()->id)
+                    ->first();
+
+                if(!$employee_approver){
+                    continue;
+                }
+
+                // FINAL APPROVER
+                if($employee_approver->as_final == 'on'){
+
+                    EmployeeDtr::where('id', $id)->update([
+                        'approved_date' => now(),
+                        'status' => 'Approved',
+                        'approval_remarks' => 'Approved',
+                        'level' => 1,
+                    ]);
+
+                    // TIME IN
+                    if($employee_dtr->time_in){
+
+                        AttendanceLog::create([
+                            'emp_code' => $employee_dtr->employee->employee_code,
+                            'date' => date('Y-m-d', strtotime($employee_dtr->dtr_date)),
+                            'location' => 'DTR Correction',
+                            'ip_address' => 'DTR Correction',
+                            'datetime' => $employee_dtr->time_in,
+                            'type' => '0'
+                        ]);
+                    }
+
+                    // TIME OUT
+                    if($employee_dtr->time_out){
+
+                        AttendanceLog::create([
+                            'emp_code' => $employee_dtr->employee->employee_code,
+                            'date' => date('Y-m-d', strtotime($employee_dtr->dtr_date)),
+                            'location' => 'DTR Correction',
+                            'ip_address' => 'DTR Correction',
+                            'datetime' => $employee_dtr->time_out,
+                            'type' => '1'
+                        ]);
+                    }
+
+                    // SYNC ATTENDANCE
+                    $this->syncAttendance(
+                        $employee_dtr->dtr_date,
+                        $employee_dtr->employee->employee_code
+                    );
+
+                } else {
+
+                    // NEXT LEVEL APPROVAL
+                    EmployeeDtr::where('id', $id)->update([
+                        'approval_remarks' => 'Approved',
+                        'level' => $employee_dtr->level + 1
+                    ]);
+                }
+
+                $count++;
+            }
+
+            return response()->json([
+                'success' => true,
+                'count' => $count,
+                'message' => 'DTR approved successfully.'
+            ]);
+
+        } catch (\Exception $e){
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ], 500);
         }
     }
 
@@ -2267,4 +2647,324 @@ class FormApprovalController extends Controller
             }
             return 'success';
     }
+
+    // MTA Approval
+    public function form_mta_approval(Request $request)
+    { 
+        $today = date('Y-m-d');
+        $from_date = isset($request->from) ? $request->from : date('Y-m-d',(strtotime ( '-3 month' , strtotime ( $today) ) ));
+        $to_date = isset($request->to) ? $request->to : date('Y-m-d');
+
+        $filter_status = isset($request->status) ? $request->status : 'Pending';
+        $approver_id = auth()->user()->id;
+        $get_approvers = new EmployeeApproverController;
+        $all_approvers = $get_approvers->get_approvers(auth()->user()->id);
+        $mtas = EmployeeMta::with('approver.approver_info','user', 'approverMta')
+                                // ->whereHas('approver',function($q) use($approver_id) {
+                                //     $q->where('approver_id',$approver_id);
+                                // })
+                                ->whereHas('approverMta',function($q) use($approver_id) {
+                                    $q->where('user_id',$approver_id);
+                                })
+                                ->where('status',$filter_status)
+                                ->whereDate('created_at','>=',$from_date)
+                                ->whereDate('created_at','<=',$to_date)
+                                ->orderBy('created_at','DESC')
+                                ->get();
+        
+        $user_ids = EmployeeMta::with('approver.approver_info','user', 'approverMta')
+                                ->whereHas('approverMta',function($q) use($approver_id) {
+                                    $q->where('user_id',$approver_id);
+                                })->pluck('user_id')->toArray();
+        
+        $for_approval = EmployeeMta::whereIn('user_id',$user_ids)
+                                ->where('status','Pending')
+                                ->whereDate('created_at','>=',$from_date)
+                                ->whereDate('created_at','<=',$to_date)
+                                ->count();
+        
+        $approved = EmployeeMta::whereIn('user_id',$user_ids)
+                                ->where('status','Approved')
+                                ->whereDate('created_at','>=',$from_date)
+                                ->whereDate('created_at','<=',$to_date)
+                                ->count();
+        $declined = EmployeeMta::whereIn('user_id',$user_ids)
+                                ->where('status','Declined')
+                                ->whereDate('created_at','>=',$from_date)
+                                ->whereDate('created_at','<=',$to_date)
+                                ->count();
+        
+        session(['pending_mta_count'=>$for_approval]);
+
+        return view('for-approval.mta-approval',
+        array(
+            'header' => 'for-approval',
+            'mtas' => $mtas,
+            'for_approval' => $for_approval,
+            'approved' => $approved,
+            'declined' => $declined,
+            'approver_id' => $approver_id,
+            'from' => $from_date,
+            'to' => $to_date,
+            'status' => $filter_status,
+            'all_approvers' => $all_approvers,
+        ));
+
+    }
+
+    // public function approveMta(Request $request,$id){
+    //     $employee_mta = EmployeeMta::where('id', $id)->first();
+    //     if($employee_mta){
+    //             $employee_approver = EmployeeApprover::where('user_id', $employee_mta->user_id)
+    //                                                 ->where('approver_id', auth()->user()->id)
+    //                                                 ->first();
+                
+    //             $total_approvers = EmployeeApprover::where('user_id', $employee_mta->user_id)->count();
+                
+    //             if($employee_approver->as_final == 'on' || $total_approvers == 1){
+    //                 EmployeeMta::Where('id', $id)->update([
+    //                     'approved_date' => date('Y-m-d'),
+    //                     'status' => 'Approved',
+    //                     'approval_remarks' => $request->approval_remarks,
+    //                     'approved_by' => auth()->user()->id,
+    //                     'level' => 1,
+    //                 ]);
+    //                 $employee_data = EmployeeMta::with('employee')->findOrfail($id);                               
+    //             } else {
+    //                 EmployeeMta::Where('id', $id)->update([
+    //                     'approval_remarks' => $request->approval_remarks,
+    //                     'level' => $employee_approver->level+1,
+    //                 ]);
+    //             }
+            
+    //         Alert::success('Monetized Transportation Allowance has been approved.')->persistent('Dismiss');
+    //         return back();
+    //     }
+    // }
+    public function approveMta(Request $request, $id)
+    {
+        $employee_mta = EmployeeMta::find($id);
+
+        if (!$employee_mta) {
+            Alert::error('Monetized Transportation Allowance not found.')->persistent('Dismiss');
+            return back();
+        }
+
+        $current_user = auth()->user();
+
+
+        $is_mta_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'mta')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_mta_approver) {
+            Alert::error('You do not have permission to approve MTA requests.')->persistent('Dismiss');
+            return back();
+        }
+
+        $employee_mta->approved_date = now();
+        $employee_mta->status = 'Approved';
+        $employee_mta->payment_status = 'Approved';
+        $employee_mta->approval_remarks = $request->approval_remarks;
+        $employee_mta->approved_by = $current_user->id;
+        $employee_mta->save();
+
+        try {
+            if ($employee_mta->user && $employee_mta->user->email) {
+                Mail::to($employee_mta->user->email)
+                    ->send(new MtaApprovedNotification($employee_mta, $current_user));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to send MTA approval email: ' . $e->getMessage());
+        }
+
+        Alert::success('Monetized Transportation Allowance has been approved.')->persistent('Dismiss');
+        return back();
+    }
+
+    // public function declineMta(Request $request,$id){
+    //     EmployeeMta::Where('id', $id)->update([
+    //                     'status' => 'Declined',
+    //                     'approval_remarks' => $request->approval_remarks,
+    //                 ]);
+    //     Alert::success('Monetized Transportation Allowance has been declined.')->persistent('Dismiss');
+    //     return back();
+    // }
+
+    // public function approveMtaAll(Request $request)
+    // {
+    //     $ids = json_decode($request->ids,true);
+    //     $count = 0;
+    //     if(count($ids) > 0){
+    //         foreach($ids as $id){
+    //             $employee_mta = EmployeeMta::with('employee')->where('id', $id)->first();
+    //             if($employee_mta){
+    //                 $level = '';
+    //                 $employee_approver = EmployeeApprover::where('user_id', $employee_mta->user_id)->where('approver_id', auth()->user()->id)->first();
+    //                 if($employee_approver->as_final == 'on'){
+    //                     $employee = Employee::where('user_id',$employee_mta->user_id)->first();
+                        
+    //                     EmployeeMta::Where('id', $id)->update([
+    //                         'approved_date' => date('Y-m-d'),
+    //                         'status' => 'Approved',
+    //                         'approval_remarks' => 'Approved',
+    //                         'level' => 1,
+    //                     ]);
+    //                     $count++;
+    //                 }else{
+    //                     EmployeeMta::Where('id', $id)->update([
+    //                         'approval_remarks' => 'Approved',
+    //                         'level' => $employee_mta->level+1
+    //                     ]);
+    //                     $count++;
+    //                 }
+    //             }
+    //         }
+    //         return $count;
+
+    //     }else{
+    //         return 'error';
+    //     }
+    // }
+
+    // public function disapproveMtaAll(Request $request){
+        
+    //     $ids = json_decode($request->ids,true);
+
+    //     $count = 0;
+    //     if(count($ids) > 0){
+            
+    //         foreach($ids as $id){
+    //             EmployeeMta::Where('id', $id)->update([
+    //                 'status' => 'Declined',
+    //                 'approval_remarks' => 'Declined',
+    //             ]);
+
+    //             $count++;
+    //         }
+
+    //         return $count;
+
+    //     }else{
+    //         return 'error';
+    //     }
+    // }
+
+    public function declineMta(Request $request, $id)
+    {
+        $employee_mta = EmployeeMta::with('user')->find($id);
+
+        if (!$employee_mta) {
+            Alert::error('Monetized Transportation Allowance not found.')->persistent('Dismiss');
+            return back();
+        }
+
+        $current_user = auth()->user();
+
+        $is_mta_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'mta')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_mta_approver) {
+            Alert::error('You do not have permission to decline Monetized Transportation Allowance requests.')->persistent('Dismiss');
+            return back();
+        }
+
+        $employee_mta->approved_date = now();
+        $employee_mta->status = 'Declined';
+        $employee_mta->approval_remarks = $request->approval_remarks;
+        $employee_mta->approved_by = $current_user->id;
+        $employee_mta->save();
+
+        try {
+            if ($employee_mta->user && $employee_mta->user->email) {
+                Mail::to($employee_mta->user->email)
+                    ->send(new MtaDeclinedNotification($employee_mta, $current_user));
+            }
+        } catch (\Exception $e) {
+                \Log::error('Failed to send MTA decline email: ' . $e->getMessage());
+        }
+
+        Alert::success('Monetized Transportation Allowance Request has been declined.')->persistent('Dismiss');
+        return back();
+    }
+
+    public function approveMtaAll(Request $request)
+    {
+        $current_user = auth()->user();
+
+        $is_mta_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'mta')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_mta_approver) {
+            return response()->json(['error' => 'You do not have permission to bulk-approve Monetized Transportation Allowance requests.'], 403);
+        }
+
+        $ids = json_decode($request->ids, true);
+        $count = 0;
+        $approver_id = $current_user->id;
+
+        if (!empty($ids)) {
+            foreach ($ids as $id) {
+                $employee_mta = EmployeeMta::find($id);
+
+                if ($employee_mta) {
+                    $employee_mta->update([
+                        'approved_date' => now(),
+                        'status' => 'Approved',
+                        'payment_status' => 'Approved',
+                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Approved',
+                        'approved_by' => $approver_id
+                    ]);
+                    $count++;
+                }
+            }
+
+            return $count;
+        }
+
+        return 'error';
+    }
+
+    public function disapproveMtaAll(Request $request)
+    {
+        $current_user = auth()->user();
+
+        $is_mta_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'mta')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_mta_approver) {
+            return response()->json(['error' => 'You do not have permission to bulk-decline Monetized Transportation Allowance requests.'], 403);
+        }
+
+        $ids = json_decode($request->ids, true);
+        $count = 0;
+        $approver_id = $current_user->id;
+
+        if (!empty($ids)) {
+            foreach ($ids as $id) {
+                $employee_mta = EmployeeMta::find($id);
+
+                if ($employee_mta) {
+                    $employee_mta->update([
+                        'approved_date' => now(),
+                        'status' => 'Declined',
+                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Declined',
+                        'approved_by' => $approver_id
+                    ]);
+                    $count++;
+                }
+            }
+
+            return $count;
+        }
+
+        return 'error';
+    }    
 }

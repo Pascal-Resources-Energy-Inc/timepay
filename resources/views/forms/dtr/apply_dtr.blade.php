@@ -1,10 +1,10 @@
 <!-- Modal -->
 <div class="modal fade" id="dtrc" tabindex="-1" role="dialog" aria-labelledby="dtrdata" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
+    <div class="modal-content border-0">
       <div class="modal-header">
         <h5 class="modal-title" id="dtrdata">Apply DTR Correction</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="btn-close btn-danger" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -42,9 +42,25 @@
               <option value="Both">Both Time-In and Time-Out</option>                                    
               <option value="Time-in">Time-in Only</option>
               <option value="Time-out">Time-out Only</option>
-          </select>
+            </select>
            </div>            
           </div>           
+          <div class="form-group row">
+            <div class='col-md-2'>
+              Adjustment Type
+            </div>
+            <div class='col-md-10'>
+              <select class="form-control" name='adjustment_type' required>
+                <option value="">-- Select Adjustment Type --</option>
+                @foreach(\App\EmployeeDtr::adjustmentTypes() as $adjustment_type => $impact)
+                  <option value="{{ $adjustment_type }}">{{ $adjustment_type }} - {{ $impact }}</option>
+                @endforeach
+              </select>
+              <small class="text-danger">
+                Warning: Adjustment types with +/- 15 mins will automatically adjust your encoded time upon submission.
+              </small>
+            </div>
+          </div>
           <div class="form-group row" >
                 <div class='col-md-2'>
                   Time-In
@@ -80,7 +96,7 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-light border" data-dismiss="modal">Close</button>
         <button name="btnDtr" type="submit" class="btn btn-primary">Save</button>
       </div>
     </form>      
@@ -106,9 +122,9 @@
           if (this.dtr_date) {
             const obDate = new Date(this.dtr_date);
             obDate.setDate(obDate.getDate() + 1);
-            this.min_date = this.dtr_date + ' 00:00:00';
-            this.dtr_max_date = this.dtr_date + ' 23:00:00';
-            this.max_date = obDate.toISOString().split('T')[0] + ' 23:00:00';
+            this.min_date = this.dtr_date + 'T00:00';
+            this.dtr_max_date = this.dtr_date + 'T23:00';
+            this.max_date = obDate.toISOString().split('T')[0] + 'T23:00';
           }
         }
       },

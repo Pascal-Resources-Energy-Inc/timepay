@@ -102,6 +102,10 @@ class LoginController extends Controller
                 'pending_ob_count'=>$pending_ob_count,
             ]);
         }
+
+        if ($user->employee->is_new_employee) {
+            session(['show_wizard' => true]);
+        }
     }
 
 }

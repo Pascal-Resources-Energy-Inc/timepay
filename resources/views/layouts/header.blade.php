@@ -469,8 +469,8 @@
                                 <li class="nav-item "> <a class="nav-link" href="/coe-request">COE Request</a></li>
                                 <li class="nav-item "> <a class="nav-link" href="https://docs.google.com/forms/d/e/1FAIpQLSfrIUbn6qLvHLt7rYF9e4sxTCKvNGT9zESsLkQwKHSCzmcXZg/viewform" style="text-wrap: auto">TDS/MDS Employee Referral Program</a></li>
                                 <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdlOeSHBVOcAASbWkVOQpeVNbI1R36oVlEln-BctX7ekDlUnw/viewform">Incident Report Form</a></li>
-                                <!-- <li class="nav-item "> <a class="nav-link" target='_blank' href="https://form.jotform.com/232360985204051" style="text-wrap: auto">Uniform & ID Request Form</a></li> -->
-                                <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdARMLk0ncUlhtlV0DPHD9P6ZTkGx10LC72M-mTtxuTCWOnIQ/viewform?usp=send_form" style="text-wrap: auto">Mobile Device Employee Sale</a></li>
+                                <li class="nav-item "> <a class="nav-link" target='_blank' href="https://form.jotform.com/232360985204051" style="text-wrap: auto">Uniform & ID Request Form</a></li>
+                                <!-- <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdARMLk0ncUlhtlV0DPHD9P6ZTkGx10LC72M-mTtxuTCWOnIQ/viewform?usp=send_form" style="text-wrap: auto">Mobile Device Employee Sale</a></li> -->
                                 {{-- <li class="nav-item">
                                     <a class="nav-link @if (request()->is('iur*')) active @endif" href="{{ url('/iur') }}">
                                         ID & Uniform Request
@@ -1014,15 +1014,11 @@
                     @endif
                     
                     @if (checkUserPrivilege('reports_loan',auth()->user()->id) == 'yes')
-                        <li class="nav-item"> <a class="nav-link" href="{{ url('/company-loan-report') }}">Company Loan Report</a></li>
-                        <li class="nav-item"> <a class="nav-link" href="{{ url('/totalExpense-report') }}">Total Expenses</a></li>
-                        
-                        {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/system-report') }}">Online In/Out Report</a></li> --}}
-                        <li class="nav-item"><a class="nav-link" href="{{url('purchase-reports')}}">Purchase Order Report</a></li>
+                    <li class="nav-item"> <a class="nav-link" href="{{ url('/company-loan-report') }}">Company Loan Report</a></li>
                     @endif
                     {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/dtr-report') }}">DTR Reports</a></li> --}}
                     <li class="nav-item"> <a class="nav-link" href="{{ url('/totalExpense-report') }}">Total Expenses</a></li>
-
+                    
                     @if (checkUserPrivilege('payroll_view',auth()->user()->id) == 'yes')
                         <li class="nav-item"> <a class="nav-link" href="{{ url('/loan-report') }}">Deduction Report</a></li>
                         {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/company-loan-report') }}">Company Loan Report</a></li> --}}

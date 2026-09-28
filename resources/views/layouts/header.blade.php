@@ -469,8 +469,8 @@
                                 <li class="nav-item "> <a class="nav-link" href="/coe-request">COE Request</a></li>
                                 <li class="nav-item "> <a class="nav-link" href="https://docs.google.com/forms/d/e/1FAIpQLSfrIUbn6qLvHLt7rYF9e4sxTCKvNGT9zESsLkQwKHSCzmcXZg/viewform" style="text-wrap: auto">TDS/MDS Employee Referral Program</a></li>
                                 <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdlOeSHBVOcAASbWkVOQpeVNbI1R36oVlEln-BctX7ekDlUnw/viewform">Incident Report Form</a></li>
-                                <!-- <li class="nav-item "> <a class="nav-link" target='_blank' href="https://form.jotform.com/232360985204051" style="text-wrap: auto">Uniform & ID Request Form</a></li> -->
-                                <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdARMLk0ncUlhtlV0DPHD9P6ZTkGx10LC72M-mTtxuTCWOnIQ/viewform?usp=send_form" style="text-wrap: auto">Mobile Device Employee Sale</a></li>
+                                <li class="nav-item "> <a class="nav-link" target='_blank' href="https://form.jotform.com/232360985204051" style="text-wrap: auto">Uniform & ID Request Form</a></li>
+                                <!-- <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdARMLk0ncUlhtlV0DPHD9P6ZTkGx10LC72M-mTtxuTCWOnIQ/viewform?usp=send_form" style="text-wrap: auto">Mobile Device Employee Sale</a></li> -->
                                 {{-- <li class="nav-item">
                                     <a class="nav-link @if (request()->is('iur*')) active @endif" href="{{ url('/iur') }}">
                                         ID & Uniform Request
@@ -982,7 +982,7 @@
             </div>
         </li>
         @endif
-        @if (checkUserPrivilege('reports_leave',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_overtime',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_wfh',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_ob',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_loan',auth()->user()->id) == 'yes')
+        @if (checkUserPrivilege('reports_leave',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_overtime',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_wfh',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_ob',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_loan',auth()->user()->id) == 'yes' || checkUserPrivilege('reports_consent',auth()->user()->id) == 'yes')
         <li class="nav-item @if ($header == 'reports') active @endif">
             <a class="nav-link" data-toggle="collapse" href="#reports" aria-expanded="false" aria-controls="ui-basic">
                 <i class="icon-paper menu-icon"></i>
@@ -993,41 +993,42 @@
                 <ul class="nav flex-column sub-menu">
                     {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/employee-report') }}">Employees</a></li> --}}
                     @if (checkUserPrivilege('reports_leave',auth()->user()->id) == 'yes')
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/leave-report-per-employee') }}">Leave Reports Per Employee</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/leave-report-per-employee') }}">Leave Reports Per Employee</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/ne-report') }}">Number Enrollment Reports</a></li>
                     @endif
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/ne-report') }}">Number Enrollment Reports</a></li>
                     @if (checkUserPrivilege('reports_overtime',auth()->user()->id) == 'yes')
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/overtime-report') }}">Overtime Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/overtime-report') }}">Overtime Reports</a></li>
                     @endif
                     @if (checkUserPrivilege('reports_wfh',auth()->user()->id) == 'yes')
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/wfh-report') }}">WFH Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/wfh-report') }}">WFH Reports</a></li>
                     @endif
                     @if (checkUserPrivilege('reports_ob',auth()->user()->id) == 'yes')
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/ob-report') }}">OB Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/ob-report') }}">OB Reports</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{url('ob_files')}}">OB Uploaded Files</a></li>
                     @endif
                     @if (checkUserPrivilege('reports_dtr',auth()->user()->id) == 'yes')
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/dtr-report') }}">DTR Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/dtr-report') }}">DTR Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/attendance-report') }}">Attendance Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/mta-report') }}">MTA Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/ytd-report') }}">YTD</a></li>
                     @endif
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/mta-report') }}">MTA Reports</a></li>
+                    
                     @if (checkUserPrivilege('reports_loan',auth()->user()->id) == 'yes')
                     <li class="nav-item"> <a class="nav-link" href="{{ url('/company-loan-report') }}">Company Loan Report</a></li>
                     @endif
                     {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/dtr-report') }}">DTR Reports</a></li> --}}
                     <li class="nav-item"> <a class="nav-link" href="{{ url('/totalExpense-report') }}">Total Expenses</a></li>
-
+                    
                     @if (checkUserPrivilege('payroll_view',auth()->user()->id) == 'yes')
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/loan-report') }}">Deduction Report</a></li>
-                    {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/company-loan-report') }}">Company Loan Report</a></li> --}}
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/government-report') }}">Government Reports</a></li>
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/payroll-report') }}">Payroll Reports</a></li>
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/ytd-report') }}">YTD</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/loan-report') }}">Deduction Report</a></li>
+                        {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/company-loan-report') }}">Company Loan Report</a></li> --}}
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/government-report') }}">Government Reports</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/payroll-report') }}">Payroll Reports</a></li>
+                    
                     @endif
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/attendance-report') }}">Attendance Reports</a></li>
-                    {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/system-report') }}">Online In/Out Report</a></li> --}}
-                    <li class="nav-item"><a class="nav-link" href="{{url('ob_files')}}">OB Uploaded Files</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{url('purchase-reports')}}">Purchase Order Report</a></li>
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/ne-report') }}">Number Enrollment Reports</a></li>
-                    <li class="nav-item"> <a class="nav-link" href="{{ url('/consent-report') }}">Consent Reports</a></li>
+                    @if (checkUserPrivilege('reports_consent',auth()->user()->id) == 'yes')
+                        <li class="nav-item"> <a class="nav-link" href="{{ url('/consent-report') }}">Consent Reports</a></li>
+                    @endif
                 </ul>
             </div>
         </li>

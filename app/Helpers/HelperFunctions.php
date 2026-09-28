@@ -12,6 +12,7 @@ use App\EmployeeLeaveCredit;
 use App\Holiday;
 use App\Attendance;
 use App\DailySchedule;
+use App\EmployeeApprover;
 use App\EmployeeOvertime;
 use App\EmployeeWfh;
 use App\EmployeeOb;
@@ -1039,6 +1040,22 @@ function getEmployeeHierarchy($userId)
     return $datas;
 }
 
+// recursive func to get all the approver chain
+function getAllChainApprovers($approverId, &$result = []) {
+
+    $directUserIds = EmployeeApprover::where('approver_id', $approverId)
+        ->pluck('user_id')
+        ->toArray();
+
+    foreach ($directUserIds as $userId) {
+        $result[] = $userId;
+
+        getAllChainApprovers($userId, $result);
+    }
+
+    return array_unique($result);
+}
+
 function processSubordinates($subordinates, &$datas)
 {
     foreach ($subordinates as $under) {
@@ -1109,7 +1126,9 @@ function documentTypes() {
     '13' => "Child's Birth Certificate",
     '14' => 'Certificate of Employment',
     '15' => 'BIR 2316',
-    '16' => 'Medical Examination'
+    '16' => 'Medical Examination',
+    '17' => 'Separation Letter',
+    '18' => '201 File (Compiled)'
   );
 
   return $documentTypes;
@@ -1261,19 +1280,14 @@ function pending_pd_count($approver_id) {
 }
 
 function pending_coe_count($approver_id){
+    $is_coe_approver = \App\ApproverSetting::where('user_id', $approver_id)
+        ->where('type_of_form', 'coe')
+        ->where('status', 'Active')
+        ->exists();
 
-    $today = date('Y-m-d');
-    $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
-    $ad_date = date('Y-m-d');
+    if (!$is_coe_approver) return 0;
 
-    return EmployeeCoe::select('user_id')->with('approver.approver_info')
-                                ->whereHas('approver',function($q) use($approver_id) {
-                                    $q->where('approver_id',$approver_id);
-                                })
-                                ->where('status','Pending')
-                                // ->whereDate('created_at','>=',$from_date)
-                                // ->whereDate('created_at','<=',$to_date)
-                                ->count();
+    return EmployeeCoe::where('status', 'Pending')->count();
 }
 
 function pending_uir_count($approver_id){
@@ -1282,7 +1296,7 @@ function pending_uir_count($approver_id){
     $from_date = date('Y-m-d',(strtotime ( '-1 month' , strtotime ( $today) ) ));
     $ad_date = date('Y-m-d');
 
-    return IUR::select('user_id')->where('status','In Progress')
+    return IUR::select('user_id')->where('status','Pending')
                                 // ->whereDate('created_at','>=',$from_date)
                                 // ->whereDate('created_at','<=',$to_date)
                                 ->count();
@@ -1506,4 +1520,121 @@ function isOrderExpired($createdAt) {
     $expiresAt = addBusinessDays($created, 3);
     $now = new \DateTime();
     return $now > $expiresAt;
+}
+
+// Borrowing Marketing Collateral
+function pending_bmc_count($approver_id) {
+    $is_bmc_approver = \App\ApproverSetting::where('user_id', $approver_id)
+        ->where('type_of_form', 'bmc')
+        ->where('status', 'Active')
+        ->exists();
+
+    if (!$is_bmc_approver) return 0;
+
+    return \App\MarketingCollateralBorrowing::where('status', 'For Approval')->count();
+}
+
+// Layout Design Request
+function pending_layout_design_count($approver_id) {
+    $is_approver = \App\ApproverSetting::where('user_id', $approver_id)
+        ->where('type_of_form', 'ldr')
+        ->where('status', 'Active')
+        ->exists();
+
+    if (!$is_approver) return 0;
+
+    return \App\LayoutDesign::where('status', 'For Approval')->count();
+}
+
+// publication request
+function pending_publication_request($approver_id) {
+    $is_approver = \App\ApproverSetting::where('user_id', $approver_id)
+       ->where('type_of_form', 'pr')
+        ->where('status', 'Active')
+        ->exists();
+
+    if (!$is_approver) return 0;
+
+    $user = \App\User::find($approver_id);
+
+    if (!$user) return 0;
+
+    $statuses = app(\App\Services\PublicationRequestWorkflowService::class)
+        ->pendingStatusesFor($user);
+
+    if (empty($statuses)) return 0;
+
+    return \App\PublicationRequest::whereIn('status', $statuses)->count();
+}
+
+// counts for released but unprinted IDs
+function released_unprinted_iur_count($approver_id) {
+    $isApprover = \App\ApproverSetting::where('user_id', $approver_id)
+        ->where('type_of_form', 'uir')
+        ->where('status', 'Active')
+        ->exists();
+
+    if (!$isApprover) {
+        return 0;
+    }
+
+    $user = \App\User::with('employee')->find($approver_id);
+
+    if (!$user || !$user->employee) {
+        return 0;
+    }
+
+    $approverLocation = $user->employee->location ?? '';
+
+    $handlesPlant = str_contains($approverLocation, 'Plant');
+
+    $query = \App\IUR::whereIn('request_for', ['ID', 'Both'])
+        ->whereNull('id_printed_at')
+        ->whereHas('accountabilities', function ($query) {
+            $query->where('released_id', 1);
+        });
+
+    if ($handlesPlant) {
+        $query->where('work_location', 'Plant');
+    } else {
+        $query->where('work_location', '!=', 'Lubao');
+    }
+
+    return $query->count();
+}
+
+// counts printed IDs that have not yet been released
+function printed_unreleased_iur_count($approver_id) {
+    $isApprover = \App\ApproverSetting::where('user_id', $approver_id)
+        ->where('type_of_form', 'uir')
+        ->where('status', 'Active')
+        ->exists();
+
+    if (!$isApprover) {
+        return 0;
+    }
+
+    $user = \App\User::with('employee')->find($approver_id);
+
+    if (!$user || !$user->employee) {
+        return 0;
+    }
+
+    $approverLocation = $user->employee->location ?? '';
+
+    $handlesPlant = str_contains($approverLocation, 'Plant');
+
+    $query = \App\IUR::whereIn('request_for', ['ID', 'Both'])
+        ->whereNotNull('id_printed_at')
+        ->whereDoesntHave('accountabilities', function ($query) {
+            $query->where('released_id', 1);
+        });
+
+    if ($handlesPlant) {
+        $query->where('work_location', 'Plant');
+    } else {
+        $query->where('work_location', '!=', 'Lubao');
+    }
+
+    return $query->count();
 }

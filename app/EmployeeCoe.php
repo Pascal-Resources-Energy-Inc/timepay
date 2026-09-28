@@ -29,7 +29,43 @@ class EmployeeCoe extends Model implements Auditable
     public function employee()
     {
         return $this->belongsTo(Employee::class,'user_id','user_id');
-    }  
+    }
+
+    public function getSalutationAttribute() {
+        $gender = null;
+        $marital = null;
+
+        if ($this->user && $this->user->employee) {
+            $gender = strtolower(trim($this->user->employee->gender ?? ''));
+            $marital = strtolower(trim($this->user->employee->marital_status ?? ''));
+        } elseif ($this->gender) {
+            $gender = strtolower(trim($this->gender));
+            $marital = strtolower(trim($this->marital_status ?? ''));
+        } elseif (!$this->user) {
+            $match = \App\Employee::whereRaw(
+                "CONCAT(first_name, ' ', last_name) = ?",
+                [$this->first_name . ' ' . $this->last_name]
+            )->first(['gender', 'marital_status']);
+            if ($match) {
+                $gender = strtolower(trim($match->gender ?? ''));
+                $marital = strtolower(trim($match->marital_status ?? ''));
+            }
+        }
+    
+        if (empty($gender)) {
+            return '';
+        }
+
+        if ($gender === 'male') {
+            return 'Mr. ';
+        }
+
+        return ($marital === 'married') ? 'Mrs. ' : 'Ms. ';
+    }
+
+    public function getAttachmentUrlAttribute() {
+        return $this->attachment ? asset($this->attachment) : null;
+    }
 
     public function schedule()
     {

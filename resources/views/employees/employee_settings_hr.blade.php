@@ -1498,7 +1498,7 @@
                                                 <p>I was given opportunity to ask question to clarify my queries and I know whom to contact for any further clarification I might have in the future.</p>
                                                 <hr>
                                                 <p class="text-center"><b>ACKNOWLEDGEMENT - ATKP</b></p>
-                                                <p>I hereby acknowledge having received, read and understood the Company's "ATTENDANCE AND TIMEKEEPING POLICY & PROCEUDRES." I am aware that any violation on my part of any of the provision as stated in the said policy may subject me to disciplinary action, which can include suspension or termination of employment, as prescribed in our Employee Handbook.</p>
+                                                <p>I hereby acknowledge having received, read and understood the Company's "ATTENDANCE AND TIMEKEEPING POLICY & PROCEDURES." I am aware that any violation on my part of any of the provision as stated in the said policy may subject me to disciplinary action, which can include suspension or termination of employment, as prescribed in our Employee Handbook.</p>
                                                 <div class="col-md-12">
                                                     {{-- <div class="form-check">
                                                         <input class="form-check-input" type="radio" name="atkp"

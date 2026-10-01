@@ -102,7 +102,7 @@
                         <h5><b>ATTENDANCE & TIMEKEEPING POLICIES & PROCEDURES</b></h5>
                         <hr>
                         <p>The Company has explained this in detail during the New Employee Orientation which I am in attendance.</p>
-                        <p>I was given opportunity to ask question to clarify my quries and I know whom to contact for any further clarification I might have in the future.</p>
+                        <p>I was given opportunity to ask question to clarify my queries and I know whom to contact for any further clarification I might have in the future.</p>
                         <p class="text-center"><b>ACKNOWLEDGEMENT - ATKP</b></p>
                         <p>I hereby acknowledge having received, read and understood the Company's "ATTENDANCE AND TIMEKEEPING POLICY & PROCEDURES." I am aware that any violation on my part of any of the provision as stated in the said policy may subject me to disciplinary action, which can include suspension or termination of employment, as prescribed in our Employee Handbook.</p>
                         <div class="col-md-12">

@@ -20,7 +20,7 @@
                         <p>Employees are required to strictly abide to the guidelines listed below. In the event that any employee is found violating any of these guidelines, appropriate disciplinary action as prescribed in the Company's Employee Handbook, including suspension and termination, will be imposed.</p>
                         <p class="ml-3">1. All Employees are strictly prohibited to use, sell, or possess alcohol or illegal and/or regulated drugs in the Company premises or while in the performance of their respective duties. The prohibition is likewise applicable during Company-related and/or sponsored activity such as, but not limited to, sports and recreational events, excursions and parties.</p>
                         <p class="ml-3">2. Any employees found to be under the influence of illegal drugs or alcohol shall be ordered to leave the Company premises immediately, or desist from continuing in the performance of his functions, in case he is outside the Company premises.</p>
-                        <p class="ml-3">3. Where appropriate, testing will be conzducted to determine the presence of illegal drugs and alcohol use.</p>
+                        <p class="ml-3">3. Where appropriate, testing will be conducted to determine the presence of illegal drugs and alcohol use.</p>
                         <p class="ml-3">4. The Company reserves the right to conduct inspections, searches, and seizures of an employee or his personal belongings when on the job or in other Company premises when appropriate under the circumstances. This shall be done as a means of enforcing the provision.</p>
                         <p class="ml-3">5. In the event that any visitor or employee of other companies doing business with the Company is found to be in violation of this policy, he will be refused entry or immediately removed from the Company premises.</p>
                         <p class="text-center"><b>ACKNOWLEDGEMENT - DABP</b></p>
@@ -104,7 +104,7 @@
                         <p>The Company has explained this in detail during the New Employee Orientation which I am in attendance.</p>
                         <p>I was given opportunity to ask question to clarify my quries and I know whom to contact for any further clarification I might have in the future.</p>
                         <p class="text-center"><b>ACKNOWLEDGEMENT - ATKP</b></p>
-                        <p>I hereby acknowledge having received, read and understood the Company's "ATTENDANCE AND TIMEKEEPING POLICY & PROCEUDRES." I am aware that any violation on my part of any of the provision as stated in the said policy may subject me to disciplinary action, which can include suspension or termination of employment, as prescribed in our Employee Handbook.</p>
+                        <p>I hereby acknowledge having received, read and understood the Company's "ATTENDANCE AND TIMEKEEPING POLICY & PROCEDURES." I am aware that any violation on my part of any of the provision as stated in the said policy may subject me to disciplinary action, which can include suspension or termination of employment, as prescribed in our Employee Handbook.</p>
                         <div class="col-md-12">
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="atkp" value="Yes, I understand and agree on this." id="atkpRadios1" required {{ old('atkp', auth()->user()->atkp) === 'Yes, I understand and agree on this.' ? 'checked' : '' }}>
@@ -126,7 +126,7 @@
                         <h5><b>CODE OF CONDUCT</b></h5>
                         <hr>
                         <p>The Company has explained this in detail during the New Employee Orientation which I am in attendance.</p>
-                        <p>I was given opportunity to ask question to clarify my quries and I know whom to contact for any further clarification I might have in the future.</p>
+                        <p>I was given opportunity to ask question to clarify my queries and I know whom to contact for any further clarification I might have in the future.</p>
                         <p class="text-center"><b>ACKNOWLEDGEMENT - COC</b></p>
                         <p>I hereby acknowledge having received, read and understood the Company's "CODE OF CONDUCT". I am aware that have the right to access our Company's Employee Handbook.</p>
                         <div class="col-md-12">

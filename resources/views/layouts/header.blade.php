@@ -43,9 +43,9 @@
     <script src="{{asset('assets/vue2.7.14.js')}}"></script>
     <script src="{{asset('assets/axios.min.js')}}"></script>
     <script src="{{asset('assets/jquery-3.6.0.min.js')}}"></script>
-    
+
     <script src="{{asset('js/orgchart.js') }}"></script>
-    
+
     <style>
         .loader {
             position: fixed;
@@ -57,7 +57,7 @@
             background: url("{{ asset('login_css/images/loader.gif') }}") 50% 50% no-repeat white;
             opacity: .8;
             background-size: 120px 120px;
-        }   
+        }
 
         .redbox1 {
             background-color: lightgrey;
@@ -270,7 +270,7 @@
             margin: 15px 0 5px 0;
             padding: 0 1rem;
         }
-        
+
         .sidebar.sidebar-offcanvas.minimized .nav li h5,
         .sidebar-icon-only .nav li h5 {
             font-size: 7px !important;
@@ -279,7 +279,7 @@
             text-align: center !important;
             line-height: 1.2 !important;
         }
-        
+
         .modal-header {
             background: linear-gradient(135deg, #54abe6ff 0%, #3498DB 100%);
             color: white;
@@ -287,7 +287,7 @@
         }
 
         #preloaderHera {
-            background-color: white; 
+            background-color: white;
             width: 100%;
             height: 100%;
             /* Center the logo vertically and horizontally */
@@ -328,7 +328,7 @@
         </div>
     </div>
 
-    @if(auth()->check() && auth()->user()->is_setup_complete != 1)
+    @if(auth()->check() && auth()->user()->is_setup_complete != 1 || empty(auth()->user()->pseah) || empty(auth()->user()->cpc))
         @include('dashboards.employee_wizard')
     @endif
     <div class="container-scroller">
@@ -382,12 +382,12 @@
             <!-- partial:partials/_sidebar.html -->
             <nav class="sidebar sidebar-offcanvas" id="sidebar">
                 <ul class="nav">
-                    
+
                     @if(auth()->user()->employee->status != "Inactive")
                     <li class="nav-item @if ($header == 'account-setting') active @endif">
                         <a class="nav-link" href="{{ url('/account-setting') }}" onclick='show()'>
                             <i class="ti-settings menu-icon"></i>
-                            <span class="menu-title">{{auth()->user()->employee->first_name . ' ' . auth()->user()->employee->last_name}}</span>   
+                            <span class="menu-title">{{auth()->user()->employee->first_name . ' ' . auth()->user()->employee->last_name}}</span>
                         </a>
                     </li>
                     @endif
@@ -395,7 +395,7 @@
                     <li class="nav-item">
                         <hr>
                         <h5>As Resignee</h5>
-                        
+
                     </li>
                     <li class="nav-item @if ($header == 'my-clearance') active @endif">
                         <a class="nav-link" href="{{ url('/my-clearance') }}" onclick='show()'>
@@ -415,7 +415,7 @@
                             <span class="menu-title">Dashboard</span>
                         </a>
                     </li>
-                    
+
                     <li class="nav-item @if ($header == 'attendances') active @endif">
                         <a class="nav-link" href="{{ url('/attendances') }}" onclick='show()'>
                             <i class="icon-watch menu-icon"></i>
@@ -449,11 +449,25 @@
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> -->
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/231380935515052">Authority to Deduct</a></li>
+                                @if(
+                                    auth()->check() &&
+                                    auth()->user()->employee &&
+                                    auth()->user()->employee->employeeDocuments()
+                                        ->where('document_type', 17)
+                                        ->whereNotNull('file_path')
+                                        ->exists()
+                                )
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ url('/exit-interviews') }}">
+                                            Exit Interview
+                                        </a>
+                                    </li>
+                                @endif
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/authority-deduct') }}">Authority to Deduct</a></li> -->
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242770633900050">Number Enrollment </a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/number-enrollment') }}">Number Enrollment </a></li> -->
-                                <li class="nav-item "> <a class="nav-link" target='_blank' href="https://form.jotform.com/232350967124051">COE Request</a></li>
-                                <li class="nav-item "> <a class="nav-link" href="https://docs.google.com/forms/d/e/1FAIpQLSfrIUbn6qLvHLt7rYF9e4sxTCKvNGT9zESsLkQwKHSCzmcXZg/viewform" style="text-wrap: auto">TDS/MDS Employee Referral Program</a></li> 
+                                <li class="nav-item "> <a class="nav-link" href="/coe-request">COE Request</a></li>
+                                <li class="nav-item "> <a class="nav-link" href="https://docs.google.com/forms/d/e/1FAIpQLSfrIUbn6qLvHLt7rYF9e4sxTCKvNGT9zESsLkQwKHSCzmcXZg/viewform" style="text-wrap: auto">TDS/MDS Employee Referral Program</a></li>
                                 <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdlOeSHBVOcAASbWkVOQpeVNbI1R36oVlEln-BctX7ekDlUnw/viewform">Incident Report Form</a></li>
                                 <li class="nav-item "> <a class="nav-link" target='_blank' href="https://form.jotform.com/232360985204051" style="text-wrap: auto">Uniform & ID Request Form</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdARMLk0ncUlhtlV0DPHD9P6ZTkGx10LC72M-mTtxuTCWOnIQ/viewform?usp=send_form" style="text-wrap: auto">Mobile Device Employee Sale</a></li> -->
@@ -471,7 +485,7 @@
                             <span class="menu-title">Employee</span>
                             <i class="menu-arrow"></i>
                         </a>
-                        
+
                         <div class="collapse" id="hrReport">
                             <ul class="nav flex-column sub-menu">
                             <li class="nav-item"> <a class="nav-link" href="{{url('nte-reports')}}">NTE Upload</a></li>
@@ -535,8 +549,30 @@
                             </a>
                         </li>
                     @endif
-                    
-                    @if ( auth()->user()->employee_under->count())
+
+                    @php $isBmcApprover = \App\ApproverSetting::where('user_id', auth()->user()->id)
+                        ->where('type_of_form', 'bmc')
+                        ->where('status', 'Active')
+                        ->exists();
+                    @endphp
+
+                    @php $isPublicationRequestApprover = \App\ApproverSetting::where('user_id', auth()->user()->id)
+                        ->where('type_of_form', 'pr')
+                        ->where('status', 'Active')
+                        ->exists();
+                    @endphp
+
+                    @php $isLdrApprover = \App\ApproverSetting::where('user_id', auth()->user()->id)
+                        ->where('type_of_form', 'ldr')
+                        ->where('status', 'Active')
+                        ->exists();
+                    @endphp
+
+                    @if (auth()->user()->employee_under->count() 
+                        || $isBmcApprover
+                        || $isPublicationRequestApprover
+                        || $isLdrApprover
+                    )
                     <li class="nav-item">
                         <hr>
                         <h5>Manager</h5>
@@ -544,12 +580,46 @@
                     <li class="nav-item @if ($header == 'for-approval') active @endif">
                         <a class="nav-link" data-toggle="collapse" href="#for-approval" aria-expanded="false" aria-controls="ui-basic">
                             <i class="icon-check menu-icon"></i>
-                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id) + pending_overtime_count(auth()->user()->id) + pending_to_count(auth()->user()->id) +pending_dtr_correction(auth()->user()->id) + pending_mta_correction(auth()->user()->id) }}</span></span>
+                            <span class="menu-title">
+                                For Approval 
+                                <span class="badge badge-warning">
+                                {{ 
+                                    pending_leave_count(auth()->user()->id) 
+                                    + pending_overtime_count(auth()->user()->id) 
+                                    + pending_to_count(auth()->user()->id) 
+                                    + pending_dtr_correction(auth()->user()->id) 
+                                    + pending_mta_correction(auth()->user()->id) 
+                                    + pending_bmc_count(auth()->user()->id) 
+                                    + pending_publication_request(auth()->user()->id) 
+                                    + pending_layout_design_count(auth()->user()->id) 
+                                }}
+                                </span>
+                            </span>
                             <i class="menu-arrow"></i>
                         </a>
                         <div class="collapse @if ($header == 'for-approval') show @endif" id="for-approval">
                             <ul class="nav flex-column sub-menu @if ($header == 'for-approval') show @endif">
                                 <li class="nav-item "><a class="nav-link active" href="{{ url('/for-leave') }}">Leave <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id) }}</span></a></li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link " href="{{ url('/bmc-approval') }}" style="text-wrap: auto;">
+                                        Borrowing Marketing Collateral 
+                                        <span class="badge badge-warning">{{ pending_bmc_count(auth()->user()->id) }}</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link " href="{{ url('/publication-approval') }}" style="text-wrap: auto;">
+                                        Publication Request 
+                                        <span class="badge badge-warning">{{ pending_publication_request(auth()->user()->id) }}</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link " href="{{ url('/ldr-approval') }}" style="text-wrap: auto;">
+                                        Layout Design Request 
+                                        <span class="badge badge-warning">{{ pending_layout_design_count(auth()->user()->id) }}</span>
+                                    </a>
+                                </li>
+
                                 <!-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-overtime') }}">Overtime <span class="badge badge-warning">{{ pending_overtime_count(auth()->user()->id) }}</span></a></li> -->
                                 <li class="nav-item "><a class="nav-link " href="{{ url('/travel-orderManager') }}">Travel Order <span class="badge badge-warning">{{ pending_to_count(auth()->user()->id) }}</span></a></li>
                                 {{-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-work-from-home') }}">Work From Home <span class="badge badge-warning">{{ session('pending_wfh_count') }}</span></a></li> --}}
@@ -593,12 +663,18 @@
                         </li>
                     @endif
                     @php
+                        $is_ot_approver = \App\ApproverSetting::where('user_id', auth()->user()->id)
+                                        ->where('type_of_form', 'ot')
+                                        ->where('status', 'Active')
+                                        ->exists();
+                    @endphp
+                    @php
                         $is_coe_approver = \App\ApproverSetting::where('user_id', auth()->user()->id)
                                         ->whereIn('type_of_form', ['coe', 'uir'])
                                         ->where('status', 'Active')
                                         ->exists();
                     @endphp
-                    @if ($is_coe_approver)
+                    @if ($is_coe_approver || $is_ot_approver)
                     <li class="nav-item">
                         <hr>
                         <h5>Request Approval</h5>
@@ -606,12 +682,15 @@
                     <li class="nav-item @if ($header == 'for-approval_coe') active @endif">
                         <a class="nav-link" data-toggle="collapse" href="#for-approval_coe" aria-expanded="@if ($header == 'for_approval_coe') true @else false @endif" aria-controls="ui-basic">
                             <i class="icon-check menu-icon"></i>
-                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) +  pending_uir_count(auth()->user()->id) }}</span></span>
+                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) + pending_uir_count(auth()->user()->id) + ($is_ot_approver ? pending_overtime_count(auth()->user()->id) : 0) }}</span></span>
                             <i class="menu-arrow"></i>
                         </a>
                         <div class="collapse @if ($header == 'for-approval_coe') show @endif" id="for-approval_coe">
                             <ul class="nav flex-column sub-menu">
                                 <li class="nav-item "><a class="nav-link active" href="{{ url('/coe-approval') }}" >COE Request&nbsp;<span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) }}</span></a></li>
+                                @if ($is_ot_approver)
+                                    <li class="nav-item "><a class="nav-link" href="{{ url('/for-overtime') }}">Overtime <span class="badge badge-warning">{{ pending_overtime_count(auth()->user()->id) }}</span></a></li>
+                                @endif
                                 <li class="nav-item "><a class="nav-link active" href="{{ url('/iur-approval') }}" >ID & Uniform Request&nbsp;<span class="badge badge-warning">{{ pending_uir_count(auth()->user()->id) }}</span></a></li>
                             </ul>
                         </div>
@@ -687,13 +766,20 @@
                         <h5>Super Admin</h5>
                     </li>
 
-                   <li class="nav-item @if ($header == 'dashboard_admin') active @endif">
+                    <li class="nav-item @if ($header == 'dashboard_admin') active @endif">
                         <a class="nav-link" href="{{ url('/Admindashboard') }}" onclick='show()'>
                             <i class="icon-head menu-icon"></i>
                             <span class="menu-title">Dashboard Admin</span>
                         </a>
                     </li>
-                    
+
+                    <li class="nav-item @if ($header == 'dashboard_admin') active @endif">
+                        <a class="nav-link" href="{{ url('/exit-interviews') }}" onclick='show()'>
+                            <i class="icon-speech-bubble menu-icon"></i>
+                            <span class="menu-title">Exit Interviews</span>
+                        </a>
+                    </li>
+
                     @if (checkUserPrivilege('timekeeping_dashboard',auth()->user()->id) == 'yes')
                     {{-- @if(request()->getHost() != "hris.gazlite.com.ph") --}}
                     <li class="nav-item @if ($header == 'Timekeeping') active @endif">
@@ -722,11 +808,11 @@
                     </li>
                     @endif
 
-                    @if (checkUserPrivilege('biometrics_per_employee',auth()->user()->id) == 'yes' 
-                            || checkUserPrivilege('biometrics_per_location',auth()->user()->id) == 'yes' 
-                            || checkUserPrivilege('biometrics_per_company',auth()->user()->id) == 'yes' 
-                            || checkUserPrivilege('biometrics_per_seabased',auth()->user()->id) == 'yes' 
-                            || checkUserPrivilege('biometrics_per_hik_vision',auth()->user()->id) == 'yes' 
+                    @if (checkUserPrivilege('biometrics_per_employee',auth()->user()->id) == 'yes'
+                            || checkUserPrivilege('biometrics_per_location',auth()->user()->id) == 'yes'
+                            || checkUserPrivilege('biometrics_per_company',auth()->user()->id) == 'yes'
+                            || checkUserPrivilege('biometrics_per_seabased',auth()->user()->id) == 'yes'
+                            || checkUserPrivilege('biometrics_per_hik_vision',auth()->user()->id) == 'yes'
                             || checkUserPrivilege('biometrics_sync',auth()->user()->id) == 'yes')
                     <li class="nav-item @if ($header == 'biometrics') active @endif">
                         <a class="nav-link" data-toggle="collapse" href="#biometrics" aria-expanded="false" aria-controls="ui-basic">
@@ -787,8 +873,8 @@
                         </div>
                     </li>
                     @endif
-              
-                    
+
+
                     @if (checkUserPrivilege('payroll_view',auth()->user()->id) == 'yes')
                     @if(request()->getHost() == "hris.gazlite.com.ph")
                     <li class="nav-item @if ($header == 'Payroll') active @endif">
@@ -825,7 +911,7 @@
                     </li>
                     @endif
 
-                    
+
         @if (checkUserPrivilege('masterfiles_companies',auth()->user()->id) == 'yes' || checkUserPrivilege('masterfiles_departments',auth()->user()->id) == 'yes' || checkUserPrivilege('masterfiles_loan_types',auth()->user()->id) == 'yes' || checkUserPrivilege('masterfiles_employee_leave_credits',auth()->user()->id) == 'yes')
         <li class="nav-item @if ($header == 'masterfiles') active @endif">
             <a class="nav-link" data-toggle="collapse" href="#masterfiles" aria-expanded="false" aria-controls="ui-basic">
@@ -863,8 +949,8 @@
                     {{-- <li class="nav-item">
                         <a class="nav-link" href="{{ url('/employee-incentive') }}">Employee Incentives</a>
                     </li> --}}
-                    
-                    
+
+
                     {{-- <li class="nav-item">
                         <a class="nav-link" href="{{ url('/employee-companies') }}">Employee Groups</a>
                     </li> --}}
@@ -928,13 +1014,11 @@
                     @endif
                     
                     @if (checkUserPrivilege('reports_loan',auth()->user()->id) == 'yes')
-                        <li class="nav-item"> <a class="nav-link" href="{{ url('/company-loan-report') }}">Company Loan Report</a></li>
-                        <li class="nav-item"> <a class="nav-link" href="{{ url('/totalExpense-report') }}">Total Expenses</a></li>
-                        
-                        {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/system-report') }}">Online In/Out Report</a></li> --}}
-                        <li class="nav-item"><a class="nav-link" href="{{url('purchase-reports')}}">Purchase Order Report</a></li>
+                    <li class="nav-item"> <a class="nav-link" href="{{ url('/company-loan-report') }}">Company Loan Report</a></li>
                     @endif
                     {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/dtr-report') }}">DTR Reports</a></li> --}}
+                    <li class="nav-item"> <a class="nav-link" href="{{ url('/totalExpense-report') }}">Total Expenses</a></li>
+                    
                     @if (checkUserPrivilege('payroll_view',auth()->user()->id) == 'yes')
                         <li class="nav-item"> <a class="nav-link" href="{{ url('/loan-report') }}">Deduction Report</a></li>
                         {{-- <li class="nav-item"> <a class="nav-link" href="{{ url('/company-loan-report') }}">Company Loan Report</a></li> --}}
@@ -955,7 +1039,7 @@
             <span class="menu-title">HR Report</span>
             <i class="menu-arrow"></i>
           </a>
-          
+
           <div class="collapse" id="hrPortal">
             <ul class="nav flex-column sub-menu">
               <li class="nav-item"> <a class="nav-link" href="{{url('nte-upload')}}">NTE Upload</a></li>
@@ -968,7 +1052,7 @@
         @if (checkUserPrivilege('upload_daily_schedule',auth()->user()->id) == 'yes')
         <li class="nav-item">
           <a href="{{url('daily-schedule')}}" class="nav-link" onclick='show()'>
-            <i class="fa fa-calendar menu-icon"></i> 
+            <i class="fa fa-calendar menu-icon"></i>
             <span class="menu-title">Daily Schedule</span>
           </a>
         <li>
@@ -1052,21 +1136,21 @@
 
     {{-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.6/dist/sweetalert2.all.min.js"></script> --}}
     {{-- <script src="{{ asset('/body_css/js/form-validation.js') }}"></script>
-    
+
     <script src="{{ asset('/body_css/js/bt-maxLength.js') }}"></script> --}}
     @yield('footer')
     <script>
         var span = document.getElementById('span');
-      
+
         function time() {
         var d = new Date();
         var s = d.getSeconds();
         var m = d.getMinutes();
         var h = d.getHours();
-        span.textContent = 
+        span.textContent =
             ("0" + h).substr(-2) + ":" + ("0" + m).substr(-2) + ":" + ("0" + s).substr(-2);
         }
-      
+
         setInterval(time, 1000);
       </script>
     <script type='text/javascript'>
@@ -1109,7 +1193,7 @@
             event.preventDefault();
             document.getElementById('logout-form').submit();
         }
-        
+
         window.addEventListener('load', function() {
             document.getElementById('preloaderHera').style.display = 'none';
         });
@@ -1227,7 +1311,7 @@
             $('#validateLevel').change(function() {
                 var selectedValue = $(this).val();
                 console.log(selectedValue);
-                
+
                 if (selectedValue != '1' ) {
                     $('#isAllowedOvertime').show();
                 } else {
@@ -1237,7 +1321,7 @@
             $('#validateLevel').load(function() {
                 var selectedValue = $(this).val();
                 console.log(selectedValue);
-                
+
                 if (selectedValue != '1' ) {
                     $('#isAllowedOvertime').show();
                 } else {
@@ -1373,10 +1457,10 @@
             });
 
             $("#privacy-check").click(function() {
-                $("#privacy").attr("disabled", !this.checked); 
+                $("#privacy").attr("disabled", !this.checked);
                 if(this.checked == false) {
-                    $("#privacy").prop('checked', false); 
-                    $("#privacy").removeAttr('checked'); 
+                    $("#privacy").prop('checked', false);
+                    $("#privacy").removeAttr('checked');
                     $("#submit-btn").attr("disabled",true);
                 }
             });
@@ -1389,8 +1473,8 @@
                 $("#privacy-contact").attr("disabled", !this.checked);
 
                 if(this.checked == false) {
-                    $("#privacy-contact").prop('checked', false); 
-                    $("#privacy-contact").removeAttr('checked'); 
+                    $("#privacy-contact").prop('checked', false);
+                    $("#privacy-contact").removeAttr('checked');
                     $("#submit-contact-btn").attr("disabled",true);
                 }
 
@@ -1404,8 +1488,8 @@
                 $("#privacy-beneficiaries").attr("disabled", !this.checked);
 
                 if(this.checked == false) {
-                    $("#privacy-beneficiaries").prop('checked', false); 
-                    $("#privacy-beneficiaries").removeAttr('checked'); 
+                    $("#privacy-beneficiaries").prop('checked', false);
+                    $("#privacy-beneficiaries").removeAttr('checked');
                     $("#submit-beneficiaries-btn").attr("disabled",true);
                 }
 
@@ -1415,24 +1499,6 @@
                 $("#submit-beneficiaries-btn").attr("disabled", !this.checked);
             });
 
-           
-            // Get references to the input fields
-            var $break_hrs = $('#break_hrs');
-            var $approve_hrs = $('#approve_hrs');
-            var $total_approve_hours = $('#total_approve_hours');
-
-            // Add event listeners to the input fields
-            $break_hrs.on('keyup', calculate);
-            $approve_hrs.on('keyup', calculate);
-
-            // Define the calculate function
-            function calculate() {
-                var value_break_hrs = parseFloat($break_hrs.val()) || 0;
-                var value_approve_hrs = parseFloat($approve_hrs.val()) || 0;
-                var total_approve_hrs = value_approve_hrs - value_break_hrs;
-                $total_approve_hours.val(total_approve_hrs);
-            }
-   
 
         });
 

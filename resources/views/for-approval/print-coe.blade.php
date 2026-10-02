@@ -1,18 +1,18 @@
 <script>
-function printCertificateOfEmployment(modalId) {
-    // Get the specific modal element
-    const modal = document.getElementById(modalId);
-    if (!modal) {
-        console.error('Modal not found:', modalId);
-        return;
-    }
+    function printCertificateOfEmployment(modalId) {
+        // Get the specific modal element
+        const modal = document.getElementById(modalId);
+        if (!modal) {
+            console.error('Modal not found:', modalId);
+            return;
+        }
 
-    // Extract data from the modal
-    const formData = extractCOEFormData(modal);
-    
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
+        // Extract data from the modal
+        const formData = extractCOEFormData(modal);
 
-    const printContent = `
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+
+        const printContent = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -148,9 +148,9 @@ function printCertificateOfEmployment(modalId) {
 
         <div class="certificate-body">
             <div class="certificate-paragraph">
-                This is to certify that <span class="bold">${formData.salutation} ${formData.fullName}</span> is an employee of 
-                Pascal Resources Energy Inc. as <span class="bold">${formData.designation}</span> at <span class="bold">${formData.assignedLocation || 'Assigned'}</span> from 
-                <span class="bold">${formData.hiringDateFormatted}</span> ${formData.employmentStatus === 'Separated' ? 'to present' : 'up to present'}.
+                This is to certify that <span class="bold">${formData.fullName}</span> is currently an employee of
+                Pascal Resources Energy Inc. as <span class="bold">${formData.designation}</span> from
+                <span class="bold">${formData.hiringDateFormatted}</span> ${formData.employmentStatus === 'Separated' && formData.resignationDate ? 'to ' + formData.resignationDate : 'up to present'}.
             </div>
 
             <div class="certificate-paragraph">
@@ -159,18 +159,18 @@ function printCertificateOfEmployment(modalId) {
         </div>
 
         <div class="date-location">
-            Issued this <span class="bold">1st</span> day of <span class="bold">${formData.currentMonth} ${formData.currentYear}</span> at <span class="bold">Kapitolyo, Pasig City</span>.
+            Issued this <span class="bold">${formData.currentDay}${getOrdinalSuffix(formData.currentDay)}</span> day of <span class="bold">${formData.currentMonth} ${formData.currentYear}</span> at <span class="bold">Kapitolyo, Pasig City</span>.
         </div>
 
-        <div class="signature-section" >
-            <div class="signature-name">Matthew Par</div>
-            <div class="signature-title">VP – Marketing and Branding</div>
-            <div class="signature-contact">hr@pascalresources.com.ph</div>
-            <div>(02) 8244-1784</div>
+        <div class="signature-section">
+        <div class="signature-name">Matthew Par</div>
+        <div class="signature-title">VP – Marketing and Branding</div>
+        <div class="signature-contact">hr@pascalresources.com.ph</div>
+        <div>(02) 8244-1784</div>
         </div>
 
         <div class="reference-section">
-            Ref: «Ref_no»
+            Ref:
         </div>
 
         <div class="no-print" style="text-align: center; margin-top: 20px;">
@@ -181,114 +181,139 @@ function printCertificateOfEmployment(modalId) {
     </html>
     `;
 
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.focus();
-    
-    printWindow.onload = function() {
-        setTimeout(() => {
-            printWindow.print();
-        }, 500);
-    };
-}
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.focus();
 
-function extractCOEFormData(modal) {
-    // Helper function to get input/select/textarea value safely
-    const getValue = (selector) => {
-        const element = modal.querySelector(selector);
-        return element ? element.value : '';
-    };
+        printWindow.onload = function() {
+            setTimeout(() => {
+                printWindow.print();
+            }, 500);
+        };
+    }
 
-    // Helper function to get selected option text
-    const getSelectedOptionText = (selector) => {
-        const element = modal.querySelector(selector);
-        if (element && element.selectedOptions && element.selectedOptions.length > 0) {
-            return element.selectedOptions[0].textContent.trim();
-        }
-        return '';
-    };
+    function extractCOEFormData(modal) {
+        // Helper function to get input/select/textarea value safely
+        const getValue = (selector) => {
+            const element = modal.querySelector(selector);
+            return element ? element.value : '';
+        };
 
-    // Extract form data
-    const reasonForRequest = getValue('select[name="reason_for_request"]');
-    const employmentStatus = getValue('select[name="employment_status"]');
-    const hiringDate = getValue('input[name="hiring_date"]');
-    const designation = getValue('input[name="designation"]');
-    const firstName = getValue('input[name="first_name"]');
-    const lastName = getValue('input[name="last_name"]');
-    const purpose = getValue('textarea[name="purpose"]');
-    const receiveMethod = getValue('select[name="receive_method"]');
-    const email = getValue('input[name="email"]');
-    const additionalNotes = getValue('textarea[name="additional_notes"]');
+        // Helper function to get selected option text
+        const getSelectedOptionText = (selector) => {
+            const element = modal.querySelector(selector);
+            if (element && element.selectedOptions && element.selectedOptions.length > 0) {
+                return element.selectedOptions[0].textContent.trim();
+            }
+            return '';
+        };
 
-    // Format full name
-    const fullName = `${firstName} ${lastName}`.trim();
+        // Extract form data
+        const reasonForRequest = getValue('select[name="reason_for_request"]');
+        const employmentStatus = getValue('select[name="employment_status"]');
+        const hiringDate = getValue('input[name="hiring_date"]');
+        const designation = getValue('input[name="designation"]');
+        const firstName = getValue('input[name="first_name"]');
+        const lastName = getValue('input[name="last_name"]');
+        const purpose = getValue('textarea[name="purpose"]');
+        const receiveMethod = getValue('select[name="receive_method"]');
+        const email = getValue('input[name="email"]');
+        const additionalNotes = getValue('textarea[name="additional_notes"]');
+        const resignationDate = getValue('input[name="resignation_date"]');
+        const approverName = getValue('input[name="approver_name"]');
+        const approverSignature = getValue('input[name="approver_signature"]');
+        const approverPosition = getValue('input[name="approver_position"]');
 
-    // Format hiring date exactly as shown in template
-    const formatDate = (dateString) => {
-        if (!dateString) return '«Date_Hired»';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+
+        // Format full name
+        const fullName = `${firstName} ${lastName}`.trim();
+
+        // Format hiring date exactly as shown in template
+        const formatDate = (dateString) => {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        };
+
+        // Get current date components
+        const processedAt = getValue('input[name="processed_at"]');
+        const currentDate = processedAt ? new Date(processedAt) : new Date();
+        const currentDay = currentDate.getDate();
+        const currentMonth = currentDate.toLocaleDateString('en-US', {
+            month: 'long'
         });
-    };
+        const currentYear = currentDate.getFullYear();
 
-    // Get current date components
-    const currentDate = new Date();
-    const currentDay = currentDate.getDate();
-    const currentMonth = currentDate.toLocaleDateString('en-US', { month: 'long' });
-    const currentYear = currentDate.getFullYear();
+        // Convert employment status to display format
+        const formatEmploymentStatus = (status) => {
+            switch (status) {
+                case 'Active':
+                    return 'Still Employed';
+                case 'Separated':
+                    return 'Former Employee';
+                default:
+                    return status;
+            }
+        };
 
-    // Determine salutation (you can customize this logic)
-    const salutation = firstName.toLowerCase().includes('mr') ? 'Mr.' : 
-                      firstName.toLowerCase().includes('ms') || firstName.toLowerCase().includes('mrs') ? 'Ms.' : 
-                      '';
+        // Convert reason for request to display format
+        const formatReasonForRequest = (reason) => {
+            switch (reason) {
+                case 'Plain':
+                    return 'Plain';
+                case 'With Salary':
+                    return 'With Salary Details';
+                default:
+                    return reason;
+            }
+        };
 
-    // Convert employment status to display format
-    const formatEmploymentStatus = (status) => {
-        switch(status) {
-            case 'Active': return 'Still Employed';
-            case 'Separated': return 'Former Employee';
-            default: return status;
+        return {
+            reasonForRequest: reasonForRequest,
+            reasonForRequestDisplay: formatReasonForRequest(reasonForRequest),
+            employmentStatus: employmentStatus,
+            employmentStatusDisplay: formatEmploymentStatus(employmentStatus),
+            hiringDate: formatDate(hiringDate),
+            hiringDateFormatted: formatDate(hiringDate),
+            hiringDateRaw: hiringDate,
+            designation: designation || '«Position»',
+            firstName: firstName || '«Employee_name»',
+            lastName: lastName || '',
+            fullName: fullName || '«Employee_name»',
+            purpose: purpose || '«Purpose»',
+            receiveMethod: receiveMethod,
+            email: email,
+            additionalNotes: additionalNotes,
+            resignationDate: formatDate(resignationDate),
+            approverName: approverName || '',
+            approverSignature: approverSignature || '',
+            approverPosition: approverPosition,
+            currentDay: currentDay,
+            currentMonth: currentMonth,
+            currentYear: currentYear,
+        };
+    }
+
+    function getOrdinalSuffix(day) {
+        if (day > 3 && day < 21) return 'th';
+        switch (day % 10) {
+            case 1:
+                return 'st';
+            case 2:
+                return 'nd';
+            case 3:
+                return 'rd';
+            default:
+                return 'th';
         }
-    };
+    }
 
-    // Convert reason for request to display format
-    const formatReasonForRequest = (reason) => {
-        switch(reason) {
-            case 'Plain': return 'Plain';
-            case 'With Salary': return 'With Salary Details';
-            default: return reason;
-        }
-    };
-
-    return {
-        reasonForRequest: reasonForRequest,
-        reasonForRequestDisplay: formatReasonForRequest(reasonForRequest),
-        employmentStatus: employmentStatus,
-        employmentStatusDisplay: formatEmploymentStatus(employmentStatus),
-        hiringDate: formatDate(hiringDate),
-        hiringDateFormatted: formatDate(hiringDate),
-        hiringDateRaw: hiringDate,
-        designation: designation || '«Position»',
-        firstName: firstName || '«Employee_name»',
-        lastName: lastName || '',
-        fullName: fullName || '«Employee_name»',
-        salutation: salutation || '«Salutation»',
-        purpose: purpose || '«Purpose»',
-        receiveMethod: receiveMethod,
-        email: email,
-        additionalNotes: additionalNotes,
-        currentDay: currentDay,
-        currentMonth: currentMonth,
-        currentYear: currentYear,
-        assignedLocation: '«Assigned»' // Matching the template placeholder
-    };
-}
-
-// Function to be called from your modal print button
-function printModalContentSameWindow(modalId) {
-    printCertificateOfEmployment(modalId);
-}
+    // Function to be called from your modal print button
+    function printModalContentSameWindow(modalId) {
+        printCertificateOfEmployment(modalId);
+    }
 </script>

@@ -1,9 +1,9 @@
 <div class="modal fade" id="coe-declined-remarks-{{$coe->id}}" tabindex="-1" role="dialog" aria-labelledby="declinedCOEremarks" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <div class="modal-content">
+        <div class="modal-content border-0">
             <div class="modal-header">
-                <h5 class="modal-title" id="declinedCOEremarks">Are you sure you want to Decline this COE Request?</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <h5 class="modal-title" id="declinedCOEremarks">Decline this COE Request?</h5>
+                <button type="button" class="btn-close btn-danger" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -11,18 +11,15 @@
                 @csrf
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="badge badge-danger mt-1">Declined</h4>
-                        </div>
                         <input type="hidden" name="status" value="Declined">
                         <div class='col-md-12 form-group'>
-                            Remarks:
-                            <textarea class="form-control" name="approval_remarks" id="" cols="30" rows="5" placeholder="Input Approval Remarks"></textarea>
+                            <span>Remarks: <span class="text-danger">*</span></span>
+                            <textarea class="form-control" name="approval_remarks" id="" cols="30" rows="5" placeholder="Give valid reason for declining this request." required></textarea>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-light border" data-dismiss="modal">Close</button>
                     <button type="submit" name="btnApprove" class="btn btn-danger">Decline</button>
                 </div>
             </form>

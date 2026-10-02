@@ -19,664 +19,799 @@
     Route::get('/upload-pay-reg', 'PayslipController@uploadpayreg');
     Route::post('/upload-pay-reg', 'PayslipController@postuploadpayreg');
     Route::get('get-devices','AttendanceController@devices');
-    Route::group(['middleware' => 'auth'], function () {
-
-    Route::post('timein-capture','AttendanceController@storeTimeIn');
-    Route::post('timeout-capture','AttendanceController@storeTimeOut');
-
-    Route::get('salary-history','EmployeeController@showsalary');
-    //Users
-    Route::get('account-setting', 'UserController@accountSetting');
-    Route::post('upload-avatar', 'UserController@uploadAvatar');
-    Route::post('upload-signature', 'UserController@uploadSignature');
-    Route::get('get-salary', 'UserController@get_salary');
-    Route::post('updateInfo/{id}', 'UserController@updateInfo');
-    Route::post('updateEmpInfo/{id}', 'UserController@updateEmpInfo');
-    Route::post('updateEmpContactInfo/{id}', 'UserController@updateEmpContactInfo');
-    
-    //employees
-    Route::get('/dashboard', 'HomeController@index')->name('home');
-    Route::get('/Admindashboard', 'HomeController@dashboardAdmin')->name('Admindashboard');
-    Route::post('/edit-prob/{id}','HomeController@edit_prob');
-    Route::get('', 'HomeController@index');
-    Route::get('/', 'HomeController@index');
-    Route::get('/home', 'HomeController@index')->name('home');
-    Route::post('/upload-employee-image', [App\Http\Controllers\HomeController::class, 'uploadEmployeeImage'])->name('upload.employee.image');
-
-    Route::post('/check-location-proximity', [App\Http\Controllers\HomeController::class, 'checkUserLocationProximity'])    
-    ->name('check.location.proximity')
-    ->middleware('auth');
-    Route::post('/check-user-access', 'HomeController@checkUserAccess')->name('check.user.access');
-
-    Route::get('/dashboard/get-employees', 'HomeController@getEmployees')->name('dashboard.getEmployees');
-    Route::get('/dashboard/get-present-employees', 'HomeController@getPresentEmployees')->name('dashboard.get-present-employees');
-    Route::get('/dashboard/get-absent-employees', 'HomeController@getAbsentEmployees')->name('dashboard.get-absent-employees');
-    Route::get('/dashboard/get-late-employees', 'HomeController@getLateEmployees')->name('dashboard.get-late-employees');
-   
-    //approvers
-    Route::get('/dashboard-manager', 'HomeController@managerDashboard');
-    //admin
-    Route::get('/dashboard/filter-by-location', [\App\Http\Controllers\HomeController::class, 'filterByLocation']);
-    Route::get('/dashboard/absentees-pie', [\App\Http\Controllers\HomeController::class, 'absenteesPie']);
-    Route::get('/dashboard/absentees-monthly-pie', [\App\Http\Controllers\HomeController::class, 'absenteesMonthlyPie']);
-    Route::get('/dashboard/late-pie', [\App\Http\Controllers\HomeController::class, 'latePie']);
-
-
-    Route::get('attendances', 'AttendanceController@index');
-    Route::get('attendance-report', 'AttendanceController@reports')->name('reports');
-    Route::post('/store_attendance', 'AttendanceController@storeAttendance')->name('attendance.store');
-    Route::get('get-attendance-bio', 'AttendanceController@get_attendances');
-    Route::post('sync_attendance','AttendanceController@syncAttendance');
-    // Route::get('/fetch-log-dates/{company_id}', 'AttendanceController@checkLogDate');
-    Route::get('/fetch-disabled-dates/{company_id}', 'AttendanceController@fetchDisabledDates');
-
-    Route::get('attendance-per-company-export', 'AttendanceController@attendancePerCompanyExport');
-
-    Route::get('seabased-attendances', 'AttendanceController@seabasedAttendances');
-    Route::get('seabased-attendances-export', 'AttendanceController@attendanceSeabasedAttendnaceExport');
-    Route::post('upload-seabased-attendance', 'AttendanceController@uploadSeabasedAttendance');
-
-    Route::get('hik-attendances', 'AttendanceController@hikAttendances');
-    Route::get('hik-attendances-export', 'AttendanceController@attendanceHikAttendnaceExport');
-    Route::post('upload-hik-attendance', 'AttendanceController@uploadHikAttendance');
-
-    //Leaves
-    Route::get('file-leave', 'EmployeeLeaveController@leaveBalances');
-    Route::post('new-leave','EmployeeLeaveController@new');
-    Route::post('edit-leave/{id}', 'EmployeeLeaveController@edit_leave');
-    Route::post('hr-edit-leave/{id}', 'EmployeeLeaveController@hr_edit_leave');
-    Route::post('disable-leave/{id}', 'EmployeeLeaveController@disable_leave');
-    Route::post('request-to-cancel-leave/{id}', 'EmployeeLeaveController@request_to_cancel');
-    Route::get('void-to-cancel-leave/{id}', 'EmployeeLeaveController@void_request_to_cancel');
-    Route::get('approve-request-to-cancel-leave/{id}', 'EmployeeLeaveController@approve_request_to_cancel');
-    Route::get('decline-request-to-cancel-leave/{id}', 'EmployeeLeaveController@decline_request_to_cancel');
-    Route::post('upload-attachment/{id}', 'EmployeeLeaveController@upload_attachment');
-
-    Route::post('approve-leave-all','FormApprovalController@approveLeaveAll');
-    Route::post('disapprove-leave-all','FormApprovalController@disapproveLeaveAll');
-
-    Route::get('show','EmployeeObController@ob');
-
-    //Purchase
-    Route::get('purchase','PurchaseController@index')->name('purchase');
-    Route::post('/purchases', 'PurchaseController@store')->name('purchases.store');
-    Route::post('/purchases/{id}/approve', 'PurchaseController@approve')->name('purchases.approve');
-    Route::get('products/get','PurchaseController@getProducts')->name('products.get');
-
-    Route::get('/claim/{qr_code}', 'PurchaseController@claimPage')->name('purchase.claim');
-    Route::post('/claim/process', 'PurchaseController@processClaim')->name('purchase.processClaim');
-
-    Route::get('purchase-reports', 'PurchaseController@reports')->name('purchase.reports');
-    Route::get('/purchase/export', 'PurchaseController@export')->name('purchase.export');
-
-    //TDS
-    Route::get('/tdsModule', 'TdsController@index')->name('tds.tdsModule');
-    Route::get('/tds/create', 'TdsController@create')->name('tds.create');
-    Route::post('/tds/store', 'TdsController@store')->name('tds.store');
-    Route::get('/tds/history', 'TdsController@history')->name('tds.history');
-    Route::get('/tds/export', 'TdsController@export')->name('tds.export');
-    Route::post('/tds/update-target', 'TdsController@updateSalesTarget')->name('tds.update-target');
-    Route::get('/tds/get-employee-target', 'TdsController@getEmployeeTarget')->name('tds.get-employee-target');
-    Route::get('/tds/get-all-users', 'TdsController@getAllUsers')->name('tds.get-all-users');
-    Route::get('/tds/activity-logs', 'TdsController@getActivityLogs')->name('tds.activity-logs');
-    Route::post('/tds/get-zipcode', 'TdsController@getZipCode')->name('get.zipcode');
-
-    Route::post('/geocode-location', 'TdsController@geocodeLocation')->name('geocode.location');
-    Route::get('/tds/existing-customers', 'TdsController@getExistingCustomers')->name('tds.existing-customers');
-
-    Route::get('/tds/records', 'TdsController@allSubmissions')->name('tds.records');
-    Route::get('/tds/records/export', 'TdsController@exportRecords')->name('tds.records.export');
-
-    Route::get('/tdsdashboard', 'TdsController@dashboard')->name('tds.dashboard');
-    Route::get('/tds/employees/search', 'TdsController@getEmployees')->name('tds.employees.search');
-    Route::get('/tds/dashboard/export', 'TdsController@dashboardExport')->name('tds.dashboard.export');
-
-    Route::get('/tds/{id}', 'TdsController@show')->name('tds.show');
-    // Route::put('/tds/{id}', 'TdsController@update')->name('tds.update');
-    Route::put('/tds/{id}', 'TdsController@update');
-    Route::post('/tds/{id}/update-status', 'TdsController@updateStatus')->name('tds.update-status');
-    // Route::post('tds/update/{id}', 'TdsController@updateAmount')->name('tds.update');
-    Route::put('tds/update/{id}', 'TdsController@updateAmount')->name('tds.update');
-    Route::delete('/tds/{id}', 'TdsController@destroy')->name('tds.destroy');
-
-    Route::get('overtime','EmployeeOvertimeController@overtime');
-    //Overtime
-    Route::get('overtime','EmployeeOvertimeController@overtime');
-    Route::post('new-ot','EmployeeOvertimeController@new');
-    Route::post('new-offset','EmployeeOvertimeController@newOffSet');
-    Route::post('edit-overtime/{id}', 'EmployeeOvertimeController@edit_overtime');
-    Route::get('disable-overtime/{id}', 'EmployeeOvertimeController@disable_overtime');    
-    Route::get('check-valid-overtime', 'EmployeeOvertimeController@checkValidOvertime');
-    Route::post('upload-overtime-attachments/{id}', 'EmployeeOvertimeController@uploadOvertimeAttachments');
-
-    //Work-from-home
-    Route::get('work-from-home', 'EmployeeWfhController@wfh');
-    Route::post('new-wfh','EmployeeWfhController@new');
-    Route::post('edit-wfh/{id}','EmployeeWfhController@edit_wfh');
-    Route::get('disable-wfh/{id}','EmployeeWfhController@disable_wfh');
-    // Route::post('approve-wfh-all','FormApprovalController@approveWfhAll');
-    // Route::post('disapprove-wfh-all','FormApprovalController@disapproveWfhAll');
-
-    //travel-order
-    Route::get('travel-order', 'EmployeeTravelOrderController@to');
-    Route::post('new-to','EmployeeTravelOrderController@new');
-    Route::post('edit-to/{id}', 'EmployeeTravelOrderController@edit_to')->name('edit-to');
-    Route::post('hr-edit-to/{id}', 'EmployeeTravelOrderController@hr_edit_to');
-    Route::post('upload-to-file/{id}', 'EmployeeTravelOrderController@upload_obFile');
-    Route::get('disable-to/{id}', 'EmployeeTravelOrderController@disable_to');  
- 
-    // Route::post('/sync-actual-arrival-time/{toId}', 'EmployeeTravelOrderController@syncActualArrivalTime')->name('sync.actual.arrival.time');
-
-    //authority-deduct
-    Route::get('authority-deduct', 'EmployeeAuthorityDeductionController@ad');
-    Route::post('new-ad', 'EmployeeAuthorityDeductionController@new');
-    Route::post('new-ad-per-employee', 'EmployeeAuthorityDeductionController@newperEmployee');
-    Route::put('edit-ad/{id}', 'EmployeeAuthorityDeductionController@edit_ad')->name('edit-ad');
-    Route::get('disable-ad/{id}', 'EmployeeAuthorityDeductionController@disable_ad');  
-
-    //payroll-disbursement
-    Route::get('payroll-disbursement', 'EmployeePayrollDisbursementController@pd');
-    Route::post('new-pd', 'EmployeePayrollDisbursementController@new');
-    Route::post('edit-pd/{id}', 'EmployeePayrollDisbursementController@edit_pd')->name('edit-pd');
-    Route::get('disable-pd/{id}', 'EmployeePayrollDisbursementController@disable_pd');  
-
-
-    //number-enrollment
-    Route::get('number-enrollment', 'EmployeeNumberEnrollmentController@ne');
-    Route::post('new-ne', 'EmployeeNumberEnrollmentController@new');
-    Route::post('edit-ne/{id}', 'EmployeeNumberEnrollmentController@edit_ne')->name('edit-ne');
-    Route::get('disable-ne/{id}', 'EmployeeNumberEnrollmentController@disable_ne');  
-
-    //coe-request
-    Route::get('coe-request', 'EmployeeCoeController@coe');
-    Route::post('new-coe', 'EmployeeCoeController@new');
-    Route::post('edit-coe/{id}', 'EmployeeCoeController@edit_coe')->name('edit-coe');
-    Route::get('disable-coe/{id}', 'EmployeeCoeController@disable_coe');  
-   
-    //DTR Correction
-    Route::get('dtr-correction', 'EmployeeDtrController@dtr');
-    Route::post('new-dtr','EmployeeDtrController@new');
-    Route::post('edit-dtr/{id}', 'EmployeeDtrController@edit_dtr');
-    Route::get('disable-dtr/{id}', 'EmployeeDtrController@disable_dtr');     
-
-    // MTA
-    Route::get('mta', 'EmployeeMtaController@index');
-    Route::post('new-mta','EmployeeMtaController@store');
-    Route::post('edit-mta/{id}', 'EmployeeMtaController@update');
-    Route::get('disable-mta/{id}', 'EmployeeMtaController@cancel');     
-    Route::get('mta-process', 'EmployeeMtaController@mtaProcess');
-    Route::post('process-mta-all','EmployeeMtaController@processMtaAll');
-    Route::post('process-mta/{id}','EmployeeMtaController@processMta');
-    Route::post('processed-mta-all','EmployeeMtaController@processedMtaAll');
-    Route::post('disapproved-processed-mta-all','EmployeeMtaController@disapprovedProcessedMtaAll');
-    Route::post('processed-mta/{id}','EmployeeMtaController@processedMta');
-    // Route::post('disapproved-processed-mta{id}','EmployeeMtaController@disapprovedMta');
-    Route::post('/disapproved-processed-mta/{id}', 'EmployeeMtaController@disapprovedMta')
-    ->name('mta.disapprove');
-    
-    // Route::post('approve-mta/{id}','EmployeeMtaController@approveMta');
-    // Route::post('decline-mta/{id}','EmployeeMtaController@declineMta');
-    // Route::post('approve-mta-all','FormApprovalController@approveMtaAll');
-    // Route::post('disapprove-mta-all','FormApprovalController@disapproveMtaAll');
-
-    //Planning 
-    Route::get('planning', 'EmployeePlanningController@index');
-    Route::post('/planning/import', 'EmployeePlanningController@import')->name('planning.import');
-    // Route::post('/planning/upload-files', 'HomeController@uploadFiles')->name('planning.upload-files');
-    // Route::post('/planning/upload-files', 'EmployeePlanningController@uploadFiles')->name('planning.upload-files');
-    Route::get('/planning/{id}/files', 'HomeController@getFiles')->name('planning.get-files');
-    Route::get('/disable-planning/{id}', 'EmployeePlanningController@disablePlanning')->name('planning.disable');
-
-    // ID & Uniform Request
-    Route::get('iur', 'IurController@index');
-    Route::get('/iur/create', 'IurController@create')->name('iur.create');
-    Route::post('/iur/store', 'IurController@store')->name('iur.store');
-    Route::get('/iur/{id}/edit', 'IURController@edit')->name('iur.edit');
-    Route::put('/iur/{id}', 'IURController@update')->name('iur.update');
-    Route::get('/iur/{id}', 'IURController@show')->name('iur.show');
-    Route::put('/iur/{id}/cancel', 'IURController@cancel')->name('iur.cancel');
-    // Route::post('approve-wfh-all','FormApprovalController@approveWfhAll');
-    // Route::post('disapprove-wfh-all','FormApprovalController@disapproveWfhAll');
-
-
-    //Dar 
-    Route::get('dar', 'DarController@index');
-
-
-    //FOR APPROVAL
-    Route::get('for-leave','FormApprovalController@form_leave_approval');
-    Route::post('approve-leave/{id}','FormApprovalController@approveLeave');
-    Route::post('decline-leave/{id}','FormApprovalController@declineLeave');
-
-    Route::get('for-overtime','FormApprovalController@form_overtime_approval');
-    Route::post('approve-ot-hrs/{employee_overtime}','FormApprovalController@approveOvertime');
-    Route::post('timekeeper-approve-ot-hrs/{employee_overtime}','FormApprovalController@timekeeperApproveOvertime');
-    Route::post('decline-overtime/{id}','FormApprovalController@declineOvertime');
-
-    Route::get('for-work-from-home','FormApprovalController@form_wfh_approval');
-    // Route::get('approve-wfh/{id}','FormApprovalController@approveWfh');
-    Route::post('decline-wfh/{id}','FormApprovalController@declineWfh');
-    Route::post('approve-wfh-percentage/{id}','FormApprovalController@approveWfh');
-
-    //travel order Manager
-    Route::get('travel-orderManager','FormApprovalController@form_to_approval');
-    Route::post('approve-to/{id}','FormApprovalController@approveto');
-    Route::post('decline-to/{id}','FormApprovalController@declineto');
-    Route::post('approve-to-all','FormApprovalController@approveToAll');
-    Route::post('disapprove-to-all','FormApprovalController@disapproveToAll');  
-
-    //authority to deduct payroll handler
-    Route::get('authority-deduction','FormApprovalController@form_ad_approval');
-    Route::post('approve-ad/{id}','FormApprovalController@approvead');
-    Route::post('decline-ad/{id}','FormApprovalController@declinead');
-    Route::post('approve-ad-all', 'FormApprovalController@approveadAll');
-    Route::post('disapprove-ad-all','FormApprovalController@disapproveadAll');
-
-    //authority to deduct view on payroll
-    Route::get('pds-approval','FormApprovalController@form_pd_approval');
-    Route::post('approve-pd/{id}','FormApprovalController@approvepd');
-    Route::post('decline-pd/{id}','FormApprovalController@declinepd');
-    Route::post('approve-pd-all', 'FormApprovalController@approvepdAll');
-    Route::post('disapprove-pd-all','FormApprovalController@disapprovepdAll');
-
-    //ne request approval
-    Route::get('nes-approval','FormApprovalController@form_ne_approval');
-    Route::post('approve-ne/{id}', 'FormApprovalController@approveNe');
-    Route::post('decline-ne/{id}', 'FormApprovalController@declineNe');
-    Route::post('approve-ne-all', 'FormApprovalController@approveNeAll');
-    Route::post('disapprove-ne-all', 'FormApprovalController@disapproveNeAll');
-
-    //coe request approval
-    Route::get('coe-approval','FormApprovalController@form_coe_approval');
-    Route::post('approve-coe/{id}','FormApprovalController@approvecoe');
-    Route::post('decline-coe/{id}','FormApprovalController@declinecoe');
-    Route::post('approve-coe-all', 'FormApprovalController@approvecoeAll');
-    Route::post('disapprove-coe-all','FormApprovalController@disapprovecoeAll');
-
-    //ID and Uniform Request Approval
-    Route::get('iur-approval','FormApprovalController@form_iur_approval');
-    Route::post('approve-iur/{id}','FormApprovalController@approveIur');
-    Route::post('decline-iur/{id}','FormApprovalController@declineIur');
-    Route::post('approve-iur-all', 'FormApprovalController@approveIurAll');
-    Route::post('disapprove-iur-all','FormApprovalController@disapproveIurAll');
-
-    Route::get('for-dtr-correction','FormApprovalController@form_dtr_approval');
-    Route::post('approve-dtr/{id}','FormApprovalController@approveDtr');
-    Route::post('decline-dtr/{id}','FormApprovalController@declineDtr');
-    Route::post('approve-dtr-all','FormApprovalController@approveDtrAll');
-    Route::post('disapprove-dtr-all','FormApprovalController@disapproveDtrAll');
-    
-    // MTA Approval
-    Route::get('for-mta','FormApprovalController@form_mta_approval');
-    Route::post('approve-mta/{id}','FormApprovalController@approveMta');
-    Route::post('decline-mta/{id}','FormApprovalController@declineMta');
-    Route::post('approve-mta-all','FormApprovalController@approveMtaAll');
-    Route::post('disapprove-mta-all','FormApprovalController@disapproveMtaAll');
-
-    //employees
-    Route::get('employees', 'EmployeeController@view');
-    Route::get('print-id/{id}','EmployeeController@print');
-    Route::get('employees-export', 'EmployeeController@export');
-    Route::get('employees-export-hr', 'EmployeeController@export_hr');
-    Route::post('new-employee', 'EmployeeController@new');
-    Route::get('account-setting-hr/{user}', 'EmployeeController@employeeSettingsHR');
-    Route::post('account-setting-hr/updateInfoHR/{id}', 'EmployeeController@updateInfoHR');
-    Route::post('account-setting-hr/updateEmpInfoHR/{id}', 'EmployeeController@updateEmpInfoHR');
-    Route::post('account-setting-hr/updateEmpMovementHR/{id}', 'EmployeeController@updateEmpMovementHR');
-    Route::post('account-setting-hr/updateEmpSalaryMovementHR/{id}', 'EmployeeController@updateEmpSalaryMovementHR');
-    Route::post('account-setting-hr/updateEmpSalary/{id}', 'EmployeeController@updateEmpSalary');
-    Route::post('account-setting-hr/updateContactInfoHR/{id}', 'EmployeeController@updateContactInfoHR');
-    Route::post('account-setting-hr/updateBeneficiariesHR/{id}', 'EmployeeController@updateBeneficiariesHR');
-    Route::get('account-setting-hr/getBeneficiariesHR/{id}', 'EmployeeController@getBeneficiariesHR');
-    Route::post('account-setting-hr/uploadAvatarHr/{id}', 'EmployeeController@uploadAvatarHr');
-    Route::post('account-setting-hr/uploadSignatureHr/{id}', 'EmployeeController@uploadSignatureHr');
-
-
-    Route::get('associate-employees-export','EmployeeController@export_employee_associates');
-
-
-    //Payslips
-    Route::get('payslips', 'PayslipController@view');
-
-    //handbooks
-    Route::get('handbooks', 'HandbookController@view');
-    Route::post('new-handbook', 'HandbookController@newhandbook');
-
-    //Holidays
-    Route::get('holidays', 'HolidayController@view');
-    Route::post('new-holiday', 'HolidayController@new');
-    Route::get('delete-holiday/{id}', 'HolidayController@delete_holiday');
-    Route::post('edit-holiday/{id}', 'HolidayController@edit_holiday');
-
-    //formsLeave
-    Route::get('leavee-settings', 'LeaveController@leaveDetails');
-
-    //Schedules
-    Route::get('schedules', 'ScheduleController@schedules');
-    Route::post('new-schedule', 'ScheduleController@newSchedule');
-
-
-    //Announcement
-    Route::get('announcements', 'AnnouncementController@view');
-    Route::post('new-announcement', 'AnnouncementController@new');
-    Route::get('delete-announcement/{id}', 'AnnouncementController@delete');
-
-    //Logos
-    Route::get('logos', 'SettingController@view');
-    Route::post('upload-icon', 'SettingController@uploadIcon');
-    Route::post('upload-logo', 'SettingController@uploadLogo');
-
-    //Manager
-    Route::get('subordinates', 'AttendanceController@subordinates');
-
-    //Allowances
-    Route::get('allowances', 'AllowanceController@viewAllowances');
-    Route::post('new-allowance', 'AllowanceController@new');
-    Route::get('disable-allowance/{id}', 'AllowanceController@disable_allowance');
-    Route::get('activate-allowance/{id}', 'AllowanceController@activate_allowance');
-    Route::post('edit-allowance/{id}', 'AllowanceController@edit_allowance');
-
-    // Incentives
-    Route::get('incentives', 'IncentiveController@index');
-    Route::post('new-incentive', 'IncentiveController@store');
-    Route::get('disable-incentive/{id}', 'IncentiveController@disable_incentive');
-    Route::get('activate-incentive/{id}', 'IncentiveController@activate_incentive');
-    Route::post('edit-incentive/{id}', 'IncentiveController@update');
-
-    // Approval by Amount
-    Route::get('approval-amount', 'ApprovalAmountController@index');
-    Route::post('updateApprovalAmount', 'ApprovalAmountController@updateApprovalAmount');
-
-    //Biometrics
-    Route::get('get-biometrics', 'EmployeeController@employees_biotime');
-    Route::post('new-biocode', 'EmployeeController@newBio');
-    Route::post('update-biocode', 'EmployeeController@updatebiocode');
-    Route::get('biologs-employee', 'EmployeeController@employee_attendance');
-    Route::get('bio-per-location', 'EmployeeController@biologs_per_location');
-    Route::get('bio-per-location-hik', 'EmployeeController@biologs_per_location_hik');
-    Route::get('bio-per-location-export', 'EmployeeController@biologs_per_location_export');
-    Route::get('pmi-local', 'EmployeeController@localbio');
-    Route::get('biometrics-per-company', 'EmployeeController@perCompany');
-    Route::get('sync-biometrics','EmployeeController@sync');
-    Route::post('sync-bio','EmployeeController@syncBio');
-    Route::get('sync-biometric-per-employee','EmployeeController@sync_per_employee');
-    // Route::get('sync-biometric-per-employee-hik','EmployeeController@sync_per_employee_hik');
-    Route::get('sync-biometric-per-employee-hik','EmployeeController@sync_per_employee_hik_with_upload');
-
-    Route::get('biologs-employee-attendance-report', 'EmployeeController@employee_attendance_report');
-
-    // Route::get('sync-per-employee','EmployeeController@sync_per_employee');
-    Route::get('sync-hik-att-logs','EmployeeController@sync_hik_with_upload');
-
-    //Payroll
-    Route::get('pay-reg', 'PayslipController@payroll_datas');
-    Route::post('payreg', 'PayslipController@postPayRoll');
-    Route::post('importPayRegExcel', 'PayslipController@importPayRegExcel');
-    Route::get('/generated-payroll','PayslipController@generatedPayroll');
-    Route::get('/payslip','PayslipController@generatePayslip');
-    Route::get('/payslip-employee','PayslipController@generatePayslipEmployee');
-
-    Route::get('pay-instruction', 'PayslipController@payroll_instruction');
-    Route::post('deletePayRegInstruction/{id}', 'PayslipController@deletePayRegInstruction');
-    Route::post('importPayinstructionExcel', 'PayslipController@importPayInstructionExcel');
-    Route::post('add-payroll-instruction','PayslipController@add_payroll_instruction');
-    Route::get('export-intruction-template', 'PayslipController@export');
-
-    
-     
-    Route::get('timekeeping', 'PayslipController@attendances');
-    Route::get('generated-timekeeping', 'PayslipController@generatedAttendances');
-    Route::post('pay-reg', 'PayslipController@import');
-    Route::post('upload-attendance', 'PayslipController@upload_attendance');
-
-     //Tax
-     Route::get('tax', 'TaxController@tax');
-     Route::post('new-tax','TaxController@new');
-     Route::post('edit-tax/{id}', 'TaxController@edit_tax');
-     Route::delete('delete-tax/{id}', 'TaxController@delete_tax');
-     Route::get('compute_tax', 'TaxController@compute_tax');
-
-
-    // Company
-    Route::get('company', 'CompanyController@company_index');
-    Route::post('newCompany', 'CompanyController@store_company');
-
-    // Department
-    Route::post('newDepartment', 'DepartmentController@store_department');
-    Route::get('department', 'DepartmentController@department_index');
-    Route::get('enable-department/{id}', 'DepartmentController@enable_department');
-    Route::get('disable-department/{id}', 'DepartmentController@disable_department');
-    Route::get('edit-deparment/{id}', 'DepartmentController@edit_department');
-    Route::post('update-department/{id}', 'DepartmentController@update_department');
-
-    // Location
-    Route::post('store-location', 'LocationController@store');
-    Route::get('location', 'LocationController@index');
-    Route::get('edit-location/{id}', 'LocationController@edit');
-    Route::post('update-location/{id}', 'LocationController@update');
-    
-    Route::post('store-location-time','LocationController@storeTime');
-
-    // Project
-    Route::post('store-project', 'ProjectController@store');
-    Route::get('project', 'ProjectController@index');
-    Route::get('edit-project/{id}', 'ProjectController@edit');
-    Route::post('update-project/{id}', 'ProjectController@update');
-
-    // Loan Type
-    Route::get('loan-type', 'LoanTypeController@loanTypes_index');
-    Route::post('newLoanType', 'LoanTypeController@store_loanType');
-    Route::get('enable-loanType/{id}', 'LoanTypeController@enable_loanType');
-    Route::get('disable-loanType/{id}', 'LoanTypeController@disable_loanType');
-
-    // Employee Allowance
-    Route::get('employee-allowance', 'EmployeeAllowanceController@index');
-    Route::post('new-employee-allowance', 'EmployeeAllowanceController@store');
-    Route::post('update-employee-allowance/{id}', 'EmployeeAllowanceController@update');
-    Route::get('edit-employee-allowance/{id}', 'EmployeeAllowanceController@edit');
-    Route::get('delete-employee-allowance/{id}', 'EmployeeAllowanceController@delete');
-    Route::get('disableEmp-allowance/{id}', 'EmployeeAllowanceController@disable');
-
-    // Employee Incentive
-    Route::get('employee-incentive', 'EmployeeIncentiveController@index');
-    Route::post('new-employee-incentive', 'EmployeeIncentiveController@store');
-    Route::get('disableEmp-incentive/{id}', 'EmployeeIncentiveController@disable');
-
-    // Employee Groups
-    Route::get('employee-companies', 'EmployeeCompanyController@index');
-    Route::post('new-employee-group', 'EmployeeCompanyController@store');
-    Route::get('disableEmp-incentive/{id}', 'EmployeeCompanyController@disable');
-
-    // Adjustments
-    Route::get('salary-adjustment', 'AdjustmentController@index');
-    Route::post('new-employee-adjustment', 'AdjustmentController@store');
-    Route::get('disable-adjustment/{id}', 'AdjustmentController@disable');
-
-    // Loans
-    Route::get('loans', 'LoanController@index');
-    Route::get('loan-reg', 'LoanController@loan_reg');
-    Route::post('new-loan', 'LoanController@store_loanReg');
-    Route::post('update-loan/{id}','LoanController@updateloanReg');
-
-
-    // Reports
-    Route::get('employee-report', 'EmployeeController@employee_report');
-    Route::get('leave-report', 'LeaveController@leave_report');
-    Route::get('leave-report-export', 'LeaveController@export');
-    Route::get('/ne-report', 'NeController@ne_report');
-    Route::get('totalExpense-report', 'PayrollController@totalExpense_report');
-    Route::get('loan-report', 'LoanController@loan_report');
-    Route::get('company-loan-report','LoanController@companyLoan');
-    Route::get('government-report', 'PayrollController@government_reports');
-    Route::get('payroll-report', 'PayrollController@payroll_report');
-    Route::get('overtime-report', 'OvertimeController@overtime_report');
-    Route::get('overtime-report-export', 'OvertimeController@export');
-    Route::get('wfh-report', 'WorkfromhomeController@wfh_report');
-    Route::get('wfh-report-export', 'WorkfromhomeController@export');
-    Route::get('ob-report', 'OfficialbusinessController@ob_report');
-    Route::get('ob-report-export', 'OfficialbusinessController@export');
-    Route::get('dtr-report', 'DailytimerecordController@dtr_report');
-    Route::get('dtr-report-export', 'DailytimerecordController@export');
-    Route::get('ytd-report', 'PayslipController@ytd_report');
-    Route::get('consent-report', 'EmployeeController@consentReport');
-    Route::get('mta-report', 'EmployeeMtaController@mtaReport');
-
-
-    //13th month
-    Route::get('month-benefit', 'PayslipController@monthly_benefit');
-
-    // Employee Leave Credits
-    Route::get('employee-leave-credits', 'LeaveCreditsController@index');
-    Route::post('new-employee-leave-credit', 'LeaveCreditsController@store');
-
-    //Employee Leave Balances
-    Route::get('employee-leave-balances', 'LeaveBalancesController@index');
-
-    // Employee Earned Leaves
-    Route::get('employee-earned-leaves', 'EmployeeEarnedLeaveController@index');
-    Route::get('manual-employee-earned-leaves', 'EmployeeEarnedLeaveController@manual');
-    Route::post('manual-employee-earned-leaves-store', 'EmployeeEarnedLeaveController@manual_store');
-    Route::get('manual-employee-earned-leaves-delete', 'EmployeeEarnedLeaveController@manual_delete');
-
-    //User
-    Route::get('/users','UserController@index');
-    Route::get('/edit-user-role/{user}','UserController@editUserRole');
-    Route::get('/change-password/{user}','UserController@changePassword');
-    Route::post('/update-user-role/{user}','UserController@updateUserRole');
-    Route::post('/update-user-password/{user}','UserController@updateUserPassword');
-    Route::post('/enable-mobile-attendance', 'UserController@enableMobileAttendance');
-    Route::post('/disable-mobile-attendance', 'UserController@disableMobileAttendance');
-
-
-    Route::get('users-export', 'UserController@export');
-
-    //HR Approver Setting
-    Route::get('/hr-approver-setting','HrApproverSettingController@index');
-    Route::post('/save-hr-approver-setting','HrApproverSettingController@store');
-    Route::get('/remove-hr-approver/{id}','HrApproverSettingController@remove'); 
-    
-    //Forms Approver Setting
-    Route::get('/approver-setting','ApproverSettingController@index');
-    Route::post('/save-approver-setting', 'ApproverSettingController@store')->name('approver.store');
-    // Route::get('/remove-approver/{id}','ApproverSettingController@removeApprover'); 
-    Route::delete('/remove-approver/{id}', 'ApproverSettingController@removeApprover');
-    Route::get('/get-user-approver-forms/{user_id}', 'ApproverSettingController@getUserForms');
-
-    //Timekeeping Dashboard
-    
-
-    Route::get('/timekeeping-dashboard','TimekeepingDashboardController@index');
-    Route::get('/reset-leave/{id}','TimekeepingDashboardController@reset_leave');
-    Route::get('/reset-ob/{id}','TimekeepingDashboardController@reset_ob');
-    Route::get('/reset-wfh/{id}','TimekeepingDashboardController@reset_wfh');
-    Route::get('/reset-ot/{id}','TimekeepingDashboardController@reset_ot');
-    Route::get('/reset-dtr/{id}','TimekeepingDashboardController@reset_dtr');
-
-
-    // Daily Schedule
-    Route::get('/daily-schedule', 'DailyScheduleController@index');
-    Route::get('/export-schedule-template', 'DailyScheduleController@exportTemplate');
-    Route::get('/export-schedule', 'DailyScheduleController@export');   
-    Route::post('/upload-schedule', 'DailyScheduleController@upload');
-    Route::post('/update-schedule/{id}', 'DailyScheduleController@update');
-
-
-    // HR Portal
-    // NTE Files
-    Route::get('/nte-upload', 'NteFileController@index');
-    Route::post('/add-nte', 'NteFileController@store');
-    Route::post('/update-nte/{id}', 'NteFileController@update');
-    
-    // 201 Files
-    Route::get('/employee-documents', 'EmployeeDocumentController@index');
-    Route::post('/upload-employee-document', 'EmployeeDocumentController@upload');
-    
-    // Training
-    Route::get('/employee-training', 'EmployeeTrainingController@index');
-    Route::post('/add-employee-training', 'EmployeeTrainingController@store');
-    Route::post('/update-employee-training/{id}', 'EmployeeTrainingController@update');
-    Route::post('/delete-employee-training/{id}', 'EmployeeTrainingController@delete');
-
-    // Upload Module
-    Route::get('/upload', 'UploadController@index');
-    Route::post('/upload-ob', 'UploadController@upload');
-    Route::post('/export-template', 'UploadController@export');
-
-    // Payroll Setting
-    // Tax Mapping
-    Route::get('/tax-mapping', 'TaxMappingController@index');
-    Route::post('/add-tax-mapping', 'TaxMappingController@addTaxMapping');
-    Route::post('/update-tax-mapping/{id}', 'TaxMappingController@updateTaxMapping');
-    Route::post('/delete-tax-mapping/{id}', 'TaxMappingController@deleteTaxMapping');
-
-
-    Route::get('/employee-benefits', 'EmployeeBenefitsController@index');
-    Route::post('/add-employee-benefits', 'EmployeeBenefitsController@store');
-    Route::post('/update-employee-benefits/{id}', 'EmployeeBenefitsController@update');
-    Route::post('/delete-employee-benefits/{id}', 'EmployeeBenefitsController@delete');
-
-    // HR Side
-    Route::get('/nte-reports', 'NteFileController@nteReports');
-    Route::get('/employee-training-reports', 'EmployeeTrainingController@employeeTrainingReports');
-
-    Route::post('/update-employee-code/{id}', 'EmployeeController@updateEmpNo');
-    Route::post('/update-account-no/{id}', 'EmployeeController@updateAcctNo');
-    Route::post('/reset-password', 'EmployeeController@resetPassword');
-
-    // Payslip
-    Route::get('/generate-payslip', 'PayslipController@generatePayslip');
-
-
-    //Clearance
-    Route::get('/my-clearance','ExitClearanceController@viewMyClearance');
-    Route::get('view-comments/{id}','ExitClearanceController@viewComments')->name('Comments');
-    Route::post('new-comment/{id}','ExitClearanceController@submitComment');
-    Route::get('for-clearance','ExitClearanceController@forClearance')->name('For Clearance');
-    Route::get('view-as-signatory/{id}','ExitClearanceController@viewAsSignatory')->name('Signatory');
-    Route::post('change-status-checklist/{id}','ExitClearanceController@changestatus')->name('Change Status');
-    Route::post('mark-as-cleared/{id}','ExitClearanceController@cleared')->name('Change Status');
-
-    // Uploaded Leave Files
-    Route::get('ob_files','UploadController@obFiles');
-
-    // Leave Report Per Employee
-    Route::get('leave-report-per-employee','LeaveReportPerEmployeeController@index');
-
-    // SL Banks
-    Route::get('sl_banks', 'SlBankController@index');
-    Route::get('export_sl_bank_template', 'SlBankController@export');
-    Route::post('store_sl_bank', 'SlBankController@store');
-
-    // Perfect Attendance
-    Route::get('perfect_attendance', 'PerfectAttendanceController@index');
-
-
-
-    // Leave Calendar
-    Route::get('leave_calendar', 'LeaveCalendarController@index');
-    Route::post('store_plan_leave', 'LeaveCalendarController@store');
-    Route::post('update_plan_leave/{id}', 'LeaveCalendarController@update');
-    Route::post('delete_plan_leave/{id}', 'LeaveCalendarController@destroy');
-
-    // Hub Location
-    Route::get('hub_per_location', 'HubPerLocationController@index');
-    Route::get('hub_per_location/data', 'HubPerLocationController@getData');
-    Route::post('/create-user-for-hub', 'HubPerLocationController@createUserForHub')->name('create-user-for-hub');
-    Route::post('/hub/remove-user-by-id', 'HubPerLocationController@removeUserFromHubById')->name('remove-user-from-hub-by-id');
-    // Route::get('/hub-per-location/export', [HubPerLocationController::class, 'export'])->name('hub-per-location.export');
-    Route::get('/hub-per-location/territories', [HubPerLocationController::class, 'getTerritoriesByRegion'])->name('hub-per-location.territories');
-    Route::get('/hub-per-location/areas', [HubPerLocationController::class, 'getAreasByTerritory'])->name('hub-per-location.areas');
-
-    Route::post('new-hub', 'HubPerLocationController@store');
-    Route::post('edit-hub/{id}', 'HubPerLocationController@edit')->name('edit-hub');
-
-    Route::post('/employee/setup', 'EmployeeController@setup')->name('employee.setup');
-    Route::post('account-setting-hr/updateConsent/{id}', 'EmployeeController@consentUpdate')->name('employee.consent.update');
-        
-});
+    Route::group(['middleware' => ['auth', 'account.active']], function () {
+        Route::post('timein-capture','AttendanceController@storeTimeIn');
+        Route::post('timeout-capture','AttendanceController@storeTimeOut');
+
+        Route::get('salary-history','EmployeeController@showsalary');
+        //Users
+        Route::get('account-setting', 'UserController@accountSetting');
+        Route::post('upload-avatar', 'UserController@uploadAvatar');
+        Route::post('upload-signature', 'UserController@uploadSignature');
+        Route::get('get-salary', 'UserController@get_salary');
+        Route::post('updateInfo/{id}', 'UserController@updateInfo');
+        Route::post('updateEmpInfo/{id}', 'UserController@updateEmpInfo');
+        Route::post('updateEmpContactInfo/{id}', 'UserController@updateEmpContactInfo');
+
+        //employees
+        Route::get('/dashboard', 'HomeController@index')->name('home');
+        Route::get('/Admindashboard', 'HomeController@dashboardAdmin')->name('Admindashboard');
+        Route::post('/edit-prob/{id}','HomeController@edit_prob');
+        Route::get('', 'HomeController@index');
+        Route::get('/', 'HomeController@index');
+        Route::get('/home', 'HomeController@index')->name('home');
+        Route::post('/upload-employee-image', [App\Http\Controllers\HomeController::class, 'uploadEmployeeImage'])->name('upload.employee.image');
+
+        Route::post('/check-location-proximity', [App\Http\Controllers\HomeController::class, 'checkUserLocationProximity'])
+            ->name('check.location.proximity')
+            ->middleware('auth');
+        Route::post('/check-user-access', 'HomeController@checkUserAccess')->name('check.user.access');
+
+        Route::get('/dashboard/get-employees', 'HomeController@getEmployees')->name('dashboard.getEmployees');
+        Route::get('/dashboard/get-present-employees', 'HomeController@getPresentEmployees')->name('dashboard.get-present-employees');
+        Route::get('/dashboard/get-absent-employees', 'HomeController@getAbsentEmployees')->name('dashboard.get-absent-employees');
+        Route::get('/dashboard/get-late-employees', 'HomeController@getLateEmployees')->name('dashboard.get-late-employees');
+
+        //approvers
+        Route::get('/dashboard-manager', 'HomeController@managerDashboard');
+        //admin
+        Route::get('/dashboard/filter-by-location', [\App\Http\Controllers\HomeController::class, 'filterByLocation']);
+        Route::get('/dashboard/absentees-pie', [\App\Http\Controllers\HomeController::class, 'absenteesPie']);
+        Route::get('/dashboard/absentees-monthly-pie', [\App\Http\Controllers\HomeController::class, 'absenteesMonthlyPie']);
+        Route::get('/dashboard/late-pie', [\App\Http\Controllers\HomeController::class, 'latePie']);
+
+
+        Route::get('attendances', 'AttendanceController@index');
+        Route::get('attendance-report', 'AttendanceController@reports')->name('reports');
+        Route::post('/store_attendance', 'AttendanceController@storeAttendance')->name('attendance.store');
+        Route::get('get-attendance-bio', 'AttendanceController@get_attendances');
+        Route::post('sync_attendance','AttendanceController@syncAttendance');
+        // Route::get('/fetch-log-dates/{company_id}', 'AttendanceController@checkLogDate');
+        Route::get('/fetch-disabled-dates/{company_id}', 'AttendanceController@fetchDisabledDates');
+
+        Route::get('attendance-per-company-export', 'AttendanceController@attendancePerCompanyExport');
+
+        Route::get('seabased-attendances', 'AttendanceController@seabasedAttendances');
+        Route::get('seabased-attendances-export', 'AttendanceController@attendanceSeabasedAttendnaceExport');
+        Route::post('upload-seabased-attendance', 'AttendanceController@uploadSeabasedAttendance');
+
+        Route::get('hik-attendances', 'AttendanceController@hikAttendances');
+        Route::get('hik-attendances-export', 'AttendanceController@attendanceHikAttendnaceExport');
+        Route::post('upload-hik-attendance', 'AttendanceController@uploadHikAttendance');
+
+        //Leaves
+        Route::get('file-leave', 'EmployeeLeaveController@leaveBalances');
+        Route::post('new-leave','EmployeeLeaveController@new2');
+        Route::post('edit-leave/{id}', 'EmployeeLeaveController@edit_leave');
+        Route::post('hr-edit-leave/{id}', 'EmployeeLeaveController@hr_edit_leave');
+        Route::post('disable-leave/{id}', 'EmployeeLeaveController@disable_leave');
+        Route::post('request-to-cancel-leave/{id}', 'EmployeeLeaveController@request_to_cancel');
+        Route::get('void-to-cancel-leave/{id}', 'EmployeeLeaveController@void_request_to_cancel');
+        Route::get('approve-request-to-cancel-leave/{id}', 'EmployeeLeaveController@approve_request_to_cancel');
+        Route::get('decline-request-to-cancel-leave/{id}', 'EmployeeLeaveController@decline_request_to_cancel');
+        Route::post('upload-attachment/{id}', 'EmployeeLeaveController@upload_attachment');
+
+        Route::post('approve-leave-all','FormApprovalController@approveLeaveAll');
+        Route::post('disapprove-leave-all','FormApprovalController@disapproveLeaveAll');
+
+        Route::get('show','EmployeeObController@ob');
+
+        //Purchase
+        Route::get('purchase','PurchaseController@index')->name('purchase');
+        Route::post('/purchases', 'PurchaseController@store')->name('purchases.store');
+        Route::post('/purchases/{id}/approve', 'PurchaseController@approve')->name('purchases.approve');
+        Route::get('products/get','PurchaseController@getProducts')->name('products.get');
+
+        Route::get('/claim/{qr_code}', 'PurchaseController@claimPage')->name('purchase.claim');
+        Route::post('/claim/process', 'PurchaseController@processClaim')->name('purchase.processClaim');
+
+        Route::get('purchase-reports', 'PurchaseController@reports')->name('purchase.reports');
+        Route::get('/purchase/export', 'PurchaseController@export')->name('purchase.export');
+
+        //TDS
+        Route::get('/tdsModule', 'TdsController@index')->name('tds.tdsModule');
+        Route::get('/tds/create', 'TdsController@create')->name('tds.create');
+        Route::post('/tds/store', 'TdsController@store')->name('tds.store');
+        Route::get('/tds/history', 'TdsController@history')->name('tds.history');
+        Route::get('/tds/export', 'TdsController@export')->name('tds.export');
+        Route::post('/tds/update-target', 'TdsController@updateSalesTarget')->name('tds.update-target');
+        Route::get('/tds/get-employee-target', 'TdsController@getEmployeeTarget')->name('tds.get-employee-target');
+        Route::get('/tds/get-all-users', 'TdsController@getAllUsers')->name('tds.get-all-users');
+        Route::get('/tds/activity-logs', 'TdsController@getActivityLogs')->name('tds.activity-logs');
+        Route::post('/tds/get-zipcode', 'TdsController@getZipCode')->name('get.zipcode');
+
+        Route::post('/geocode-location', 'TdsController@geocodeLocation')->name('geocode.location');
+        Route::get('/tds/existing-customers', 'TdsController@getExistingCustomers')->name('tds.existing-customers');
+
+        Route::get('/tds/records', 'TdsController@allSubmissions')->name('tds.records');
+        Route::get('/tds/records/export', 'TdsController@exportRecords')->name('tds.records.export');
+
+        Route::get('/tdsdashboard', 'TdsController@dashboard')->name('tds.dashboard');
+        Route::get('/tds/employees/search', 'TdsController@getEmployees')->name('tds.employees.search');
+        Route::get('/tds/dashboard/export', 'TdsController@dashboardExport')->name('tds.dashboard.export');
+
+        Route::get('/tds/{id}', 'TdsController@show')->name('tds.show');
+        // Route::put('/tds/{id}', 'TdsController@update')->name('tds.update');
+        Route::put('/tds/{id}', 'TdsController@update');
+        Route::post('/tds/{id}/update-status', 'TdsController@updateStatus')->name('tds.update-status');
+        // Route::post('tds/update/{id}', 'TdsController@updateAmount')->name('tds.update');
+        Route::put('tds/update/{id}', 'TdsController@updateAmount')->name('tds.update');
+        Route::delete('/tds/{id}', 'TdsController@destroy')->name('tds.destroy');
+
+        //Overtime
+        Route::get('overtime','EmployeeOvertimeController@overtime');
+        Route::post('new-ot','EmployeeOvertimeController@new');
+        Route::post('new-offset','EmployeeOvertimeController@newOffSet');
+        Route::post('edit-overtime/{id}', 'EmployeeOvertimeController@edit_overtime');
+        Route::get('disable-overtime/{id}', 'EmployeeOvertimeController@disable_overtime');
+        Route::get('check-valid-overtime', 'EmployeeOvertimeController@checkValidOvertime');
+        Route::get('eligible-ot-dates', 'EmployeeOvertimeController@eligibleOtDates'); // api fetching ot dates
+        Route::post('upload-overtime-attachments/{id}', 'EmployeeOvertimeController@uploadOvertimeAttachments');
+
+        //Work-from-home
+        Route::get('work-from-home', 'EmployeeWfhController@wfh');
+        Route::post('new-wfh','EmployeeWfhController@new');
+        Route::post('edit-wfh/{id}','EmployeeWfhController@edit_wfh');
+        Route::get('disable-wfh/{id}','EmployeeWfhController@disable_wfh');
+        // Route::post('approve-wfh-all','FormApprovalController@approveWfhAll');
+        // Route::post('disapprove-wfh-all','FormApprovalController@disapproveWfhAll');
+
+        //travel-order
+        Route::get('travel-order', 'EmployeeTravelOrderController@to');
+        Route::post('new-to','EmployeeTravelOrderController@new');
+        Route::post('edit-to/{id}', 'EmployeeTravelOrderController@edit_to')->name('edit-to');
+        Route::post('hr-edit-to/{id}', 'EmployeeTravelOrderController@hr_edit_to');
+        Route::post('upload-to-file/{id}', 'EmployeeTravelOrderController@upload_obFile');
+        Route::get('disable-to/{id}', 'EmployeeTravelOrderController@disable_to');
+
+        // Route::post('/sync-actual-arrival-time/{toId}', 'EmployeeTravelOrderController@syncActualArrivalTime')->name('sync.actual.arrival.time');
+
+        //authority-deduct
+        Route::get('authority-deduct', 'EmployeeAuthorityDeductionController@ad');
+        Route::post('new-ad', 'EmployeeAuthorityDeductionController@new');
+        Route::post('new-ad-per-employee', 'EmployeeAuthorityDeductionController@newperEmployee');
+        Route::put('edit-ad/{id}', 'EmployeeAuthorityDeductionController@edit_ad')->name('edit-ad');
+        Route::get('disable-ad/{id}', 'EmployeeAuthorityDeductionController@disable_ad');
+
+        //payroll-disbursement
+        Route::get('payroll-disbursement', 'EmployeePayrollDisbursementController@pd');
+        Route::post('new-pd', 'EmployeePayrollDisbursementController@new');
+        Route::post('edit-pd/{id}', 'EmployeePayrollDisbursementController@edit_pd')->name('edit-pd');
+        Route::get('disable-pd/{id}', 'EmployeePayrollDisbursementController@disable_pd');
+
+
+        //number-enrollment
+        Route::get('number-enrollment', 'EmployeeNumberEnrollmentController@ne');
+        Route::post('new-ne', 'EmployeeNumberEnrollmentController@new');
+        Route::post('edit-ne/{id}', 'EmployeeNumberEnrollmentController@edit_ne')->name('edit-ne');
+        Route::get('disable-ne/{id}', 'EmployeeNumberEnrollmentController@disable_ne');
+
+        //coe-request
+        Route::get('coe-request', 'EmployeeCoeController@coe');
+        Route::post('new-coe', 'EmployeeCoeController@store');
+        Route::post('edit-coe/{id}', 'EmployeeCoeController@edit')->name('edit-coe');
+        Route::get('disable-coe/{id}', 'EmployeeCoeController@cancel');
+        Route::get('coe-print/{id}', 'EmployeeCoeController@printCoe');
+
+        //DTR Correction
+        Route::get('dtr-correction', 'EmployeeDtrController@dtr');
+        Route::post('new-dtr','EmployeeDtrController@new');
+        Route::post('edit-dtr/{id}', 'EmployeeDtrController@edit_dtr');
+        Route::get('disable-dtr/{id}', 'EmployeeDtrController@disable_dtr');
+
+        // MTA
+        Route::get('mta', 'EmployeeMtaController@index');
+        Route::post('new-mta','EmployeeMtaController@store');
+        Route::post('edit-mta/{id}', 'EmployeeMtaController@update');
+        Route::get('disable-mta/{id}', 'EmployeeMtaController@cancel');
+        Route::get('mta-process', 'EmployeeMtaController@mtaProcess');
+        Route::post('process-mta-all','EmployeeMtaController@processMtaAll');
+        Route::post('process-mta/{id}','EmployeeMtaController@processMta');
+        Route::post('processed-mta-all','EmployeeMtaController@processedMtaAll');
+        Route::post('disapproved-processed-mta-all','EmployeeMtaController@disapprovedProcessedMtaAll');
+        Route::post('processed-mta/{id}','EmployeeMtaController@processedMta');
+        // Route::post('disapproved-processed-mta{id}','EmployeeMtaController@disapprovedMta');
+        Route::post('/disapproved-processed-mta/{id}', 'EmployeeMtaController@disapprovedMta')
+            ->name('mta.disapprove');
+
+        // Route::post('approve-mta/{id}','EmployeeMtaController@approveMta');
+        // Route::post('decline-mta/{id}','EmployeeMtaController@declineMta');
+        // Route::post('approve-mta-all','FormApprovalController@approveMtaAll');
+        // Route::post('disapprove-mta-all','FormApprovalController@disapproveMtaAll');
+
+        //Planning
+        Route::get('planning', 'EmployeePlanningController@index');
+        Route::post('/planning/import', 'EmployeePlanningController@import')->name('planning.import');
+        // Route::post('/planning/upload-files', 'HomeController@uploadFiles')->name('planning.upload-files');
+        // Route::post('/planning/upload-files', 'EmployeePlanningController@uploadFiles')->name('planning.upload-files');
+        Route::get('/planning/{id}/files', 'HomeController@getFiles')->name('planning.get-files');
+        Route::get('/disable-planning/{id}', 'EmployeePlanningController@disablePlanning')->name('planning.disable');
+
+        // ID & Uniform Request
+        Route::get('iur', 'IurController@index')->name('iur.index');
+        Route::get('/iur/create', 'IurController@createIndex')->name('iur.createIndex');
+        Route::post('/iur/store', 'IurController@store')->name('iur.store');
+        Route::get('/iur/{id}/edit', 'IURController@edit')->name('iur.edit');
+        Route::put('/iur/{id}', 'IURController@update')->name('iur.update');
+        Route::get('/iur/{id}', 'IURController@show')->name('iur.show');
+        Route::put('/iur/{id}/cancel', 'IURController@cancel')->name('iur.cancel');
+
+        Route::post('confirm-iur-id-print', 'FormApprovalController@confirmIurIdsPrinted')->name('iur.ids.confirm-printed');
+
+
+        //Dar
+        Route::get('dar', 'DarController@index');
+
+
+        //FOR APPROVAL
+        Route::get('for-leave','FormApprovalController@form_leave_approval');
+        Route::post('approve-leave/{id}','FormApprovalController@approveLeave');
+        Route::post('decline-leave/{id}','FormApprovalController@declineLeave');
+
+        Route::get('for-overtime','FormApprovalController@form_overtime_approval');
+        Route::post('approve-ot-hrs/{employee_overtime}','FormApprovalController@approveOvertime');
+        Route::post('timekeeper-approve-ot-hrs/{employee_overtime}','FormApprovalController@timekeeperApproveOvertime');
+        Route::post('decline-overtime/{id}','FormApprovalController@declineOvertime');
+
+        Route::get('for-work-from-home','FormApprovalController@form_wfh_approval');
+        // Route::get('approve-wfh/{id}','FormApprovalController@approveWfh');
+        Route::post('decline-wfh/{id}','FormApprovalController@declineWfh');
+        Route::post('approve-wfh-percentage/{id}','FormApprovalController@approveWfh');
+
+        //travel order Manager
+        Route::get('travel-orderManager','FormApprovalController@form_to_approval');
+        Route::post('approve-to/{id}','FormApprovalController@approveto');
+        Route::post('decline-to/{id}','FormApprovalController@declineto');
+        Route::post('approve-to-all','FormApprovalController@approveToAll');
+        Route::post('disapprove-to-all','FormApprovalController@disapproveToAll');
+
+        //authority to deduct payroll handler
+        Route::get('authority-deduction','FormApprovalController@form_ad_approval');
+        Route::post('approve-ad/{id}','FormApprovalController@approvead');
+        Route::post('decline-ad/{id}','FormApprovalController@declinead');
+        Route::post('approve-ad-all', 'FormApprovalController@approveadAll');
+        Route::post('disapprove-ad-all','FormApprovalController@disapproveadAll');
+
+        //authority to deduct view on payroll
+        Route::get('pds-approval','FormApprovalController@form_pd_approval');
+        Route::post('approve-pd/{id}','FormApprovalController@approvepd');
+        Route::post('decline-pd/{id}','FormApprovalController@declinepd');
+        Route::post('approve-pd-all', 'FormApprovalController@approvepdAll');
+        Route::post('disapprove-pd-all','FormApprovalController@disapprovepdAll');
+
+        //ne request approval
+        Route::get('nes-approval','FormApprovalController@form_ne_approval');
+        Route::post('approve-ne/{id}', 'FormApprovalController@approveNe');
+        Route::post('decline-ne/{id}', 'FormApprovalController@declineNe');
+        Route::post('approve-ne-all', 'FormApprovalController@approveNeAll');
+        Route::post('disapprove-ne-all', 'FormApprovalController@disapproveNeAll');
+
+        //coe request approval
+        Route::get('coe-approval','FormApprovalController@form_coe_approval');
+        Route::post('process-coe/{id}','FormApprovalController@processCoe');
+        Route::post('elevate-coe/{id}','FormApprovalController@elevateCoe'); // elevate request to HRH
+        Route::post('approve-coe/{id}','FormApprovalController@approvecoe');
+        Route::post('upload-coe-attachment/{id}','FormApprovalController@uploadCoeAttachment');
+        Route::post('upload-proof-delivery/{id}','FormApprovalController@uploadProofDelivery');
+        Route::post('decline-coe/{id}','FormApprovalController@declinecoe');
+        Route::post('resend-coe-email/{id}','FormApprovalController@resendCoeEmail');
+        // Route::post('approve-coe-all', 'FormApprovalController@approvecoeAll');
+        // Route::post('disapprove-coe-all','FormApprovalController@disapprovecoeAll');
+
+        //ID and Uniform Request Approval
+        Route::get('iur-approval','FormApprovalController@form_iur_approval');
+        /* Route::post('message-iur-requestor/{id}', 'FormApprovalController@sendIurRequestorMessage'); */
+        Route::post('process-iur/{id}','FormApprovalController@processIur');
+        Route::post('decline-iur/{id}','FormApprovalController@declineIur');
+        Route::post('partial-iur/{id}','FormApprovalController@partialApprove');
+        Route::post('receive-iur/{id}','FormApprovalController@receiveIur');
+        Route::post('release-iur/{id}', 'FormApprovalController@releaseIur');
+        Route::post('save-iur-signature/{id}', 'FormApprovalController@saveIurSignature');
+        Route::post('/save-approver-signature', 'FormApprovalController@saveApproverSignature');
+        // Route::post('approve-iur-all', 'FormApprovalController@approveIurAll');
+        Route::post('disapprove-iur-all','FormApprovalController@disapproveIurAll');
+        Route::post('update-acc-notes/{id}', 'FormApprovalController@updateAccountabilityNote');
+        Route::get('iur-accountability/{id}', 'FormApprovalController@viewAccountability');
+        /* Route::get('iur-accountability-preview/{id}', 'FormApprovalController@previewAccountabilityTab'); */
+        Route::get('iur-accountability-print/{id}', 'FormApprovalController@printAccountabilityTab');
+
+        // DTR 
+        Route::get('for-dtr-correction','FormApprovalController@form_dtr_approval');
+        Route::post('approve-dtr/{id}','FormApprovalController@approveDtr');
+        Route::post('decline-dtr/{id}','FormApprovalController@declineDtr');
+        Route::post('approve-dtr-all','FormApprovalController@approveDtrAll');
+        Route::post('disapprove-dtr-all','FormApprovalController@disapproveDtrAll');
+
+        // MTA Approval
+        Route::get('for-mta','FormApprovalController@form_mta_approval');
+        Route::post('approve-mta/{id}','FormApprovalController@approveMta');
+        Route::post('decline-mta/{id}','FormApprovalController@declineMta');
+        Route::post('approve-mta-all','FormApprovalController@approveMtaAll');
+        Route::post('disapprove-mta-all','FormApprovalController@disapproveMtaAll');
+
+        //employees
+        Route::get('employees', 'EmployeeController@view');
+        Route::get('print-id/{id}','EmployeeController@print');
+        Route::get('employees-export', 'EmployeeController@export');
+        Route::get('employees-export-hr', 'EmployeeController@export_hr');
+        Route::post('new-employee', 'EmployeeController@new');
+        Route::get('account-setting-hr/{user}', 'EmployeeController@employeeSettingsHR');
+        Route::post('account-setting-hr/updateInfoHR/{id}', 'EmployeeController@updateInfoHR');
+        Route::post('account-setting-hr/updateEmpInfoHR/{id}', 'EmployeeController@updateEmpInfoHR');
+        Route::post('account-setting-hr/updateEmpMovementHR/{id}', 'EmployeeController@updateEmpMovementHR');
+        Route::post('account-setting-hr/updateEmpSalaryMovementHR/{id}', 'EmployeeController@updateEmpSalaryMovementHR');
+        Route::post('account-setting-hr/updateEmpSalary/{id}', 'EmployeeController@updateEmpSalary');
+        Route::post('account-setting-hr/updateContactInfoHR/{id}', 'EmployeeController@updateContactInfoHR');
+        Route::post('account-setting-hr/updateBeneficiariesHR/{id}', 'EmployeeController@updateBeneficiariesHR');
+        Route::get('account-setting-hr/getBeneficiariesHR/{id}', 'EmployeeController@getBeneficiariesHR');
+        Route::post('account-setting-hr/uploadAvatarHr/{id}', 'EmployeeController@uploadAvatarHr');
+        Route::post('account-setting-hr/uploadSignatureHr/{id}', 'EmployeeController@uploadSignatureHr');
+
+
+        Route::get('associate-employees-export','EmployeeController@export_employee_associates');
+
+
+        //Payslips
+        Route::get('payslips', 'PayslipController@view');
+
+        //handbooks
+        Route::get('handbooks', 'HandbookController@view');
+        Route::post('new-handbook', 'HandbookController@newhandbook');
+
+        //Holidays
+        Route::get('holidays', 'HolidayController@view');
+        Route::post('new-holiday', 'HolidayController@new');
+        Route::get('delete-holiday/{id}', 'HolidayController@delete_holiday');
+        Route::post('edit-holiday/{id}', 'HolidayController@edit_holiday');
+
+        //formsLeave
+        Route::get('leavee-settings', 'LeaveController@leaveDetails');
+
+        //Schedules
+        Route::get('schedules', 'ScheduleController@schedules');
+        Route::post('new-schedule', 'ScheduleController@newSchedule');
+
+
+        //Announcement
+        Route::get('announcements', 'AnnouncementController@view');
+        Route::post('new-announcement', 'AnnouncementController@new');
+        Route::get('delete-announcement/{id}', 'AnnouncementController@delete');
+
+        //Logos
+        Route::get('logos', 'SettingController@view');
+        Route::post('upload-icon', 'SettingController@uploadIcon');
+        Route::post('upload-logo', 'SettingController@uploadLogo');
+
+        //Manager
+        Route::get('subordinates', 'AttendanceController@subordinates');
+
+        //Allowances
+        Route::get('allowances', 'AllowanceController@viewAllowances');
+        Route::post('new-allowance', 'AllowanceController@new');
+        Route::get('disable-allowance/{id}', 'AllowanceController@disable_allowance');
+        Route::get('activate-allowance/{id}', 'AllowanceController@activate_allowance');
+        Route::post('edit-allowance/{id}', 'AllowanceController@edit_allowance');
+
+        // Incentives
+        Route::get('incentives', 'IncentiveController@index');
+        Route::post('new-incentive', 'IncentiveController@store');
+        Route::get('disable-incentive/{id}', 'IncentiveController@disable_incentive');
+        Route::get('activate-incentive/{id}', 'IncentiveController@activate_incentive');
+        Route::post('edit-incentive/{id}', 'IncentiveController@update');
+
+        // Approval by Amount
+        Route::get('approval-amount', 'ApprovalAmountController@index');
+        Route::post('updateApprovalAmount', 'ApprovalAmountController@updateApprovalAmount');
+
+        //Biometrics
+        Route::get('get-biometrics', 'EmployeeController@employees_biotime');
+        Route::post('new-biocode', 'EmployeeController@newBio');
+        Route::post('update-biocode', 'EmployeeController@updatebiocode');
+        Route::get('biologs-employee', 'EmployeeController@employee_attendance');
+        Route::get('bio-per-location', 'EmployeeController@biologs_per_location');
+        Route::get('bio-per-location-hik', 'EmployeeController@biologs_per_location_hik');
+        Route::get('bio-per-location-export', 'EmployeeController@biologs_per_location_export');
+        Route::get('pmi-local', 'EmployeeController@localbio');
+        Route::get('biometrics-per-company', 'EmployeeController@perCompany');
+        Route::get('sync-biometrics','EmployeeController@sync');
+        Route::post('sync-bio','EmployeeController@syncBio');
+        Route::get('sync-biometric-per-employee','EmployeeController@sync_per_employee');
+        // Route::get('sync-biometric-per-employee-hik','EmployeeController@sync_per_employee_hik');
+        Route::get('sync-biometric-per-employee-hik','EmployeeController@sync_per_employee_hik_with_upload');
+
+        Route::get('biologs-employee-attendance-report', 'EmployeeController@employee_attendance_report');
+
+        // Route::get('sync-per-employee','EmployeeController@sync_per_employee');
+        Route::get('sync-hik-att-logs','EmployeeController@sync_hik_with_upload');
+
+        //Payroll
+        Route::get('pay-reg', 'PayslipController@payroll_datas');
+        Route::post('payreg', 'PayslipController@postPayRoll');
+        Route::post('importPayRegExcel', 'PayslipController@importPayRegExcel');
+        Route::get('/generated-payroll','PayslipController@generatedPayroll');
+        Route::get('/payslip','PayslipController@generatePayslip');
+        Route::get('/payslip-employee','PayslipController@generatePayslipEmployee');
+
+        Route::get('pay-instruction', 'PayslipController@payroll_instruction');
+        Route::post('deletePayRegInstruction/{id}', 'PayslipController@deletePayRegInstruction');
+        Route::post('importPayinstructionExcel', 'PayslipController@importPayInstructionExcel');
+        Route::post('add-payroll-instruction','PayslipController@add_payroll_instruction');
+        Route::get('export-intruction-template', 'PayslipController@export');
+
+
+
+        Route::get('timekeeping', 'PayslipController@attendances');
+        Route::get('generated-timekeeping', 'PayslipController@generatedAttendances');
+        Route::post('pay-reg', 'PayslipController@import');
+        Route::post('upload-attendance', 'PayslipController@upload_attendance');
+
+        //Tax
+        Route::get('tax', 'TaxController@tax');
+        Route::post('new-tax','TaxController@new');
+        Route::post('edit-tax/{id}', 'TaxController@edit_tax');
+        Route::delete('delete-tax/{id}', 'TaxController@delete_tax');
+        Route::get('compute_tax', 'TaxController@compute_tax');
+
+
+        // Company
+        Route::get('company', 'CompanyController@company_index');
+        Route::post('newCompany', 'CompanyController@store_company');
+
+        // Department
+        Route::post('newDepartment', 'DepartmentController@store_department');
+        Route::get('department', 'DepartmentController@department_index');
+        Route::get('enable-department/{id}', 'DepartmentController@enable_department');
+        Route::get('disable-department/{id}', 'DepartmentController@disable_department');
+        Route::get('edit-deparment/{id}', 'DepartmentController@edit_department');
+        Route::post('update-department/{id}', 'DepartmentController@update_department');
+
+        // Location
+        Route::post('store-location', 'LocationController@store');
+        Route::get('location', 'LocationController@index');
+        Route::get('edit-location/{id}', 'LocationController@edit');
+        Route::post('update-location/{id}', 'LocationController@update');
+
+        Route::post('store-location-time','LocationController@storeTime');
+
+        // Project
+        Route::post('store-project', 'ProjectController@store');
+        Route::get('project', 'ProjectController@index');
+        Route::get('edit-project/{id}', 'ProjectController@edit');
+        Route::post('update-project/{id}', 'ProjectController@update');
+
+        // Loan Type
+        Route::get('loan-type', 'LoanTypeController@loanTypes_index');
+        Route::post('newLoanType', 'LoanTypeController@store_loanType');
+        Route::get('enable-loanType/{id}', 'LoanTypeController@enable_loanType');
+        Route::get('disable-loanType/{id}', 'LoanTypeController@disable_loanType');
+
+        // Employee Allowance
+        Route::get('employee-allowance', 'EmployeeAllowanceController@index');
+        Route::post('new-employee-allowance', 'EmployeeAllowanceController@store');
+        Route::post('update-employee-allowance/{id}', 'EmployeeAllowanceController@update');
+        Route::get('edit-employee-allowance/{id}', 'EmployeeAllowanceController@edit');
+        Route::get('delete-employee-allowance/{id}', 'EmployeeAllowanceController@delete');
+        Route::get('disableEmp-allowance/{id}', 'EmployeeAllowanceController@disable');
+
+        // Employee Incentive
+        Route::get('employee-incentive', 'EmployeeIncentiveController@index');
+        Route::post('new-employee-incentive', 'EmployeeIncentiveController@store');
+        Route::get('disableEmp-incentive/{id}', 'EmployeeIncentiveController@disable');
+
+        // Employee Groups
+        Route::get('employee-companies', 'EmployeeCompanyController@index');
+        Route::post('new-employee-group', 'EmployeeCompanyController@store');
+        Route::get('disableEmp-incentive/{id}', 'EmployeeCompanyController@disable');
+
+        // Adjustments
+        Route::get('salary-adjustment', 'AdjustmentController@index');
+        Route::post('new-employee-adjustment', 'AdjustmentController@store');
+        Route::get('disable-adjustment/{id}', 'AdjustmentController@disable');
+
+        // Loans
+        Route::get('loans', 'LoanController@index');
+        Route::get('loan-reg', 'LoanController@loan_reg');
+        Route::post('new-loan', 'LoanController@store_loanReg');
+        Route::post('update-loan/{id}','LoanController@updateloanReg');
+
+
+        // Reports
+        Route::get('employee-report', 'EmployeeController@employee_report');
+        Route::get('leave-report', 'LeaveController@leave_report');
+        Route::get('leave-report-export', 'LeaveController@export');
+        Route::get('/ne-report', 'NeController@ne_report');
+        Route::get('totalExpense-report', 'PayrollController@totalExpense_report');
+        Route::get('loan-report', 'LoanController@loan_report');
+        Route::get('company-loan-report','LoanController@companyLoan');
+        Route::get('government-report', 'PayrollController@government_reports');
+        Route::get('payroll-report', 'PayrollController@payroll_report');
+        Route::get('overtime-report', 'OvertimeController@overtime_report');
+        Route::get('overtime-report-export', 'OvertimeController@export');
+        Route::get('wfh-report', 'WorkfromhomeController@wfh_report');
+        Route::get('wfh-report-export', 'WorkfromhomeController@export');
+        Route::get('ob-report', 'OfficialbusinessController@ob_report');
+        Route::get('ob-report-export', 'OfficialbusinessController@export');
+        Route::get('dtr-report', 'DailytimerecordController@dtr_report');
+        Route::get('dtr-report-export', 'DailytimerecordController@export');
+        Route::get('ytd-report', 'PayslipController@ytd_report');
+        Route::get('consent-report', 'EmployeeController@consentReport');
+        Route::get('mta-report', 'EmployeeMtaController@mtaReport');
+
+
+        //13th month
+        Route::get('month-benefit', 'PayslipController@monthly_benefit');
+
+        // Employee Leave Credits
+        Route::get('employee-leave-credits', 'LeaveCreditsController@index');
+        Route::post('new-employee-leave-credit', 'LeaveCreditsController@store');
+
+        //Employee Leave Balances
+        Route::get('employee-leave-balances', 'LeaveBalancesController@index');
+
+        // Employee Earned Leaves
+        Route::get('employee-earned-leaves', 'EmployeeEarnedLeaveController@index');
+        Route::get('manual-employee-earned-leaves', 'EmployeeEarnedLeaveController@manual');
+        Route::post('manual-employee-earned-leaves-store', 'EmployeeEarnedLeaveController@manual_store');
+        Route::get('manual-employee-earned-leaves-delete', 'EmployeeEarnedLeaveController@manual_delete');
+
+        //User
+        Route::get('/users','UserController@index');
+        Route::get('/edit-user-role/{user}','UserController@editUserRole');
+        Route::get('/change-password/{user}','UserController@changePassword');
+        Route::post('/update-user-role/{user}','UserController@updateUserRole');
+        Route::post('/update-user-password/{user}','UserController@updateUserPassword');
+        Route::post('/enable-mobile-attendance', 'UserController@enableMobileAttendance');
+        Route::post('/disable-mobile-attendance', 'UserController@disableMobileAttendance');
+
+
+        Route::get('users-export', 'UserController@export');
+
+        //HR Approver Setting
+        Route::get('/hr-approver-setting','HrApproverSettingController@index');
+        Route::post('/save-hr-approver-setting','HrApproverSettingController@store');
+        Route::get('/remove-hr-approver/{id}','HrApproverSettingController@remove');
+
+        //Forms Approver Setting
+        Route::get('/approver-setting','ApproverSettingController@index');
+        Route::post('/save-approver-setting', 'ApproverSettingController@store')->name('approver.store');
+        // Route::get('/remove-approver/{id}','ApproverSettingController@removeApprover');
+        Route::delete('/remove-approver/{id}', 'ApproverSettingController@removeApprover');
+        Route::get('/get-user-approver-forms/{user_id}', 'ApproverSettingController@getUserForms');
+
+        //Timekeeping Dashboard
+
+
+        Route::get('/timekeeping-dashboard','TimekeepingDashboardController@index');
+        Route::get('/reset-leave/{id}','TimekeepingDashboardController@reset_leave');
+        Route::get('/reset-ob/{id}','TimekeepingDashboardController@reset_ob');
+        Route::get('/reset-wfh/{id}','TimekeepingDashboardController@reset_wfh');
+        Route::get('/reset-ot/{id}','TimekeepingDashboardController@reset_ot');
+        Route::get('/reset-dtr/{id}','TimekeepingDashboardController@reset_dtr');
+
+
+        // Daily Schedule
+        Route::get('/daily-schedule', 'DailyScheduleController@index');
+        Route::get('/export-schedule-template', 'DailyScheduleController@exportTemplate');
+        Route::get('/export-schedule', 'DailyScheduleController@export');
+        Route::post('/upload-schedule', 'DailyScheduleController@upload');
+        Route::post('/update-schedule/{id}', 'DailyScheduleController@update');
+
+        // HR Portal
+        // NTE Files
+        Route::get('/nte-upload', 'NteFileController@index');
+        Route::post('/add-nte', 'NteFileController@store');
+        Route::post('/update-nte/{id}', 'NteFileController@update');
+
+        // 201 Files
+        Route::get('/employee-documents', 'EmployeeDocumentController@index');
+        Route::post('/upload-employee-document', 'EmployeeDocumentController@upload');
+
+        // Training
+        Route::get('/employee-training', 'EmployeeTrainingController@index');
+        Route::post('/add-employee-training', 'EmployeeTrainingController@store');
+        Route::post('/update-employee-training/{id}', 'EmployeeTrainingController@update');
+        Route::post('/delete-employee-training/{id}', 'EmployeeTrainingController@delete');
+
+        // Upload Module
+        Route::get('/upload', 'UploadController@index');
+        Route::post('/upload-ob', 'UploadController@upload');
+        Route::post('/export-template', 'UploadController@export');
+
+        // Payroll Setting
+        // Tax Mapping
+        Route::get('/tax-mapping', 'TaxMappingController@index');
+        Route::post('/add-tax-mapping', 'TaxMappingController@addTaxMapping');
+        Route::post('/update-tax-mapping/{id}', 'TaxMappingController@updateTaxMapping');
+        Route::post('/delete-tax-mapping/{id}', 'TaxMappingController@deleteTaxMapping');
+
+
+        Route::get('/employee-benefits', 'EmployeeBenefitsController@index');
+        Route::post('/add-employee-benefits', 'EmployeeBenefitsController@store');
+        Route::post('/update-employee-benefits/{id}', 'EmployeeBenefitsController@update');
+        Route::post('/delete-employee-benefits/{id}', 'EmployeeBenefitsController@delete');
+
+        // ada application lists
+        Route::get('/ada-applications', 'AdaController@index')->name('ada.index');
+        Route::get('/ada-applications/{id}', 'AdaController@show')->name('ada.show');
+
+        // ada internal edit
+        Route::get('/ada-applications/{id}/edit', 'AdaController@editInternal')->name('ada.edit');
+        Route::put('/ada-applications/{id}', 'AdaController@updateInternal')->name('ada.update');
+
+        // ada offer sheet
+        Route::post('/ada-applications/{id}/upload-offersheet', 'AdaController@uploadOfferSheet')->name('ada.upload-offersheet');
+        Route::get('/ada-applications/{id}/review-offersheet', 'AdaController@reviewOfferSheet')->name('ada.review-offersheet');
+        Route::post('/ada-applications/{id}/approve-offersheet', 'AdaController@approveOfferSheet')->name('ada.approve-offersheet');
+        Route::post('/ada-applications/{id}/decline-offersheet', 'AdaController@declineOfferSheet')->name('ada.decline-offersheet');
+        Route::post('/ada-applications/{id}/send-to-client', 'AdaController@sendToClient')->name('ada.send-to-client');
+        Route::post('/ada-applications/{id}/send-follow-up', 'AdaController@sendFollowUp')->name('ada.send-follow-up');
+        /* Route::get('/ada-email-attachments/{id}/download', 'AdaController@downloadEmailAttachment')->name('ada.email-attachments.download'); */
+
+        // customer feedback responses
+        Route::get('/customer-feedbacks', 'CustomerFeedbackController@index')->name('customer-feedback.index');
+
+        // publication request lists
+        Route::get('/publication-requests', 'PublicationRequestController@index')->name('publication-requests.index');
+        Route::get('/publication-requests/create', 'PublicationRequestController@create')->name('publication-requests.create');
+        Route::post('/publication-requests', 'PublicationRequestController@store')->name('publication-requests.store');
+        Route::get('/publication-requests/{id}', 'PublicationRequestController@show')->name('publication-requests.show');
+        Route::get('/publication-approval', 'FormApprovalController@formPublicationApproval')->name('publication-approval.index');
+
+        // publication request approval
+        Route::get('/publication-approval/{id}', 'FormApprovalController@viewPublicationRequest');
+        Route::post('approve-publication/{id}', 'FormApprovalController@approvePublicationRequest');
+        Route::post('decline-publication/{id}', 'FormApprovalController@declinePublicationRequest');
+        Route::post('/send-publication/{id}', 'FormApprovalController@sendPublication')->name('publication.send'); // send publication to email
+        Route::post('/decline-publication-publishing/{id}', 'FormApprovalController@declinePublicationPublishing')->name('publication.publishing.decline');
+
+        // marketing collateral borrowing [Request]
+        Route::get('/bmc', 'MarketingCollateralBorrowingController@index')->name('bmc.index');
+        Route::get('/bmc/create', 'MarketingCollateralBorrowingController@create')->name('bmc.create');
+        Route::post('/bmc', 'MarketingCollateralBorrowingController@store')->name('bmc.store');
+        Route::get('/bmc/{id}', 'MarketingCollateralBorrowingController@show')->name('bmc.show');
+        Route::get('/bmc/{id}/edit', 'MarketingCollateralBorrowingController@edit')->name('bmc.edit');
+        Route::put('/bmc/{id}', 'MarketingCollateralBorrowingController@update')->name('bmc.update');
+        Route::post('bmc-accountability-signature/{id}', 'MarketingCollateralBorrowingController@saveBorrowerSignature');
+
+        // marketing collateral borrowing [APPROVAL]
+        Route::get('bmc-approval','FormApprovalController@formBmcApproval');
+        Route::get('bmc-approval/{id}','FormApprovalController@showBmcApproval');
+        Route::post('approve-bmc/{id}','FormApprovalController@approveBmcRequest');
+        Route::post('decline-bmc/{id}','FormApprovalController@declineBmcRequest');
+        Route::post('release-bmc/{id}', 'FormApprovalController@releaseBmcItems');
+        Route::post('update-bmc-accountability-notes/{id}', 'FormApprovalController@updateBmcAccountabilityNote');
+        Route::get('bmc-accountability-print/{id}', 'FormApprovalController@printBmcAccountability');
+        Route::post('close-bmc-accountability/{id}', 'FormApprovalController@closeBmcAccountability');
+
+        // layout design request [Request]
+        Route::get('/layout-design-requests', 'LayoutDesignController@index')->name('layout-design-requests.index');
+        Route::get('/layout-design-requests/create', 'LayoutDesignController@create')->name('layout-design-requests.create');
+        Route::post('/layout-design-requests', 'LayoutDesignController@store')->name('layout-design-requests.store');
+        Route::get('/layout-design-requests/{id}', 'LayoutDesignController@show')->name('layout-design-requests.show');
+        Route::post('/layout-design-requests/{id}/cancel', 'LayoutDesignController@cancel')->name('layout-design-requests.cancel');
+        Route::get('/layout-design-requests/{id}/edit', 'LayoutDesignController@edit')->name('layout-design-requests.edit');
+        Route::put('/layout-design-requests/{id}', 'LayoutDesignController@update')->name('layout-design-requests.update');
+
+        // marketing material release [Request]
+        Route::get('/marketing-material-releases', 'MarketingMaterialController@index')->name('marketing-material-releases.index');
+        Route::get('/marketing-material-releases/create', 'MarketingMaterialController@create')->name('marketing-material-releases.create');
+        Route::post('/marketing-material-releases', 'MarketingMaterialController@store')->name('marketing-material-releases.store');
+        Route::get('/marketing-material-releases/{id}', 'MarketingMaterialController@show')->name('marketing-material-releases.show');
+        Route::post('/marketing-material-releases/{id}/cancel', 'MarketingMaterialController@cancel')->name('marketing-material-releases.cancel');
+
+        // layout design request [APPROVAL]
+        Route::get('ldr-approval','FormApprovalController@formLdrApproval')->name('ldr-approval.index');
+        Route::get('ldr-approval/{id}','FormApprovalController@viewLdrRequest')->name('ldr-approval.view');
+        Route::post('process-ldr/{id}','FormApprovalController@processLdrRequest')->name('ldr.process');
+        Route::post('close-ldr/{id}','FormApprovalController@closeLdrRequest')->name('ldr.close');
+        Route::post('decline-ldr/{id}','FormApprovalController@declineLdrRequest');
+
+        // HR Side
+        Route::get('/nte-reports', 'NteFileController@nteReports');
+        Route::get('/employee-training-reports', 'EmployeeTrainingController@employeeTrainingReports');
+
+        Route::post('/update-employee-code/{id}', 'EmployeeController@updateEmpNo');
+        Route::post('/update-account-no/{id}', 'EmployeeController@updateAcctNo');
+        Route::post('/reset-password', 'EmployeeController@resetPassword');
+
+        // Payslip
+        Route::get('/generate-payslip', 'PayslipController@generatePayslip');
+
+
+        // Exit Interview
+        Route::get('exit-interviews', 'ExitInterviewController@index')->name('Exit Interviews');
+        Route::get('exit-interviews/create', 'ExitInterviewController@create');
+        Route::post('exit-interviews', 'ExitInterviewController@store');
+        Route::get('exit-interviews/{id}', 'ExitInterviewController@show');
+
+        //Clearance
+        Route::get('/my-clearance','ExitClearanceController@viewMyClearance');
+        Route::get('view-comments/{id}','ExitClearanceController@viewComments')->name('Comments');
+        Route::post('new-comment/{id}','ExitClearanceController@submitComment');
+        Route::get('for-clearance','ExitClearanceController@forClearance')->name('For Clearance');
+        Route::get('view-as-signatory/{id}','ExitClearanceController@viewAsSignatory')->name('Signatory');
+        Route::post('change-status-checklist/{id}','ExitClearanceController@changestatus')->name('Change Status');
+        Route::post('mark-as-cleared/{id}','ExitClearanceController@cleared')->name('Change Status');
+
+        // Uploaded Leave Files
+        Route::get('ob_files','UploadController@obFiles');
+
+        // Leave Report Per Employee
+        Route::get('leave-report-per-employee','LeaveReportPerEmployeeController@index');
+
+        // SL Banks
+        Route::get('sl_banks', 'SlBankController@index');
+        Route::get('export_sl_bank_template', 'SlBankController@export');
+        Route::post('store_sl_bank', 'SlBankController@store');
+
+        // Perfect Attendance
+        Route::get('perfect_attendance', 'PerfectAttendanceController@index');
+
+
+        // Leave Calendar
+        Route::get('leave_calendar', 'LeaveCalendarController@index');
+        Route::post('store_plan_leave', 'LeaveCalendarController@store');
+        Route::post('update_plan_leave/{id}', 'LeaveCalendarController@update');
+        Route::post('delete_plan_leave/{id}', 'LeaveCalendarController@destroy');
+
+        // Hub Location
+        Route::get('hub_per_location', 'HubPerLocationController@index');
+        Route::get('hub_per_location/data', 'HubPerLocationController@getData');
+        Route::post('/create-user-for-hub', 'HubPerLocationController@createUserForHub')->name('create-user-for-hub');
+        Route::post('/hub/remove-user-by-id', 'HubPerLocationController@removeUserFromHubById')->name('remove-user-from-hub-by-id');
+        // Route::get('/hub-per-location/export', [HubPerLocationController::class, 'export'])->name('hub-per-location.export');
+        Route::get('/hub-per-location/territories', [HubPerLocationController::class, 'getTerritoriesByRegion'])->name('hub-per-location.territories');
+        Route::get('/hub-per-location/areas', [HubPerLocationController::class, 'getAreasByTerritory'])->name('hub-per-location.areas');
+
+        Route::post('new-hub', 'HubPerLocationController@store');
+        Route::post('edit-hub/{id}', 'HubPerLocationController@edit')->name('edit-hub');
+
+        Route::post('/employee/setup', 'EmployeeController@setup')->name('employee.setup');
+        Route::post('account-setting-hr/updateConsent/{id}', 'EmployeeController@consentUpdate')->name('employee.consent.update');
+
+    });
 Route::post('new-employee', 'EmployeeController@new');
 Route::post('upload-employee', 'EmployeeController@upload');
 Route::post('upload-employee-rate', 'EmployeeController@reverseRate');
+
+/* public coe request */
+Route::get('/public/coe-request/', 'EmployeeCoeController@publicCoe');
+Route::post('/public/coe-request/', 'EmployeeCoeController@store');
+
+/* public area distributorship application */
+Route::get('/public/ada-application/', 'AdaController@create')->name('ada.create');
+Route::post('/public/ada-application/', 'AdaController@store')->name('ada.public.store');
+
+Route::get('/public/ada-application/{id}/edit', 'AdaController@editPublic')
+    ->name('ada.public.edit')
+    ->middleware(['signed', 'throttle:30,1']);
+Route::put('/public/ada-application/{id}', 'AdaController@updatePublic')
+    ->name('ada.public.update')
+    ->middleware(['signed', 'throttle:30,1']);
+
+/* public exit interview */
+Route::get('/public/exit-interview', 'ExitInterviewController@publicCreate')
+    ->name('exit-interview.public.create');
+Route::post('/public/exit-interview', 'ExitInterviewController@publicStore')
+    ->name('exit-interview.public.store');
+
+/* public layout design request */
+/* Route::get('/public/ldr-request/', 'LayoutDesignController@publicCreate')->name('ldr.public.create'); */
+
+// public layout design request
+// Route::post('/public/ldr-request/', 'LayoutDesignController@publicStore')->name('ldr.public.store');
+
+/* public customer feedback */
+// Route::get('/public/customer-feedback/', 'CustomerFeedbackController@create')->name('customer-feedback.create');
+// Route::post('/public/customer-feedback/', 'CustomerFeedbackController@store')->name('customer-feedback.store');
+
+// comment these lines in production !!!!!!!!!!!!!
+// Route::get('test', 'Test@viewTest'); 
+// Route::get('test-pdf', 'Test@testPdf');
+// Route::get('testid/{id}', 'Test@viewTestId');
+// Route::get('/batch-print-ids', 'Test@batchPrintIds');
+// Route::get('test-send', 'Test@sendTest');
+// Route::get('/batch-print-form', 'Test@batchPrintForm');
 
 Route::get('leave-credit-acc','EmployeeEarnedLeaveController@addLeave');
 

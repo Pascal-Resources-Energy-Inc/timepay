@@ -19,7 +19,7 @@
     Route::get('/upload-pay-reg', 'PayslipController@uploadpayreg');
     Route::post('/upload-pay-reg', 'PayslipController@postuploadpayreg');
     Route::get('get-devices','AttendanceController@devices');
-    Route::group(['middleware' => 'auth'], function () {
+    Route::group(['middleware' => ['auth', 'account.active']], function () {
         Route::post('timein-capture','AttendanceController@storeTimeIn');
         Route::post('timeout-capture','AttendanceController@storeTimeOut');
 
@@ -300,6 +300,7 @@
 
         //ID and Uniform Request Approval
         Route::get('iur-approval','FormApprovalController@form_iur_approval');
+        /* Route::post('message-iur-requestor/{id}', 'FormApprovalController@sendIurRequestorMessage'); */
         Route::post('process-iur/{id}','FormApprovalController@processIur');
         Route::post('decline-iur/{id}','FormApprovalController@declineIur');
         Route::post('partial-iur/{id}','FormApprovalController@partialApprove');
@@ -311,6 +312,7 @@
         Route::post('disapprove-iur-all','FormApprovalController@disapproveIurAll');
         Route::post('update-acc-notes/{id}', 'FormApprovalController@updateAccountabilityNote');
         Route::get('iur-accountability/{id}', 'FormApprovalController@viewAccountability');
+        /* Route::get('iur-accountability-preview/{id}', 'FormApprovalController@previewAccountabilityTab'); */
         Route::get('iur-accountability-print/{id}', 'FormApprovalController@printAccountabilityTab');
 
         // DTR 
@@ -643,6 +645,7 @@
         Route::post('/ada-applications/{id}/decline-offersheet', 'AdaController@declineOfferSheet')->name('ada.decline-offersheet');
         Route::post('/ada-applications/{id}/send-to-client', 'AdaController@sendToClient')->name('ada.send-to-client');
         Route::post('/ada-applications/{id}/send-follow-up', 'AdaController@sendFollowUp')->name('ada.send-follow-up');
+        /* Route::get('/ada-email-attachments/{id}/download', 'AdaController@downloadEmailAttachment')->name('ada.email-attachments.download'); */
 
         // customer feedback responses
         Route::get('/customer-feedbacks', 'CustomerFeedbackController@index')->name('customer-feedback.index');

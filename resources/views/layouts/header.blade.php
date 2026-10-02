@@ -328,7 +328,7 @@
         </div>
     </div>
 
-    @if(auth()->check() && auth()->user()->is_setup_complete != 1)
+    @if(auth()->check() && auth()->user()->is_setup_complete != 1 || empty(auth()->user()->pseah) || empty(auth()->user()->cpc))
         @include('dashboards.employee_wizard')
     @endif
     <div class="container-scroller">

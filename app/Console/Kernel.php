@@ -51,6 +51,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('sales:generate-monthly')->monthlyOn(1, '00:10'); // every 1st day of month 12:10AM
         /* $schedule->command('iur:remind-pending')->dailyAt('09:00'); */
         $schedule->command('coe:remind-pending')->dailyAt('09:00')->withoutOverlapping();
+        $schedule->command('employees:notify-resignation-day-30')
+            ->dailyAt('09:00')
+            ->withoutOverlapping();
+
         /* if (config('ada_mail.imap.enabled')) { */
         /*     $schedule->command('ada:sync-emails') */
         /*         ->everyMinute() */

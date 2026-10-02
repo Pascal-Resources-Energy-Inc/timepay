@@ -41,9 +41,36 @@ class LoginController extends Controller
      *
      * @return void
      */
-    public function __construct()
-    {
+    public function __construct() {
         $this->middleware('guest')->except('logout');
+    }
+
+    protected function attemptLogin(Request $request) {
+        if (!$this->guard()->attempt(
+            $this->credentials($request),
+            $request->filled('remember')
+        )) {
+            return false;
+        }
+
+        $user = $this->guard()->user();
+        $employee = $user->employee;
+
+        $inactiveUser = $user->status === 'Inactive';
+
+        $disabledAccount = $employee && in_array(
+            $employee->status,
+            ['Inactive', 'Terminated'],
+            true
+        );
+
+        if ($inactiveUser || $disabledAccount) {
+            $this->guard()->logout();
+
+            return false;
+        }
+
+        return true;
     }
 
     public function authenticated(Request $request, $user) {

@@ -386,6 +386,10 @@ class EmployeeController extends Controller
             'pagibig'              => 'required|string|max:50',
             'tin'                  => 'required|string|max:50',
 
+            // for compiled 201 file
+            'compiled_file'        => 'nullable|mimes:pdf|max:102400',
+
+            // multiple upload of 201 files (currently unused)
             'documents' => 'nullable|array',
             'documents.*' => 'file|mimes:pdf,jpeg,jpg,png|max:102400',
 
@@ -489,6 +493,29 @@ class EmployeeController extends Controller
             }
 
             $employee->save();
+
+            if ($request->hasFile('compiled_file')) {
+                $compiledFile = $request->file('compiled_file');
+                $compiledFileName = time() . '-' . preg_replace(
+                    '/[^A-Za-z0-9._-]/',
+                    '_',
+                    $compiledFile->getClientOriginalName()
+                );
+
+                $documentDirectory = public_path('employee_documents');
+                if (!file_exists($documentDirectory)) {
+                    mkdir($documentDirectory, 0755, true);
+                }
+
+                $compiledFile->move($documentDirectory, $compiledFileName);
+
+                $employeeDocument = new EmployeeDocument;
+                $employeeDocument->employee_id = $employee->id;
+                $employeeDocument->document_type = 18;
+                $employeeDocument->file_path = '/employee_documents/' . $compiledFileName;
+                $employeeDocument->file_name = $compiledFileName;
+                $employeeDocument->save();
+            }
 
             $employeeCompany = new EmployeeCompany;
             $employeeCompany->emp_code = $request->biometric_code;
@@ -1311,6 +1338,13 @@ class EmployeeController extends Controller
 
         $user = User::findOrFail($employee->user_id);
         $user->email = $request->work_email;
+
+        if (in_array($request->status, ['Inactive', 'Terminated'], true)) {
+            $user->status = 'Inactive';
+        } elseif ($request->status === 'Active') {
+            $user->status = 'Active';
+        }
+
         $user->save();
 
         $employee->employee_number = $request->employee_number;
@@ -2065,13 +2099,21 @@ class EmployeeController extends Controller
         );
     }
 
-    public function biologs_per_location(Request $request)
-    {
+    public function biologs_per_location(Request $request) {
         $from_date = $request->from;
         $to_date = $request->to;
 
+        /* $allowedPerPage = [30, 50, 100, 150]; */
+        /**/
+        /* $perPage = (int) $request->input('per_page', 30); */
+        /**/
+        /* if (!in_array($perPage, $allowedPerPage, true)) { */
+        /*     $perPage = 30; */
+        /* } */
+
         $locations = AttendanceLog::groupBy('location')->get(['location']);
         $attendances = AttendanceLog::whereBetween('date',[$from_date,$to_date])->where('location',$request->location)->get();
+
         return view(
             'attendances.employee_attendance_location',
             array(

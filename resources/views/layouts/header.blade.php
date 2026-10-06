@@ -449,6 +449,8 @@
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> -->
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/231380935515052">Authority to Deduct</a></li>
+
+                                {{--
                                 @if(
                                     auth()->check() &&
                                     auth()->user()->employee &&
@@ -463,10 +465,12 @@
                                         </a>
                                     </li>
                                 @endif
+                                --}}
+
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/authority-deduct') }}">Authority to Deduct</a></li> -->
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242770633900050">Number Enrollment </a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/number-enrollment') }}">Number Enrollment </a></li> -->
-                                <li class="nav-item "> <a class="nav-link" href="/coe-request">COE Request</a></li>
+                                <li class="nav-item "> <a class="nav-link" href="https://form.jotform.com/232350967124051">COE Request</a></li>
                                 <li class="nav-item "> <a class="nav-link" href="https://docs.google.com/forms/d/e/1FAIpQLSfrIUbn6qLvHLt7rYF9e4sxTCKvNGT9zESsLkQwKHSCzmcXZg/viewform" style="text-wrap: auto">TDS/MDS Employee Referral Program</a></li>
                                 <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdlOeSHBVOcAASbWkVOQpeVNbI1R36oVlEln-BctX7ekDlUnw/viewform">Incident Report Form</a></li>
                                 <li class="nav-item "> <a class="nav-link" target='_blank' href="https://form.jotform.com/232360985204051" style="text-wrap: auto">Uniform & ID Request Form</a></li>
@@ -773,12 +777,12 @@
                         </a>
                     </li>
 
-                    <li class="nav-item @if ($header == 'dashboard_admin') active @endif">
-                        <a class="nav-link" href="{{ url('/exit-interviews') }}" onclick='show()'>
-                            <i class="icon-speech-bubble menu-icon"></i>
-                            <span class="menu-title">Exit Interviews</span>
-                        </a>
-                    </li>
+                    <!-- <li class="nav-item @if ($header == 'dashboard_admin') active @endif"> -->
+                    <!--     <a class="nav-link" href="{{ url('/exit-interviews') }}" onclick='show()'> -->
+                    <!--         <i class="icon-speech-bubble menu-icon"></i> -->
+                    <!--         <span class="menu-title">Exit Interviews</span> -->
+                    <!--     </a> -->
+                    <!-- </li> -->
 
                     @if (checkUserPrivilege('timekeeping_dashboard',auth()->user()->id) == 'yes')
                     {{-- @if(request()->getHost() != "hris.gazlite.com.ph") --}}

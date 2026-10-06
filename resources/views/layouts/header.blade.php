@@ -449,6 +449,8 @@
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242708019887063">Payroll Disbursement</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> -->
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/231380935515052">Authority to Deduct</a></li>
+
+                                {{--
                                 @if(
                                     auth()->check() &&
                                     auth()->user()->employee &&
@@ -463,6 +465,8 @@
                                         </a>
                                     </li>
                                 @endif
+                                --}}
+
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/authority-deduct') }}">Authority to Deduct</a></li> -->
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242770633900050">Number Enrollment </a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/number-enrollment') }}">Number Enrollment </a></li> -->
@@ -773,12 +777,12 @@
                         </a>
                     </li>
 
-                    <li class="nav-item @if ($header == 'dashboard_admin') active @endif">
-                        <a class="nav-link" href="{{ url('/exit-interviews') }}" onclick='show()'>
-                            <i class="icon-speech-bubble menu-icon"></i>
-                            <span class="menu-title">Exit Interviews</span>
-                        </a>
-                    </li>
+                    <!-- <li class="nav-item @if ($header == 'dashboard_admin') active @endif"> -->
+                    <!--     <a class="nav-link" href="{{ url('/exit-interviews') }}" onclick='show()'> -->
+                    <!--         <i class="icon-speech-bubble menu-icon"></i> -->
+                    <!--         <span class="menu-title">Exit Interviews</span> -->
+                    <!--     </a> -->
+                    <!-- </li> -->
 
                     @if (checkUserPrivilege('timekeeping_dashboard',auth()->user()->id) == 'yes')
                     {{-- @if(request()->getHost() != "hris.gazlite.com.ph") --}}

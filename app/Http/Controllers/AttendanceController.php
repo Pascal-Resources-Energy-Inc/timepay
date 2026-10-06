@@ -217,6 +217,14 @@ class AttendanceController extends Controller
     }
     public function subordinates(Request $request)
     {
+
+      if (!auth()->user()->subbordinates()->exists()) {
+        Alert::error('You do not have subordinates.')
+          ->persistent('Dismiss');
+
+        return redirect()->route('home');
+      }
+
         $attendance_controller = new AttendanceController; 
         $from_date = $request->from;
         $to_date = $request->to;

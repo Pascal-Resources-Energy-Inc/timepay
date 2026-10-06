@@ -1,54 +1,152 @@
 @extends('layouts.header')
 
+@section('css_header')
+<style>
+  .subordinates-page .attendance-card {
+    overflow: hidden;
+  }
+
+  .subordinates-page .attendance-heading {
+    margin-bottom: 1.5rem;
+  }
+
+  .subordinates-page .attendance-heading .card-title {
+    margin-bottom: .35rem;
+  }
+
+  .subordinates-page .attendance-heading p {
+    color: #6c757d;
+    margin-bottom: 0;
+  }
+
+  .subordinates-filters {
+    margin-bottom: 1.5rem;
+  }
+
+  .subordinates-filters .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .subordinates-filters label {
+    color: #4b5563;
+    display: block;
+    font-size: .875rem;
+    font-weight: 600;
+    margin-bottom: .5rem;
+  }
+
+  .subordinates-filters input.form-control,
+  .subordinates-filters .select2-container .select2-selection--multiple {
+    min-height: 46px;
+  }
+
+  .subordinates-filters .select2-container .select2-selection--multiple {
+    align-items: center;
+    display: flex;
+  }
+
+  .subordinates-filters .select2-container .select2-search--inline .select2-search__field {
+    margin-top: 0;
+  }
+
+  .subordinates-filters .btn {
+    min-height: 46px;
+    width: 100%;
+  }
+
+  .subordinates-page .attendance-table-shell {
+    border: 1px solid #e5e7eb;
+    border-radius: .5rem;
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .subordinates-page .attendance-table-shell table {
+    margin-bottom: 0;
+    min-width: 2650px;
+    white-space: nowrap;
+  }
+
+  .subordinates-page .attendance-table-shell thead th {
+    background: #f8f9fa;
+    color: #374151;
+    font-size: .75rem;
+    letter-spacing: .02em;
+    vertical-align: middle;
+  }
+
+  .subordinates-page .attendance-empty-state {
+    background: #f8f9fa;
+    border: 1px dashed #d8dde5;
+    border-radius: .5rem;
+    color: #6c757d;
+    padding: 2.5rem 1rem;
+    text-align: center;
+  }
+
+  .subordinates-page .attendance-empty-state i {
+    color: #4b49ac;
+    display: block;
+    font-size: 1.75rem;
+    margin-bottom: .75rem;
+  }
+
+  @media (max-width: 767.98px) {
+    .subordinates-page .card-body {
+      padding: 1.25rem;
+    }
+  }
+</style>
+@endsection
+
 @section('content')
-<div class="main-panel">
+<div class="main-panel subordinates-page">
     <div class="content-wrapper">
         <div class='row'>
-         
+
           <div class="col-lg-12 grid-margin stretch-card">
-            <div class="card">
+            <div class="card attendance-card">
               <div class="card-body">
-                <h4 class="card-title">Attendances</h4>
-                <p class="card-description">
-                  <form method='get' onsubmit='show();'  enctype="multipart/form-data">
-                  <div class=row>
-                    <div class='col-md-3'>
-                      <div class="form-group row">
-                        <label class="col-sm-4 col-form-label text-right">Employee</label>
-                        <div class="col-sm-8">
-                            <select data-placeholder="Select Employee" class="form-control form-control-sm required js-example-basic-single" style='width:100%;' name='employee[]' multiple required>
-                                <option value="">-- Select Employee --</option>
-                                 @foreach(auth()->user()->subbordinates as $emp)
-                                    <option value="{{$emp->employee_number}}" @if($emp_code) @if (in_array($emp->employee_number,$emp_code)) selected @endif @endif >{{$emp->employee_number}} - {{$emp->first_name}} {{$emp->last_name}}</option>
-                                 @endforeach
-                              </select>
-                        </div>
+                <div class="attendance-heading">
+                  <h4 class="card-title">Subordinates Attendance</h4>
+                  <p>Select your subordinates and a date range to review their attendance records.</p>
+                </div>
+
+                <form method='get' class="subordinates-filters" onsubmit='show();' enctype="multipart/form-data">
+                  <div class="row align-items-end">
+                    <div class='col-lg-5 col-md-12'>
+                      <div class="form-group">
+                        <label for="subordinate-employees">Employees</label>
+                        <select id="subordinate-employees" data-placeholder="Select employees" class="form-control form-control-sm required js-example-basic-single" style='width:100%;' name='employee[]' multiple required>
+                          <option value="">-- Select Employee --</option>
+                          @foreach(auth()->user()->subbordinates as $emp)
+                            <option value="{{$emp->employee_number}}" @if($emp_code) @if (in_array($emp->employee_number,$emp_code)) selected @endif @endif >{{$emp->employee_number}} - {{$emp->first_name}} {{$emp->last_name}}</option>
+                          @endforeach
+                        </select>
                       </div>
                     </div>
-                    <div class='col-md-3'>
-                      <div class="form-group row">
-                        <label class="col-sm-4 col-form-label text-right">From</label>
-                        <div class="col-sm-8">
-                          <input type="date" value='{{$from_date}}' class="form-control" name="from" max='{{date('Y-m-d')}}' onchange='get_min(this.value);' required/>
-                        </div>
+                    <div class='col-lg-2 col-md-4 col-sm-6'>
+                      <div class="form-group">
+                        <label for="attendance-from">From</label>
+                        <input id="attendance-from" type="date" value='{{$from_date}}' class="form-control" name="from" max='{{date('Y-m-d')}}' onchange='get_min(this.value);' required/>
                       </div>
                     </div>
-                    <div class='col-md-3'>
-                      <div class="form-group row">
-                        <label class="col-sm-4 col-form-label text-right">To</label>
-                        <div class="col-sm-8">
-                          <input type="date" value='{{$to_date}}'  class="form-control" name="to" id='to' max='{{date('Y-m-d')}}' required/>
-                        </div>
+                    <div class='col-lg-2 col-md-4 col-sm-6'>
+                      <div class="form-group">
+                        <label for="to">To</label>
+                        <input type="date" value='{{$to_date}}' class="form-control" name="to" id='to' max='{{date('Y-m-d')}}' required/>
                       </div>
                     </div>
-                    <div class='col-md-3'>
-                      <button type="submit" class="btn btn-primary mb-2">Submit</button>
+                    <div class='col-lg-3 col-md-4'>
+                      <div class="form-group">
+                        <button type="submit" class="btn btn-primary">View Attendance</button>
+                      </div>
                     </div>
                   </div>
-                  </form>
-                </p>
-                
-                <div class="table-responsive">
+                </form>
+
+                @if($from_date)
+                <div class="table-responsive attendance-table-shell">
 
                     <table border="1" class="table table-hover table-bordered employee_attendance" id='employee_attendance'>
                         <thead>
@@ -126,7 +224,7 @@
                                     $time_in = ($emp->attendances)->whereBetween('time_in',[$date_r." 00:00:00",$date_r." 23:59:59"])->sortBy('time_in')->first();
                                     if($time_in == null)
                                         {
-                                        
+
                                             $time_out = ($emp->attendances)->whereBetween('time_out',[$date_r." 00:00:00", $date_r." 23:59:59"])->where('time_in',null)->first();
                                             if($time_out)
                                             {
@@ -153,7 +251,7 @@
                                             @if ($employee_schedule->time_in_from != $employee_schedule->time_in_to)
                                                 <small>(Flexi)</small>
                                             @endif
-                                            @else 
+                                            @else
                                             <small>RESTDAY</small>
                                             @php
                                                 $rest = "RESTDAY";
@@ -176,14 +274,14 @@
                                         {{$generated_attendance->shift}}
                                     </td>
                                     @endif
-                                    <!-- <td> 
+                                    <!-- <td>
                                     @if($employee_schedule != null)
                                         @if($employee_schedule->time_in_from != '00:00')
                                         <small>{{date('h:i A', strtotime($employee_schedule->time_in_to)).'-'.date('h:i A', strtotime($employee_schedule->time_out_to))}}</small>
                                         @if ($employee_schedule->time_in_from != $employee_schedule->time_in_to)
                                             <small>(Flexi)</small>
                                         @endif
-                                        @else 
+                                        @else
                                         <small>RESTDAY</small>
                                         @php
                                             $rest = "RESTDAY";
@@ -213,16 +311,16 @@
                                                 // dd($cenvertedTime);
                                             }
                                         }
-                                       
-                                      
+
+
                                         $time_in = ($emp->attendances)->whereBetween('time_in',[$cenvertedTime,$date_r." 23:59:59"])->sortBy('time_in')->first();
-                                      
+
                                         $time_out = null;
                                         $final_time_in = "";
                                         $final_time_out = "";
                                         if($time_in == null)
                                         {
-                                        
+
                                             $time_out = ($emp->attendances)->whereBetween('time_out',[$date_r." 00:00:00", $date_r." 23:59:59"])->where('time_in',null)->first();
                                             if($time_out)
                                             {
@@ -249,7 +347,7 @@
                                     }
                                     if($if_has_ob)
                                     {
-                                    
+
                                     if($final_time_in != null)
                                     {
                                         if($if_has_ob->date_from < $final_time_in)
@@ -261,24 +359,24 @@
                                         }
                                     }
                                     else {
-                                        
+
                                         $time_start = date('Y-m-d h:i A',strtotime($if_has_ob->date_from));
                                     }
-                                    
+
                                         if($final_time_out != null){
                                             // dd($time_in);
                                             if(strtotime($if_has_ob->date_to) > strtotime($final_time_out))
                                             {
-                                            
+
                                             $time_end = date('Y-m-d h:i A',strtotime($if_has_ob->date_to));
                                             }
                                             else {
-                                                
+
                                                 $time_end = date('Y-m-d h:i A',strtotime($final_time_out));
                                             }
                                         }
                                         else {
-                                            
+
                                             $time_end = date('Y-m-d h:i A',strtotime($if_has_ob->date_to));
                                         }
                                     }
@@ -295,7 +393,7 @@
                                     @endif
                                     @if($abs == 1)
                                         @if($employee_schedule)
-                                            @php 
+                                            @php
                                                 $is_absent = '';
                                                 $if_leave = '';
                                                 $if_attendance_holiday = '';
@@ -307,7 +405,7 @@
                                                     if($if_attendance_holiday){
 
                                                         $check_leave = employeeHasLeave($emp->approved_leaves,date('Y-m-d',strtotime($if_attendance_holiday)),$employee_schedule);
-                                                    
+
                                                         if($check_leave){
                                                             $if_attendance_holiday_status = 'With-Pay';
                                                             $abs =0;
@@ -332,7 +430,7 @@
                                                     }
                                                 }else{
                                                     $if_leave = employeeHasLeave($emp->approved_leaves,date('Y-m-d',strtotime($date_r)),$employee_schedule);
-                                                    
+
                                                     if(empty($if_leave)){
                                                         if($employee_schedule->time_in_from != '00:00') {
                                                         if(empty($if_has_dtr)){
@@ -345,9 +443,9 @@
                                                             $abs = 0;
                                                             $if_restday = 'Restday';
                                                         }
-                                                    } 
+                                                    }
                                                 }
-                                                    
+
                                             @endphp
                                         @else
                                         @endif
@@ -355,13 +453,13 @@
                                         @php
                                             $is_absent = '';
                                             $if_restday = '';
-                                            
+
                                             $if_leave = employeeHasLeave($emp->approved_leaves,date('Y-m-d',strtotime($date_r)),$employee_schedule);
-                                        
+
                                             // $abs=0;
-                                        @endphp  
+                                        @endphp
                                     @endif
-                               
+
                                     @if($generated_attendance != null)
                                     {{-- {{dd($generated_attendance)}} --}}
                                     <td>@if($generated_attendance->in){{date('h:i A',strtotime($generated_attendance->in))}}@endif</td>
@@ -370,7 +468,7 @@
                                     <td>@if($time_start){{date('h:i A',strtotime($time_start))}}@endif</td>
                                     <td>@if($time_end){{date('h:i A',strtotime($time_end))}}@endif</td>
                                     @endif
-                                  
+
                                     @php
                                         $leave_count = 0;
                                         if($if_leave)
@@ -385,7 +483,7 @@
                                             // dd($leave_count);
                                         }
                                     @endphp
-                                
+
                                     @php
                                         $work =0;
                                         $work_ot =0;
@@ -394,19 +492,19 @@
                                         $original_sched = 0;
                                         $overtime = 0;
                                     @endphp
-                                    @if((($time_start)&&($time_end)) && $employee_schedule)    
+                                    @if((($time_start)&&($time_end)) && $employee_schedule)
                                         @php
                                             $schedule_out = strtotime($date_r." ".$employee_schedule->time_out_to);
                                             $schedule_in = strtotime($date_r." ".$employee_schedule->time_in_to);
-                                            
+
                                             if(($schedule_out) < ($schedule_in))
                                             {
-                                                
+
                                                 $schedule_out = strtotime($date_r." ".$employee_schedule->time_out_to)+86400;
                                                 // dd(date('Y-m-d H:i',$schedule_out)." ".date('Y-m-d H:i',$schedule_in));
                                             }
                                             $original_sched = ((($schedule_out)-($schedule_in))/3600);
-                                    
+
                                             $time_start_ts = strtotime($time_start);
                                             $time_end_ts = strtotime($time_end);
                                             // if ($time_end_ts < $time_start_ts) {
@@ -417,15 +515,15 @@
                                                 $time_start_ts = strtotime($date_r." ".$employee_schedule->time_in_from);
                                             }
                                             $work_ot =  round((($time_end_ts - $schedule_in)/3600), 2);
-                                         
+
                                             if($time_end_ts > $schedule_out)
                                             {
                                                 // dd($time_end_ts." ".$schedule_out);
                                                 $time_end_ts =  $schedule_out;
-                                              
+
                                             }
                                             $work =  round((($time_end_ts - $time_start_ts)/3600), 2);
-                                            
+
                                             // if($work_ot>10)
                                             // {
                                             //     dd($work_ot);
@@ -433,7 +531,7 @@
                                             //     dd($schedule_out." ".date('Y-m-d H:i',$time_start_ts));
                                             // }
                                             $schedule_hours = 0;
-                                            
+
                                             if($employee_schedule->time_in_from)
                                             {
                                                 $schedule_hours = ((($schedule_out)-($schedule_in))/3600);
@@ -441,19 +539,19 @@
                                                 if($schedule_hours > 8)
                                                 {
                                                     $schedule_hours =  $schedule_hours-1;
-                                                  
+
                                                     if($work >= ($schedule_hours/1.5))
                                                     {
-                                                       
+
                                                         $work = $work-1;
-                                                       
-                                                        
+
+
                                                     }
-                                                   
-                                                    
+
+
                                                 }
 
-                                              
+
                                                 if($schedule_hours > $work)
                                                 {
                                                     $undertime = (double) number_format($schedule_hours - $work,2);
@@ -462,9 +560,9 @@
                                                {
                                                 $overtime = (double) number_format($work_ot - $original_sched,2);
                                                }
-                                                    
-                                                
-                                              
+
+
+
                                                 if($work > $schedule_hours)
                                                 {
                                                     $work = $schedule_hours;
@@ -479,7 +577,7 @@
                                                 }
                                             }
 
-                                        @endphp                                            
+                                        @endphp
                                     @endif
                                     @php
                                     $late_diff_hours=0;
@@ -494,15 +592,15 @@
                                         if(date('Y-m-d H:i',strtotime($time_in_data_full)) > date('Y-m-d H:i',strtotime($schedule_time_in))){
                                             $late_diff = $schedule_time_in_final->diff(new DateTime($time_in_data_full));
                                             $late_diff_hours = round($late_diff->s / 3600 + $late_diff->i / 60 + $late_diff->h + $late_diff->days * 24, 2);
-                                        }   
-                                        
+                                        }
+
                                         if($undertime > 0){
                                             if($late_diff_hours > 0){
                                                 $undertime_hrs = $undertime - $late_diff_hours;
                                             }else{
                                                 $undertime_hrs = $undertime;
                                             }
-                                        }  
+                                        }
                                     }
                                     @endphp
                                     @if($work > 0)
@@ -532,7 +630,7 @@
                                                 {
                                                     $late = 0;
                                                     $undertime_hrs = (double) number_format(($schedule_hours/2 - $work),2);
-                                                } 
+                                                }
                                             }
                                             else{
                                                 $work = ($schedule_hours/2);
@@ -554,21 +652,21 @@
                                     {
                                         $undertime_hrs = 0;
                                     }
-                              
+
                                     @endphp
                                     @php
                                     $approved_overtime_hrs = $emp->approved_ots ? employeeHasOTDetails($emp->approved_ots,date('Y-m-d',strtotime($date_r))) : "";
-                                   
+
                                     $night_diff = 0;
                                     $night_diff_ot = 0;
                                     if(($time_start!=null )&& ($time_end!=null))
                                     {
                                             $nightdiff_start = $time_start;
                                             $nightdiff_end = $time_end;
-                                        
+
                                         if($employee_schedule)
                                         {
-                                            
+
                                             $start_schedule = (date('Y-m-d',strtotime($time_start))." ".$employee_schedule->time_in_to);
                                             $end_schedule = (date('Y-m-d',strtotime($time_start))." ".$employee_schedule->time_out_to);
 
@@ -577,32 +675,32 @@
                                                 $s = date('Y-m-d', strtotime($time_start . ' +1 day'));
                                                 $end_schedule = date('Y-m-d H:i', strtotime($s." ".$employee_schedule->time_out_to));
                                             }
-                                       
+
                                             if(strtotime($start_schedule) > strtotime($time_start))
-                                            {   
+                                            {
                                                 $nightdiff_start = $start_schedule;
                                             }
                                             if(strtotime($end_schedule) < strtotime($time_end))
-                                            {   
+                                            {
                                                 $nightdiff_end = $end_schedule;
                                             }
                                         }
-                                        
+
                                          $night_diff = night_difference_per_company($nightdiff_start,$nightdiff_end);
-                                       
+
                                          if($night_diff >= 5)
                                          {
                                             $night_diff = $night_diff - 1;
                                          }
                                          $night_diff_ot = night_difference_per_company($time_start,$time_end)-$night_diff;
-                                        
-                                        
+
+
                                     }
                                     if($night_diff_ot < .5)
                                     {
                                         $night_diff_ot = 0;
                                     }
-                                    if($overtime <1)
+                                    if($overtime < 0.5)
                                     {
                                         $overtime =0;
                                     }
@@ -633,7 +731,7 @@
                                         $work_rest = 0;
                                         $restnd = 0;
                                         $rest = "";
-                                    
+
                                         if($employee_schedule != null)
                                         {
                                                 if($employee_schedule->time_in_from == '00:00')
@@ -643,21 +741,21 @@
                                                 if($employee_schedule->time_in_from == '')
                                                 {
                                                     $rest = "RESTDAY";
-                                                    
-                                           
+
+
                                                 }
                                                 if($employee_schedule->time_in_from == null)
                                                 {
                                                     $rest = "RESTDAY";
-                                                   
+
                                                 }
-                                           
+
                                         }
                                         else {
-                                            
+
                                             $rest = "RESTDAY";
                                         }
-                                       
+
                                         if($rest == "RESTDAY")
                                         {
                                             $overtime = 0;
@@ -676,7 +774,7 @@
                                                 {
                                                     $work_rest = $approved_overtime_hrs;
                                                 }
-                                                
+
                                                 if($work_rest >2)
                                                 {
                                                     $restday_ot = $work_rest;
@@ -687,7 +785,7 @@
                                                     }
                                                 }
                                             }
-                                           
+
                                         }
                                     if($overtime == null)
                                     {
@@ -768,17 +866,23 @@
                                     <td>
                                         {{$if_leave}} {{$if_has_ob ? 'OB' : ''}}
                                     </td>
-                                    
+
                                 </tr>
                                 @endforeach
                             @endforeach
                         </tbody>
                     </table>
                   </div>
+                @else
+                  <div class="attendance-empty-state">
+                    <i class="ti-calendar"></i>
+                    Choose at least one employee and a date range to display attendance records.
+                  </div>
+                @endif
                 </div>
             </div>
           </div>
-        
+
         </div>
     </div>
 </div>

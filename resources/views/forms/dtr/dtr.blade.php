@@ -98,6 +98,7 @@
                         <th>Reason</th>
                         <th>Status</th>
                         <th>Approvers</th>
+                        <th>Approval Remarks</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -144,6 +145,9 @@
                           @else
                             <label class="badge badge-danger mt-1">No Approver</label>
                           @endif
+                        </td>
+                        <td style="min-width: 220px; max-width: 320px;">
+                          <div style="white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; line-height: 1.4;">{{ $dtr->approval_remarks ?? '-' }}</div>
                         </td>
                         <td id="tdActionId{{ $dtr->id }}" data-id="{{ $dtr->id }}">
                           @if ($dtr->status == 'Pending' and $dtr->level == 0)

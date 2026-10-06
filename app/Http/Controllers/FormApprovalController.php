@@ -1944,7 +1944,7 @@ class FormApprovalController extends Controller
 
         if ($recipientEmail) {
             Mail::to($recipientEmail)->send(
-                new \App\Mail\ProcessingCoeMail($employee_coe)
+                (new \App\Mail\ProcessingCoeMail($employee_coe))
                     ->from($current_user->email, $current_user->name)
             );
         }

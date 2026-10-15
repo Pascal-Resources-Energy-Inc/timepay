@@ -140,7 +140,8 @@
                   <input type="text" class="form-control" 
                         name="contact_no" id="contact_no" value="{{ old('contact_no') }}" 
                         placeholder="PH number e.g., 09xxxxxxxxx" 
-                        maxlength="11"
+                        minlength="11" maxlength="11" pattern="[0-9]{11}"
+                        title="Please enter an 11-digit mobile number."
                         required>
                   <small class="form-text text-muted">Mobile number</small>
                 </div>
@@ -497,9 +498,17 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    document.getElementById('contact_no').type = 'tel';
-    document.getElementById('contact_no').addEventListener('input', function() {
-        this.value = this.value.replace(/[^0-9]/g, '');
+    const contactNumberInput = document.getElementById('contact_no');
+    contactNumberInput.type = 'tel';
+    contactNumberInput.inputMode = 'numeric';
+    contactNumberInput.addEventListener('input', function() {
+        // Enforce the limit after sanitizing pasted/autofilled values as well.
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);
+        this.setCustomValidity(
+            this.value.length > 0 && this.value.length !== 11
+                ? 'Please enter exactly 11 digits for the contact number.'
+                : ''
+        );
     });
 
     document.getElementById('lead_generator').addEventListener('change', function () {

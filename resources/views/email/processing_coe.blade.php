@@ -85,13 +85,13 @@
                             <!-- MESSAGE -->
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
                                 <tr>
-                                    <td style="padding:22px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; line-height:1.6; color:#374151;">Dear {{ $coe->first_name }} {{ $coe->last_name }},</td>
+                                    <td style="padding:22px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; line-height:1.6; color:#374151;">Dear {{ $coe->salutation }} {{ $coe->last_name }},</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:14px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; line-height:1.6; color:#374151;">Your Certificate of Employment request <strong>{{ $coe->reference_number }}</strong> has been received and is currently being processed. You can expect it to be ready within <b>7 days.</b> We'll notify you by email once it's approved.</td>
                                 </tr>
                                 <tr>
-                                    <td style="padding:14px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:13px; color:#555555;">Thank you!</td>
+                                    <td style="padding:14px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; color:#374151;">Thank you!</td>
                                 </tr>
                             </table>
 

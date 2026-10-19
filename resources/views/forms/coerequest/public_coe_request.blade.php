@@ -21,7 +21,7 @@
     <h1 class="text-lg sm:text-2xl font-bold text-gray-900 mb-1">Certificate of Employment (COE) Request</h1>
     <p class="text-sm text-gray-500 mb-6">Please provide the details below to request your Certificate of Employment.</p>
 
-    <form id="publicCoeRequestForm" method="POST" action="/public/coe-request">
+    <form id="publicCoeRequestForm" method="POST" action="/external/coe-request">
         @csrf
 
         @if($errors->any())
@@ -215,7 +215,7 @@
                 <label class="block text-sm font-semibold text-gray-700 mb-2">
                     Email Address <span class="text-red-500">*</span>
                     <span id="email-hint" class="hidden text-xs font-normal text-gray-500 ml-1">
-                        (Notifications about your COE request will be sent here.)
+                        (Updates about your COE request will be sent here.)
                     </span>
                 </label>
                 <input type="email"

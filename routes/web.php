@@ -300,7 +300,7 @@
 
         //ID and Uniform Request Approval
         Route::get('iur-approval','FormApprovalController@form_iur_approval');
-        /* Route::post('message-iur-requestor/{id}', 'FormApprovalController@sendIurRequestorMessage'); */
+        Route::post('message-iur-requestor/{id}', 'FormApprovalController@sendIurRequestorMessage');
         Route::post('process-iur/{id}','FormApprovalController@processIur');
         Route::post('decline-iur/{id}','FormApprovalController@declineIur');
         Route::post('partial-iur/{id}','FormApprovalController@partialApprove');
@@ -312,7 +312,7 @@
         Route::post('disapprove-iur-all','FormApprovalController@disapproveIurAll');
         Route::post('update-acc-notes/{id}', 'FormApprovalController@updateAccountabilityNote');
         Route::get('iur-accountability/{id}', 'FormApprovalController@viewAccountability');
-        /* Route::get('iur-accountability-preview/{id}', 'FormApprovalController@previewAccountabilityTab'); */
+        Route::get('iur-accountability-preview/{id}', 'FormApprovalController@previewAccountabilityTab');
         Route::get('iur-accountability-print/{id}', 'FormApprovalController@printAccountabilityTab');
 
         // DTR 
@@ -346,6 +346,7 @@
         Route::get('account-setting-hr/getBeneficiariesHR/{id}', 'EmployeeController@getBeneficiariesHR');
         Route::post('account-setting-hr/uploadAvatarHr/{id}', 'EmployeeController@uploadAvatarHr');
         Route::post('account-setting-hr/uploadSignatureHr/{id}', 'EmployeeController@uploadSignatureHr');
+        Route::post('account-setting-hr/{userId}/id-picture/{iurId}', 'EmployeeController@updateIdPictureHR')->name('account-setting-hr.id-picture.update');
 
 
         Route::get('associate-employees-export','EmployeeController@export_employee_associates');
@@ -645,10 +646,16 @@
         Route::post('/ada-applications/{id}/decline-offersheet', 'AdaController@declineOfferSheet')->name('ada.decline-offersheet');
         Route::post('/ada-applications/{id}/send-to-client', 'AdaController@sendToClient')->name('ada.send-to-client');
         Route::post('/ada-applications/{id}/send-follow-up', 'AdaController@sendFollowUp')->name('ada.send-follow-up');
-        /* Route::get('/ada-email-attachments/{id}/download', 'AdaController@downloadEmailAttachment')->name('ada.email-attachments.download'); */
+        Route::get('/ada-email-attachments/{id}/download', 'AdaController@downloadEmailAttachment')->name('ada.email-attachments.download');
 
         // customer feedback responses
         Route::get('/customer-feedbacks', 'CustomerFeedbackController@index')->name('customer-feedback.index');
+
+        // AD store visit report
+        Route::get('/ad-store-visit-reports', 'AdStoreVisitReportController@index')->name('ad-store-visit-reports.index');
+        Route::get('/ad-store-visit-reports/create', 'AdStoreVisitReportController@create')->name('ad-store-visit-reports.create');
+        Route::post('/ad-store-visit-reports', 'AdStoreVisitReportController@store')->name('ad-store-visit-reports.store');
+        Route::get('/ad-store-visit-reports/{id}', 'AdStoreVisitReportController@show')->name('ad-store-visit-reports.show');
 
         // publication request lists
         Route::get('/publication-requests', 'PublicationRequestController@index')->name('publication-requests.index');
@@ -672,6 +679,8 @@
         Route::get('/bmc/{id}/edit', 'MarketingCollateralBorrowingController@edit')->name('bmc.edit');
         Route::put('/bmc/{id}', 'MarketingCollateralBorrowingController@update')->name('bmc.update');
         Route::post('bmc-accountability-signature/{id}', 'MarketingCollateralBorrowingController@saveBorrowerSignature');
+        Route::get('bmc-accountability-preview/{id}', 'MarketingCollateralBorrowingController@previewAccountability')
+            ->name('bmc.accountability.preview');
 
         // marketing collateral borrowing [APPROVAL]
         Route::get('bmc-approval','FormApprovalController@formBmcApproval');
@@ -694,6 +703,7 @@
 
         // marketing material release [Request]
         Route::get('/marketing-material-releases', 'MarketingMaterialController@index')->name('marketing-material-releases.index');
+        Route::post('/marketing-material-releases/send-link', 'MarketingMaterialController@sendInvitation')->name('marketing-material-releases.invitation.send');
         Route::get('/marketing-material-releases/create', 'MarketingMaterialController@create')->name('marketing-material-releases.create');
         Route::post('/marketing-material-releases', 'MarketingMaterialController@store')->name('marketing-material-releases.store');
         Route::get('/marketing-material-releases/{id}', 'MarketingMaterialController@show')->name('marketing-material-releases.show');
@@ -720,6 +730,8 @@
 
         // Exit Interview
         Route::get('exit-interviews', 'ExitInterviewController@index')->name('Exit Interviews');
+        Route::post('exit-interviews/send-link', 'ExitInterviewController@sendInvitation')
+            ->name('exit-interview.invitation.send');
         Route::get('exit-interviews/create', 'ExitInterviewController@create');
         Route::post('exit-interviews', 'ExitInterviewController@store');
         Route::get('exit-interviews/{id}', 'ExitInterviewController@show');
@@ -775,8 +787,8 @@ Route::post('upload-employee', 'EmployeeController@upload');
 Route::post('upload-employee-rate', 'EmployeeController@reverseRate');
 
 /* public coe request */
-Route::get('/public/coe-request/', 'EmployeeCoeController@publicCoe');
-Route::post('/public/coe-request/', 'EmployeeCoeController@store');
+Route::get('/external/coe-request/', 'EmployeeCoeController@publicCoe');
+Route::post('/external/coe-request/', 'EmployeeCoeController@store');
 
 /* public area distributorship application */
 Route::get('/public/ada-application/', 'AdaController@create')->name('ada.create');
@@ -789,16 +801,27 @@ Route::put('/public/ada-application/{id}', 'AdaController@updatePublic')
     ->name('ada.public.update')
     ->middleware(['signed', 'throttle:30,1']);
 
+/* public AD store visit approval */
+Route::get('/public/ad-store-visit-reports/{id}/approve', 'AdStoreVisitReportController@showDistributorApproval')
+    ->name('ad-store-visit-reports.distributor-approval')
+    ->middleware(['signed', 'throttle:30,1']);
+Route::post('/public/ad-store-visit-reports/{id}/approve', 'AdStoreVisitReportController@approveByDistributor')
+    ->middleware(['signed', 'throttle:10,1']);
+
 /* public exit interview */
 Route::get('/public/exit-interview', 'ExitInterviewController@publicCreate')
     ->name('exit-interview.public.create');
 Route::post('/public/exit-interview', 'ExitInterviewController@publicStore')
     ->name('exit-interview.public.store');
 
-/* public layout design request */
-/* Route::get('/public/ldr-request/', 'LayoutDesignController@publicCreate')->name('ldr.public.create'); */
+/* public marketing material release */
+Route::get('/public/marketing-material-release', 'MarketingMaterialController@publicCreate')
+    ->name('marketing-material-releases.public.create');
+Route::post('/public/marketing-material-release', 'MarketingMaterialController@publicStore')
+    ->name('marketing-material-releases.public.store');
 
-// public layout design request
+// public layout design request (DEPRECATED)
+// Route::get('/public/ldr-request/', 'LayoutDesignController@publicCreate')->name('ldr.public.create');
 // Route::post('/public/ldr-request/', 'LayoutDesignController@publicStore')->name('ldr.public.store');
 
 /* public customer feedback */
@@ -806,12 +829,12 @@ Route::post('/public/exit-interview', 'ExitInterviewController@publicStore')
 // Route::post('/public/customer-feedback/', 'CustomerFeedbackController@store')->name('customer-feedback.store');
 
 // comment these lines in production !!!!!!!!!!!!!
-// Route::get('test', 'Test@viewTest'); 
-// Route::get('test-pdf', 'Test@testPdf');
-// Route::get('testid/{id}', 'Test@viewTestId');
-// Route::get('/batch-print-ids', 'Test@batchPrintIds');
-// Route::get('test-send', 'Test@sendTest');
-// Route::get('/batch-print-form', 'Test@batchPrintForm');
+Route::get('test', 'Test@viewTest'); 
+Route::get('test-pdf', 'Test@testPdf');
+Route::get('testid/{id}', 'Test@viewTestId');
+Route::get('/batch-print-ids', 'IurPrintController@batchPrintIds');
+Route::get('test-send', 'Test@sendTest');
+Route::get('/batch-print-form', 'IurPrintController@batchPrintForm');
 
 Route::get('leave-credit-acc','EmployeeEarnedLeaveController@addLeave');
 

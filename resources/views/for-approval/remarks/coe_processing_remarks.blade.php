@@ -16,6 +16,10 @@
                             <div class="border rounded p-2 mb-3" style="background: #f8f9fa;">
                                 <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
                                     <tr>
+                                        <td style="padding: 2px 8px 2px 0; color: #6c757d; white-space: nowrap; vertical-align: top;"><strong>Reference No.</strong></td>
+                                        <td class="text-primary" style="padding: 2px 0; font-weight: bold;">{{ $coe->reference_number }}</td>
+                                    </tr>
+                                    <tr>
                                         <td style="padding: 2px 8px 2px 0; color: #6c757d; white-space: nowrap; vertical-align: top;"><strong>Type:</strong></td>
                                         <td style="padding: 2px 0; color: #3399ff; font-weight: bold;">{{ $coe->reason_for_request }}</td>
                                     </tr>
@@ -23,6 +27,23 @@
                                         <td style="padding: 2px 8px 2px 0; color: #6c757d; white-space: nowrap; vertical-align: top;"><strong>Name:</strong></td>
                                         <td style="padding: 2px 0; color: #6c757d;">{{ $coe->first_name }} {{ $coe->last_name }}</td>
                                     </tr>
+                                    <tr>
+                                        <td style="padding: 2px 8px 2px 0; color: #6c757d; white-space: nowrap; vertical-align: top;"><strong>Designation:</strong></td>
+                                        <td style="padding: 2px 0; color: #6c757d;">{{ $coe->designation }}</td>
+                                    </tr>
+                                    @if ($coe->email)
+                                    <tr>
+                                        <td style="padding: 2px 8px 2px 0; color: #6c757d; white-space: nowrap; vertical-align: top;"><strong>Email:</strong></td>
+                                        <td style="padding: 2px 0; color: #6c757d;">{{ $coe->email }}</td>
+                                    </tr>
+                                    @endif
+
+                                    @if ($coe->viber_number)
+                                    <tr>
+                                        <td style="padding: 2px 8px 2px 0; color: #6c757d; white-space: nowrap; vertical-align: top;"><strong>Viber:</strong></td>
+                                        <td style="padding: 2px 0; color: #6c757d;">{{ $coe->viber_number }}</td>
+                                    </tr>
+                                    @endif
                                     <tr>
                                         <td style="padding: 2px 8px 2px 0; color: #6c757d; white-space: nowrap; vertical-align: top;"><strong>Delivery method:</strong></td>
                                         <td style="padding: 2px 0; color: #6c757d;">{{ $coe->receive_method }}</td>

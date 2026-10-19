@@ -85,7 +85,7 @@
                             <!-- MESSAGE -->
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
                                 <tr>
-                                    <td style="padding:22px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; line-height:1.6; color:#374151;">Dear {{ $name }},</td>
+                                    <td style="padding:22px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; line-height:1.6; color:#374151;">Dear {{ $salutation }}{{ $last_name }},</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:14px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; line-height:1.6; color:#374151;">Your Certificate of Employment (COE) request has been received. Here is a summary of the information you submitted for your reference.</td>

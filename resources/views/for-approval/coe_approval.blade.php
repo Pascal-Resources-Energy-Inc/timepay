@@ -3,6 +3,14 @@
 
 @extends('layouts.header')
 @section('content')
+
+<style>
+    .dataTables_wrapper .dataTables_filter input.form-control-sm {
+        height: calc(1.5em + 0.5rem + 2px);
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+
 <div class="main-panel">
   <div class="content-wrapper">
     {{-- Summary Cards --}}
@@ -32,7 +40,7 @@
         </div>
       </div>
       <div class='col-lg-2 mt-2'>
-        <div class="card card-dark-blue">
+        <div class="card card-dark-blue bg-success">
           <div class="card-body">
             <div class="media">
               <div class="media-body">
@@ -72,24 +80,24 @@
               </div>
 
             {{-- Filter Form --}}
-            <form method='get' onsubmit='show();' enctype="multipart/form-data">
-              <div class=row>
-                <div class='col-md-2'>
-                  <div class="form-group">
+            <form method='get' onsubmit='show();' enctype="multipart/form-data" class="border rounded bg-light p-3 mt-3 mb-4">
+              <div class="row align-items-end">
+                <div class='col-12 col-md-6 col-xl-3'>
+                  <div class="form-group mb-3 mb-xl-0">
                     <label class="text-right">From</label>
                     <input type="date" value='{{$from}}' class="form-control form-control-sm" name="from" onchange='get_min(this.value);' required />
                   </div>
                 </div>
-                <div class='col-md-2'>
-                  <div class="form-group">
+                <div class='col-12 col-md-6 col-xl-3'>
+                  <div class="form-group mb-3 mb-xl-0">
                     <label class="text-right">To</label>
                     <input type="date" value='{{$to}}' class="form-control form-control-sm" id='to' name="to" required />
                   </div>
                 </div>
-                <div class='col-md-2 mr-2'>
-                  <div class="form-group">
+                <div class='col-12 col-md-6 col-xl-3 pr-sm-1'>
+                  <div class="form-group mb-3 mb-xl-0">
                     <label class="text-right">Status</label>
-                    <select class="form-control form-control-sm required js-example-basic-single" name='status' required>
+                    <select data-placeholder="Select Status" class="form-control form-control-sm" name='status' required>
                       <option value="">-- Select Status --</option>
                       <option value="Approved" @if ('Approved'==$status) selected @endif>Approved</option>
                       <option value="Pending" @if ('Pending'==$status) selected @endif>Pending</option>
@@ -100,22 +108,11 @@
                     </select>
                   </div>
                 </div>
-                <div class='col-md-2'>
-                  <div class="form-group">
-                    <label class="text-right">Show</label>
-                    <select name="limit" class="form-control form-control-sm">
-                      <option value="5" {{ request('limit') == 5 ? 'selected' : '' }}>5</option>
-                      <option value="10" {{ request('limit') == 10 ? 'selected' : '' }}>10</option>
-                      <option value="25" {{ request('limit') == 25 ? 'selected' : '' }}>25</option>
-                      <option value="50" {{ request('limit') == 50 ? 'selected' : '' }}>50</option>
-                      <option value="100" {{ request('limit') == 100 ? 'selected' : '' }}>100</option>
-                    </select>
-                  </div>
-                </div>
-                <div class='col-md-2'>
-                  <div class="form-group">
-                    <label class="invisible">Filter</label>
-                    <button type="submit" class="form-control form-control-sm btn btn-primary mb-2 btn-sm">Filter</button>
+                <div class='col-12 col-sm-auto pl-sm-3'>
+                  <div class="form-group mb-3 mb-xl-0">
+                    <button type="submit" class="d-flex align-items-center form-control-sm filter-btn btn btn-primary btn-sm" title="Apply Filters" aria-label="Apply filters">
+                      <i class="ti-filter"></i>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -207,8 +204,8 @@
                       </a>
 
                       @else
-                      <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#view-modal-{{ $form_approval->id }}" title="View Only">
-                        <i class="ti-eye btn-icon-prepend"></i> View Only
+                      <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#view-modal-{{ $form_approval->id }}" title="View">
+                        <i class="ti-eye btn-icon-prepend"></i>
                       </button>
                       @endif
                     </td>

@@ -122,7 +122,7 @@
                 Reference No: <strong style="color:#333;">{{ $coe_reference }}</strong>
             </div>
 
-            <p style="margin:0 0 20px 0;color:#333;">Dear HR Team,</p>
+            <p style="margin:0 0 20px 0;color:#333;">Good day,</p>
 
             <p style="margin:20px 0 20px 0;color:#333;">I hope you're doing well. I'd like to follow up on the <b>Certificate of Employment (COE)</b> request below, which has been pending for a few days. Could you kindly check on its status when you have a moment?</p>
 

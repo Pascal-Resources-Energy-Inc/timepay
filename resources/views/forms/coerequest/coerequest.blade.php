@@ -1,5 +1,13 @@
 @extends('layouts.header')
 @section('content')
+
+<style>
+    .dataTables_wrapper .dataTables_filter input.form-control-sm {
+        height: calc(1.5em + 0.5rem + 2px);
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+    
 <div class="main-panel">
     <div class="content-wrapper">
         <div class='row grid-margin'>
@@ -43,31 +51,31 @@
               <div class="card-body">
                 <div class="d-flex justify-content-between">
                 <h4 class="card-title">COE Request</h4>
-                  <button type="button" class="btn btn-outline-info btn-icon-text d-flex align-items-center" data-toggle="modal" data-target="#coeRequestModal">
-                    <i class="ti-plus btn-icon-prepend mr-1"></i>
+                  <button type="button" class="btn btn-sm btn-outline-info btn-icon-text d-flex align-items-center" data-toggle="modal" data-target="#coeRequestModal">
+                    <i class="ti-plus btn-icon-prepend mr-2"></i>
                     Request
                   </button>
 
                 </div>
-                <form method='get' onsubmit='show();' enctype="multipart/form-data">
-                  <div class=row>
-                    <div class='col-md-2'>
-                      <div class="form-group">
+                <form method='get' onsubmit='show();' enctype="multipart/form-data" class="border rounded bg-light p-3 mt-3 mb-4">
+                  <div class="row align-items-end">
+                    <div class='col-12 col-md-6 col-xl-3'>
+                      <div class="form-group mb-3 mb-xl-0">
                         <label class="text-right">From</label>
                         <input type="date" value='{{$from}}' class="form-control form-control-sm" name="from"
                             max='{{ date('Y-m-d') }}' onchange='get_min(this.value);' required />
                       </div>
                     </div>
-                    <div class='col-md-2'>
-                      <div class="form-group">
+                    <div class='col-12 col-md-6 col-xl-3'>
+                      <div class="form-group mb-3 mb-xl-0">
                         <label class="text-right">To</label>
                         <input type="date" value='{{$to}}' class="form-control form-control-sm" id='to' name="to" required />
                       </div>
                     </div>
-                    <div class='col-md-2 mr-2'>
-                      <div class="form-group">
+                    <div class='col-12 col-md-6 col-xl-3 pr-sm-1'>
+                      <div class="form-group mb-3 mb-xl-0">
                         <label class="text-right">Status</label>
-                        <select data-placeholder="Select Status" class="form-control form-control-sm required js-example-basic-single" style='width:100%;' name='status' required>
+                        <select data-placeholder="Select Status" class="form-control form-control-sm" name='status' required>
                           <option value="">-- Select Status --</option>
                           <option value="Pending" @if ('Pending' == $status) selected @endif>Pending</option>
                           <option value="Processing" @if ('Processing' == $status) selected @endif>Processing</option>
@@ -77,10 +85,11 @@
                         </select>
                       </div>
                     </div>
-                    <div class='col-md-2'>
-                      <div class="form-group">
-                        <label class="invisible">Filter</label>
-                        <button type="submit" class="form-control form-control-sm btn btn-primary btn-sm">Filter</button>
+                    <div class='col-12 col-sm-auto pl-sm-3'>
+                      <div class="form-group mb-3 mb-xl-0">
+                        <button type="submit" class="d-flex align-items-center form-control-sm filter-btn btn btn-primary btn-sm" title="Apply Filters" aria-label="Apply filters">
+                          <i class="ti-filter"></i>
+                        </button>
                       </div>
                     </div>
                   </div>

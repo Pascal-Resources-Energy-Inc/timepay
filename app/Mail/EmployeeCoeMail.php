@@ -10,6 +10,8 @@ class EmployeeCoeMail extends Mailable {
     use Queueable, SerializesModels;
 
     public $name;
+    public $salutation;
+    public $last_name;
     public $reason_for_request;
     public $employment_status;
     public $purpose;
@@ -26,6 +28,8 @@ class EmployeeCoeMail extends Mailable {
 
     public function __construct($data) {
         $this->name = $data['name'];
+        $this->salutation = $data['salutation'];
+        $this->last_name = $data['last_name'];
         $this->reason_for_request = $data['reason_for_request'];
         $this->employment_status = $data['employment_status'];
         $this->purpose = $data['purpose'];

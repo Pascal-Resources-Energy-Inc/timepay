@@ -128,6 +128,7 @@ class EmployeeCoeController extends Controller {
             'purpose_visa' => 'nullable|string|max:255',
             'purpose_bank' => 'nullable|string|max:255',
             'receive_method' => 'required|string|in:Email,Viber,Hard Copy',
+            'email' => 'required_if:receive_method,Email|nullable|email|max:255',
             'additional_notes' => 'nullable|string|max:1000',
         ];
 
@@ -158,7 +159,7 @@ class EmployeeCoeController extends Controller {
 
         $coe->reference_number = 'COE-' . str_pad($number, 5, '0', STR_PAD_LEFT);
 
-        if (Auth::check() && !$request->is('public/coe-request*')) {
+        if (Auth::check() && !$request->is('external/coe-request*')) {
             $user = Auth::user();
             $employee = $user->employee;
             $coe->user_id = $user->id;
@@ -204,13 +205,15 @@ class EmployeeCoeController extends Controller {
             $data = [
                 'coe_id' => $coe->id,
                 'name' => Auth::check() ? Auth::user()->name : $request->first_name . ' ' . $request->last_name,
+                'salutation' => $coe->salutation,
+                'last_name' => $coe->last_name,
                 'reason_for_request' => $request->reason_for_request,
                 'employment_status' => $coe->employment_status,
                 'purpose' => $coe->purpose,
                 'designation' => Auth::check() ? $employee->position : $request->designation,
                 'hire_date' => Auth::check() && Auth::user()->employee ? Auth::user()->employee->original_date_hired : $request->hire_date,
                 'receive_method' => $request->receive_method,
-                'email' => Auth::check() && Auth::user()->employee ? Auth::user()->employee->personal_email : $request->email,
+                'email' => $coe->email,
                 'viber_number' => $coe->viber_number,
                 'personal_number' => Auth::check() && Auth::user()->employee ? Auth::user()->employee->personal_number : null,
                 'additional_notes' => $request->additional_notes,

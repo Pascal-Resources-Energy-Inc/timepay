@@ -1,12 +1,36 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
+<style>
+    @media (max-width: 575.98px) {
+        #coeRequestModalLabel {
+            padding-right: 0.75rem;
+            font-size: 0.7rem;
+            line-height: 1.4;
+        }
+
+        .code-no {
+            font-size: 12px;
+        }
+
+        #coeRequestModalLabel p {
+            margin: 0.25rem 0 0;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        #coeRequestModal .modal-header .btn-close {
+            flex-shrink: 0;
+        }
+    }
+</style>
+
 <div class="modal fade" id="coeRequestModal" tabindex="-1" aria-labelledby="coeRequestModalLabel" aria-hidden="true" style="display: none;">
     <div class="modal-dialog modal-lg">
         <div class="modal-content border-0">
             <div class="modal-header">
                 <h5 class="modal-title" id="coeRequestModalLabel">
                     <strong>CERTIFICATE OF EMPLOYMENT REQUEST</strong><br />
-                    <p style="color: #e6e6e6;">HRD-LPD-FOR-00X-000</p>
+                    <p style="color: #e6e6e6;" class="code-no">HRD-LPD-FOR-00X-000</p>
                 </h5>
                 <button type="button" class="btn-close btn-danger" data-dismiss="modal" aria-label="Close">&times;</button>
             </div>
@@ -246,7 +270,7 @@
                     </div>
                 </div>
 
-                <div class="modal-footer">
+                <div class="modal-footer d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center px-3">
                     <button type="submit" class="btn btn-primary">
                         Submit
                     </button>

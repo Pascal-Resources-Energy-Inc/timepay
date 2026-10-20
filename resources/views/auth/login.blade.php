@@ -33,7 +33,7 @@
                     aria-label="Show password"
                     aria-pressed="false"
                   >
-                    <i class="bi bi-eye" aria-hidden="true"></i>
+                    <span class="password-eye" aria-hidden="true"></span>
                   </button>
                 </div>
               </div>
@@ -220,6 +220,43 @@
     outline: 0;
     box-shadow: inset 0 0 0 2px rgba(81, 77, 187, 0.18);
   }
+  .password-eye {
+    position: relative;
+    display: block;
+    width: 1.150rem;
+    height: 1.150rem;
+    border: 2px solid currentColor;
+    border-radius: 75% 15%;
+    transform: rotate(45deg);
+    box-sizing: border-box;
+  }
+  .password-eye::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.375rem;
+    height: 0.375rem;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    background: #fff;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+  }
+  .password-eye::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1.5rem;
+    height: 2px;
+    background: currentColor;
+    transform: translate(-50%, -50%) scaleX(0);
+    transition: transform 0.15s ease;
+  }
+  .password-eye.is-visible::after {
+    transform: translate(-50%, -50%) scaleX(1);
+  }
   .quick-links {
     margin-top: 1.5rem;
   }
@@ -313,16 +350,15 @@
     }
 
     passwordToggle.addEventListener('click', function () {
-      var isVisible = passwordInput.type === 'text';
-      var icon = passwordToggle.querySelector('.bi');
+      var willShowPassword = passwordInput.type === 'password';
+      var eye = passwordToggle.querySelector('.password-eye');
 
-      passwordInput.type = isVisible ? 'password' : 'text';
-      passwordToggle.setAttribute('aria-pressed', isVisible ? 'false' : 'true');
-      passwordToggle.setAttribute('aria-label', isVisible ? 'Show password' : 'Hide password');
+      passwordInput.type = willShowPassword ? 'text' : 'password';
+      passwordToggle.setAttribute('aria-pressed', willShowPassword ? 'true' : 'false');
+      passwordToggle.setAttribute('aria-label', willShowPassword ? 'Hide password' : 'Show password');
 
-      if (icon) {
-        icon.classList.toggle('bi-eye', isVisible);
-        icon.classList.toggle('bi-eye-slash', !isVisible);
+      if (eye) {
+        eye.classList.toggle('is-visible', willShowPassword);
       }
     });
   });

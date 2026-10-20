@@ -18,7 +18,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center px-3">
                     <button type="button" class="btn btn-light border" data-dismiss="modal">Close</button>
                     <button type="submit" name="btnApprove" class="btn btn-danger">Decline</button>
                 </div>

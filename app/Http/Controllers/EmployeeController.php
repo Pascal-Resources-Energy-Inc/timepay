@@ -48,6 +48,7 @@ use App\EmployeeBenefits;
 use App\EmployeeTraining;
 use App\NteFile;
 use App\EmployeeDocument;
+use App\IUR;
 use App\EmployeeSalary;
 use App\SalaryMovement;
 use GuzzleHttp\Exception\GuzzleException;
@@ -1167,10 +1168,18 @@ class EmployeeController extends Controller
         }
     }
 
-    public function employeeSettingsHR(User $user)
+    public function employeeSettingsHR(Request $request, User $user)
     {
 
         $user = User::where('id',$user->id)->with('allowed_overtime','employee.department','employee.payment_info','employee.contact_person','employee.beneficiaries','employee.employee_vessel','employee.classification_info','employee.level_info','employee.ScheduleData','employee.immediate_sup_data','approvers.approver_data','subbordinates')->first();
+        $idPictureIurQuery = IUR::where('user_id', $user->id)
+                                ->whereIn('request_for', ['ID', 'Both']);
+
+        if ($request->filled('iur_id')) {
+            $idPictureIurQuery->where('id', $request->query('iur_id'));
+        }
+
+        $idPictureIur = $idPictureIurQuery->orderBy('created_at', 'desc')->first();
         // dd($user);
         $classifications = Classification::get();
 
@@ -1255,6 +1264,7 @@ class EmployeeController extends Controller
             'employeeTraining' => $employeeTraining,
             'employeeNte' => $employeeNte,
             'employeeDocuments' => $employeeDocument,
+            'idPictureIur' => $idPictureIur,
             'higher_amounts' => $higher_amounts,
             'less_amounts' => $less_amounts,
             // 'hierarchy' => $hierarchy,
@@ -1728,6 +1738,36 @@ class EmployeeController extends Controller
         }
     }
 
+    public function updateIdPictureHR(Request $request, $userId, $iurId)
+    {
+        abort_unless(checkUserPrivilege('employees_edit', auth()->user()->id) == 'yes', 403);
+
+        $iur = IUR::where('id', $iurId)
+                    ->where('user_id', $userId)
+                    ->whereIn('request_for', ['ID', 'Both'])
+                    ->firstOrFail();
+
+        $request->validate([
+            'id_picture' => 'required|image|mimes:jpg,jpeg,png|max:5120',
+        ]);
+
+        $oldPicturePath = $iur->id_picture ? public_path($iur->id_picture) : null;
+        $attachment = $request->file('id_picture');
+        $filename = time() . '_id_' . uniqid() . '.' . $attachment->getClientOriginalExtension();
+        $attachment->move(public_path('uploads/id_pictures'), $filename);
+
+        $iur->id_picture = 'uploads/id_pictures/' . $filename;
+        $iur->save();
+
+        if ($oldPicturePath && file_exists($oldPicturePath)) {
+            unlink($oldPicturePath);
+        }
+
+        Alert::success('ID picture updated successfully.')->persistent('Dismiss');
+
+        return back();
+    }
+
     public function uploadSignatureHr(Request $request,$id)
     {
         $employee = Employee::where('user_id',$id)->first();
@@ -2103,16 +2143,21 @@ class EmployeeController extends Controller
         $from_date = $request->from;
         $to_date = $request->to;
 
-        /* $allowedPerPage = [30, 50, 100, 150]; */
-        /**/
-        /* $perPage = (int) $request->input('per_page', 30); */
-        /**/
-        /* if (!in_array($perPage, $allowedPerPage, true)) { */
-        /*     $perPage = 30; */
-        /* } */
+        $allowedPerPage = [30, 50, 100, 150];
+
+        $perPage = (int) $request->input('per_page', 30);
+
+        if (!in_array($perPage, $allowedPerPage, true)) {
+            $perPage = 30;
+        }
 
         $locations = AttendanceLog::groupBy('location')->get(['location']);
-        $attendances = AttendanceLog::whereBetween('date',[$from_date,$to_date])->where('location',$request->location)->get();
+        $attendances = AttendanceLog::with(['employee:id,employee_number,first_name,last_name'])
+            ->where('location', $request->location)
+            ->whereBetween('date', [$from_date, $to_date])
+            ->orderBy('datetime', 'desc')
+            ->paginate($perPage)
+            ->appends($request->except('page'));
 
         return view(
             'attendances.employee_attendance_location',

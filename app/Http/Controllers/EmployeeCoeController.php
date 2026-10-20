@@ -19,10 +19,10 @@ class EmployeeCoeController extends Controller {
             return redirect('/coe-request');
         }
 
-        return view('forms.coerequest.public_coe_request');
+        return view('forms.coerequest.public_request');
     }
 
-    public function coe(Request $request) {
+    public function index(Request $request) {
         $today = date('Y-m-d');
         $from = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
         $to = $request->to ?? date('Y-m-d');
@@ -56,7 +56,7 @@ class EmployeeCoeController extends Controller {
             return $this->getApproverForEmployee($employee, $coe_approvers);
         };
 
-        return view('forms.coerequest.coerequest', [
+        return view('forms.coerequest.index', [
             'header' => 'forms',
             'all_approvers' => $all_approvers,
             'coes' => $coes,

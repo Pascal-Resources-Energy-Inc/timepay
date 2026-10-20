@@ -187,7 +187,7 @@
         Route::get('disable-ne/{id}', 'EmployeeNumberEnrollmentController@disable_ne');
 
         //coe-request
-        Route::get('coe-request', 'EmployeeCoeController@coe');
+        Route::get('coe-request', 'EmployeeCoeController@index');
         Route::post('new-coe', 'EmployeeCoeController@store');
         Route::post('edit-coe/{id}', 'EmployeeCoeController@edit')->name('edit-coe');
         Route::get('disable-coe/{id}', 'EmployeeCoeController@cancel');

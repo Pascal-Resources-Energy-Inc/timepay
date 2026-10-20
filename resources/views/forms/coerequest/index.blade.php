@@ -273,9 +273,9 @@
 	</script>
 @endsection
 
-@include('forms.coerequest.apply_coe')
+@include('forms.coerequest.create')
 
 @foreach ($coes as $coe)
- @include('forms.coerequest.view_coe')
- @include('forms.coerequest.edit_coe')
+ @include('forms.coerequest.show')
+ @include('forms.coerequest.edit')
 @endforeach

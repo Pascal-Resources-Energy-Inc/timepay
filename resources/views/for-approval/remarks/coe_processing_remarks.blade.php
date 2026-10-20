@@ -13,8 +13,8 @@
                     <div class="row">
                         <input type="hidden" name="status" value="Processing">
                         <div class='col-md-12 form-group'>
-                            <div class="border rounded p-2 mb-3" style="background: #f8f9fa;">
-                                <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                            <div class="border rounded p-2 mb-3" style="background: #f8f9fa; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                                <table style="width: 100%; min-width: 420px; font-size: 12px; border-collapse: collapse;">
                                     <tr>
                                         <td style="padding: 2px 8px 2px 0; color: #6c757d; white-space: nowrap; vertical-align: top;"><strong>Reference No.</strong></td>
                                         <td class="text-primary" style="padding: 2px 0; font-weight: bold;">{{ $coe->reference_number }}</td>
@@ -59,7 +59,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center px-3">
                     <button type="button" class="btn btn-light border" data-dismiss="modal">Close</button>
                     <button type="submit" name="btnProcess" class="btn btn-info">Process</button>
                 </div>

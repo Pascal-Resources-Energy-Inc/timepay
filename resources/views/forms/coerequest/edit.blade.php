@@ -179,8 +179,8 @@
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">
+                <div class="modal-footer d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center px-3">
+                    <button type="submit" class="btn btn-primary mb-2 mb-sm-0 mr-sm-2">
                         Update
                     </button>
                     <button type="button" class="btn btn-light border" data-dismiss="modal">

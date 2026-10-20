@@ -11,7 +11,7 @@
 <div class="main-panel">
     <div class="content-wrapper">
         <div class='row grid-margin'>
-          <div class='col-lg-2 '>
+          <div class='col-lg-2 mb-1'>
             <div class="card card-tale">
               <div class="card-body">
                 <h6 class="mb-4 text-truncate" title="Pending">Pending</h6>
@@ -19,7 +19,7 @@
               </div>
             </div>
           </div>
-          <div class='col-lg-2 '>
+          <div class='col-lg-2 mb-1'>
              <div class="card card-light-blue">
               <div class="card-body">
                 <h6 class="mb-4 text-truncate" title="Processing">Processing</h6>
@@ -27,7 +27,7 @@
               </div>
             </div>
           </div>
-          <div class='col-lg-2'>
+          <div class='col-lg-2 mb-1'>
             <div class="card card-dark-blue bg-success">
               <div class="card-body">
                 <h6 class="mb-4 text-truncate" title="Approved">Approved</h6>
@@ -35,7 +35,7 @@
               </div>
             </div>
           </div>
-          <div class='col-lg-2'>
+          <div class='col-lg-2 mb-1'>
             <div class="card card-light-danger">
               <div class="card-body">
                 <h6 class="mb-4 text-truncate" title="Declined/Cancelled">Declined/Cancelled</h6>

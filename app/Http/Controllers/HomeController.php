@@ -2,18 +2,14 @@
 
 namespace App\Http\Controllers;
 use App\Http\Controllers\AttendanceController;
-use App\Http\Controllers\PlanningController;
 use Illuminate\Http\Request;
 use Carbon\CarbonPeriod;
 use App\Attendance;
 use App\DailySchedule;
-// use App\Handbook;
 use App\Employee;
-// use App\Announcement;
 use App\Classification;
 use App\ScheduleData;
 use App\Holiday;
-use App\Document;
 use App\EmployeeLeave;
 use App\EmployeeOvertime;
 use App\EmployeeWfh;
@@ -25,10 +21,10 @@ use App\Leave;
 use App\HubPerLocation;
 use Carbon\Carbon;
 use App\LeavePlan;
-use App\Planning;
 use stdClass;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
@@ -54,17 +50,33 @@ class HomeController extends Controller
         $schedules = [];
         $attendance_controller = new AttendanceController;
         $current_day = date('d');
-        $employee_birthday_celebrants = Employee::whereMonth('birth_date', date('m'))
-        ->whereHas('company')
-        ->where(function($query) {
-            $query->where('status', 'Active')
-                ->orWhere('status', 'HBU');
-        })
-        ->orderByRaw("DAY(birth_date) >= ? DESC, DAY(birth_date)", [$current_day])
-        ->get();
-        
-        
-        $employees_new_hire = Employee::where('original_date_hired',">=",date("Y-m-d", strtotime("-1 months")))->orderBy('original_date_hired','desc')->get();
+        $sharedCacheMinutes = 10;
+        $referenceCacheMinutes = 60;
+
+        $employee_birthday_celebrants = Cache::remember(
+            'dashboard.birthday-celebrants.' . date('Y-m-d'),
+            $sharedCacheMinutes,
+            function () use ($current_day) {
+                return Employee::whereMonth('birth_date', date('m'))
+                    ->whereHas('company')
+                    ->where(function($query) {
+                        $query->where('status', 'Active')
+                            ->orWhere('status', 'HBU');
+                    })
+                    ->orderByRaw("DAY(birth_date) >= ? DESC, DAY(birth_date)", [$current_day])
+                    ->get();
+            }
+        );
+
+        $employees_new_hire = Cache::remember(
+            'dashboard.new-hires.' . date('Y-m-d'),
+            $sharedCacheMinutes,
+            function () {
+                return Employee::where('original_date_hired', '>=', date('Y-m-d', strtotime('-1 months')))
+                    ->orderBy('original_date_hired', 'desc')
+                    ->get();
+            }
+        );
         $sevendays = date('Y-m-d',strtotime("-7 days"));
         if(auth()->user()->employee){
             if(auth()->user()->employee->employee_number){
@@ -90,13 +102,19 @@ class HomeController extends Controller
         // ->orWhere('expired',">=",date('Y-m-d'))->get();
         
 
-        $holidays = Holiday::where('status','Permanent')
-        ->whereMonth('holiday_date',date('m'))
-        ->orWhere(function ($query)
-        {
-            $query->where('status',null)->whereYear('holiday_date', '=', date('Y'))->whereMonth('holiday_date',date('m'));
-        })
-        ->orderBy('holiday_date','asc')->get();
+        $holidays = Cache::remember(
+            'dashboard.holidays.' . date('Y-m'),
+            $sharedCacheMinutes,
+            function () {
+                return Holiday::where('status','Permanent')
+                    ->whereMonth('holiday_date',date('m'))
+                    ->orWhere(function ($query)
+                    {
+                        $query->where('status',null)->whereYear('holiday_date', '=', date('Y'))->whereMonth('holiday_date',date('m'));
+                    })
+                    ->orderBy('holiday_date','asc')->get();
+            }
+        );
 
         // $employee_anniversaries = Employee::with('department', 'company') ->where(function($query) {
         //     $query->where('status', 'Active');
@@ -106,20 +124,38 @@ class HomeController extends Controller
         // ->whereMonth('original_date_hired', date('m'))
         // ->get();
 
-        $probationary_employee = Employee::with('department', 'company', 'user_info', 'classification_info')
-            ->whereHas('company') 
-            ->where('classification', "1")
-            ->where(function($query) {
-                $query->where('status', 'Active')
-                    ->orWhere('status', 'HBU');
-            })
-            ->orderBy('original_date_hired')
-            ->get();
+        $probationary_employee = Cache::remember(
+            'dashboard.probationary-employees',
+            $sharedCacheMinutes,
+            function () {
+                return Employee::with('department', 'company', 'user_info', 'classification_info')
+                    ->whereHas('company')
+                    ->where('classification', "1")
+                    ->where(function($query) {
+                        $query->where('status', 'Active')
+                            ->orWhere('status', 'HBU');
+                    })
+                    ->orderBy('original_date_hired')
+                    ->get();
+            }
+        );
         
         $emp = Employee::where('user_id', Auth::id())->first();
 
-        $classifications = Classification::get();
-        $leaveTypes = Leave::all();
+        $classifications = Cache::remember(
+            'dashboard.classifications',
+            $referenceCacheMinutes,
+            function () {
+                return Classification::get();
+            }
+        );
+        $leaveTypes = Cache::remember(
+            'dashboard.leave-types',
+            $referenceCacheMinutes,
+            function () {
+                return Leave::all();
+            }
+        );
         
         // User-specific data (only if user has employee record)
         $totalUsedLeaveDays = 0;
@@ -196,12 +232,18 @@ class HomeController extends Controller
         $statsResponse = $this->filterByLocation($request);
         $adminStats = json_decode($statsResponse->getContent(), true);
         
-        $locations = Employee::select('location')
-            ->whereIn('status', ['Active', 'HBU'])
-            ->whereNotNull('location')
-            ->distinct()
-            ->orderBy('location')
-            ->pluck('location');
+        $locations = Cache::remember(
+            'dashboard.locations',
+            $sharedCacheMinutes,
+            function () {
+                return Employee::select('location')
+                    ->whereIn('status', ['Active', 'HBU'])
+                    ->whereNotNull('location')
+                    ->distinct()
+                    ->orderBy('location')
+                    ->pluck('location');
+            }
+        );
         
         $adminStats['locations'] = $locations;
 

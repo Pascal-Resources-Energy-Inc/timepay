@@ -30,6 +30,7 @@
                     class="password-toggle"
                     id="password-toggle"
                     type="button"
+                    aria-controls="password"
                     aria-label="Show password"
                     aria-pressed="false"
                   >
@@ -195,52 +196,57 @@
     position: relative;
   }
   .password-field .form-control {
-    padding-right: 3rem;
+    padding-right: 3.75rem;
   }
   .password-toggle {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 50%;
+    right: 0.375rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 3rem;
-    height: 100%;
+    width: 1.775rem;
+    height: 1.775rem;
     padding: 0;
-    border: 0;
+    border: 1px solid transparent;
+    border-radius: 0.375rem;
     background: transparent;
     color: #7b8794;
     cursor: pointer;
+    transform: translateY(-50%);
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
   .password-toggle:hover {
     color: #514dbb;
+    background: rgba(81, 77, 187, 0.08);
   }
   .password-toggle:focus {
     color: #514dbb;
     outline: 0;
-    box-shadow: inset 0 0 0 2px rgba(81, 77, 187, 0.18);
+    border-color: rgba(81, 77, 187, 0.45);
+    box-shadow: 0 0 0 3px rgba(81, 77, 187, 0.12);
   }
   .password-eye {
     position: relative;
     display: block;
-    width: 1.150rem;
-    height: 1.150rem;
+    width: 1rem;
+    height: 0.65rem;
     border: 2px solid currentColor;
-    border-radius: 75% 15%;
-    transform: rotate(45deg);
+    border-radius: 50%;
     box-sizing: border-box;
   }
   .password-eye::before {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0.375rem;
-    height: 0.375rem;
-    border: 2px solid currentColor;
+    top: 48%;
+    left: 52%;
+    width: 0.3125rem;
+    height: 0.3125rem;
+    border: 0;
     border-radius: 50%;
-    background: #fff;
-    transform: translate(-50%, -50%);
+    background: currentColor;
+    box-shadow: 0 0 0 0.1rem rgba(81, 77, 187, 0.12);
+    transform: translate(-52%, -48%);
     box-sizing: border-box;
   }
   .password-eye::after {
@@ -248,14 +254,14 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 1.5rem;
+    width: 1.2rem;
     height: 2px;
     background: currentColor;
-    transform: translate(-50%, -50%) scaleX(0);
+    transform: translate(-50%, -50%) rotate(-35deg) scaleX(0);
     transition: transform 0.15s ease;
   }
   .password-eye.is-visible::after {
-    transform: translate(-50%, -50%) scaleX(1);
+    transform: translate(-50%, -50%) rotate(-35deg) scaleX(1);
   }
   .quick-links {
     margin-top: 1.5rem;

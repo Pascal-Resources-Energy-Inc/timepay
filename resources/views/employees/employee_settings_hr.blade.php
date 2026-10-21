@@ -54,7 +54,14 @@
                                     <small> Full Name </small>
                                 </div>
                                 <div class='col-md-9'>
-                                    {{$user->employee->first_name}} @if($user->employee->middle_initial != null){{$user->employee->middle_initial}}.@endif {{$user->employee->last_name}}
+                                    {{$user->employee->first_name}} 
+
+                                    @if($user->employee->middle_initial != null)
+                                      {{$user->employee->middle_initial}}.
+                                    @endif 
+
+                                    {{$user->employee->last_name}}
+                                    {{$user->employee->name_suffix}}
                                 </div>
                             </div>
                             <div class='row  m-2 border-bottom'>
@@ -253,7 +260,7 @@
                                             <small> Full Name </small>
                                         </div>
                                         <div class='col-md-9'>
-                                            {{$user->employee->first_name}} @if($user->employee->middle_initial != null){{$user->employee->middle_initial}}.@endif {{$user->employee->last_name}}
+                                            {{$user->employee->first_name}} @if($user->employee->middle_initial != null){{$user->employee->middle_initial}}.@endif {{$user->employee->last_name}}@if($user->employee->name_suffix), {{$user->employee->name_suffix}}@endif
                                         </div>
                                     </div>
                                     <div class='row  m-2 border-bottom'>
@@ -366,7 +373,7 @@
                                     @if($user->employee->middle_initial)
                                         {{ $user->employee->middle_initial }}.
                                     @endif
-                                    {{ $user->employee->last_name }}
+                                    {{ $user->employee->last_name }}@if($user->employee->name_suffix) {{ $user->employee->name_suffix }}@endif
                                 </h3>
                                 <p class="text-muted mb-1">{{ $user->employee->position }}</p>
                                 <span class="badge badge-primary p-2">
@@ -453,6 +460,46 @@
                                 </div>
                             </div>
                             <hr>
+                            <!-- <div class="card-body"> -->
+                            <!--     <div class="d-flex justify-content-between align-items-center mb-3"> -->
+                            <!--         <h5 class="mb-0"> -->
+                            <!--             <i class="fa fa-id-card text-info"></i>&nbsp;ID Picture -->
+                            <!--         </h5> -->
+                            <!--         @if ($idPictureIur && checkUserPrivilege('employees_edit',auth()->user()->id) == 'yes') -->
+                            <!--             <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#editIdPicture" title="Edit ID picture"> -->
+                            <!--                 <i class="fa fa-pencil"></i> -->
+                            <!--             </button> -->
+                            <!--         @endif -->
+                            <!--     </div> -->
+                            <!---->
+                            <!--     @if ($idPictureIur) -->
+                            <!--         <div class="d-flex flex-column flex-sm-row align-items-sm-center"> -->
+                            <!--             @if ($idPictureIur->id_picture) -->
+                            <!--                 <a href="{{ asset($idPictureIur->id_picture) }}" target="_blank" rel="noopener noreferrer" class="mr-sm-3 mb-3 mb-sm-0"> -->
+                            <!--                     <img src="{{ asset($idPictureIur->id_picture) }}" -->
+                            <!--                         alt="Employee ID picture" -->
+                            <!--                         class="rounded border" -->
+                            <!--                         style="width:140px;height:140px;object-fit:cover;"> -->
+                            <!--                 </a> -->
+                            <!--             @else -->
+                            <!--                 <div class="rounded border bg-light d-flex align-items-center justify-content-center mr-sm-3 mb-3 mb-sm-0" -->
+                            <!--                     style="width:140px;height:140px;"> -->
+                            <!--                     <i class="fa fa-user text-muted" style="font-size:48px;"></i> -->
+                            <!--                 </div> -->
+                            <!--             @endif -->
+                            <!--             <div> -->
+                            <!--                 <small class="text-muted d-block">ID Request</small> -->
+                            <!--                 <div class="font-weight-bold">{{ $idPictureIur->iur_reference ?? 'No reference number' }}</div> -->
+                            <!--                 <small class="text-muted d-block mt-2"> -->
+                            <!--                     {{ $idPictureIur->id_picture ? 'Click the picture to view the full image.' : 'No ID picture has been uploaded yet.' }} -->
+                            <!--                 </small> -->
+                            <!--             </div> -->
+                            <!--         </div> -->
+                            <!--     @else -->
+                            <!--         <div class="text-muted">No ID request found for this employee.</div> -->
+                            <!--     @endif -->
+                            <!-- </div> -->
+                            <!-- <hr> -->
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h5 class="mb-0">
@@ -1799,7 +1846,7 @@
                                     $empty = false;
                                   @endphp
                                   @foreach ($employeeDocuments as $item)
-                                    @if($key === $item->document_type)
+                                    @if($key == $item->document_type)
                                       Passed
                                       @php
                                         $empty = true;
@@ -1846,6 +1893,55 @@
     </div>
 </div>
 
+@if ($idPictureIur)
+<div class="modal fade" id="editIdPicture" tabindex="-1" role="dialog" aria-labelledby="editIdPictureLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('account-setting-hr.id-picture.update', [$user->id, $idPictureIur->id]) }}" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editIdPictureLabel">Edit ID Picture</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group mb-0">
+                        <label for="id_picture">Upload 2x2 ID Picture with White Background</label>
+                        <input type="file"
+                            id="id_picture"
+                            name="id_picture"
+                            class="form-control-file {{ $errors->has('id_picture') ? 'is-invalid' : '' }}"
+                            accept="image/jpeg,image/jpg,image/png"
+                            onchange="previewHrIdPicture(this)"
+                            required>
+                        <small class="form-text text-muted">JPG, JPEG, or PNG. Maximum file size: 5 MB.</small>
+                        @if ($errors->has('id_picture'))
+                            <div class="invalid-feedback d-block">{{ $errors->first('id_picture') }}</div>
+                        @endif
+                    </div>
+
+                    <div id="hrIdPicturePreviewWrap" class="mt-3 {{ $idPictureIur->id_picture ? '' : 'd-none' }}">
+                        <small class="text-muted d-block mb-2">Preview</small>
+                        <img id="hrIdPicturePreview"
+                            src="{{ $idPictureIur->id_picture ? asset($idPictureIur->id_picture) : '' }}"
+                            alt="ID picture preview"
+                            class="rounded border"
+                            style="width:180px;height:180px;object-fit:cover;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-upload"></i>&nbsp;Save ID Picture
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
 <style>
     .nav-pills .nav-link {
         margin-bottom: 10px;
@@ -1872,6 +1968,37 @@ $.ajaxSetup({
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
     }
 });
+
+function previewHrIdPicture(input) {
+    const file = input.files && input.files[0];
+
+    if (!file) {
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        input.value = '';
+        Swal.fire({
+            icon: 'warning',
+            title: 'File is too large',
+            text: 'Please choose an image that is 5 MB or smaller.'
+        });
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (event) {
+        $('#hrIdPicturePreview').attr('src', event.target.result);
+        $('#hrIdPicturePreviewWrap').removeClass('d-none');
+    };
+    reader.readAsDataURL(file);
+}
+
+@if ($errors->has('id_picture'))
+$(function () {
+    $('#editIdPicture').modal('show');
+});
+@endif
 
 $(document).on('submit', '.policy-form', function(e){
     e.preventDefault();

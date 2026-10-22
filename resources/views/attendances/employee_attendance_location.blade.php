@@ -106,6 +106,8 @@
     }
 
 .attendance-table-toolbar .dt-search input {
+      width: 280px;
+      max-width: 100%;
       min-height: 38px;
       margin: 0 !important;
       border: 1px solid #cbd5e1;
@@ -286,7 +288,7 @@
     new DataTable('.table-detailed', {
       // pagelenth:25,
       paginate:false,
-      dom: '<"attendance-table-toolbar"<"attendance-table-actions"B><"attendance-table-search"f>>rt',
+      dom: '<"attendance-table-toolbar"<"attendance-table-search"f><"attendance-table-actions"B>>rt',
       buttons: [
           'copy', 'excel'
       ],

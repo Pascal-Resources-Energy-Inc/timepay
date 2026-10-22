@@ -3,7 +3,11 @@
 @php
     $employee = $user->employee;
     $middle = $employee->middle_initial ? ' '.$employee->middle_initial.'.' : '';
-    $fullName = trim($employee->first_name.$middle.' '.$employee->last_name) ?: auth()->user()->name;
+    $suffix = trim((string) $employee->name_suffix);
+    $fullName = trim(
+        $employee->first_name.$middle.' '.$employee->last_name.
+        ($suffix !== '' ? ' '.$suffix : '')
+    ) ?: auth()->user()->name;
     $birthDate = $age = $hireDate = $tenure = null;
     if ($employee->birth_date) {
         try { $birthDate = new DateTime($employee->birth_date); $age = $birthDate->diff(new DateTime())->y; } catch (Exception $e) {}
@@ -38,7 +42,10 @@
         <aside class="profile-sidebar" aria-label="Profile summary">
             <section class="profile-card profile-identity">
                 <div class="avatar-wrap"><img class="profile-avatar" src="{{ URL::asset($employee->avatar ?: '/images/no_image.png') }}" alt="{{ $fullName }}" onerror="this.src='{{ URL::asset('/images/no_image.png') }}';"></div>
-                <h2 class="profile-name">{{ $fullName }}</h2><p class="profile-role">{{ $employee->position ?: 'Position not specified' }}</p>
+                <h2 class="profile-name">
+                  {{ $fullName }}
+                </h2>
+                <p class="profile-role">{{ $employee->position ?: 'Position not specified' }}</p>
                 <span class="employee-code"><i class="fa fa-id-badge"></i>Biometric {{ $employee->employee_number ?: 'not assigned' }}</span>
                 <ul class="profile-contacts">
                     <li><i class="fa fa-envelope"></i><span>{{ auth()->user()->email ?: 'Work email not provided' }}</span></li>

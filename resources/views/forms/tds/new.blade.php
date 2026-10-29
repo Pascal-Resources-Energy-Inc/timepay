@@ -147,7 +147,7 @@
               </div>
               <div class="col-md-6">
                 <div class="form-group">
-                  <label>Business Name <span class="text-danger">*</span></label>
+                  <label>Business Name <span class="text-danger" id="business_name_required">*</span></label>
                   <input type="text" class="form-control" 
                         name="business_name" id="business_name" value="{{ old('business_name') }}" 
                         placeholder="e.g., Justin's Store" required>
@@ -326,7 +326,7 @@
             <div class="col-md-4">
               <div class="form-group">
                 <label>Package Type <span class="text-danger">*</span></label>
-                <select class="form-control" name="package_type" required onclick="event.stopPropagation();">
+                <select class="form-control" name="package_type" id="package_type" required onclick="event.stopPropagation();">
                   <option value="">-- Select Package --</option>
                   <option value="EU" {{ old('package_type') == 'EU' ? 'selected' : '' }}>EU - End User</option>
                   <option value="D" {{ old('package_type') == 'D' ? 'selected' : '' }}>D - Dealer</option>
@@ -1346,7 +1346,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const existingCustomerSection = document.getElementById('existing_customer_section');
     const motherMaidenNameWrapper = document.getElementById('mother_maiden_name_wrapper');
     const motherMaidenNameInput = document.getElementById('mother_maiden_name');
+    const packageTypeSelect = document.getElementById('package_type');
+    const businessNameInput = document.getElementById('business_name');
+    const businessNameRequired = document.getElementById('business_name_required');
     let initialized = false;
+
+    packageTypeSelect.addEventListener('change', toggleBusinessNameRequirement);
 
     customerTypeSelect.addEventListener('change', function () {
         toggleMotherMaidenRequirement();
@@ -1370,6 +1375,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (motherMaidenNameInput) {
             motherMaidenNameInput.required = isNewCustomer;
         }
+    }
+
+    function toggleBusinessNameRequirement() {
+        const isRequired = packageTypeSelect.value !== 'EU';
+
+        businessNameInput.required = isRequired;
+        businessNameRequired.style.display = isRequired ? 'inline' : 'none';
     }
 
     function initSelect2() {
@@ -1454,5 +1466,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     toggleMotherMaidenRequirement();
+    toggleBusinessNameRequirement();
   });
 </script>

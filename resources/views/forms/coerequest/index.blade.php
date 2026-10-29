@@ -5,6 +5,23 @@
     .dataTables_wrapper .dataTables_filter input.form-control-sm {
         height: calc(1.5em + 0.5rem + 2px);
         padding: 0.25rem 0.5rem;
+        min-width: 300px;
+    }
+
+    #coeTable_wrapper .dataTables_filter {
+        float: left !important;
+        width: 100%;
+        text-align: left !important;
+    }
+
+    #coeTable_wrapper .dataTables_filter label {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #coeTable_wrapper .dataTables_filter input {
+        margin: 0.2rem 0 0 !important;
     }
 </style>
     

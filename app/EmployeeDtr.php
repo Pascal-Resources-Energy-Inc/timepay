@@ -13,6 +13,8 @@ class EmployeeDtr extends Model implements Auditable
     public static function adjustmentTypes()
     {
         return [
+            'Correction of Mobile In/Out' => '+/- 15mins',
+            'Correction of In/Out due to wrong Biometric Action' => '+/- 15mins',
             'Failed to use Biometrics during In/Out' => '+/- 15 mins',
             'Failed to submit Time In/Out at Field' => '+/- 15 mins',
             'Failed to use Biometrics due to power interruption' => 'No penalty time',
@@ -50,7 +52,7 @@ class EmployeeDtr extends Model implements Auditable
 
         return Carbon::parse($time)->addMinutes($minutes)->format('Y-m-d\TH:i');
     }
-    
+
     public function user()
     {
         return $this->belongsTo(User::class,'user_id','id');
@@ -65,11 +67,40 @@ class EmployeeDtr extends Model implements Auditable
     {
         return $this->hasMany(ScheduleData::class,'schedule_id','schedule_id');
     }   
-    
+
     public function approver()
     {
         return $this->hasMany(EmployeeApprover::class,'user_id','user_id');
     }  
-    
+
+    public function attachmentFiles() {
+        return $this->hasMany(EmployeeDtrAttachment::class, 'employee_dtr_id', 'id')
+                    ->orderBy('id');
+    }
+
+    // handle backwards compatibility for single attachment and multiple ones
+    public function getAvailableAttachmentsAttribute() {
+        $attachments = $this->attachmentFiles->map(function ($attachment) {
+            return [
+                'id' => $attachment->id,
+                'path' => $attachment->file_path,
+                'legacy' => false,
+            ];
+        });
+
+        /*
+         * for backwards compatibility sheeeesh
+         */
+        if ($this->attachment && !$attachments->contains('path', $this->attachment)) {
+            $attachments->prepend([
+                'id' => null,
+                'path' => $this->attachment,
+                'legacy' => true,
+            ]);
+        }
+
+        return $attachments->values();
+    }
+
 }
 

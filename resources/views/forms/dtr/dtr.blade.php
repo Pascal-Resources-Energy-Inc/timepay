@@ -1,76 +1,173 @@
 @extends('layouts.header')
 @section('content')
+<style>
+  .dtr-summary-card {
+    height: 100%;
+    border: 1px solid #e5e7eb;
+    border-left-width: 4px;
+    border-radius: 0.65rem;
+    background: #fff;
+    box-shadow: 0 0.2rem 0.75rem rgba(15, 23, 42, 0.05);
+  }
+
+  .dtr-summary-card .card-body {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.15rem 1.25rem;
+  }
+
+  .dtr-summary-icon {
+    display: inline-flex;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border-radius: 0.65rem;
+    font-size: 1.1rem;
+  }
+
+  .dtr-summary-content {
+    min-width: 0;
+  }
+
+  .dtr-summary-label {
+    margin-bottom: 0.15rem;
+    color: #4b5563;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .dtr-summary-count {
+    margin: 0;
+    color: #1f2937;
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .dtr-summary-description {
+    display: block;
+    margin-top: 0.2rem;
+    color: #6b7280;
+    font-size: 0.7rem;
+    line-height: 1.35;
+  }
+
+  .dtr-summary-card--pending { border-left-color: #d69e2e; }
+  .dtr-summary-card--pending .dtr-summary-icon {
+    background: #fffbeb;
+    color: #a16207;
+  }
+
+  .dtr-summary-card--approved { border-left-color: #22a06b; }
+  .dtr-summary-card--approved .dtr-summary-icon {
+    background: #ecfdf3;
+    color: #198754;
+  }
+
+  .dtr-summary-card--declined { border-left-color: #dc3545; }
+  .dtr-summary-card--declined .dtr-summary-icon {
+    background: #fff1f2;
+    color: #c92a3a;
+  }
+
+  #dtrTable_wrapper .dataTables_filter {
+    float: left !important;
+    width: 100%;
+    text-align: left !important;
+  }
+
+  #dtrTable_wrapper .dataTables_filter label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  #dtrTable_wrapper .dataTables_filter input {
+    min-width: 300px;
+    margin: 0.2rem 0 0 !important;
+  }
+
+  @media (max-width: 575.98px) {
+    #dtrTable_wrapper .dataTables_filter input {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+</style>
 <div class="main-panel">
     <div class="content-wrapper">
-      <div class='row grid-margin'>
-        <div class='col-lg-2 '>
-          <div class="card card-tale">
+      <div class="row mb-4">
+        <div class="col-12 col-md-4 mb-3 mb-md-0">
+          <div class="card dtr-summary-card dtr-summary-card--pending">
             <div class="card-body">
-              <div class="media">                
-                <div class="media-body">
-                  <h4 class="mb-4">Pending</h4>
-                  <h2 class="card-text">{{($dtrs_all->where('status','Pending'))->count()}}</h2>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> 
-        <div class='col-lg-2'>
-          <div class="card card-light-danger">
-            <div class="card-body">
-              <div class="media">
-                <div class="media-body">
-                  <h4 class="mb-4">Declined/Cancelled</h4>
-                  <h2 class="card-text">{{($dtrs_all->where('status','Cancelled'))->count() + ($dtrs_all->where('status','Declined'))->count()}}</h2>
-                </div>
+              <div class="dtr-summary-content">
+                <div class="dtr-summary-label">Pending</div>
+                <h2 class="dtr-summary-count">{{ ($dtrs_all->where('status', 'Pending'))->count() }}</h2>
+                <small class="dtr-summary-description">Awaiting approval</small>
               </div>
             </div>
           </div>
         </div>
-        <div class='col-lg-2'>
-          <div class="card text-success">
+
+        <div class="col-12 col-md-4 mb-3 mb-md-0">
+          <div class="card dtr-summary-card dtr-summary-card--approved">
             <div class="card-body">
-              <div class="media">                
-                <div class="media-body">
-                  <h4 class="mb-4">Approved</h4>
-                  <h2 class="card-text">{{($dtrs_all->where('status','Approved'))->count()}}</h2>
-                </div>
+              <div class="dtr-summary-content">
+                <div class="dtr-summary-label">Approved</div>
+                <h2 class="dtr-summary-count">{{ ($dtrs_all->where('status', 'Approved'))->count() }}</h2>
+                <small class="dtr-summary-description">Completed corrections</small>
               </div>
             </div>
           </div>
-        </div> 
+        </div>
+
+        <div class="col-12 col-md-4">
+          <div class="card dtr-summary-card dtr-summary-card--declined">
+            <div class="card-body">
+              <div class="dtr-summary-content">
+                <div class="dtr-summary-label">Declined / Cancelled</div>
+                <h2 class="dtr-summary-count">{{ ($dtrs_all->where('status', 'Cancelled'))->count() + ($dtrs_all->where('status', 'Declined'))->count() }}</h2>
+                <small class="dtr-summary-description">Not processed</small>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
         <div class='row'>
           <div class="col-lg-12 grid-margin stretch-card">
             <div class="card">
               <div class="card-body">
-                <h4 class="card-title">DTR Correction</h4>
-                <p class="card-description">
-                  <button type="button" class="btn btn-outline-success btn-icon-text" data-toggle="modal" data-target="#dtrc">
-                    <i class="ti-plus btn-icon-prepend"></i>                                                    
-                    Apply DTR Correction
+                <div class="d-flex justify-content-between align-items-center">
+                  <h4 class="card-title mb-0">DTR Correction</h4>
+                  <button type="button" class="btn btn-sm btn-outline-info btn-icon-text d-flex align-items-center" data-toggle="modal" data-target="#dtrc">
+                    <i class="ti-plus btn-icon-prepend mr-2"></i>
+                    Request
                   </button>
-                </p>
+                </div>
                 
-                <form method='get' onsubmit='show();' enctype="multipart/form-data">
-                  <div class=row>
-                    <div class='col-md-2'>
-                      <div class="form-group">
+                <form method='get' onsubmit='show();' enctype="multipart/form-data" class="border rounded bg-light p-3 mt-3 mb-4">
+                  <div class="row align-items-end">
+                    <div class='col-12 col-md-6 col-xl-3'>
+                      <div class="form-group mb-3 mb-xl-0">
                         <label class="text-right">From</label>
                         <input type="date" value='{{$from}}' class="form-control form-control-sm" name="from"
                             max='{{ date('Y-m-d') }}' onchange='get_min(this.value);' required />
                       </div>
                     </div>
-                    <div class='col-md-2'>
-                      <div class="form-group">
+                    <div class='col-12 col-md-6 col-xl-3'>
+                      <div class="form-group mb-3 mb-xl-0">
                         <label class="text-right">To</label>
                         <input type="date" value='{{$to}}' class="form-control form-control-sm" id='to' name="to" required />
                       </div>
                     </div>
-                    <div class='col-md-2 mr-2'>
-                      <div class="form-group">
+                    <div class='col-12 col-md-6 col-xl-3 pr-sm-1'>
+                      <div class="form-group mb-3 mb-xl-0">
                         <label class="text-right">Status</label>
-                        <select data-placeholder="Select Status" class="form-control form-control-sm required js-example-basic-single" style='width:100%;' name='status' required>
+                        <select data-placeholder="Select Status" class="form-control form-control-sm" name='status' required>
                           <option value="">-- Select Status --</option>
                           <option value="Approved" @if ('Approved' == $status) selected @endif>Approved</option>
                           <option value="Pending" @if ('Pending' == $status) selected @endif>Pending</option>
@@ -79,14 +176,18 @@
                         </select>
                       </div>
                     </div>
-                    <div class='col-md-2'>
-                      <button type="submit" class="form-control form-control-sm btn btn-primary mb-2 btn-sm">Filter</button>
+                    <div class='col-12 col-sm-auto pl-sm-3'>
+                      <div class="form-group mb-3 mb-xl-0">
+                        <button type="submit" class="d-flex align-items-center form-control-sm filter-btn btn btn-primary btn-sm" title="Apply Filters" aria-label="Apply filters">
+                          <i class="ti-filter"></i>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </form>
 
                 <div class="table-responsive">
-                  <table class="table table-hover table-bordered tablewithSearch">
+                  <table id="dtrTable" class="table table-hover table-bordered tablewithSearch">
                     <thead>
                       <tr>
                         <th>Date Filed</th>

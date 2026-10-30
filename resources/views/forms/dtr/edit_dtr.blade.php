@@ -79,22 +79,74 @@
               </div>
             
             </div>
+            @php
+              $availableAttachments = $dtr->available_attachments;
+              $remainingAttachmentSlots = max(0, 3 - $availableAttachments->count());
+            @endphp
             <div class="form-group row">
               <div class='col-md-2'>
-                 Attachment
+                 Attachments
               </div>
               <div class='col-md-10'>
-                <input type="file" name="attachment" class="form-control"  placeholder="Upload Supporting Documents">
+                @if($availableAttachments->isNotEmpty())
+                  <div class="border rounded p-2 mb-2 bg-light">
+                    <small class="d-block font-weight-bold text-dark mb-1">Current supporting documents</small>
+                    <small class="d-block text-muted mb-2">Choose a replacement only for the file you want to change.</small>
+                    @foreach($availableAttachments as $index => $attachment)
+                      @php
+                        $attachmentKey = $attachment['legacy'] ? 'legacy' : $attachment['id'];
+                        $replacementInputId = 'dtr-replacement-'.$dtr->id.'-'.$attachmentKey;
+                      @endphp
+                      <div class="border rounded bg-white p-2 mb-2">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
+                          <a href="{{ url($attachment['path']) }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info mr-2">
+                            <i class="ti-clip mr-1"></i> View attachment {{ $index + 1 }}
+                          </a>
+                          <span class="badge badge-light">Current file</span>
+                        </div>
+                        <label for="{{ $replacementInputId }}" class="small font-weight-bold mb-1">Replace attachment {{ $index + 1 }}</label>
+                        <input
+                          type="file"
+                          id="{{ $replacementInputId }}"
+                          name="replacement_attachments[{{ $attachmentKey }}]"
+                          class="form-control-file"
+                          accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                        >
+                      </div>
+                    @endforeach
+                  </div>
+                @endif
+
+                @if($remainingAttachmentSlots > 0)
+                  <label class="small font-weight-bold mb-1">Add supporting documents</label>
+                  <input
+                    type="file"
+                    name="attachments[]"
+                    class="form-control"
+                    accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                    multiple
+                    onchange="validateDtrAttachmentSelection(this, {{ $remainingAttachmentSlots }}, 'dtr-edit-attachment-feedback-{{ $dtr->id }}')"
+                  >
+                  <small class="text-muted d-block mt-1">
+                    You may add {{ $remainingAttachmentSlots }} more attachment(s), up to 5 MB each.
+                  </small>
+                @else
+                  <div class="alert alert-light border mb-0 py-2" role="status">
+                    <small class="text-muted">Maximum of 3 attachments reached. You may still replace any current file above.</small>
+                  </div>
+                @endif
+                @if($errors->has('replacement_attachments') || $errors->has('replacement_attachments.*'))
+                  <div class="text-danger small mt-2">
+                    {{ $errors->first('replacement_attachments') ?: $errors->first('replacement_attachments.*') }}
+                  </div>
+                @endif
+                <div id="dtr-edit-attachment-feedback-{{ $dtr->id }}" class="small mt-2" aria-live="polite"></div>
               </div>
             </div>
           </div>
         </div>
   
         <div class="modal-footer">
-            @if($dtr->attachment)
-              <a href="{{url($dtr->attachment)}}" target='_blank'><button type="button" class="btn btn-outline-info btn-fw ">View Attachment</button></a>
-            @endif
-            
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           <button type="submit" class="btn btn-primary" {{ (auth()->user()->employee->immediate_sup_data != null) ? "" : 'disabled'}}>Save</button>
         </div>

@@ -215,7 +215,7 @@
                 <label class="block text-sm font-semibold text-gray-700 mb-2">
                     Email Address <span class="text-red-500">*</span>
                     <span id="email-hint" class="hidden text-xs font-normal text-gray-500 ml-1">
-                        (Updates about your COE request will be sent here.)
+                        (Updates about your request will be sent here.)
                     </span>
                 </label>
                 <input type="email"
@@ -246,7 +246,7 @@
             <div id="hardcopy-wrapper" class="hidden">
                 <div class="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg mt-2 px-4 py-3 text-sm">
                     <i class="bi bi-building me-1"></i>
-                    Your COE will be available for pickup at the HR office.
+                    Your certificate will be available for pickup at the Head Office.
                 </div>
             </div>
         </div>

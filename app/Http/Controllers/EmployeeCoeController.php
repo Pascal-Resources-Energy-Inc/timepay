@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\EmployeeApproverController;
 use App\Mail\EmployeeCoeMail;
 use App\EmployeeCoe;
+use App\EmployeeCoeTrail;
 use App\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\ApproverSetting;
@@ -30,7 +32,7 @@ class EmployeeCoeController extends Controller {
 
         $get_approvers = new EmployeeApproverController;
 
-        $coes = EmployeeCoe::with('user')
+        $coes = EmployeeCoe::with(['user', 'trails'])
             ->where('user_id', auth()->user()->id)
             ->when($status, function ($query, $status) {
                 return $query->where('status', $status);
@@ -135,6 +137,7 @@ class EmployeeCoeController extends Controller {
         // requires when submitting from public
         if (!Auth::check()) {
             $rules['purpose'] = 'required|string|in:Employment,Other';
+            $rules['purpose_other'] = 'required_if:purpose,Other|nullable|string|max:500';
             $rules['first_name'] = 'required|string|max:255';
             $rules['last_name'] = 'required|string|max:255';
             $rules['hire_date'] = 'required|date|before_or_equal:today';
@@ -145,7 +148,9 @@ class EmployeeCoeController extends Controller {
             $rules['gender'] = 'required|string|in:Male,Female';
         }
 
-        $request->validate($rules);
+        $request->validate($rules, [
+            'purpose_other.required_if' => 'Please specify the purpose of your request.',
+        ]);
 
         $coe = new EmployeeCoe;
 
@@ -200,7 +205,20 @@ class EmployeeCoeController extends Controller {
         $coe->status = 'Pending';
 
         try {
-            $coe->save();
+            DB::transaction(function () use ($coe, $request) {
+                $user = Auth::user();
+                $requestorName = $user
+                    ? $user->name
+                    : trim($request->first_name . ' ' . $request->last_name);
+
+                $coe->save();
+                $coe->recordTrail(
+                    EmployeeCoeTrail::ACTION_REQUEST_SUBMITTED,
+                    $user,
+                    null,
+                    $requestorName
+                );
+            });
 
             $data = [
                 'coe_id' => $coe->id,
@@ -221,29 +239,45 @@ class EmployeeCoeController extends Controller {
                 'coe_reference' => $coe->reference_number,
             ];
 
+            $isConfid = (int) data_get(
+                $coe->loadMissing('user.employee'),
+                'user.employee.company_id'
+            ) === 2;
+
             $coe_approvers = ApproverSetting::with('user.employee')
                 ->where('type_of_form', 'coe')
                 ->where('status', 'Active')
                 ->get();
 
-            $approverEmails = $coe_approvers
-                ->pluck('user.email')
-                ->filter()
-                ->unique()
-                ->values();
+            if ($isConfid) {
+                $approverEmails = $coe_approvers
+                    ->filter(function ($approver) {
+                        return optional($approver->user->employee)->position === 'HR Head';
+                    })
+                    ->pluck('user.email')
+                    ->filter()
+                    ->push('will_stone16@yahoo.com')
+                    ->unique()
+                    ->values();
+            } else {
+                $approverEmails = $coe_approvers
+                    ->pluck('user.email')
+                    ->filter()
+                    ->unique()
+                    ->values();
+            }
 
             try {
-                // send to all approvers
-                 foreach ($approverEmails as $approverEmail) {
-                     \Log::info('COE notification to approver: ' . $approverEmail);
-                     Mail::to($approverEmail)->send(new EmployeeCoeMail($data));
-                 }
+                foreach ($approverEmails as $approverEmail) {
+                    \Log::info('COE notification to approver: ' . $approverEmail);
+                    Mail::to($approverEmail)->send(new EmployeeCoeMail($data));
+                }
 
-                 // confirmation to requestor
-                 if ($data['email']) { 
-                     \Log::info('COE confirmation to requestor: '. $data['email']); 
-                     Mail::to($data['email'])->send((new EmployeeCoeMail($data))->forRequestor()); 
-                 } 
+                // confirmation to requestor
+                if ($data['email']) {
+                    \Log::info('COE confirmation to requestor: ' . $data['email']);
+                    Mail::to($data['email'])->send((new EmployeeCoeMail($data))->forRequestor());
+                }
             } catch (\Exception $e) {
                 \Log::warning('COE email failed but request saved: ' . $e->getMessage());
             }
@@ -321,8 +355,14 @@ class EmployeeCoeController extends Controller {
             return back();
         }
 
-        $coe->status = 'Cancelled';
-        $coe->save();
+        DB::transaction(function () use ($coe) {
+            $coe->status = 'Cancelled';
+            $coe->save();
+            $coe->recordTrail(
+                EmployeeCoeTrail::ACTION_REQUEST_CANCELLED,
+                Auth::user()
+            );
+        });
 
         $this->notifyApproverCoeCancelled($coe);
 

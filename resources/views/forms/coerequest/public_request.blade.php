@@ -75,10 +75,13 @@
 
             {{-- If other, specify --}}
             <div id="other-purpose-wrapper" class="hidden">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">If other, please specify</label>
+                <label for="purpose_other" class="block text-sm font-semibold text-gray-700 mb-2">
+                    If other, please specify <span class="text-red-500">*</span>
+                </label>
                 <input type="text"
                     name="purpose_other"
                     id="purpose_other"
+                    maxlength="500"
                     placeholder="Enter purpose"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             </div>
@@ -312,10 +315,23 @@
         });
     });
 
-    document.getElementById('purpose_select').addEventListener('change', function() {
-        var val = this.value;
-        document.getElementById('other-purpose-wrapper').classList.toggle('hidden', val !== 'Other');
+    var purposeSelect = document.getElementById('purpose_select');
+    var purposeOther = document.getElementById('purpose_other');
+
+    function updatePurposeFields() {
+        var val = purposeSelect.value;
+        var isOther = val === 'Other';
+
+        document.getElementById('other-purpose-wrapper').classList.toggle('hidden', !isOther);
         document.getElementById('visa-purpose-wrapper').classList.toggle('hidden', val !== 'Visa Application');
         document.getElementById('bank-purpose-wrapper').classList.toggle('hidden', val !== 'Bank');
-    });
+        purposeOther.required = isOther;
+
+        if (!isOther) {
+            purposeOther.value = '';
+        }
+    }
+
+    purposeSelect.addEventListener('change', updatePurposeFields);
+    updatePurposeFields();
 </script>

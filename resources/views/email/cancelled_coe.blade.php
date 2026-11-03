@@ -137,7 +137,7 @@
                             <!-- FOOTER -->
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%; border-top:1px solid #efefef;">
                                 <tr>
-                                    <td style="padding:16px 24px 24px 24px; font-family:Helvetica, Arial, sans-serif; font-size:12px; color:#888888; text-align:center;">This is an automated confirmation. For questions, contact your HR representatives.</td>
+                                    <td style="padding:16px 24px 24px 24px; font-family:Helvetica, Arial, sans-serif; font-size:12px; color:#888888; text-align:center;">This is an automated notification Please do not reply to this email.</td>
                                 </tr>
                             </table>
 

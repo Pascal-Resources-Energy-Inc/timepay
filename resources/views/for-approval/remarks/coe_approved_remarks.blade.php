@@ -1,9 +1,15 @@
-<div class="modal fade" id="coe-approved-remarks-{{$coe->id}}" tabindex="-1" role="dialog" aria-labelledby="approvedCOEremarks" aria-hidden="true">
+@php
+    $isConfid = (int) data_get($coe, 'user.employee.company_id') === 2;
+@endphp
+
+<div class="modal fade" id="coe-approved-remarks-{{$coe->id}}" tabindex="-1" role="dialog" aria-labelledby="approvedCOEremarks-{{$coe->id}}" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content border-0">
             <div class="modal-header">
                 <div>
-                    <h5 class="modal-title" id="approvedCOEremarks">Approve this COE Request?</h5>
+                    <h5 class="modal-title" id="approvedCOEremarks-{{$coe->id}}">
+                        {{ $isConfid ? 'Release certificate' : 'Send certificate' }}
+                    </h5>
                     <p style="color: #e6e6e6;">HRD-LPD-FOR-00X-000</p>
                 </div>
                 <button type="button" class="btn-close btn-danger" data-dismiss="modal" aria-label="Close">
@@ -71,7 +77,9 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light border" data-dismiss="modal">Close</button>
-                    <button type="submit" name="btnApprove" class="btn btn-success">Approve</button>
+                    <button type="submit" name="btnApprove" class="btn btn-success">
+                        {{ $isConfid ? 'Release' : 'Send' }}
+                    </button>
                 </div>
             </form>
         </div>

@@ -191,6 +191,8 @@ class EmployeeController extends Controller
                                 })
                                 ->whereIn('company_id',$allowed_companies)
                                 ->where('status',$status)
+                                ->orderByRaw("CAST(SUBSTRING_INDEX(employee_number, '_', 1) AS UNSIGNED) ASC")
+                                ->orderByRaw("CAST(SUBSTRING_INDEX(employee_number, '_', -1) AS UNSIGNED) ASC")
                                 ->orderBy('employee_number')
                                 ->orderBy('last_name')
                                 ->paginate($entries)

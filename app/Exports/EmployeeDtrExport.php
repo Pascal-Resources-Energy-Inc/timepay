@@ -10,11 +10,12 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 
 class EmployeeDtrExport implements FromQuery, WithHeadings, WithMapping
 {
-    public function __construct($company,$from,$to)
+    public function __construct($company,$from,$to,$status)
     {
         $this->company = $company;
         $this->from = $from;
         $this->to = $to;
+        $this->status = $status;
     }
 
     public function query()
@@ -26,7 +27,7 @@ class EmployeeDtrExport implements FromQuery, WithHeadings, WithMapping
                                 ->whereHas('employee',function($q) use($company){
                                     $q->where('company_id',$company);
                                 })
-                                ->where('status','Approved');
+                                ->where('status',$this->status);
     }
 
     public function headings(): array

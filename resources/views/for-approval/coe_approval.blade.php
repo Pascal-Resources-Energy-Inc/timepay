@@ -8,6 +8,23 @@
     .dataTables_wrapper .dataTables_filter input.form-control-sm {
         height: calc(1.5em + 0.5rem + 2px);
         padding: 0.25rem 0.5rem;
+        min-width: 300px;
+    }
+
+    #coeTable_wrapper .dataTables_filter {
+        float: left !important;
+        width: 100%;
+        text-align: left !important;
+    }
+
+    #coeTable_wrapper .dataTables_filter label {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #coeTable_wrapper .dataTables_filter input {
+        margin: 0.2rem 0 0 !important;
     }
 </style>
 
@@ -132,7 +149,7 @@
 
             {{-- Results Table --}}
             <div class="table-responsive">
-              <table class="table table-hover table-bordered tablewithSearch">
+              <table id="coeTable" class="table table-hover table-bordered tablewithSearch">
                 <thead>
                   <tr>
                     <th>Action</th>
@@ -162,7 +179,7 @@
                     @endif
 
                     @if($user_role === 'coe_approver' && $form_approval->status === 'Processing')
-                      @if(empty($form_approval->attachment))
+                      @if(in_array($form_approval->receive_method, ['Email', 'Viber']) && empty($form_approval->attachment))
                       <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#coe-upload-{{ $form_approval->id }}" title="Attach document">
                         <i class="ti-upload btn-icon-prepend"></i>
                       </button>
@@ -231,7 +248,7 @@
                     @if ($status !== 'Pending' || $status === 'All')
                     <td>
                     @if (in_array($form_approval->status, ['Processing', 'Approved', 'Declined', 'Cancelled']))
-                            @if (in_array($form_approval->receive_method, ['Viber', 'Email', 'Hard Copy']))
+                            @if (in_array($form_approval->receive_method, ['Viber', 'Email']))
                                 @if($form_approval->attachment)
                                     @if($form_approval->status === 'Processing')
                                         <a href="#" data-toggle="modal" data-target="#coe-upload-{{ $form_approval->id }}" style="font-size: 12px; display: flex; justify-content: center; align-items: center;" title="Change attachment">

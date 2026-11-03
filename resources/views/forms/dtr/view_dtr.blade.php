@@ -73,13 +73,17 @@
             </div>
             <div class="form-group row">
               <div class='col-md-2'>
-                 Attachment
+                 Attachments
               </div>
               <div class='col-md-10'>
-                @if($dtr->attachment)
-                  <a href="{{url($dtr->attachment)}}" target='_blank'><button type="button" class="btn btn-outline-info btn-fw ">View Attachment</button></a>
-                @endif
-            </div>
+                @forelse($dtr->available_attachments as $index => $attachment)
+                  <a href="{{ url($attachment['path']) }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info mr-1 mb-1">
+                    <i class="ti-clip mr-1"></i> Attachment {{ $index + 1 }}
+                  </a>
+                @empty
+                  <span class="text-muted">No supporting documents attached.</span>
+                @endforelse
+              </div>
             </div>
           </div>
   

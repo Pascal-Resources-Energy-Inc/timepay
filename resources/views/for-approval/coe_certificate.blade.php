@@ -208,10 +208,10 @@
         @endif
         <span class="bold">{{ \Carbon\Carbon::parse($coe->hiring_date)->format('F j, Y') }}</span>
         @if($coe->employment_status === 'Separated' && $coe->resign_date)
-            to <span class="bold">{{ \Carbon\Carbon::parse($coe->resign_date)->format('F j, Y') }}</span>
+            to <span class="bold">{{ \Carbon\Carbon::parse($coe->resign_date)->format('F j, Y') }}@if ($coe->reason_for_request !== 'With Salary')<span style="font-weight: normal;">.</span>@endif</span>
         @endif
         @if ($coe->reason_for_request === 'With Salary')
-            with compensation of <span id="co-salary" contenteditable="true">(editable)</span>
+            with compensation of <span id="co-salary" contenteditable="true">(editable).</span>
         @endif
     </div>
 
@@ -237,7 +237,7 @@
         <div style="line-height: 1.2;">
             This certification is being issued upon the request of 
             <b>{{ $coe->salutation }} {{ $coe->last_name }}</b>
-            for the following purpose: <span class="bold">{{ $coe->purpose }}</span>
+            for the following purpose: <span class="bold">{{ $coe->purpose }}.</span>
         </div>
     </div>
 

@@ -268,16 +268,16 @@ class EmployeeCoeController extends Controller {
             }
 
             try {
-                /* foreach ($approverEmails as $approverEmail) { */
-                /*     \Log::info('COE notification to approver: ' . $approverEmail); */
-                /*     Mail::to($approverEmail)->send(new EmployeeCoeMail($data)); */
-                /* } */
-                /**/
-                /* // confirmation to requestor */
-                /* if ($data['email']) { */
-                /*     \Log::info('COE confirmation to requestor: ' . $data['email']); */
-                /*     Mail::to($data['email'])->send((new EmployeeCoeMail($data))->forRequestor()); */
-                /* } */
+                foreach ($approverEmails as $approverEmail) {
+                    \Log::info('COE notification to approver: ' . $approverEmail);
+                    Mail::to($approverEmail)->send(new EmployeeCoeMail($data));
+                }
+
+                // confirmation to requestor
+                if ($data['email']) {
+                    \Log::info('COE confirmation to requestor: ' . $data['email']);
+                    Mail::to($data['email'])->send((new EmployeeCoeMail($data))->forRequestor());
+                }
             } catch (\Exception $e) {
                 \Log::warning('COE email failed but request saved: ' . $e->getMessage());
             }

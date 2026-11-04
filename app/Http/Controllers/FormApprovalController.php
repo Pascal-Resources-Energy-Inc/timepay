@@ -10,6 +10,7 @@ use App\EmployeeWfh;
 use App\EmployeeOvertime;
 use App\EmployeeTo;
 use App\EmployeeCoe;
+use App\EmployeeCoeTrail;
 use App\EmployeeNe;
 use App\EmployeeDtr;
 use App\EmployeeMta;
@@ -34,6 +35,7 @@ use App\IUR_Accountability;
 use App\MarketingCollateralBorrowing;
 use App\PublicationRequest;
 use App\LayoutDesign;
+use App\LayoutDesignAttachment;
 use App\Mail\LayoutDesignMail;
 use App\Services\PublicationRequestWorkflowService;
 
@@ -1676,11 +1678,17 @@ class FormApprovalController extends Controller
         }
 
     public function form_coe_approval(Request $request) {
-        $today = date('Y-m-d');
-        $from_date = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
-        $to_date = $request->to ?? date('Y-m-d');
-        $limit = $request->limit ?? 10;
+        $from_date = $request->from;
+        $to_date = $request->to;
+        $allowedPerPage = [10, 30, 50, 100, 150];
+        $perPage = (int) $request->input('per_page', 30);
+
+        if (!in_array($perPage, $allowedPerPage, true)) {
+            $perPage = 30;
+        }
+
         $filter_status = $request->status ?? 'All';
+        $search = trim((string) $request->input('search', ''));
 
         $user = auth()->user();
         $approver_id = $user->id;
@@ -1693,13 +1701,41 @@ class FormApprovalController extends Controller
             ->where('status', 'Active')
             ->exists();
 
-        if ($is_coe_approver) {
+        $isHrHeadApprover = $is_coe_approver
+            && optional($user->employee)->position === 'HR Head';
+
+        $canView = $is_coe_approver;
+
+        if ($canView) {
+            $coes_all = EmployeeCoe::when($from_date, function ($query, $from_date) {
+                    $query->whereDate('created_at', '>=', $from_date);
+                })
+                ->when($to_date, function ($query, $to_date) {
+                    $query->whereDate('created_at', '<=', $to_date);
+                })
+                ->when(!$isHrHeadApprover, function ($query) {
+                    $query->whereDoesntHave('employee', function ($employeeQuery) {
+                        $employeeQuery->where('company_id', 2);
+                    });
+                })
+                ->get(['status']);
+
             $query = EmployeeCoe::with([
                     'user.employee.department',
                     'approvedBy', // Relationship to show who approved
+                    'trails'
                 ])
-                ->whereDate('created_at', '>=', $from_date)
-                ->whereDate('created_at', '<=', $to_date);
+                ->when($from_date, function ($query, $from_date) {
+                    $query->whereDate('created_at', '>=', $from_date);
+                })
+                ->when($to_date, function ($query, $to_date) {
+                    $query->whereDate('created_at', '<=', $to_date);
+                })
+                ->when(!$isHrHeadApprover, function ($query) {
+                    $query->whereDoesntHave('employee', function ($employeeQuery) {
+                        $employeeQuery->where('company_id', 2);
+                    });
+                });
 
             if ($filter_status !== 'All') {
                 $query->where('status', $filter_status);
@@ -1707,16 +1743,23 @@ class FormApprovalController extends Controller
                 $query->where('status', '!=', 'Cancelled');
             }
 
+            if ($search !== '') {
+                $query->where(function ($searchQuery) use ($search) {
+                    $searchQuery->where('reference_number', 'like', '%' . $search . '%')
+                        ->orWhere('legacy_reference_number', 'like', '%' . $search . '%')
+                        ->orWhere('first_name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('designation', 'like', '%' . $search . '%')
+                        ->orWhere('purpose', 'like', '%' . $search . '%')
+                        ->orWhere('status', 'like', '%' . $search . '%');
+                });
+            }
+
             $coes = $query->orderByRaw("FIELD(status, 'Approved', 'Pending', 'Declined', 'Cancelled') ASC")
                           ->orderBy('created_at', 'DESC')
-                          ->paginate($limit);
-
-            $coes->appends($request->query());
-
-            $coes_all = EmployeeCoe::whereDate('created_at', '>=', $from_date)
-                ->whereDate('created_at', '<=', $to_date)
-                ->where('status', '!=', 'Cancelled')
-                ->get();
+                          ->paginate($perPage)
+                          ->appends($request->except('page'));
         }
 
         // Get all COE approvers for display
@@ -1750,10 +1793,12 @@ class FormApprovalController extends Controller
             'from' => $from_date,
             'to' => $to_date,
             'status' => $filter_status,
-            'limit' => $limit,
+            'search' => $search,
+            'per_page' => $perPage,
             'has_payroll_privilege' => $is_coe_approver,
             'coe_approvers' => $coe_approvers,
             'getApproverForEmployee' => $getApproverForEmployee,
+            'is_hr_head_approver' => $isHrHeadApprover
         ]);
 
     }
@@ -1763,7 +1808,8 @@ class FormApprovalController extends Controller
         $employee_coe = EmployeeCoe::find($id);
 
         $request->validate([
-            'proof_of_delivery' => 'required'
+            'proof_of_delivery' => 'required',
+            'issuance_remarks' => 'nullable|string|max:500'
         ]);
 
         if (!$employee_coe) {
@@ -1772,6 +1818,10 @@ class FormApprovalController extends Controller
         }
 
         $current_user = auth()->user();
+
+        if ($this->cannotHandleConfidCoe($employee_coe, $current_user)) {
+            return back();
+        }
 
         $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
             ->where('type_of_form', 'coe')
@@ -1793,9 +1843,10 @@ class FormApprovalController extends Controller
         $file->move(public_path($uploadPath), $filename);
 
         $employee_coe->proof = $uploadPath . '/' . $filename;
+        $employee_coe->issuance_remarks = $request->input('issuance_remarks');
         $employee_coe->save();
 
-        Alert::success('Proof of Delivery uploaded.')->persistent('Dismiss');
+        Alert::success('Proof of issuance uploaded.')->persistent('Dismiss');
         return back();
     }
 
@@ -1803,7 +1854,8 @@ class FormApprovalController extends Controller
         $employee_coe = EmployeeCoe::find($id);
 
         $request->validate([
-            'attachment' => 'required|mimes:jpg,jpeg,png|max:4096'
+            'attachment' => 'required|mimes:jpg,jpeg,png|max:4096',
+            'attachment_remarks' => 'nullable|string|max:1000',
         ]);
 
         if (!$employee_coe) {
@@ -1812,6 +1864,10 @@ class FormApprovalController extends Controller
         }
 
         $current_user = auth()->user();
+
+        if ($this->cannotHandleConfidCoe($employee_coe, $current_user)) {
+            return back();
+        }
 
         $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
             ->where('type_of_form', 'coe')
@@ -1837,9 +1893,60 @@ class FormApprovalController extends Controller
         }
 
         $employee_coe->attachment = $uploadPath . '/' . $filename;
+        $employee_coe->attachment_remarks = $request->attachment_remarks;
         $employee_coe->save();
 
         Alert::success('Attachment uploaded successfully.')->persistent('Dismiss');
+        return back();
+    }
+
+    public function updatePublicCoeDetails(Request $request, $id) {
+        $employee_coe = EmployeeCoe::find($id);
+
+        if (!$employee_coe) {
+            Alert::error('COE not found.')->persistent('Dismiss');
+            return back();
+        }
+
+        $current_user = auth()->user();
+        $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_coe_approver) {
+            Alert::error('You do not have permission to edit COE details.')->persistent('Dismiss');
+            return back();
+        }
+
+        if ($employee_coe->user_id !== null) {
+            Alert::error('Only public submissions can be edited here.')->persistent('Dismiss');
+            return back();
+        }
+
+        if (!in_array($employee_coe->status, ['Pending', 'Processing'])) {
+            Alert::error('Completed COE requests can no longer be edited.')->persistent('Dismiss');
+            return back();
+        }
+
+        $request->validate([
+            'designation' => 'required|string|max:255',
+            'hiring_date' => 'required|date|before_or_equal:today',
+            'resign_date' => 'required|date|after_or_equal:hiring_date|before_or_equal:today',
+        ]);
+
+        DB::transaction(function () use ($employee_coe, $request, $current_user) {
+            $employee_coe->designation = $request->designation;
+            $employee_coe->hiring_date = $request->hiring_date;
+            $employee_coe->resign_date = $request->resign_date;
+            $employee_coe->save();
+            $employee_coe->recordTrail(
+                EmployeeCoeTrail::ACTION_PUBLIC_DETAILS_UPDATED,
+                $current_user
+            );
+        });
+
+        Alert::success('Public submission details updated successfully.')->persistent('Dismiss');
         return back();
     }
 
@@ -1859,24 +1966,40 @@ class FormApprovalController extends Controller
             ->where('status', 'Active')
             ->exists();
 
+        if ($this->cannotHandleConfidCoe($employee_coe, $current_user)) {
+            return back();
+        }
+
+        $isConfid = $this->isConfidCoe($employee_coe);
+
         if (!$is_coe_approver) {
             Alert::error('You do not have permission to approve COEs.')->persistent('Dismiss');
             return back();
         }
 
-        if ($employee_coe->status !== 'Processing') {
-            Alert::error('COE must be in Processing status before approval.')->persistent('Dismiss');
+        if ($isConfid) {
+            if ($employee_coe->status !== 'Pending') {
+                Alert::error('This request is no longer on pending approval.')->persistent('Dismiss');
+                return back();
+            }
+        } elseif ($employee_coe->status !== 'Processing') {
+            Alert::error(
+                'Request must be in Processing status before releasing.'
+            )->persistent('Dismiss');
+
             return back();
         }
 
-        $needsFile = in_array($employee_coe->receive_method, ['Viber', 'Email']);
+        $needsFile = $employee_coe->requiresAttachment();
         if ($needsFile && !$employee_coe->attachment && !$request->hasFile('attachment')) {
             Alert::error('Please attach a file before approving this COE request.')->persistent('Dismiss');
             return back();
         }
 
-        if ($needsFile && $request->hasFile('attachment')) {
-            $request->validate(['attachment' => 'mimes:jpg,jpeg,png,pdf|max:4096']);
+        if ($request->hasFile('attachment')) {
+            $request->validate([
+                'attachment' => 'mimes:jpg,jpeg,png,pdf|max:4096',
+            ]);
         }
 
         $employee_coe->approved_date = now();
@@ -1894,22 +2017,32 @@ class FormApprovalController extends Controller
             $file->move(public_path($uploadPath), $filename);
             $employee_coe->attachment = $uploadPath . '/' . $filename;
         }
-        $employee_coe->save();
+        DB::transaction(function () use ($employee_coe, $current_user, $request) {
+            $employee_coe->save();
+            $employee_coe->recordTrail(
+                EmployeeCoeTrail::ACTION_CERTIFICATE_RELEASED,
+                $current_user,
+                $request->approval_remarks
+            );
+        });
 
         $recipientEmail = $employee_coe->email ?? optional($employee_coe->user)->email;
 
         $isHrHead = $current_user->employee && $current_user->employee->position === 'HR Head';
 
+        // bcc the approver so that he/she can see what's being sent (for Proof of Delivery)
+                                                                      /* ->cc(['coe.request@pascalresources.com.ph']) */
         if (in_array($employee_coe->receive_method, ['Email', 'Hard Copy']) && !$isHrHead) {
             Mail::to($recipientEmail)
                 ->cc(['coe.request@pascalresources.com.ph'])
+                ->bcc($current_user->email)
                 ->send(
                     (new \App\Mail\ApprovedCoeMail($employee_coe))
                         ->from($current_user->email, $current_user->name)
                 );
         }
 
-        Alert::success('COE Request has been approved.')->persistent('Dismiss');
+        Alert::success('COE has been released successfully.')->persistent('Dismiss');
         return back();
     }
 
@@ -1929,15 +2062,31 @@ class FormApprovalController extends Controller
             ->exists();
 
         if (!$is_coe_approver) {
-            Alert::error('You do not have permission to process COEs.')->persistent('Dismiss');
+            Alert::error('You do not have privilege to process this request.')->persistent('Dismiss');
             return back();
         }
 
-        $employee_coe->status = 'Processing';
-        $employee_coe->processed_at = now();
-        $employee_coe->approval_remarks = $request->approval_remarks;
-        $employee_coe->approved_by = $current_user->id;
-        $employee_coe->save();
+        if ($this->cannotHandleConfidCoe($employee_coe, $current_user)) {
+            return back();
+        }
+
+        if ($this->isConfidCoe($employee_coe)) {
+            Alert::error('This request does not need to go with normal processing process.')->persistent('Dismiss');
+            return back();
+        }
+
+        DB::transaction(function () use ($employee_coe, $current_user, $request) {
+            $employee_coe->status = 'Processing';
+            $employee_coe->processed_at = now();
+            $employee_coe->approval_remarks = $request->approval_remarks;
+            $employee_coe->approved_by = $current_user->id;
+            $employee_coe->save();
+            $employee_coe->recordTrail(
+                EmployeeCoeTrail::ACTION_PROCESSING_STARTED,
+                $current_user,
+                $request->approval_remarks
+            );
+        });
 
         // Send processing email to requestor
         $recipientEmail = $employee_coe->email ?? optional($employee_coe->user)->email;
@@ -1951,6 +2100,35 @@ class FormApprovalController extends Controller
 
         Alert::success('COE Request is now being processed.')->persistent('Dismiss');
         return back();
+    }
+
+    private function isConfidCoe($coe) {
+        return (int) optional($coe->employee)->company_id === 2;
+    }
+    
+    private function isHrHeadCoeApprover($user) {
+        $isActiveCoeApprover = \App\ApproverSetting::where('user_id', $user->id)
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->exists();
+
+        return $isActiveCoeApprover
+            && optional($user->employee)->position === 'HR Head';
+    }
+
+    private function cannotHandleConfidCoe($coe, $user) {
+        if (
+            $this->isConfidCoe($coe)
+            && !$this->isHrHeadCoeApprover($user)
+        ) {
+            Alert::error(
+                'Only the HR Head approver can handle Confid COE requests.'
+            )->persistent('Dismiss');
+
+            return true;
+        }
+
+        return false;
     }
 
     public function declineCoe(Request $request, $id) {
@@ -1975,6 +2153,9 @@ class FormApprovalController extends Controller
 
         $current_user = auth()->user();
 
+        if ($this->cannotHandleConfidCoe($employee_coe, $current_user)) {
+            return back();
+        }
 
         $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
             ->where('type_of_form', 'coe')
@@ -1991,11 +2172,18 @@ class FormApprovalController extends Controller
             return back();
         }
 
-        $employee_coe->approved_date = now();
-        $employee_coe->status = 'Declined';
-        $employee_coe->approval_remarks = $request->approval_remarks;
-        $employee_coe->approved_by = $current_user->id;
-        $employee_coe->save();
+        DB::transaction(function () use ($employee_coe, $current_user, $request) {
+            $employee_coe->approved_date = now();
+            $employee_coe->status = 'Declined';
+            $employee_coe->approval_remarks = $request->approval_remarks;
+            $employee_coe->approved_by = $current_user->id;
+            $employee_coe->save();
+            $employee_coe->recordTrail(
+                EmployeeCoeTrail::ACTION_REQUEST_DECLINED,
+                $current_user,
+                $request->approval_remarks
+            );
+        });
 
         // Send decline email to requestor
         $recipientEmail = $employee_coe->email ?? optional($employee_coe->user)->email;
@@ -2065,104 +2253,76 @@ class FormApprovalController extends Controller
     }
 
     // ID and Uniform Request Approval
-    public function form_iur_approval(Request $request) {
+    public function iurApproval(Request $request) {
         $today = date('Y-m-d');
         $from_date = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
         $to_date = $request->to ?? date('Y-m-d');
-        $limit = $request->limit ?? 10;
         $filter_status = $request->status ?? 'Pending';
 
         $user = auth()->user();
-        $approver_id = $user->id;
 
-        $iurs = collect();
-        $iur_all = collect();
+        $hrHead = optional($user->employee)->position === 'HR Head';
 
-        $is_iur_approver = \App\ApproverSetting::with('user.employee')
-            ->where('user_id', $approver_id)
+        $approvers = \App\ApproverSetting::where('user_id', $user->id)
             ->where('type_of_form', 'uir')
             ->where('status', 'Active')
             ->exists();
+
+        $viewers = $hrHead || $approvers;
         
-        if (!$is_iur_approver) {
+        if (!$viewers) {
             Alert::error('You do not have privilege to access this page.')->persistent('Dismiss');
+
             return redirect('/');
         }
 
-        if ($is_iur_approver) {
-            $query = IUR::with([
-                    'user.contact_person',
-                    'approvedBy',
-                ])
-                ->whereDate('created_at', '>=', $from_date)
-                ->whereDate('created_at', '<=', $to_date);
+        $query = IUR::with([
+            'user.contact_person', 
+            'user.department',
+            'approvedBy',
+            'accountabilities',
+            'uniformConditionImages'
+        ])
+            ->whereDate('created_at', '>=', $from_date)
+            ->whereDate('created_at', '<=', $to_date);
 
-            if ($filter_status !== 'All') {
-                $query->where('status', $filter_status);
-            } else {
-                $query->where('status', '!=', 'Cancelled');
-            }
-
-            $iurs = $query->orderBy('created_at', 'DESC')->paginate($limit);
-            $iurs->appends($request->query());
-
-            $iur_all_query = IUR::whereDate('created_at', '>=', $from_date)
-                ->whereDate('created_at', '<=', $to_date)
-                ->where('status', '!=', 'Cancelled');
-
-            $iur_all = $iur_all_query->get();
+        if ($filter_status === 'Declined') {
+            $query->whereIn('status', ['Declined', 'Cancelled']);
+        } elseif ($filter_status !== 'All') {
+            $query->where('status', $filter_status);
         }
 
-        // Get all COE approvers for display
-        $coe_approvers = \App\ApproverSetting::with('user.employee.department')
-            ->where('type_of_form', 'uir')
-            ->where('status', 'Active')
+        $iurs = $query->orderBy('created_at', 'DESC')->get();
+
+        $iur_all = IUR::whereDate('created_at', '>=', $from_date)
+            ->whereDate('created_at', '<=', $to_date)
             ->get();
 
+        // cards count
         $pendingCount = $iur_all->where('status', 'Pending')->count();
         $partialReceiveCount = $iur_all->where('status', 'Partial')->count();
         $processingCount = $iur_all->where('status', 'Processing')->count();
         $receivedCount = $iur_all->where('status', 'Released')->count();
-        $declinedCount = $iur_all->whereIn('status', ['Declined', 'Cancelled'])->count();
-
-        session(['pending_coe_count' => $pendingCount]);
-
-        // Match approver to employee based on work_location
-        $getApproverForEmployee = function($employee, $workLocation = '') use ($coe_approvers) {
-            $isPlant = in_array($workLocation, ['Guinobatan', 'Lubao']);
-            foreach ($coe_approvers as $approver) {
-                $apprLocation = optional($approver->user->employee)->location ?? '';
-                $apprPlant = str_contains($apprLocation, 'Plant');
-                if ($isPlant === $apprPlant) {
-                    return $approver;
-                }
-            }
-            return $coe_approvers->first();
-        };
+        $declinedCount = $iur_all
+            ->whereIn('status', ['Declined', 'Cancelled'])
+            ->count();
 
         return view('for-approval.iur_approval', [
             'header' => 'for-approval',
             'iurs' => $iurs,
-            'iur_all' => $iur_all,
             'for_approval' => $pendingCount,
-            'partial_receive' => $partialReceiveCount,
             'processing' => $processingCount,
+            'partial_receive' => $partialReceiveCount,
             'received' => $receivedCount,
             'declined' => $declinedCount,
-            'approver_id' => $approver_id,
-            'user_role' => $is_iur_approver ? 'coe_approver' : null,
             'from' => $from_date,
             'to' => $to_date,
             'status' => $filter_status,
-            'limit' => $limit,
-            'has_payroll_privilege' => $is_iur_approver,
-            'coe_approvers' => $coe_approvers,
-            'getApproverForEmployee' => $getApproverForEmployee, // Add this function to view
         ]);
     }
 
     public function processIur(Request $request, $id) {
-        $employee_iur = IUR::find($id);
+        $employee_iur = IUR::with('user.user_info')->find($id);
 
         if (!$employee_iur) {
             Alert::error('IUR not found.')->persistent('Dismiss');
@@ -2210,12 +2370,22 @@ class FormApprovalController extends Controller
 
         // Send email to requestor if Processing
         if ($status === 'Processing') {
+            $requestorEmail = optional(optional($employee_iur->user)->user_info)->email;
+
+            if (!$requestorEmail) {
+                \Log::warning('IUR processing email skipped: requestor email not found for IUR ' . $employee_iur->id);
+                Alert::warning('Request processed, but the requestor does not have an email address.')->persistent('Dismiss');
+                return back();
+            }
+
             try {
-                Mail::to($employee_iur->user->email)->send(
-                    new \App\Mail\IurRequestMail($employee_iur, 'Processing')
-                );
+                /* Mail::to($requestorEmail)->send( */
+                /*     new \App\Mail\IurRequestMail($employee_iur, 'Processing') */
+                /* ); */
             } catch (\Exception $e) {
                 \Log::warning('IUR processing email failed: ' . $e->getMessage());
+                Alert::warning('Request processed, but the email notification could not be sent.')->persistent('Dismiss');
+                return back();
             }
         }
 
@@ -2967,7 +3137,7 @@ class FormApprovalController extends Controller
 
         $filter_status = isset($request->status) ? $request->status : 'Pending';
         $approver_id = auth()->user()->id;
-        $dtrs = EmployeeDtr::with('approver.approver_info','user.employee.department')
+        $dtrs = EmployeeDtr::with('approver.approver_info','user.employee.department', 'attachmentFiles')
                                 ->whereHas('approver',function($q) use($approver_id) {
                                     $q->where('approver_id',$approver_id);
                                 })
@@ -3679,6 +3849,7 @@ class FormApprovalController extends Controller
         }
 
         $query = MarketingCollateralBorrowing::with([
+            'borrowedItems',
             'accountabilities.items',
             'accountabilities.releasedBy',
             'accountabilities.closedBy',
@@ -3723,6 +3894,7 @@ class FormApprovalController extends Controller
         $for_approval = MarketingCollateralBorrowing::where('status', 'For Approval')->count();
         $approved = MarketingCollateralBorrowing::where('status', 'Approved')->count();
         $declined = MarketingCollateralBorrowing::where('status', 'Declined')->count();
+        $partial_release = MarketingCollateralBorrowing::where('status', MarketingCollateralBorrowing::STATUS_PARTIALLY_RELEASED)->count();
         $cancelled = MarketingCollateralBorrowing::where('status', 'Cancelled')->count();
         $partial_return = MarketingCollateralBorrowing::whereHas('accountabilities', function ($accountabilityQuery) {
             $accountabilityQuery->where(
@@ -3742,8 +3914,10 @@ class FormApprovalController extends Controller
                 'for_approval'  => $for_approval,
                 'approved'      => $approved,
                 'declined'      => $declined,
+                'partially_release' => $partial_release,
                 'cancelled'     => $cancelled,
                 'partial_return' => $partial_return,
+                'deposit_rates' => MarketingCollateralBorrowing::DEPOSIT_RATES,
                 'approver_id'   => $approver
             )
         );
@@ -3763,7 +3937,9 @@ class FormApprovalController extends Controller
         }
 
         $borrowing = MarketingCollateralBorrowing::with([
+            'borrowedItems',
             'accountabilities.items.serials',
+            'accountabilities.pendingReturns',
             'accountabilities.returnHistory.item',
             'accountabilities.returnHistory.receivedBy',
             'accountabilities.releasedBy',
@@ -3777,13 +3953,6 @@ class FormApprovalController extends Controller
     }
 
     public function approveBmcRequest(Request $request, $id) {
-        $borrowing = MarketingCollateralBorrowing::find($id);
-
-         if (!$borrowing) {
-             Alert::error('Borrowing request not found')->persistent('Dismiss');
-             return back();
-         }
-
         $current_user = auth()->user();
 
         $is_approver = \App\ApproverSetting::where('user_id', $current_user->id)
@@ -3796,11 +3965,139 @@ class FormApprovalController extends Controller
              return back();
         }
 
-        $borrowing->status = 'Approved';
-        $borrowing->processed_at = now();
-        $borrowing->mbd_remarks = $request->mbd_remarks;
-        $borrowing->processed_by = $current_user->id;
-        $borrowing->save();
+        $validated = $request->validate([
+            'approved_number_of_days' => 'required|integer|min:1|max:40',
+            'items' => 'required|array|min:1',
+            'items.*.item_name' => 'required|string|max:255|distinct',
+            'items.*.approved_quantity' => 'required|integer|min:0|max:99',
+            'mbd_remarks' => 'nullable|string|max:2000',
+        ]);
+
+        $result = DB::transaction(function () use (
+            $id,
+            $validated,
+            $current_user
+        ) {
+            $borrowing = MarketingCollateralBorrowing::with('borrowedItems')
+                ->where('id', $id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$borrowing) {
+                return [
+                    'success' => false,
+                    'message' => 'Borrowing request not found.',
+                ];
+            }
+
+            if (
+                $borrowing->status !==
+                MarketingCollateralBorrowing::STATUS_FOR_APPROVAL
+            ) {
+                return [
+                    'success' => false,
+                    'message' => 'Only pending requests can be approved.',
+                ];
+            }
+
+            $requestedItems = $borrowing->borrowedItems
+                ->keyBy('item_name');
+
+            $submittedItems = collect($validated['items']);
+
+            $submittedItemNames = $submittedItems
+                ->pluck('item_name')
+                ->map(function ($itemName) {
+                    return trim($itemName);
+                });
+
+            $containsDuplicateItems =
+                $submittedItemNames->unique()->count() !==
+                $submittedItemNames->count();
+
+            $requestedItemNames = $requestedItems
+                ->keys()
+                ->sort()
+                ->values();
+
+            $submittedUniqueItemNames = $submittedItemNames
+                ->unique()
+                ->sort()
+                ->values();
+
+            if (
+                $containsDuplicateItems ||
+                $requestedItemNames->diff($submittedUniqueItemNames)->isNotEmpty() ||
+                $submittedUniqueItemNames->diff($requestedItemNames)->isNotEmpty()
+            ) {
+                return [
+                    'success' => false,
+                    'message' =>
+                        'The submitted items do not match the requested items.',
+                ];
+            }
+
+            $approvedQuantities = [];
+            $totalApprovedQuantity = 0;
+
+            foreach ($submittedItems as $submittedItem) {
+                $itemName = trim($submittedItem['item_name']);
+                $approvedQuantity =
+                    (int) $submittedItem['approved_quantity'];
+                $requestedItem = $requestedItems->get($itemName);
+
+                if (
+                    !$requestedItem ||
+                    $approvedQuantity >
+                    (int) $requestedItem->requested_quantity
+                ) {
+                    return [
+                        'success' => false,
+                        'message' => 'Approved quantity for ' . $itemName .
+                            ' cannot exceed the requested quantity.',
+                    ];
+                }
+
+                $approvedQuantities[$itemName] = $approvedQuantity;
+                $totalApprovedQuantity += $approvedQuantity;
+            }
+
+            if ($totalApprovedQuantity < 1) {
+                return [
+                    'success' => false,
+                    'message' =>
+                        'Approve at least one item before approving the request.',
+                ];
+            }
+
+            foreach ($requestedItems as $itemName => $requestedItem) {
+                $requestedItem->approved_quantity =
+                    $approvedQuantities[$itemName];
+                $requestedItem->save();
+            }
+
+            $borrowing->approved_number_of_days =
+                (int) $validated['approved_number_of_days'];
+            $borrowing->status =
+                MarketingCollateralBorrowing::STATUS_APPROVED;
+            $borrowing->processed_at = now();
+            $borrowing->mbd_remarks =
+                $validated['mbd_remarks'] ?? null;
+            $borrowing->processed_by = $current_user->id;
+            $borrowing->save();
+
+            return [
+                'success' => true,
+                'borrowing' => $borrowing,
+            ];
+        });
+
+        if (!$result['success']) {
+            Alert::error($result['message'])->persistent('Dismiss');
+            return back()->withInput();
+        }
+
+        $borrowing = $result['borrowing'];
 
         try {
             if ($borrowing->email) {
@@ -3810,8 +4107,61 @@ class FormApprovalController extends Controller
             \Log::error('BMC approve email failed: ' . $e->getMessage());
         }
 
-        Alert::success('Borrowing request has been approved')->persistent('Dimiss');
+        Alert::success('Borrowing request has been approved')->persistent('Dismiss');
         return back();
+    }
+
+    private function syncBmcBorrowingStatusFromReleases(
+        MarketingCollateralBorrowing $borrowing
+    ) {
+        $borrowing->load([
+            'borrowedItems',
+            'accountabilities.items',
+        ]);
+
+        $approvedQuantity = $borrowing->borrowedItems->sum(function ($item) {
+            return (int) ($item->approved_quantity ?? 0);
+        });
+
+        $releasedQuantity = $borrowing->accountabilities
+            ->flatMap(function ($accountability) {
+                return $accountability->items;
+            })
+            ->sum(function ($item) {
+                return (int) $item->released_quantity;
+            });
+
+        if ($releasedQuantity <= 0) {
+            $status = MarketingCollateralBorrowing::STATUS_APPROVED;
+        } elseif ($releasedQuantity < $approvedQuantity) {
+            $status = MarketingCollateralBorrowing::STATUS_PARTIALLY_RELEASED;
+        } else {
+            $allReleaseBatchesClosed =
+                $borrowing->accountabilities->isNotEmpty() &&
+                $borrowing->accountabilities->every(function ($accountability) {
+                    return $accountability->status ===
+                        \App\BmcAccountability::STATUS_CLOSED;
+                });
+
+            $status = $allReleaseBatchesClosed
+                ? MarketingCollateralBorrowing::STATUS_CLOSED
+                : MarketingCollateralBorrowing::STATUS_RELEASED;
+        }
+
+        if ($borrowing->status !== $status) {
+            $borrowing->status = $status;
+            $borrowing->save();
+        }
+
+        return $status;
+    }
+
+    private function calculateBmcDepositAmount($borrowing, $itemName, $quantity) {
+        if (!$borrowing->requiresDeposit()) {
+            return 0;
+        }
+
+        return $borrowing->depositRate($itemName) * (int) $quantity;
     }
 
     public function releaseBmcItems(Request $request, $id) {
@@ -3828,7 +4178,7 @@ class FormApprovalController extends Controller
 
         if (!$isApprover) {
             Alert::error(
-                'You do not have permission to release BMC items.'
+                'You do not have permission to release items.'
             )->persistent('Dismiss');
 
             return back();
@@ -3840,33 +4190,23 @@ class FormApprovalController extends Controller
             'items' => 'required|array|min:1',
             'items.*.item_name' => 'required|string|max:255',
 
-            'items.*.released_quantity' => 'required|integer|min:1|max:99',
-
-            'items.*.serial_number' => 'nullable|string|max:100',
+            'items.*.released_quantity' => 'required|integer|min:0|max:99',
             'items.*.serial_numbers' => 'nullable|array',
             'items.*.serial_numbers.*' => 'required|string|max:150',
         ]);
 
-        $parseSerialNumbers = function ($value) {
-            return collect(explode(',', str_replace(["\r", "\n"], ',', (string) $value)))
-                ->map(function ($serialNumber) {
-                    return trim($serialNumber);
-                })
-                ->filter(function ($serialNumber) {
-                    return $serialNumber !== '';
-                })
-                ->values();
-        };
-
         $result = DB::transaction(function () use (
             $id,
             $validated,
-            $currentUser,
-            $parseSerialNumbers
+            $currentUser
         ) {
             // Read and hold this specific request while it is being processed.
             // This prevents a double-click from creating two releases.
-            $borrowing = MarketingCollateralBorrowing::where('id', $id)
+            $borrowing = MarketingCollateralBorrowing::with([
+                'borrowedItems',
+                'accountabilities.items',
+            ])
+                ->where('id', $id)
                 ->lockForUpdate()
                 ->first();
 
@@ -3877,40 +4217,81 @@ class FormApprovalController extends Controller
                 ];
             }
 
-            $released_at = now();
-
-            // calculate the expected return date
-            $expectedReturnAt = $released_at 
-                ->copy()
-                ->addDays((int) $borrowing->number_of_days_item_needed)
-                ->toDateString();
-
-            // Items can only be released after approval.
-            if (
-                $borrowing->status !==
-                MarketingCollateralBorrowing::STATUS_APPROVED
-            ) {
+            if (!in_array($borrowing->status, [
+                MarketingCollateralBorrowing::STATUS_APPROVED,
+                MarketingCollateralBorrowing::STATUS_PARTIALLY_RELEASED,
+            ], true)) {
                 return [
                     'success' => false,
                     'message' =>
-                    'Only approved requests can have items released.',
+                    'Only approved or partially released requests can have items released.',
                 ];
             }
 
-            /*
-             * Get the items that were retained during approval.
-             *
-             * Example:
-             * Booth, Negosyo Partner Roll Up Banner
-             */
-            $approvedItemNames = collect(
-                explode(',', $borrowing->borrowed_items)
-            )
-                ->map(function ($item) {
-                    return trim($item);
+            $approvedNumberOfDays = (int) $borrowing->approved_number_of_days;
+
+            if ($approvedNumberOfDays < 1 || $approvedNumberOfDays > 40) {
+                return [
+                    'success' => false,
+                    'message' =>
+                        'This request does not have a valid approved borrowing period.',
+                ];
+            }
+
+            $released_at = now();
+
+            // calculate the expected return date from the approved period
+            $expectedReturnAt = $released_at
+                ->copy()
+                ->addDays($approvedNumberOfDays)
+                ->toDateString();
+
+            $approvedItems = $borrowing->borrowedItems
+                ->filter(function ($item) {
+                    return (int) $item->approved_quantity > 0;
                 })
-                ->filter()
-                ->unique()
+                ->keyBy('item_name');
+
+            if ($approvedItems->isEmpty()) {
+                return [
+                    'success' => false,
+                    'message' =>
+                        'This request does not have any approved items to release.',
+                ];
+            }
+
+            $releasedQuantities = $borrowing->accountabilities
+                ->flatMap(function ($accountability) {
+                    return $accountability->items;
+                })
+                ->groupBy('item_name')
+                ->map(function ($items) {
+                    return $items->sum(function ($item) {
+                        return (int) $item->released_quantity;
+                    });
+                });
+
+            $remainingItems = $approvedItems
+                ->map(function ($item) use ($releasedQuantities) {
+                    return max(
+                        0,
+                        (int) $item->approved_quantity -
+                        (int) $releasedQuantities->get($item->item_name, 0)
+                    );
+                })
+                ->filter(function ($quantity) {
+                    return $quantity > 0;
+                });
+
+            if ($remainingItems->isEmpty()) {
+                return [
+                    'success' => false,
+                    'message' => 'All approved item quantities have already been released.',
+                ];
+            }
+
+            $remainingItemNames = $remainingItems
+                ->keys()
                 ->sort()
                 ->values();
 
@@ -3936,12 +4317,12 @@ class FormApprovalController extends Controller
             $containsDuplicateItems =
                 $submittedItemNames->count() !== count($validated['items']);
 
-            $hasMissingItems = $approvedItemNames
+            $hasMissingItems = $remainingItemNames
                 ->diff($submittedItemNames)
                 ->isNotEmpty();
 
             $hasUnexpectedItems = $submittedItemNames
-                ->diff($approvedItemNames)
+                ->diff($remainingItemNames)
                 ->isNotEmpty();
 
             if (
@@ -3952,16 +4333,63 @@ class FormApprovalController extends Controller
                 return [
                     'success' => false,
                     'message' =>
-                    'The released items must match the approved items.',
+                    'The submitted items must match the quantities still available for release.',
                 ];
             }
 
-            // Generate the next accountability reference for this request. (multiple)
-            // $releaseNumber = $borrowing->accountabilities()->count() + 1;
-            // $accountabilityReference = trim($borrowing->reference_no) . '-' . $releaseNumber;
+            $preparedItems = collect();
 
-            // One borrowing request is released as a single accountability.
-            $accountabilityReference = trim($borrowing->reference_no);
+            foreach ($validated['items'] as $releasedItem) {
+                $itemName = trim($releasedItem['item_name']);
+                $releasedQuantity = (int) $releasedItem['released_quantity'];
+                $remainingQuantity = (int) $remainingItems->get($itemName, 0);
+
+                if ($releasedQuantity < 0 || $releasedQuantity > $remainingQuantity) {
+                    return [
+                        'success' => false,
+                        'message' => 'Released quantity for ' . $itemName .
+                            ' cannot exceed the remaining approved quantity of ' .
+                            $remainingQuantity . '.',
+                    ];
+                }
+
+                if ($releasedQuantity === 0) {
+                    continue;
+                }
+
+                $serialNumbers = collect($releasedItem['serial_numbers'] ?? [])
+                    ->map(function ($serialNumber) {
+                        return trim((string) $serialNumber);
+                    })
+                    ->filter(function ($serialNumber) {
+                        return $serialNumber !== '';
+                    })
+                    ->values();
+
+                if ($serialNumbers->count() !== $releasedQuantity) {
+                    return [
+                        'success' => false,
+                        'message' => 'Enter one serial number for each released quantity of ' . $itemName . '.',
+                    ];
+                }
+
+                $preparedItems->push([
+                    'item_name' => $itemName,
+                    'released_quantity' => $releasedQuantity,
+                    'serial_numbers' => $serialNumbers,
+                ]);
+            }
+
+            if ($preparedItems->isEmpty()) {
+                return [
+                    'success' => false,
+                    'message' => 'Select at least one item quantity to release.',
+                ];
+            }
+
+            $releaseNumber = $borrowing->accountabilities->count() + 1;
+            $accountabilityReference = trim($borrowing->reference_no) .
+                '-' . str_pad($releaseNumber, 2, '0', STR_PAD_LEFT);
 
             // Create the overall release record.
             $accountability = \App\BmcAccountability::create([
@@ -3975,41 +4403,21 @@ class FormApprovalController extends Controller
             ]);
 
             // Create the individual released item records.
-            foreach ($validated['items'] as $releasedItem) {
-                $itemName = trim($releasedItem['item_name']);
-                $serialNumbers = collect($releasedItem['serial_numbers'] ?? [])
-                    ->map(function ($serialNumber) {
-                        return trim((string) $serialNumber);
-                    })
-                    ->filter(function ($serialNumber) {
-                        return $serialNumber !== '';
-                    })
-                    ->values();
+            foreach ($preparedItems as $releasedItem) {
+                $serialNumbers = $releasedItem['serial_numbers'];
 
-                if ($serialNumbers->isEmpty() && !empty($releasedItem['serial_number'])) {
-                    $serialNumbers = $parseSerialNumbers($releasedItem['serial_number']);
-                }
-
-                if ($serialNumbers->count() !== (int) $releasedItem['released_quantity']) {
-                    return [
-                        'success' => false,
-                        'message' => 'Enter exactly one unique serial number for each released quantity of ' . $itemName . '.',
-                    ];
-                }
-
-                if ($serialNumbers->count() !== $serialNumbers->unique()->count()) {
-                    return [
-                        'success' => false,
-                        'message' => 'Serial numbers for ' . $itemName . ' must be unique.',
-                    ];
-                }
+                $depositAmount = $this->calculateBmcDepositAmount(
+                    $borrowing,
+                    $releasedItem['item_name'],
+                    $releasedItem['released_quantity']
+                );
 
                 $accountabilityItem = $accountability->items()->create([
-                    'item_name' => $itemName,
+                    'item_name' => $releasedItem['item_name'],
                     'released_quantity' =>
                     (int) $releasedItem['released_quantity'],
                     'serial_number' => $serialNumbers->implode(', '),
-                    'deposit_amount' => 0,
+                    'deposit_amount' => $depositAmount,
                     'returned_quantity' => 0,
                 ]);
 
@@ -4021,16 +4429,16 @@ class FormApprovalController extends Controller
                 }
             }
 
-            // The physical items have now left company custody.
-            $borrowing->status =
-                MarketingCollateralBorrowing::STATUS_RELEASED;
-
-            $borrowing->save();
+            $borrowingStatus =
+                $this->syncBmcBorrowingStatusFromReleases($borrowing);
 
             return [
                 'success' => true,
                 'accountability_ref' =>
                 $accountability->accountability_ref,
+                'partially_released' =>
+                    $borrowingStatus ===
+                    MarketingCollateralBorrowing::STATUS_PARTIALLY_RELEASED,
             ];
         });
 
@@ -4041,8 +4449,9 @@ class FormApprovalController extends Controller
         }
 
         Alert::success(
-            'Items released successfully. Accountability reference: ' .
-            $result['accountability_ref']
+            ($result['partially_released']
+                ? 'Items partially released. Remaining items can be released later'
+                : 'All items have been released successfully')
         )->persistent('Dismiss');
 
         return back();
@@ -4072,15 +4481,6 @@ class FormApprovalController extends Controller
             'return_mode' => 'required|string|max:50',
             'return_mode_details' => 'nullable|string|max:1900',
             'returned_at' => 'required|date|before_or_equal:today',
-            'closing_remarks' => 'nullable|string|max:2000',
-            'returned_quantities' => 'required|array|min:1',
-            'returned_quantities.*' => 'required|integer|min:0|max:99',
-            'return_serial_numbers' => 'nullable|array',
-            'return_serial_numbers.*' => 'nullable|array',
-            'return_serial_numbers.*.*' => 'required|string|max:255',
-            'return_serial_ids' => 'nullable|array',
-            'return_serial_ids.*' => 'nullable|array',
-            'return_serial_ids.*.*' => 'required|integer',
         ]);
 
         $parseSerialNumbers = function ($value) {
@@ -4102,6 +4502,7 @@ class FormApprovalController extends Controller
         ) {
         $accountability = \App\BmcAccountability::with([
             'items.serials',
+            'pendingReturns',
             'returnHistory',
         ])
             ->where('id', $id)
@@ -4115,13 +4516,14 @@ class FormApprovalController extends Controller
             ];
         }
 
-        if (!in_array($accountability->status, [
-            \App\BmcAccountability::STATUS_RELEASED,
-            \App\BmcAccountability::STATUS_PARTIALLY_RETURNED,
-        ], true)) {
+        if (
+            $accountability->status !==
+            \App\BmcAccountability::STATUS_FOR_RETURN_CONFIRMATION
+        ) {
             return [
                 'success' => false,
-                'message' => 'Only released or partially returned items can be updated.',
+                'message' =>
+                    'Only borrower-initiated returns can be confirmed.',
             ];
         }
 
@@ -4133,51 +4535,16 @@ class FormApprovalController extends Controller
             ];
         }
 
-        $submittedQuantities = collect($validated['returned_quantities'])
-            ->mapWithKeys(function ($quantity, $itemId) {
-                return [(int) $itemId => (int) $quantity];
+        $pendingReturnRequests = $accountability->pendingReturns
+            ->keyBy(function ($returnRequest) {
+                return (int) $returnRequest->bmc_accountability_item_id;
             });
-        $submittedSerialNumbers = collect($validated['return_serial_numbers'] ?? [])
-            ->mapWithKeys(function ($serialNumbers, $itemId) {
-                return [
-                    (int) $itemId => collect($serialNumbers)
-                        ->map(function ($serialNumber) {
-                            return trim((string) $serialNumber);
-                        })
-                        ->filter(function ($serialNumber) {
-                            return $serialNumber !== '';
-                        })
-                        ->values(),
-                ];
-            });
-        $submittedSerialIds = collect($validated['return_serial_ids'] ?? [])
-            ->mapWithKeys(function ($serialIds, $itemId) {
-                return [
-                    (int) $itemId => collect($serialIds)
-                        ->map(function ($serialId) {
-                            return (int) $serialId;
-                        })
-                        ->values(),
-                ];
-            });
-        $accountabilityItemIds = $accountability->items
-            ->pluck('id')
-            ->map(function ($itemId) {
-                return (int) $itemId;
-            })
-            ->sort()
-            ->values();
-        $submittedItemIds = $submittedQuantities->keys()
-            ->map(function ($itemId) {
-                return (int) $itemId;
-            })
-            ->sort()
-            ->values();
 
-        if ($accountabilityItemIds->toJson() !== $submittedItemIds->toJson()) {
+        if ($pendingReturnRequests->isEmpty()) {
             return [
                 'success' => false,
-                'message' => 'Return quantities must be provided for every released item.',
+                'message' =>
+                    'The borrower return request does not contain any serial numbers.',
             ];
         }
 
@@ -4185,7 +4552,10 @@ class FormApprovalController extends Controller
         $pendingReturns = [];
 
         foreach ($accountability->items as $item) {
-            $returningQuantity = $submittedQuantities->get((int) $item->id, 0);
+            $pendingReturnRequest = $pendingReturnRequests->get((int) $item->id);
+            $returningQuantity = $pendingReturnRequest
+                ? (int) $pendingReturnRequest->returned_quantity
+                : 0;
             $alreadyReturned = (int) ($item->returned_quantity ?? 0);
             $releasedQuantity = (int) $item->released_quantity;
             $itemSerials = $item->serials;
@@ -4196,31 +4566,75 @@ class FormApprovalController extends Controller
                 })
                 ->unique()
                 ->values();
-            $selectedSerialIds = $submittedSerialIds->get((int) $item->id, collect());
-            $selectedSerialNumbers = collect();
+            $pendingSerialPayload = $pendingReturnRequest
+                ? json_decode($pendingReturnRequest->serial_numbers, true)
+                : null;
+            $selectedSerialNumbers = is_array($pendingSerialPayload) &&
+                isset($pendingSerialPayload['numbers'])
+                    ? collect($pendingSerialPayload['numbers'])
+                        ->map(function ($serialNumber) {
+                            return trim((string) $serialNumber);
+                        })
+                        ->filter()
+                        ->values()
+                    : ($pendingReturnRequest
+                        ? $parseSerialNumbers(
+                            $pendingReturnRequest->serial_numbers
+                        )
+                        : collect());
+            $selectedSerialIds = is_array($pendingSerialPayload) &&
+                isset($pendingSerialPayload['ids'])
+                    ? collect($pendingSerialPayload['ids'])
+                        ->map(function ($serialId) {
+                            return (int) $serialId;
+                        })
+                        ->values()
+                    : collect();
             $returnSerialIds = collect();
 
             if ($itemSerials->isNotEmpty()) {
-                if ($selectedSerialIds->count() !== $selectedSerialIds->unique()->count()) {
+                if (
+                    $selectedSerialIds->isEmpty() &&
+                    $selectedSerialNumbers->count() !==
+                    $selectedSerialNumbers->unique()->count()
+                ) {
                     return [
                         'success' => false,
                         'message' => 'A serial number cannot be selected more than once.',
                     ];
                 }
 
-                $availableSerials = $itemSerials->filter(function ($serial) use ($previouslyReturnedSerialNumbers) {
-                    return $serial->status === \App\BmcItemSerial::STATUS_AVAILABLE
-                        && !$previouslyReturnedSerialNumbers->contains($serial->serial_number);
+                if (
+                    $selectedSerialIds->count() !==
+                    $selectedSerialIds->unique()->count()
+                ) {
+                    return [
+                        'success' => false,
+                        'message' =>
+                            'A serial record cannot be selected more than once.',
+                    ];
+                }
+
+                $availableSerials = $itemSerials->filter(function ($serial) {
+                    return $serial->status ===
+                        \App\BmcItemSerial::STATUS_AVAILABLE;
                 });
-                $selectedSerialRecords = $itemSerials->whereIn('id', $selectedSerialIds->all());
+                $selectedSerialRecords = $selectedSerialIds->isNotEmpty()
+                    ? $itemSerials->whereIn('id', $selectedSerialIds->all())
+                    : $itemSerials->whereIn(
+                        'serial_number',
+                        $selectedSerialNumbers->all()
+                    );
 
                 if (
-                    $selectedSerialRecords->count() !== $selectedSerialIds->count() ||
+                    $selectedSerialRecords->count() !==
+                        $selectedSerialNumbers->count() ||
                     $selectedSerialRecords->pluck('id')->diff($availableSerials->pluck('id'))->isNotEmpty()
                 ) {
                     return [
                         'success' => false,
-                        'message' => 'One or more selected serial numbers were already returned or are not available.',
+                        'message' =>
+                            'One or more borrower-selected serial numbers were already returned or are not available.',
                     ];
                 }
 
@@ -4233,13 +4647,16 @@ class FormApprovalController extends Controller
                         return (int) $serialId;
                     })
                     ->values();
-                $returningQuantity = $selectedSerialRecords->count();
+
+                if ($selectedSerialRecords->count() !== $returningQuantity) {
+                    return [
+                        'success' => false,
+                        'message' => 'Select exactly ' . $returningQuantity .
+                            ' serial number(s) for ' . $item->item_name . '.',
+                    ];
+                }
             } else {
                 $releasedSerialNumbers = $parseSerialNumbers($item->serial_number);
-                $selectedSerialNumbers = $submittedSerialNumbers->get(
-                    (int) $item->id,
-                    collect()
-                );
 
                 if ($selectedSerialNumbers->isNotEmpty()) {
                     if ($selectedSerialNumbers->count() !== $selectedSerialNumbers->unique()->count()) {
@@ -4256,12 +4673,30 @@ class FormApprovalController extends Controller
                     if ($selectedSerialNumbers->diff($availableSerialNumbers)->isNotEmpty()) {
                         return [
                             'success' => false,
-                            'message' => 'One or more selected serial numbers were already returned or are not part of this accountability.',
+                                'message' =>
+                                    'One or more borrower-selected serial numbers were already returned or are not part of this accountability.',
                         ];
                     }
 
-                    $returningQuantity = $selectedSerialNumbers->count();
                 }
+
+                if (
+                    $releasedSerialNumbers->isNotEmpty() &&
+                    $selectedSerialNumbers->count() !== $returningQuantity
+                ) {
+                    return [
+                        'success' => false,
+                        'message' => 'Select exactly ' . $returningQuantity .
+                            ' serial number(s) for ' . $item->item_name . '.',
+                    ];
+                }
+            }
+
+            if ($returningQuantity < 0) {
+                return [
+                    'success' => false,
+                    'message' => 'The borrower return quantity is invalid.',
+                ];
             }
 
             if ($alreadyReturned + $returningQuantity > $releasedQuantity) {
@@ -4275,6 +4710,7 @@ class FormApprovalController extends Controller
                 $returningAnyQuantity = true;
                 $pendingReturns[] = [
                     'item' => $item,
+                    'request' => $pendingReturnRequest,
                     'returning_quantity' => $returningQuantity,
                     'serial_numbers' => $selectedSerialNumbers->isNotEmpty()
                         ? $selectedSerialNumbers->implode(', ')
@@ -4288,7 +4724,8 @@ class FormApprovalController extends Controller
         if (!$returningAnyQuantity) {
             return [
                 'success' => false,
-                'message' => 'Enter at least one item quantity to return.',
+                'message' =>
+                    'The borrower must select at least one serial number to return.',
             ];
         }
 
@@ -4296,7 +4733,10 @@ class FormApprovalController extends Controller
             !empty($validated['return_mode_details'])
                 ? 'Details: ' . trim($validated['return_mode_details'])
                 : null,
-            $validated['closing_remarks'] ?? null,
+            !empty($accountability->closing_remarks)
+                ? 'Borrower remarks: ' .
+                    trim($accountability->closing_remarks)
+                : null,
         ])));
 
         foreach ($pendingReturns as $pendingReturn) {
@@ -4306,16 +4746,14 @@ class FormApprovalController extends Controller
             $item->return_remarks = $historyRemarks ?: null;
             $item->save();
 
-            \App\BmcAccountabilityReturn::create([
-                'bmc_accountability_id' => $accountability->id,
-                'bmc_accountability_item_id' => $item->id,
-                'returned_quantity' => $pendingReturn['returning_quantity'],
-                'serial_numbers' => $pendingReturn['serial_numbers'],
-                'returned_at' => Carbon::parse($validated['returned_at'])->startOfDay(),
-                'return_mode' => trim($validated['return_mode']),
-                'received_by' => $currentUser->id,
-                'remarks' => $historyRemarks ?: null,
-            ]);
+            $returnRequest = $pendingReturn['request'];
+            $returnRequest->serial_numbers = $pendingReturn['serial_numbers'];
+            $returnRequest->returned_at =
+                Carbon::parse($validated['returned_at'])->startOfDay();
+            $returnRequest->return_mode = trim($validated['return_mode']);
+            $returnRequest->received_by = $currentUser->id;
+            $returnRequest->remarks = $historyRemarks ?: null;
+            $returnRequest->save();
 
             if ($pendingReturn['serial_ids']->isNotEmpty()) {
                 \App\BmcItemSerial::whereIn('id', $pendingReturn['serial_ids']->all())
@@ -4342,21 +4780,19 @@ class FormApprovalController extends Controller
         }
 
         $accountability->mor = $validated['mor'];
-        $accountability->closing_remarks =
-            $validated['closing_remarks'] ?? null;
 
         $accountability->save();
 
-        if ($allItemsReturned) {
-            // Close the main borrowing request only after every quantity is returned.
-            $borrowing = $accountability->borrowing;
-            $borrowing->status = \App\MarketingCollateralBorrowing::STATUS_CLOSED;
-            $borrowing->save();
-        }
+        $borrowingStatus = $this->syncBmcBorrowingStatusFromReleases(
+            $accountability->borrowing
+        );
 
         return [
             'success' => true,
             'fully_returned' => $allItemsReturned,
+            'borrowing_closed' =>
+                $borrowingStatus ===
+                \App\MarketingCollateralBorrowing::STATUS_CLOSED,
         ];
     });
 
@@ -4367,9 +4803,11 @@ class FormApprovalController extends Controller
     }
 
     Alert::success(
-        $result['fully_returned']
+        $result['borrowing_closed']
             ? 'All borrowed item quantities were returned.'
-            : 'Items partially returned. Some items have not yet been returned.'
+            : ($result['fully_returned']
+                ? 'This release batch was returned. Other quantities are still pending.'
+                : 'Items partially returned. Some items have not yet been returned.')
     )->persistent('Dismiss');
 
     return back();
@@ -4399,6 +4837,93 @@ class FormApprovalController extends Controller
         return view('for-approval.print-accountability-bmc', [
             'accountability' => $accountability,
         ]);
+    }
+
+    public function updateBmcExpectedReturn(Request $request, $id) {
+        $isApprover = \App\ApproverSetting::where('user_id', auth()->id())
+            ->where('type_of_form', 'bmc')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$isApprover) {
+            Alert::error(
+                'You do not have permission to update the expected return date.'
+            )->persistent('Dismiss');
+
+            return back();
+        }
+
+        $accountability = \App\BmcAccountability::findOrFail($id);
+        $editableStatuses = [
+            \App\BmcAccountability::STATUS_RELEASED,
+            \App\BmcAccountability::STATUS_PARTIALLY_RETURNED,
+        ];
+
+        if (!in_array($accountability->status, $editableStatuses, true)) {
+            Alert::error(
+                'The expected return date can no longer be edited.'
+            )->persistent('Dismiss');
+
+            return back();
+        }
+
+        if (!$accountability->released_at) {
+            Alert::error(
+                'The release date is missing for this accountability.'
+            )->persistent('Dismiss');
+
+            return back();
+        }
+
+        $releaseDate = $accountability->released_at->copy()->startOfDay();
+        $minimumDate = $releaseDate->copy()->addDay();
+        $maximumDate = $releaseDate->copy()->addDays(40);
+
+        if (today()->gt($minimumDate)) {
+            $minimumDate = today();
+        }
+
+        if ($minimumDate->gt($maximumDate)) {
+            Alert::error(
+                'The 40-day expected-return editing window has ended.'
+            )->persistent('Dismiss');
+
+            return back();
+        }
+
+        $validator = \Validator::make(
+            $request->all(),
+            [
+                'expected_return_at' => [
+                    'required',
+                    'date_format:Y-m-d',
+                    'after_or_equal:' . $minimumDate->format('Y-m-d'),
+                    'before_or_equal:' . $maximumDate->format('Y-m-d'),
+                ],
+            ],
+            [
+                'expected_return_at.after_or_equal' =>
+                    'The expected return date cannot be in the past.',
+                'expected_return_at.before_or_equal' =>
+                    'The expected return date cannot exceed 40 days from the release date.',
+            ]
+        );
+
+        if ($validator->fails()) {
+            Alert::error($validator->errors()->first())
+                ->persistent('Dismiss');
+
+            return back()->withInput();
+        }
+
+        $accountability->expected_return_at =
+            $validator->validated()['expected_return_at'];
+        $accountability->save();
+
+        Alert::success('Expected return date updated successfully.')
+            ->persistent('Dismiss');
+
+        return back();
     }
 
     public function updateBmcAccountabilityNote(Request $request, $id) {
@@ -4480,12 +5005,19 @@ class FormApprovalController extends Controller
             return back();
         }
 
-        $filter_status = isset($request->status) ? $request->status : 'Pending';
+        $filter_status = LayoutDesign::normalizeStatus(
+            isset($request->status)
+                ? $request->status
+                : LayoutDesign::STATUS_PENDING
+        );
         $search = $request->input('search');
         $from = $request->input('from');
         $to = $request->input('to');
 
-        $query = LayoutDesign::with('pegSamples')->where('status', $filter_status);
+        $query = LayoutDesign::with('pegSamples')->whereIn(
+            'status',
+            LayoutDesign::statusesForFilter($filter_status)
+        );
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -4505,11 +5037,17 @@ class FormApprovalController extends Controller
 
         $requests = $query->orderBy('submitted_at', 'DESC')->paginate(15);
 
-        $pending = LayoutDesign::where('status', 'Pending')->count();
-        $processing = LayoutDesign::where('status', 'Processing')->count();
-        $closed = LayoutDesign::where('status', 'Closed')->count();
-        $declined = LayoutDesign::where('status', 'Declined')->count();
-        $cancelled = LayoutDesign::where('status', 'Cancelled')->count();
+        $pending = LayoutDesign::where('status', LayoutDesign::STATUS_PENDING)->count();
+        $approved = LayoutDesign::whereIn(
+            'status',
+            LayoutDesign::statusesForFilter(LayoutDesign::STATUS_APPROVED)
+        )->count();
+        $processed = LayoutDesign::whereIn(
+            'status',
+            LayoutDesign::statusesForFilter(LayoutDesign::STATUS_PROCESSED)
+        )->count();
+        $declined = LayoutDesign::where('status', LayoutDesign::STATUS_DECLINED)->count();
+        $cancelled = LayoutDesign::where('status', LayoutDesign::STATUS_CANCELLED)->count();
 
         return view('for-approval.ldr-approval',
             array(
@@ -4520,8 +5058,8 @@ class FormApprovalController extends Controller
                 'from'          => $from,
                 'to'            => $to,
                 'pending'       => $pending,
-                'processing'    => $processing,
-                'closed'        => $closed,
+                'approved'      => $approved,
+                'processed'     => $processed,
                 'declined'      => $declined,
                 'cancelled'      => $cancelled,
                 'approver_id'   => $approver
@@ -4529,8 +5067,8 @@ class FormApprovalController extends Controller
         );
     }
 
-    // close -> approve it's just the naming convention
-    public function closeLdrRequest(Request $request, $id) {
+    // Route and method names are retained for backward compatibility.
+    public function markLdrAsProcessed(Request $request, $id) {
         $ldr = LayoutDesign::find($id);
 
          if (!$ldr) {
@@ -4550,8 +5088,8 @@ class FormApprovalController extends Controller
              return back();
         }
 
-        if ($ldr->status !== 'Processing') {
-            Alert::error('Request cannot be closed.')->persistent('Dismiss');
+        if ($ldr->status !== LayoutDesign::STATUS_APPROVED) {
+            Alert::error('Only approved requests can be marked as processed.')->persistent('Dismiss');
             return back();
         }
         $validated = $request->validate([
@@ -4560,23 +5098,24 @@ class FormApprovalController extends Controller
                 'string',
             ],
             'output_attachments' => [
-                'required',
+                'nullable',
                 'array',
-                'min:1',
                 'max:5',
             ],
             'output_attachments.*' => [
-                'required',
                 'file',
                 'mimes:jpg,jpeg,png,webp,pdf,doc,docx,ppt,pptx,mp4,mov,avi,webm,mkv',
                 'max:102400',
             ],
+            'output_attachment_link' => [
+                'nullable',
+                'url',
+                'max:255',
+                'regex:/^https?:\/\//i',
+            ],
         ], [
             'closing_remarks.required' =>
-                'Remarks are required when closing a request.',
-
-            'output_attachments.required' =>
-                'At least one output attachment is required.',
+                'Remarks are required when marking a request as processed.',
 
             'output_attachments.array' =>
                 'The output attachments must be valid files.',
@@ -4589,7 +5128,23 @@ class FormApprovalController extends Controller
 
             'output_attachments.*.max' =>
                 'Each attachment must not exceed 100 MB.',
+
+            'output_attachment_link.url' =>
+                'Enter a valid output attachment link.',
+
+            'output_attachment_link.max' =>
+                'The output attachment link must not exceed 255 characters.',
         ]);
+
+        if (
+            !$request->hasFile('output_attachments') &&
+            empty($validated['output_attachment_link'])
+        ) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'output_attachments' =>
+                    'Upload at least one output attachment or provide a shared link.',
+            ]);
+        }
 
         $destDir = public_path('ldr_outputs');
         if (!file_exists($destDir)) {
@@ -4631,7 +5186,16 @@ class FormApprovalController extends Controller
 
         }
 
-        $ldr->status = 'Closed';
+        if (!empty($validated['output_attachment_link'])) {
+            $ldr->outputAttachments()->create([
+                'output_attachment_path' => $validated['output_attachment_link'],
+                'original_name' => 'Shared output link',
+                'mime_type' => LayoutDesignAttachment::OUTPUT_LINK_MIME_TYPE,
+                'file_size' => null,
+            ]);
+        }
+
+        $ldr->status = LayoutDesign::STATUS_PROCESSED;
         $ldr->issuance_date = now();
         $ldr->closing_remarks = $validated['closing_remarks'];
         $ldr->save();
@@ -4641,23 +5205,23 @@ class FormApprovalController extends Controller
         $emailSent = true;
         try {
             if ($ldr->requestor_email) {
-                Mail::to($ldr->requestor_email)->send(new LayoutDesignMail($ldr, 'closed'));
+                Mail::to($ldr->requestor_email)->send(new LayoutDesignMail($ldr, 'processed'));
             }
         } catch (\Exception $e) {
             $emailSent = false;
-            \Log::error('LDR closed email failed: ' . $e->getMessage());
+            \Log::error('LDR processed email failed: ' . $e->getMessage());
         }
 
         if (!$emailSent) {
-            Alert::warning('Request was closed, but the email could not be sent.')->persistent('Dismiss');
+            Alert::warning('Request was processed, but the email could not be sent.')->persistent('Dismiss');
             return back();
         }
 
-        Alert::success('Layout design request has been closed and sent to the requestor.')->persistent('Dismiss');
+        Alert::success('Request has been processed and sent to the requestor.')->persistent('Dismiss');
         return back();
     }
 
-    public function processLdrRequest(Request $request, $id) {
+    public function approveLdrRequest(Request $request, $id) {
         $ldr = LayoutDesign::find($id);
 
         if (!$ldr) {
@@ -4677,26 +5241,40 @@ class FormApprovalController extends Controller
             return back();
         }
 
-        if ($ldr->status !== 'Pending') {
-            Alert::error('Only pending requests can be processed')->persistent('Dismiss');
+        if ($ldr->status !== LayoutDesign::STATUS_PENDING) {
+            Alert::error('Only pending requests can be approved.')->persistent('Dismiss');
             return back();
         }
 
-        $ldr->status = 'Processing';
-        if ($request->filled('remarks')) {
-            $ldr->remarks = $request->input('remarks');
+        $validated = $request->validate([
+            'priority_level' => 'required|in:' . implode(',', LayoutDesign::PRIORITY_LEVELS),
+            'due_date' => 'required|date_format:Y-m-d\TH:i|after_or_equal:now',
+            'remarks' => 'nullable|string',
+        ], [
+            'priority_level.required' => 'Select a priority level before approving this request.',
+            'priority_level.in' => 'Select a valid priority level.',
+            'due_date.required' => 'Set a due date before approving this request.',
+            'due_date.after_or_equal' => 'The date must be today or a future date',
+            'due_date.date_format' => 'Enter a valid due date and time.',
+        ]);
+
+        $ldr->status = LayoutDesign::STATUS_APPROVED;
+        $ldr->priority_level = $validated['priority_level'];
+        $ldr->due_date = Carbon::createFromFormat('Y-m-d\TH:i', $validated['due_date']);
+        if (!empty($validated['remarks'])) {
+            $ldr->remarks = $validated['remarks'];
         }
         $ldr->save();
 
         try {
             /* if ($ldr->requestor_email) { */
-            /*     Mail::to($ldr->requestor_email)->send(new LayoutDesignMail($ldr, 'processing')); */
+            /*     Mail::to($ldr->requestor_email)->send(new LayoutDesignMail($ldr, 'approved')); */
             /* } */
         } catch (\Exception $e) {
-            \Log::error('LDR processing email failed: ' . $e->getMessage());
+            \Log::error('LDR approval email failed: ' . $e->getMessage());
         }
 
-        Alert::success('Request has been processed.')->persistent('Dismiss');
+        Alert::success('Request has been approved.')->persistent('Dismiss');
         return back();
     }
 
@@ -5035,7 +5613,8 @@ class FormApprovalController extends Controller
                 $pr = $workflow->finalApprove(
                     $pr,
                     $user,
-                    'Approved'
+                    'Approved',
+                    $remarks
                 );
             } else {
                 Alert::error('This request can no longer be approved.')
@@ -5345,7 +5924,8 @@ class FormApprovalController extends Controller
                 $pr = $workflow->finalApprove(
                     $pr,
                     $user,
-                    'Declined'
+                    'Declined',
+                    $remarks
                 );
             } else {
                 Alert::error('This request can no longer be declined.')

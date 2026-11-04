@@ -26,6 +26,10 @@
         Route::get('salary-history','EmployeeController@showsalary');
         //Users
         Route::get('account-setting', 'UserController@accountSetting');
+        Route::post('account-setting/ada-mailbox', 'AdaMailboxConnectionController@store')
+            ->name('ada.mailbox.store');
+        Route::delete('account-setting/ada-mailbox', 'AdaMailboxConnectionController@destroy')
+            ->name('ada.mailbox.destroy');
         Route::post('upload-avatar', 'UserController@uploadAvatar');
         Route::post('upload-signature', 'UserController@uploadSignature');
         Route::get('get-salary', 'UserController@get_salary');
@@ -229,7 +233,7 @@
 
         // ID & Uniform Request
         Route::get('iur', 'IurController@index')->name('iur.index');
-        Route::get('/iur/create', 'IurController@createIndex')->name('iur.createIndex');
+        Route::get('/iur/create', 'IurController@create')->name('iur.create');
         Route::post('/iur/store', 'IurController@store')->name('iur.store');
         Route::get('/iur/{id}/edit', 'IURController@edit')->name('iur.edit');
         Route::put('/iur/{id}', 'IURController@update')->name('iur.update');
@@ -291,6 +295,7 @@
         Route::post('process-coe/{id}','FormApprovalController@processCoe');
         Route::post('elevate-coe/{id}','FormApprovalController@elevateCoe'); // elevate request to HRH
         Route::post('approve-coe/{id}','FormApprovalController@approvecoe');
+        Route::post('update-public-coe/{id}','FormApprovalController@updatePublicCoeDetails');
         Route::post('upload-coe-attachment/{id}','FormApprovalController@uploadCoeAttachment');
         Route::post('upload-proof-delivery/{id}','FormApprovalController@uploadProofDelivery');
         Route::post('decline-coe/{id}','FormApprovalController@declinecoe');
@@ -299,7 +304,7 @@
         // Route::post('disapprove-coe-all','FormApprovalController@disapprovecoeAll');
 
         //ID and Uniform Request Approval
-        Route::get('iur-approval','FormApprovalController@form_iur_approval');
+        Route::get('iur-approval','FormApprovalController@iurApproval');
         Route::post('message-iur-requestor/{id}', 'FormApprovalController@sendIurRequestorMessage');
         Route::post('process-iur/{id}','FormApprovalController@processIur');
         Route::post('decline-iur/{id}','FormApprovalController@declineIur');
@@ -308,7 +313,6 @@
         Route::post('release-iur/{id}', 'FormApprovalController@releaseIur');
         Route::post('save-iur-signature/{id}', 'FormApprovalController@saveIurSignature');
         Route::post('/save-approver-signature', 'FormApprovalController@saveApproverSignature');
-        // Route::post('approve-iur-all', 'FormApprovalController@approveIurAll');
         Route::post('disapprove-iur-all','FormApprovalController@disapproveIurAll');
         Route::post('update-acc-notes/{id}', 'FormApprovalController@updateAccountabilityNote');
         Route::get('iur-accountability/{id}', 'FormApprovalController@viewAccountability');
@@ -468,6 +472,7 @@
 
         // Location
         Route::post('store-location', 'LocationController@store');
+        Route::post('upload-locations', 'LocationController@bulkUpload');
         Route::get('location', 'LocationController@index');
         Route::get('edit-location/{id}', 'LocationController@edit');
         Route::post('update-location/{id}', 'LocationController@update');
@@ -606,6 +611,7 @@
         // 201 Files
         Route::get('/employee-documents', 'EmployeeDocumentController@index');
         Route::post('/upload-employee-document', 'EmployeeDocumentController@upload');
+        Route::post('/employee-documents/{id}/retract', 'EmployeeDocumentController@retract')->name('employee-documents.retract');
 
         // Training
         Route::get('/employee-training', 'EmployeeTrainingController@index');
@@ -679,6 +685,8 @@
         Route::get('/bmc/{id}/edit', 'MarketingCollateralBorrowingController@edit')->name('bmc.edit');
         Route::put('/bmc/{id}', 'MarketingCollateralBorrowingController@update')->name('bmc.update');
         Route::post('bmc-accountability-signature/{id}', 'MarketingCollateralBorrowingController@saveBorrowerSignature');
+        Route::post('bmc-accountability-return-request/{id}', 'MarketingCollateralBorrowingController@requestAccountabilityReturn')
+            ->name('bmc.return.request');
         Route::get('bmc-accountability-preview/{id}', 'MarketingCollateralBorrowingController@previewAccountability')
             ->name('bmc.accountability.preview');
 
@@ -688,6 +696,10 @@
         Route::post('approve-bmc/{id}','FormApprovalController@approveBmcRequest');
         Route::post('decline-bmc/{id}','FormApprovalController@declineBmcRequest');
         Route::post('release-bmc/{id}', 'FormApprovalController@releaseBmcItems');
+        Route::post(
+            'bmc-accountability/{id}/expected-return',
+            'FormApprovalController@updateBmcExpectedReturn'
+        )->name('bmc.accountability.expected-return.update');
         Route::post('update-bmc-accountability-notes/{id}', 'FormApprovalController@updateBmcAccountabilityNote');
         Route::get('bmc-accountability-print/{id}', 'FormApprovalController@printBmcAccountability');
         Route::post('close-bmc-accountability/{id}', 'FormApprovalController@closeBmcAccountability');
@@ -706,15 +718,17 @@
         Route::post('/marketing-material-releases/send-link', 'MarketingMaterialController@sendInvitation')->name('marketing-material-releases.invitation.send');
         Route::get('/marketing-material-releases/create', 'MarketingMaterialController@create')->name('marketing-material-releases.create');
         Route::post('/marketing-material-releases', 'MarketingMaterialController@store')->name('marketing-material-releases.store');
+        Route::get('/marketing-material-releases/{id}/edit', 'MarketingMaterialController@edit')->name('marketing-material-releases.edit');
+        Route::put('/marketing-material-releases/{id}', 'MarketingMaterialController@update')->name('marketing-material-releases.update');
         Route::get('/marketing-material-releases/{id}', 'MarketingMaterialController@show')->name('marketing-material-releases.show');
         Route::post('/marketing-material-releases/{id}/cancel', 'MarketingMaterialController@cancel')->name('marketing-material-releases.cancel');
 
         // layout design request [APPROVAL]
         Route::get('ldr-approval','FormApprovalController@formLdrApproval')->name('ldr-approval.index');
         Route::get('ldr-approval/{id}','FormApprovalController@viewLdrRequest')->name('ldr-approval.view');
-        Route::post('process-ldr/{id}','FormApprovalController@processLdrRequest')->name('ldr.process');
-        Route::post('close-ldr/{id}','FormApprovalController@closeLdrRequest')->name('ldr.close');
-        Route::post('decline-ldr/{id}','FormApprovalController@declineLdrRequest');
+        Route::post('ldr/{id}/approve','FormApprovalController@approveLdrRequest')->name('ldr.approve');
+        Route::post('ldr/{id}/mark-processed','FormApprovalController@markLdrAsProcessed')->name('ldr.mark-processed');
+        Route::post('ldr/{id}/decline','FormApprovalController@declineLdrRequest')->name('ldr.decline');
 
         // HR Side
         Route::get('/nte-reports', 'NteFileController@nteReports');
@@ -734,7 +748,21 @@
             ->name('exit-interview.invitation.send');
         Route::get('exit-interviews/create', 'ExitInterviewController@create');
         Route::post('exit-interviews', 'ExitInterviewController@store');
+        Route::patch(
+            'exit-interviews/{id}/dates',
+            'ExitInterviewController@updateDates'
+        )->name('exit-interviews.dates.update');
         Route::get('exit-interviews/{id}', 'ExitInterviewController@show');
+
+        // Compensation and Benefits Issue Log
+        Route::get('compenben', 'CompenbenController@create')
+            ->name('compenben.create');
+        Route::post('compenben', 'CompenbenController@store')
+            ->name('compenben.store');
+        Route::get('compenben/requests', 'CompenbenController@index')
+            ->name('compenben.index');
+        Route::get('compenben/requests/{id}', 'CompenbenController@show')
+            ->name('compenben.show');
 
         //Clearance
         Route::get('/my-clearance','ExitClearanceController@viewMyClearance');
@@ -809,16 +837,22 @@ Route::post('/public/ad-store-visit-reports/{id}/approve', 'AdStoreVisitReportCo
     ->middleware(['signed', 'throttle:10,1']);
 
 /* public exit interview */
-Route::get('/public/exit-interview', 'ExitInterviewController@publicCreate')
+Route::get('/external/exit-interview', 'ExitInterviewController@publicCreate')
     ->name('exit-interview.public.create');
-Route::post('/public/exit-interview', 'ExitInterviewController@publicStore')
+Route::post('/external/exit-interview', 'ExitInterviewController@publicStore')
     ->name('exit-interview.public.store');
 
 /* public marketing material release */
-Route::get('/public/marketing-material-release', 'MarketingMaterialController@publicCreate')
+Route::get('/external/marketing-material-release', 'MarketingMaterialController@publicCreate')
     ->name('marketing-material-releases.public.create');
-Route::post('/public/marketing-material-release', 'MarketingMaterialController@publicStore')
+Route::post('/external/marketing-material-release', 'MarketingMaterialController@publicStore')
     ->name('marketing-material-releases.public.store');
+Route::get('/external/marketing-material-release/{id}/edit', 'MarketingMaterialController@publicEdit')
+    ->name('marketing-material-releases.public.edit')
+    ->middleware(['signed', 'throttle:30,1']);
+Route::put('/external/marketing-material-release/{id}/edit', 'MarketingMaterialController@publicUpdate')
+    ->name('marketing-material-releases.public.update')
+    ->middleware(['signed', 'throttle:10,1']);
 
 // public layout design request (DEPRECATED)
 // Route::get('/public/ldr-request/', 'LayoutDesignController@publicCreate')->name('ldr.public.create');
@@ -829,12 +863,12 @@ Route::post('/public/marketing-material-release', 'MarketingMaterialController@p
 // Route::post('/public/customer-feedback/', 'CustomerFeedbackController@store')->name('customer-feedback.store');
 
 // comment these lines in production !!!!!!!!!!!!!
-Route::get('test', 'Test@viewTest'); 
-Route::get('test-pdf', 'Test@testPdf');
-Route::get('testid/{id}', 'Test@viewTestId');
-Route::get('/batch-print-ids', 'IurPrintController@batchPrintIds');
-Route::get('test-send', 'Test@sendTest');
-Route::get('/batch-print-form', 'IurPrintController@batchPrintForm');
+// Route::get('test', 'Test@viewTest'); 
+// Route::get('test-pdf', 'Test@testPdf');
+// Route::get('testid/{id}', 'Test@viewTestId');
+// Route::get('/batch-print-ids', 'IurPrintController@batchPrintIds');
+// Route::get('test-send', 'Test@sendTest');
+// Route::get('/batch-print-form', 'IurPrintController@batchPrintForm');
 
 Route::get('leave-credit-acc','EmployeeEarnedLeaveController@addLeave');
 

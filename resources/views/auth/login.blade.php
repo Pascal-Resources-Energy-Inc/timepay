@@ -55,11 +55,6 @@
                 @endif
               <input type="submit" value="Log In" class="btn text-white btn-block btn-primary">
 
-              <!-- [ -->
-              <!-- 'label' => 'Marketing Material Release', -->
-              <!-- 'url' => route('marketing-material-releases.public.create'), -->
-              <!-- 'icon' => 'bi-megaphone', -->
-              <!-- ], -->
 
               <!-- [ -->
               <!-- 'label' => 'Area Distributorship Application', -->
@@ -78,6 +73,11 @@
                     'label' => 'COE Request',
                     'url' => url('/external/coe-request'),
                     'icon' => 'bi-file-earmark-text',
+                  ],
+                  [
+                  'label' => 'Marketing Material Release',
+                  'url' => route('marketing-material-releases.public.create'),
+                  'icon' => 'bi-megaphone',
                   ],
                 ];
                 $visibleQuickLinks = array_slice($quickLinks, 0, 2);

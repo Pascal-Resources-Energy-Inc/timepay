@@ -494,7 +494,7 @@
                 </tbody>
               </table>
             </div>
-            @if ($coes->hasPages())
+            @if (method_exists($coes, 'hasPages') && $coes->hasPages())
               <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-3">
                 <small class="text-muted mb-2 mb-md-0">
                   Showing {{ $coes->firstItem() }} to {{ $coes->lastItem() }} of {{ $coes->total() }} records

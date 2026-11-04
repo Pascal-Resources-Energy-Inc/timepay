@@ -345,7 +345,6 @@ class ImportEmployeeCoesFromJotform extends Command
                 'first_name' => $firstName,
                 'last_name' => $lastName,
                 'gender' => null,
-                'marital_status' => null,
                 'reason_for_request' => $reasonForRequest,
                 'purpose' => $purpose,
                 'employment_status' => $employmentStatus,

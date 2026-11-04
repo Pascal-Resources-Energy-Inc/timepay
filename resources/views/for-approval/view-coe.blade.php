@@ -61,14 +61,89 @@
                     <div class="col-sm-4 text-muted mb-1 mb-sm-0">Hiring Date:</div>
                     <div class="col-sm-8 text-break">{{ $coe->hiring_date ? \Carbon\Carbon::parse($coe->hiring_date)->format('M d, Y') : 'N/A' }}</div>
                 </div>
+                @if ($coe->resign_date)
+                    <div class="row mb-2">
+                        <div class="col-sm-4 text-muted mb-1 mb-sm-0">Separation Date:</div>
+                        <div class="col-sm-8 text-break">{{ $coe->resign_date ? \Carbon\Carbon::parse($coe->resign_date)->format('M d, Y') : 'N/A' }}</div>
+                    </div>
+                @endif
                 <div class="row mb-2">
                     <div class="col-sm-4 text-muted mb-1 mb-sm-0">Employment Status:</div>
-                    <div class="col-sm-8 text-break">{{ $coe->employment_status ?? 'N/A' }}</div>
+                    <div class="col-sm-8 text-break">{{ $coe->employment_status }}</div>
                 </div>
                 <div class="row mb-2">
                     <div class="col-sm-4 text-muted mb-1 mb-sm-0">Designation:</div>
-                    <div class="col-sm-8 text-break">{{ $coe->designation ?? 'N/A' }}</div>
+                    <div class="col-sm-8 text-break">{{ $coe->designation }}</div>
                 </div>
+
+                @if($coe->user_id === null && $user_role === 'coe_approver' && in_array($coe->status, ['Pending', 'Processing']))
+                <div class="border rounded bg-light p-3 mt-3">
+                    <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
+                        <div class="pr-sm-3">
+                            <small class="text-muted">Correct employment information before completing this request.</small>
+                        </div>
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm mt-2 mt-sm-0 flex-shrink-0"
+                            data-toggle="collapse"
+                            data-target="#edit-public-coe-{{ $coe->id }}"
+                            aria-expanded="false"
+                            aria-controls="edit-public-coe-{{ $coe->id }}"
+                        >
+                            <i class="ti-pencil mr-1"></i> Edit details
+                        </button>
+                    </div>
+
+                    <div class="collapse mt-3" id="edit-public-coe-{{ $coe->id }}">
+                        <form method="POST" action="{{ url('update-public-coe/'.$coe->id) }}">
+                            @csrf
+                            <div class="form-group">
+                                <label for="designation-{{ $coe->id }}">Designation <span class="text-danger">*</span></label>
+                                <input
+                                    type="text"
+                                    id="designation-{{ $coe->id }}"
+                                    name="designation"
+                                    class="form-control"
+                                    value="{{ $coe->designation }}"
+                                    maxlength="255"
+                                    required
+                                >
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="hiring-date-{{ $coe->id }}">Hiring date <span class="text-danger">*</span></label>
+                                    <input
+                                        type="date"
+                                        id="hiring-date-{{ $coe->id }}"
+                                        name="hiring_date"
+                                        class="form-control"
+                                        value="{{ $coe->hiring_date ? \Carbon\Carbon::parse($coe->hiring_date)->format('Y-m-d') : '' }}"
+                                        max="{{ now()->format('Y-m-d') }}"
+                                        required
+                                    >
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="resign-date-{{ $coe->id }}">Separation date <span class="text-danger">*</span></label>
+                                    <input
+                                        type="date"
+                                        id="resign-date-{{ $coe->id }}"
+                                        name="resign_date"
+                                        class="form-control"
+                                        value="{{ $coe->resign_date ? \Carbon\Carbon::parse($coe->resign_date)->format('Y-m-d') : '' }}"
+                                        max="{{ now()->format('Y-m-d') }}"
+                                        required
+                                    >
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column flex-sm-row justify-content-end">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    Save changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                @endif
 
                 {{-- Divider --}}
                 <hr class="mt-3 mb-3">
@@ -112,6 +187,29 @@
                 </div>
                 @endif
 
+                @php($actionTrail = $coe->trails)
+
+                @if($actionTrail->isNotEmpty())
+                <hr class="mt-3 mb-3">
+                <h6 class="font-weight-bold text-uppercase text-muted mb-3" style="font-size: 0.875rem; letter-spacing: 0.02em;">Activity</h6>
+                <div class="border rounded bg-light px-3 pt-3">
+                    @foreach($actionTrail as $item)
+                    <div class="d-flex {{ !$loop->last ? 'border-bottom mb-3 pb-3' : 'pb-3' }}">
+                        <span class="bg-primary rounded-circle flex-shrink-0 mt-1 mr-3" style="width: 9px; height: 9px;"></span>
+                        <div style="min-width: 0;">
+                            <div class="font-weight-bold text-break">{{ $item->action_label }}</div>
+                            <div class="text-muted text-break" style="font-size: 0.78rem;">
+                                {{ $item->performed_by_name }} &middot; {{ $item->created_at->format('M d, Y, h:i A') }}
+                            </div>
+                            @if($item->remarks)
+                            <div class="mt-1 text-break" style="font-size: 0.82rem; white-space: pre-wrap;">{{ $item->remarks }}</div>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+
                 {{-- Attachment view --}}
                 @if($coe->attachment)
                 <hr class="mt-3 mb-3">
@@ -123,9 +221,15 @@
                         </a>
                     </div>
                 </div>
+                @if($coe->attachment_remarks)
+                <div class="row mb-2">
+                    <div class="col-sm-4 text-muted mb-1 mb-sm-0">Attachment Remarks:</div>
+                    <div class="col-sm-8 text-break" style="white-space: pre-wrap;">{{ $coe->attachment_remarks }}</div>
+                </div>
+                @endif
                 @endif
 
-                @if($coe->receive_method === 'Email' && str_contains($coe->purpose, 'Employment'))
+                @if($coe->receive_method === 'Email' && str_contains($coe->purpose, 'Employment') && $coe->status === 'Approved')
                 <hr class="mt-3 mb-3">
                 <div class="row mb-2">
                     <div class="col-sm-4 text-muted">Resend to:</div>

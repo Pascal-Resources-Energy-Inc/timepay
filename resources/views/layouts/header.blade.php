@@ -450,7 +450,6 @@
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/payroll-disbursement') }}">Payroll Disbursement</a></li> -->
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/231380935515052">Authority to Deduct</a></li>
 
-                                {{--
                                 @if(
                                     auth()->check() &&
                                     auth()->user()->employee &&
@@ -465,15 +464,17 @@
                                         </a>
                                     </li>
                                 @endif
-                                --}}
 
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/authority-deduct') }}">Authority to Deduct</a></li> -->
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242770633900050">Number Enrollment </a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/number-enrollment') }}">Number Enrollment </a></li> -->
-                                <li class="nav-item "> <a class="nav-link" href="https://form.jotform.com/232350967124051">COE Request</a></li>
+                                <li class="nav-item "> <a class="nav-link" href="/coe-request">COE Request</a></li>
                                 <li class="nav-item "> <a class="nav-link" href="https://docs.google.com/forms/d/e/1FAIpQLSfrIUbn6qLvHLt7rYF9e4sxTCKvNGT9zESsLkQwKHSCzmcXZg/viewform" style="text-wrap: auto">TDS/MDS Employee Referral Program</a></li>
                                 <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdlOeSHBVOcAASbWkVOQpeVNbI1R36oVlEln-BctX7ekDlUnw/viewform">Incident Report Form</a></li>
-                                <li class="nav-item "> <a class="nav-link" target='_blank' href="https://form.jotform.com/232360985204051" style="text-wrap: auto">Uniform & ID Request Form</a></li>
+                                <!-- <li class="nav-item "> <a class="nav-link" href="/iur" style="text-wrap: auto">Uniform/ID Request</a></li> -->
+                                <li class="nav-item "> <a class="nav-link" target='_blank' href="https://form.jotform.com/232360985204051" style="text-wrap: auto">Uniform/ID Request Form</a></li>
+                                <!-- <li class="nav-item "> <a class="nav-link" target='_blank' href="/marketing-material-releases" style="text-wrap: auto">Marketing Material Releases</a></li> -->
+                                <!-- <li class="nav-item "> <a class="nav-link" target='_blank' href="/layout-design-requests" style="text-wrap: auto">Layout Design Request</a></li> -->
                                 <!-- <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdARMLk0ncUlhtlV0DPHD9P6ZTkGx10LC72M-mTtxuTCWOnIQ/viewform?usp=send_form" style="text-wrap: auto">Mobile Device Employee Sale</a></li> -->
                                 {{-- <li class="nav-item">
                                     <a class="nav-link @if (request()->is('iur*')) active @endif" href="{{ url('/iur') }}">
@@ -696,6 +697,8 @@
                                     <li class="nav-item "><a class="nav-link" href="{{ url('/for-overtime') }}">Overtime <span class="badge badge-warning">{{ pending_overtime_count(auth()->user()->id) }}</span></a></li>
                                 @endif
                                 <li class="nav-item "><a class="nav-link active" href="{{ url('/iur-approval') }}" >ID & Uniform Request&nbsp;<span class="badge badge-warning">{{ pending_uir_count(auth()->user()->id) }}</span></a></li>
+                                <!-- <li class="nav-item "><a class="nav-link active" href="{{ url('/ldr-approval') }}" >Layout Design Request&nbsp;<span class="badge badge-warning"></span></a></li> -->
+                                <!-- <li class="nav-item "><a class="nav-link active" href="{{ url('/marketing-material-releases') }}" >Marketing Material Releases</a></li> -->
                             </ul>
                         </div>
                     </li>
@@ -742,6 +745,15 @@
                         <a class="nav-link" href="{{ url('/tdsdashboard') }}" onclick='show()'>
                             <i class="ti-bar-chart menu-icon"></i>
                             <span class="menu-title">Sales Performance</span>
+                        </a>
+                    </li>
+                    @endif
+
+                    @if (auth()->user()->role == 'Admin' || checkUserPrivilege('tds', auth()->user()->id) == 'yes')
+                    <li class="nav-item @if ($header == 'adStoreVisit') active @endif ">
+                        <a class="nav-link" href="{{ route('ad-store-visit-reports.index') }}" onclick='show()'>
+                            <i class="ti-location-pin menu-icon"></i>
+                            <span class="menu-title">AD Store Visit</span>
                         </a>
                     </li>
                     @endif

@@ -15,6 +15,7 @@ class EmployeeCoe extends Model implements Auditable
         'approved_by',
         'approved_date',
         'approval_remarks',
+        'issuance_remarks'
     ];
 
     public function user()
@@ -65,6 +66,33 @@ class EmployeeCoe extends Model implements Auditable
 
     public function getAttachmentUrlAttribute() {
         return $this->attachment ? asset($this->attachment) : null;
+    }
+
+    public function requiresAttachment() {
+        $employee = optional($this->user)->employee;
+
+        $isConfidEmployee = $this->user_id !== null 
+            && $employee 
+            && (int) $employee->company_id === 2;
+
+        return in_array($this->receive_method, ['Email', 'Viber'], true)
+            && !$isConfidEmployee;
+    }
+
+    public function trails()
+    {
+        return $this->hasMany(EmployeeCoeTrail::class, 'employee_coe_id')
+            ->oldest('created_at');
+    }
+
+    public function recordTrail($action, $user = null, $remarks = null, $performedByName = null)
+    {
+        return $this->trails()->create([
+            'action' => $action,
+            'action_by' => $user ? $user->id : null,
+            'performed_by_name' => $performedByName ?: ($user ? $user->name : 'Public requestor'),
+            'remarks' => $remarks,
+        ]);
     }
 
     public function schedule()

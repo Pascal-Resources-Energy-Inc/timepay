@@ -23,40 +23,89 @@
     #coeTable_wrapper .dataTables_filter input {
         margin: 0.2rem 0 0 !important;
     }
+
+    .coe-reference {
+        display: block;
+        color: #2d3748;
+        font-weight: 600;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+    .coe-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 0.35rem;
+        color: #6c757d;
+        font-size: 0.75rem;
+        font-weight: 500;
+        line-height: 1.2;
+    }
+
+    .coe-status::before {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        background-color: currentColor;
+        content: '';
+        flex: 0 0 auto;
+    }
+
+    .coe-status--pending { color: #a66b00; }
+    .coe-status--released { color: #198754; }
+    .coe-status--processing { color: #087990; }
+    .coe-status--declined { color: #dc3545; }
 </style>
     
 <div class="main-panel">
     <div class="content-wrapper">
         <div class='row grid-margin'>
-          <div class='col-lg-2 mb-1'>
+          <div class='col-lg-2 mt-2'>
             <div class="card card-tale">
               <div class="card-body">
-                <h6 class="mb-4 text-truncate" title="Pending">Pending</h6>
-                <a href="/coe-request?status=Pending" class="h2 text-white">{{ ($coes_all->where('status','Pending'))->count() }}</a>
+                <div class="media">
+                  <div class="media-body">
+                    <h6 class="mb-4 text-truncate">Pending</h6>
+                    <a href="/coe-request?status=Pending" class="h2 card-text text-white text-truncate d-block">{{ ($coes_all->where('status','Pending'))->count() }}</a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div class='col-lg-2 mb-1'>
+          <div class='col-lg-2 mt-2'>
              <div class="card card-light-blue">
               <div class="card-body">
-                <h6 class="mb-4 text-truncate" title="Processing">Processing</h6>
-                <a href="/coe-request?status=Processing" class="h2 text-white">{{ ($coes_all->where('status','Processing'))->count() }}</a>
+                <div class="media">
+                  <div class="media-body">
+                    <h6 class="mb-4 text-truncate">Processing</h6>
+                    <a href="/coe-request?status=Processing" class="h2 card-text text-white text-truncate d-block">{{ ($coes_all->where('status','Processing'))->count() }}</a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div class='col-lg-2 mb-1'>
+          <div class='col-lg-2 mt-2'>
             <div class="card card-dark-blue bg-success">
               <div class="card-body">
-                <h6 class="mb-4 text-truncate" title="Approved">Approved</h6>
-                <a href="/coe-request?status=Approved" class="h2 text-white">{{ ($coes_all->where('status','Approved'))->count() }}</a>
+                <div class="media">
+                  <div class="media-body">
+                    <h6 class="mb-4 text-truncate">Released</h6>
+                    <a href="/coe-request?status=Approved" class="h2 card-text text-white text-truncate d-block">{{ ($coes_all->where('status','Approved'))->count() }}</a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div class='col-lg-2 mb-1'>
-            <div class="card card-light-danger">
+          <div class='col-lg-2 mt-2'>
+            <div class="card card-light-danger text-white">
               <div class="card-body">
-                <h6 class="mb-4 text-truncate" title="Declined/Cancelled">Declined/Cancelled</h6>
-                <a href="/coe-request?status=Declined" class="h2 text-white">{{ ($coes_all->where('status','Cancelled'))->count() + ($coes_all->where('status','Declined'))->count() }}</a>
+                <div class="media">
+                  <div class="media-body" style="min-width: 0;">
+                    <h6 class="mb-4 text-truncate" title="Declined/Cancelled">Declined/Cancelled</h6>
+                    <a href="/coe-request?status=Declined" class="h2 card-text text-white text-truncate d-block">{{ ($coes_all->where('status','Cancelled'))->count() + ($coes_all->where('status','Declined'))->count() }}</a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -96,7 +145,7 @@
                           <option value="">-- Select Status --</option>
                           <option value="Pending" @if ('Pending' == $status) selected @endif>Pending</option>
                           <option value="Processing" @if ('Processing' == $status) selected @endif>Processing</option>
-                          <option value="Approved" @if ('Approved' == $status) selected @endif>Approved</option>
+                          <option value="Approved" @if ('Approved' == $status) selected @endif>Released</option>
                           <option value="Cancelled" @if ('Cancelled' == $status) selected @endif>Cancelled</option>
                           <option value="Declined" @if ('Declined' == $status) selected @endif>Declined</option>
                         </select>
@@ -117,14 +166,14 @@
                     <thead>
                       <tr>
                         <th>Action</th>
-                        <th>Ref No.</th>
+                        <th>Reference No.</th>
                         <th>Date Filed</th>
                         <th>Request</th>
                         <th>Employment Status</th>
                         <th>Purpose</th>
                         <th>Receive Method</th>
                         <th>Approver</th>
-                        <th>Status </th>
+                        <th>Remarks</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -132,37 +181,48 @@
                       <tr>
                         <td>
                           @if ($coe->status == 'Pending' && $coe->level == 0)
-                            <button type="button" class="btn btn-info btn-rounded btn-icon" data-toggle="modal" data-target="#view-coe-{{ $coe->id }}" title="View Approved">
+                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#view-coe-{{ $coe->id }}" title="View request">
                               <i class="ti-eye btn-icon-prepend"></i>
                             </button>
-                            <button type="button" class="btn btn-primary btn-rounded btn-icon" data-toggle="modal" data-target="#edit-coe-{{ $coe->id }}" title="Edit">
+                            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#edit-coe-{{ $coe->id }}" title="Edit request">
                               <i class="ti-pencil-alt"></i>
                             </button>
-                            <button title="Cancel" onclick="cancel({{ $coe->id }})"  class="btn btn-rounded btn-danger btn-icon">
+                            <button type="button" title="Cancel request" onclick="cancel({{ $coe->id }})" class="btn btn-danger btn-sm">
                               <i class="fa fa-ban"></i>
                             </button>
                           @elseif ($coe->status == 'Pending' && $coe->level > 0)
-                            <button type="button" class="btn btn-primary btn-rounded btn-icon" data-toggle="modal" data-target="#view-coe-{{ $coe->id }}" title="View">
+                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#view-coe-{{ $coe->id }}" title="View request">
                               <i class="ti-eye"></i>
                             </button>
                           @elseif ($coe->status == 'Approved')
-                            <button type="button" class="btn btn-info btn-rounded btn-icon" data-toggle="modal" data-target="#view-coe-{{ $coe->id }}" title="View">
+                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#view-coe-{{ $coe->id }}" title="View released request">
                                 <i class="ti-eye"></i>
                             </button>
                           @else
-                            <button type="button" class="btn btn-info btn-rounded btn-icon" data-toggle="modal" data-target="#view-coe-{{ $coe->id }}" title="View Approved">
+                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#view-coe-{{ $coe->id }}" title="View request">
                               <i class="ti-eye btn-icon-prepend"></i>
                             </button>
                           @endif
                         </td>
 
-                        <td>{{ $coe->reference_number }}</td>
+                        <td>
+                          <span class="coe-reference">{{ $coe->reference_number }}</span>
+                          @if ($coe->status === 'Pending')
+                            <span class="coe-status coe-status--pending">Pending</span>
+                          @elseif ($coe->status === 'Processing')
+                            <span class="coe-status coe-status--processing">Processing</span>
+                          @elseif ($coe->status === 'Approved')
+                            <span class="coe-status coe-status--released">Released</span>
+                          @elseif (in_array($coe->status, ['Declined', 'Cancelled']))
+                            <span class="coe-status coe-status--declined">{{ $coe->status }}</span>
+                          @endif
+                        </td>
 
                         <td>{{ date('M d, Y', strtotime($coe->created_at)) }}</td>
                         <td>{{ $coe->reason_for_request ?? 'N/A' }}</td>
                         <td>{{ $coe->employment_status ?? 'N/A' }}</td>
                         <td>{{ $coe->purpose ?? 'N/A' }}</td>
-                        <td>{{ $coe->receive_method ?? 'N/A' }}</td>
+                        <td>{{ $coe->receive_method === 'Hard Copy' ? 'Pick up' : ($coe->receive_method ?? 'N/A') }}</td>
                         <td>
                           @php
                             $approver = $getApproverForEmployee($coe->user->employee);
@@ -178,17 +238,11 @@
                             <div class="text-danger">No approver</div>
                           @endif
                           </td>
-                        <td>
-                          @if ($coe->status == 'Pending')
-                            <label class="badge badge-warning">{{ $coe->status }}</label>
-                          @elseif ($coe->status === 'Processing')
-                            <label class="badge badge-primary">{{ $coe->status }}</label>
-                          @elseif ($coe->status == 'Approved')
-                            <label class="badge badge-success">{{ $coe->status }}</label>
-                          @elseif (in_array($coe->status, ['Declined', 'Cancelled']))
-                            <label class="badge badge-danger">{{ $coe->status }}</label>
-                          @endif
-                        </td>
+                          <td style="max-width: 250px; white-space: normal;">
+                              <!-- e() keeps the output safe  -->
+                              <!-- nl2br preserves new lines -->
+                              {!! nl2br(e($coe->approval_remarks ?? '-')) !!}
+                          </td>
                       </tr>
                       @endforeach
                     </tbody>
@@ -254,9 +308,9 @@
                     }).then(function() {
                         location.reload();
 
-                        const statusCell = document.querySelector(`tr:has(button[onclick="cancel(${id})"]) .badge`);
+                        const statusCell = document.querySelector(`tr:has(button[onclick="cancel(${id})"]) .coe-status`);
                         if (statusCell) {
-                            statusCell.className = "badge badge-danger";
+                            statusCell.className = "coe-status coe-status--declined";
                             statusCell.textContent = "Cancelled";
                         }
 

@@ -18,14 +18,16 @@
                         <h6 class="mb-0">Information Request</h6>
                         @php
                             $statusStyles = [
-                                'Approved'   => 'bg-success text-white',
-                                'Pending'    => 'bg-warning',
-                                'Processing' => 'bg-primary text-white',
-                                'Declined'   => 'bg-danger text-white',
+                                'Approved'   => 'coe-status--released',
+                                'Pending'    => 'coe-status--pending',
+                                'Processing' => 'coe-status--processing',
+                                'Declined'   => 'coe-status--declined',
+                                'Cancelled'  => 'coe-status--declined',
                             ];
-                            $badgeClass = $statusStyles[$coe->status] ?? 'bg-secondary';
+                            $statusClass = $statusStyles[$coe->status] ?? '';
+                            $statusLabel = $coe->status === 'Approved' ? 'Released' : $coe->status;
                         @endphp
-                        <span class="badge {{ $badgeClass }}">{{ $coe->status }}</span>
+                        <span class="coe-status {{ $statusClass }} mt-0">{{ $statusLabel }}</span>
                     </div>
 
                     <div class="mb-3" style="font-size: 13px;">
@@ -60,7 +62,7 @@
                         </div>
                         <div class="row mb-2">
                             <div class="col-md-4 text-muted">Delivery Method:</div>
-                            <div class="col-md-8">{{ $coe->receive_method }}</div>
+                            <div class="col-md-8">{{ $coe->receive_method === 'Hard Copy' ? 'Pick up' : $coe->receive_method }}</div>
                         </div>
 
                         @if($coe->receive_method === 'Email')
@@ -96,9 +98,13 @@
                             <div class="row mb-2">
                                 <div class="col-md-4 text-muted">Delivery Proof:</div>
                                 <div class="col-md-8">
+                                  @if($coe->proof)
                                   <a href="{{ asset($coe->proof) }}" class="d-flex align-items-center" target="_blank" style="color: #0d6efd;">
-                                    <i class="ti-image mr-1"></i> {{ $coe->proof ? 'View proof of delivery' : '-' }}
+                                    <i class="ti-image mr-1"></i> View proof of delivery
                                   </a>
+                                  @else
+                                  <span class="text-muted">-</span>
+                                  @endif
                                 </div>
                             </div>
                         </div>
@@ -108,10 +114,35 @@
                         <hr>
                         <div class="mb-3" style="font-size: 13px;">
                             <div class="row mb-2">
-                                <div class="col-md-4 text-muted">Approval Remarks:</div>
+                                <div class="col-md-4 text-muted">{{ $coe->status === 'Approved' ? 'Release Remarks:' : 'Approval Remarks:' }}</div>
                                 <div class="col-md-8">
                                   {{ $coe->approval_remarks ? $coe->approval_remarks : '-' }}
                                 </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @php($actionTrail = $coe->trails)
+
+                    @if($actionTrail->isNotEmpty())
+                        <hr>
+                        <div class="mb-3">
+                            <h6 class="font-weight-bold text-uppercase text-muted mb-3" style="font-size: 0.875rem; letter-spacing: 0.02em;">Activity</h6>
+                            <div class="border rounded bg-light px-3 pt-3">
+                                @foreach($actionTrail as $item)
+                                    <div class="d-flex {{ !$loop->last ? 'border-bottom mb-3 pb-3' : 'pb-3' }}">
+                                        <span class="bg-primary rounded-circle flex-shrink-0 mt-1 mr-3" style="width: 9px; height: 9px;"></span>
+                                        <div style="min-width: 0;">
+                                            <div class="font-weight-bold text-break">{{ $item->action_label }}</div>
+                                            <div class="text-muted text-break" style="font-size: 0.78rem;">
+                                                {{ $item->performed_by_name }} &middot; {{ $item->created_at->format('M d, Y, h:i A') }}
+                                            </div>
+                                            @if($item->remarks)
+                                                <div class="mt-1 text-break" style="font-size: 0.82rem; white-space: pre-wrap;">{{ $item->remarks }}</div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif

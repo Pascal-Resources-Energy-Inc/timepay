@@ -155,7 +155,7 @@
                 <a href="{{ url('/coe-approval') }}" style="display:inline-block;padding:10px 24px;background:#007bff;color:#fff;text-decoration:none;border-radius:4px;font-size:14px;">View in Approval</a>
             </p>
 
-            <div class="footer">This is an automated confirmation. For questions, contact your HR representatives.</div>
+            <div class="footer">This is an automated notification. Please do not reply to this email.</div>
         </div>
     </div>
 </body>

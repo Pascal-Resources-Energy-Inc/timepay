@@ -469,6 +469,7 @@
                                 <li class="nav-item "> <a class="nav-link " target='_blank' href="https://form.jotform.com/242770633900050">Number Enrollment </a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link " href="{{ url('/number-enrollment') }}">Number Enrollment </a></li> -->
                                 <li class="nav-item "> <a class="nav-link" href="/coe-request">COE Request</a></li>
+                                <li class="nav-item "> <a class="nav-link" href="/compenben">CompenBen Form</a></li>
                                 <li class="nav-item "> <a class="nav-link" href="https://docs.google.com/forms/d/e/1FAIpQLSfrIUbn6qLvHLt7rYF9e4sxTCKvNGT9zESsLkQwKHSCzmcXZg/viewform" style="text-wrap: auto">TDS/MDS Employee Referral Program</a></li>
                                 <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdlOeSHBVOcAASbWkVOQpeVNbI1R36oVlEln-BctX7ekDlUnw/viewform">Incident Report Form</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link" href="/iur" style="text-wrap: auto">Uniform/ID Request</a></li> -->
@@ -516,6 +517,12 @@
                         <a class="nav-link" href="https://forms.gle/kvbzyjE78BYAYg4q6" target="_blank">
                             <i class="icon-bag menu-icon"></i>
                             <span class="menu-title">Incident Report</span>
+                        </a>
+                    </li>
+                    <li class="nav-item @if (request()->is('compenben/requests*')) active @endif">
+                        <a class="nav-link" href="{{ route('compenben.index') }}" onclick='show()'>
+                            <i class="ti-clipboard menu-icon"></i>
+                            <span class="menu-title">CompenBen Report</span>
                         </a>
                     </li>
 
@@ -750,12 +757,12 @@
                     @endif
 
                     @if (auth()->user()->role == 'Admin' || checkUserPrivilege('tds', auth()->user()->id) == 'yes')
-                    <li class="nav-item @if ($header == 'adStoreVisit') active @endif ">
-                        <a class="nav-link" href="{{ route('ad-store-visit-reports.index') }}" onclick='show()'>
-                            <i class="ti-location-pin menu-icon"></i>
-                            <span class="menu-title">AD Store Visit</span>
-                        </a>
-                    </li>
+                    <!-- <li class="nav-item @if ($header == 'adStoreVisit') active @endif "> -->
+                    <!--     <a class="nav-link" href="{{ route('ad-store-visit-reports.index') }}" onclick='show()'> -->
+                    <!--         <i class="ti-location-pin menu-icon"></i> -->
+                    <!--         <span class="menu-title">AD Store Visit</span> -->
+                    <!--     </a> -->
+                    <!-- </li> -->
                     @endif
 
                     @if (auth()->user()->role == 'Admin' || checkUserPrivilege('tds_records', auth()->user()->id) == 'yes')
@@ -779,7 +786,7 @@
                     @if (auth()->user()->role == 'Admin')
                     <li class="nav-item">
                         <hr>
-                        <h5>Super Admin</h5>
+                        <h5>Admin</h5>
                     </li>
 
                     <li class="nav-item @if ($header == 'dashboard_admin') active @endif">

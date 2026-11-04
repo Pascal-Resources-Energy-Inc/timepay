@@ -61,8 +61,9 @@ class DailytimerecordController extends Controller
         $company = isset($request->company) ? $request->company : "";
         $from = isset($request->from) ? $request->from : "";
         $to =  isset($request->to) ? $request->to : "";
+        $status = isset($request->status) ? $request->status : "Approved";
         $company_detail = Company::where('id',$company)->first();
-        return Excel::download(new EmployeeDtrExport($company,$from,$to), $company_detail->company_code . ' ' . $from . ' to ' . $to . ' DTR Export.xlsx');
+        return Excel::download(new EmployeeDtrExport($company,$from,$to,$status), $company_detail->company_code . ' ' . $from . ' to ' . $to . ' DTR Export.xlsx');
     }
 
 

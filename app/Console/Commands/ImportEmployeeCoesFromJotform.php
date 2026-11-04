@@ -20,7 +20,7 @@ class ImportEmployeeCoesFromJotform extends Command
 
     private $requiredHeaders = [
         'NALD',
-        'COE Ref',
+        'Last Update Date',
         'COE Request',
         'Employment Status',
         'Hiring Date',
@@ -258,7 +258,9 @@ class ImportEmployeeCoesFromJotform extends Command
 
     private function mapRow(array $row, array $headers)
     {
-        $legacyReference = $this->cell($row, $headers, 'COE Ref');
+        $legacyReference = $this->resolveLegacyReference(
+            $this->cell($row, $headers, 'Last Update Date')
+        );
         $remarks = $this->cell($row, $headers, 'Remarks');
         $issuanceValue = $this->rawCell($row, $headers, 'DATE OF ISSUANCE');
         $approvedDate = $this->parseDate($issuanceValue);
@@ -289,7 +291,6 @@ class ImportEmployeeCoesFromJotform extends Command
                 : $purposeContinuation;
         }
 
-        $this->requireValue($legacyReference, 'Missing COE reference', $issues);
         $this->requireValue($createdAt, 'Invalid submission date', $issues);
         $this->requireValue($firstName, 'Missing first name', $issues);
         $this->requireValue($lastName, 'Missing last name', $issues);
@@ -372,6 +373,15 @@ class ImportEmployeeCoesFromJotform extends Command
                 'processed_at' => null,
             ],
         ];
+    }
+
+    private function resolveLegacyReference($lastUpdateDate)
+    {
+        if (preg_match('/COE-(?:REQ|RE)-\d{4}-\d+/i', (string) $lastUpdateDate, $matches)) {
+            return strtoupper($matches[0]);
+        }
+
+        return null;
     }
 
     private function resolveStatus($remarks, $issuanceValue, $approvedDate)

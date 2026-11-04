@@ -238,6 +238,7 @@
                   <tr>
                     <th>Action</th>
                     <th>Reference No.</th>
+                    <th>Old Reference No.</th>
                     <th>Employee</th>
                     @if ($status !== 'Pending' || $status === 'All')
                         <th>Attachment</th>
@@ -248,6 +249,7 @@
                     <th>Delivery Method</th>
                     <th>Timeline</th>
                     <th>Purpose</th>
+                    <th>Remarks</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -356,10 +358,11 @@
                             @elseif($form_approval->status == 'Declined' || $form_approval->status == 'Cancelled')
                             <span class="coe-status coe-status--declined" title="{{ $form_approval->approval_remarks }}">{{ $form_approval->status }}</span>
                             @elseif($form_approval->status == 'From Import')
-                            <span class="text-info" title="{{ $form_approval->approval_remarks }}"><small>{{ $form_approval->status }}</small></span>
+                            <span class="text-info" title="{{ $form_approval->approval_remarks }}"><small style="font-weight: bold;">{{ $form_approval->status }}</small></span>
                             @endif
                         </div>
                     </td>
+                    <td>{{ $form_approval->legacy_reference_number ?? '-' }}</td>
                     <td style="line-height: 1.2;">
                         <strong>{{$form_approval->user->name ?? $form_approval->first_name . ' ' . $form_approval->last_name}}</strong> <br>
                         @if ($form_approval->user)
@@ -369,6 +372,8 @@
                             Request: 
                             <span class="text-info" style="font-weight: bold;"> {{ $form_approval->reason_for_request }}</span>
                         </small>
+                        @elseif ($form_approval->status === 'From Import')
+                            <small>-</small> <br>
                         @else
                         <small class="text-danger" style="font-weight: bold;">Public submission</small> <br>
                         <small>
@@ -396,7 +401,7 @@
                                 <span class="text-muted" style="font-size: 12px;">No attachment required</span>
                             @endif
                     @else
-                        <span class="text-muted">—</span>
+                        <span>-</span>
                     @endif
                     </td>
                     @endif
@@ -482,7 +487,8 @@
                             </small>
                         @endif
                     </td>
-                    <td style="max-width: 250px; white-space: normal;">{{$form_approval->purpose ?? $form_approval->type ?? 'General COE'}}</td>
+                    <td style="max-width: 250px; white-space: normal;">{{$form_approval->purpose}}</td>
+                    <td style="max-width: 250px; white-space: normal;">{{$form_approval->approval_remarks }}</td>
                   </tr>
                   @endforeach
                 </tbody>
@@ -737,6 +743,17 @@
                                     <i class="ti-eye mr-1"></i> View full image
                                 </a>
                             </div>
+                        </div>
+
+                        <div class="mt-3 pt-3 border-top">
+                            <label class="d-block mb-1 font-weight-bold" style="font-size: 13px;">
+                                Issuance remarks
+                            </label>
+                            @if(filled($coe->issuance_remarks))
+                                <p class="mb-0 text-muted" style="font-size: 13px; line-height: 1.5; white-space: pre-line; word-break: break-word;">{{ $coe->issuance_remarks }}</p>
+                            @else
+                                <p class="mb-0 text-muted" style="font-size: 13px;">No remarks provided.</p>
+                            @endif
                         </div>
                     </div>
                     @else

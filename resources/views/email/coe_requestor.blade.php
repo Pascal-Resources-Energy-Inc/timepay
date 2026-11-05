@@ -164,7 +164,7 @@
                             <!-- CTA -->
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
                                 <tr>
-                                    <td style="padding:20px 24px 0 24px; text-align:center; font-family:Helvetica, Arial, sans-serif; font-size:13px; color:#555555;">Your request is now pending review by the HR team. You will get your COE request within 7 days.</td>
+                                    <td style="padding:20px 24px 0 24px; text-align:center; font-family:Helvetica, Arial, sans-serif; font-size:13px; color:#555555;">Your request is now pending review by the HR team. You will receive your COE request within 7 days.</td>
                                 </tr>
                             </table>
 

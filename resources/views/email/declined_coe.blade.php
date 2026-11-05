@@ -101,7 +101,7 @@
                                     <td style="padding:14px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; line-height:1.6; color:#374151;">If you believe this was made in error or would like to resubmit your request with updated information, please don't hesitate to reach out to us. We appreciate your understanding.</td>
                                 </tr>
                                 <tr>
-                                    <td style="padding:14px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:13px; color:#555555;">Thank you!</td>
+                                    <td style="padding:20px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; color:#555555;">Thank you!</td>
                                 </tr>
                             </table>
 

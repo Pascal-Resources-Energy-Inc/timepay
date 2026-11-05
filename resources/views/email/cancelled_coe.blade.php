@@ -123,7 +123,7 @@
                             <!-- CTA -->
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
                                 <tr>
-                                    <td style="padding:20px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:13px; color:#555555;">Thank you!</td>
+                                    <td style="padding:20px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; color:#555555;">Thank you!</td>
                                 </tr>
                             </table>
 

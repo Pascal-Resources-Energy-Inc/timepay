@@ -569,6 +569,11 @@
         Route::post('/enable-mobile-attendance', 'UserController@enableMobileAttendance');
         Route::post('/disable-mobile-attendance', 'UserController@disableMobileAttendance');
 
+        // User Access Privileges
+        /* Route::get('/user-access-privileges', 'UserAccessPrivilegeController@index')->name('user-access-privileges.index'); */
+        /* Route::post('/user-access-privileges', 'UserAccessPrivilegeController@store')->name('user-access-privileges.store'); */
+        /* Route::delete('/user-access-privileges/{userAccessPrivilege}', 'UserAccessPrivilegeController@destroy')->name('user-access-privileges.destroy'); */
+
 
         Route::get('users-export', 'UserController@export');
 
@@ -854,6 +859,10 @@ Route::put('/external/marketing-material-release/{id}/edit', 'MarketingMaterialC
     ->name('marketing-material-releases.public.update')
     ->middleware(['signed', 'throttle:10,1']);
 
+// batch print for IUR ids
+Route::get('/batch-print-ids', 'IurPrintController@batchPrintIds');
+Route::get('/batch-print-form', 'IurPrintController@batchPrintForm');
+
 // public layout design request (DEPRECATED)
 // Route::get('/public/ldr-request/', 'LayoutDesignController@publicCreate')->name('ldr.public.create');
 // Route::post('/public/ldr-request/', 'LayoutDesignController@publicStore')->name('ldr.public.store');
@@ -866,9 +875,7 @@ Route::put('/external/marketing-material-release/{id}/edit', 'MarketingMaterialC
 // Route::get('test', 'Test@viewTest'); 
 // Route::get('test-pdf', 'Test@testPdf');
 // Route::get('testid/{id}', 'Test@viewTestId');
-// Route::get('/batch-print-ids', 'IurPrintController@batchPrintIds');
 // Route::get('test-send', 'Test@sendTest');
-// Route::get('/batch-print-form', 'IurPrintController@batchPrintForm');
 
 Route::get('leave-credit-acc','EmployeeEarnedLeaveController@addLeave');
 

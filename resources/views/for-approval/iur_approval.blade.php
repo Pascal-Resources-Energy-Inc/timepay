@@ -513,9 +513,4 @@
   @endif
 @endforeach
 
-@if($approvers)
-  @include('for-approval.remarks.approver_signature_modal')
-@endif
-
-
 @endsection

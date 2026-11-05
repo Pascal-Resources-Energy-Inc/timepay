@@ -2254,10 +2254,9 @@ class FormApprovalController extends Controller
 
     // ID and Uniform Request Approval
     public function iurApproval(Request $request) {
-        $today = date('Y-m-d');
-        $from_date = $request->from ?? date('Y-m-d', strtotime('-1 month', strtotime($today)));
-        $to_date = $request->to ?? date('Y-m-d');
-        $filter_status = $request->status ?? 'Pending';
+        $from_date = $request->input('from');
+        $to_date = $request->input('to');
+        $filter_status = $request->input('status', 'Pending');
 
         $user = auth()->user();
 
@@ -2282,9 +2281,15 @@ class FormApprovalController extends Controller
             'approvedBy',
             'accountabilities',
             'uniformConditionImages'
-        ])
-            ->whereDate('created_at', '>=', $from_date)
-            ->whereDate('created_at', '<=', $to_date);
+        ]);
+
+        if ($from_date) {
+            $query->whereDate('created_at', '>=', $from_date);
+        }
+
+        if ($to_date) {
+            $query->whereDate('created_at', '<=', $to_date);
+        }
 
         if ($filter_status === 'Declined') {
             $query->whereIn('status', ['Declined', 'Cancelled']);
@@ -2294,9 +2299,17 @@ class FormApprovalController extends Controller
 
         $iurs = $query->orderBy('created_at', 'DESC')->get();
 
-        $iur_all = IUR::whereDate('created_at', '>=', $from_date)
-            ->whereDate('created_at', '<=', $to_date)
-            ->get();
+        $iurAllQuery = IUR::query();
+
+        if ($from_date) {
+            $iurAllQuery->whereDate('created_at', '>=', $from_date);
+        }
+
+        if ($to_date) {
+            $iurAllQuery->whereDate('created_at', '<=', $to_date);
+        }
+
+        $iur_all = $iurAllQuery->get();
 
         // cards count
         $pendingCount = $iur_all->where('status', 'Pending')->count();
@@ -2318,6 +2331,7 @@ class FormApprovalController extends Controller
             'from' => $from_date,
             'to' => $to_date,
             'status' => $filter_status,
+            'approvers' => $approvers
         ]);
     }
 
@@ -2325,7 +2339,7 @@ class FormApprovalController extends Controller
         $employee_iur = IUR::with('user.user_info')->find($id);
 
         if (!$employee_iur) {
-            Alert::error('IUR not found.')->persistent('Dismiss');
+            Alert::error('Request not found.')->persistent('Dismiss');
             return back();
         }
 
@@ -2339,6 +2353,11 @@ class FormApprovalController extends Controller
         if (!$is_iur_approver) {
             Alert::error('You do not have privilege.')->persistent('Dismiss');
             return back();
+        }
+
+        if ($employee_iur->work_location === 'Plant') {
+            $employee_iur->black_qty === 0;
+            $employee_iur->collar_qty === 0;
         }
 
         // Save approved quantities before processing
@@ -2700,9 +2719,9 @@ class FormApprovalController extends Controller
     }
 
     public function printAccountabilityTab($id) {
-        $acc = \App\IUR_Accountability::with(['iur.user', 'issuer', 'iur.user.department'])->findOrFail($id);
+        $accountability = \App\IUR_Accountability::with(['iur.user', 'issuer.employee', 'iur.user.department'])->findOrFail($id);
 
-        return view('for-approval.print-iur-accountability-tab', ['acc' => $acc]);
+        return view('for-approval.print-iur-accountability-tab', ['acc' => $accountability]);
     }
 
     public function previewAccountabilityTab($id) {

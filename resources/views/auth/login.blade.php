@@ -55,6 +55,18 @@
                 @endif
               <input type="submit" value="Log In" class="btn text-white btn-block btn-primary">
 
+
+              <!-- [ -->
+              <!-- 'label' => 'Area Distributorship Application', -->
+              <!-- 'url' => route('ada.create'), -->
+              <!-- 'icon' => 'bi-shop', -->
+              <!-- ], -->
+
+              {{--[--}}
+              {{--'label' => 'Exit Interview',--}}
+              {{--'url' => route('exit-interview.public.create'),--}}
+              {{--'icon' => 'bi-box-arrow-right',--}}
+              {{--],--}}
               @php
                 $quickLinks = [
                   [
@@ -63,61 +75,51 @@
                     'icon' => 'bi-file-earmark-text',
                   ],
                   [
-                    'label' => 'Area Distributorship Application',
-                    'url' => route('ada.create'),
-                    'icon' => 'bi-shop',
-                  ],
-                  [
-                    'label' => 'Exit Interview',
-                    'url' => route('exit-interview.public.create'),
-                    'icon' => 'bi-box-arrow-right',
-                  ],
-                  [
-                    'label' => 'Marketing Material Release',
-                    'url' => route('marketing-material-releases.public.create'),
-                    'icon' => 'bi-megaphone',
+                  'label' => 'Marketing Material Release',
+                  'url' => route('marketing-material-releases.public.create'),
+                  'icon' => 'bi-megaphone',
                   ],
                 ];
                 $visibleQuickLinks = array_slice($quickLinks, 0, 2);
                 $collapsedQuickLinks = array_slice($quickLinks, 2);
               @endphp
 
-              <!-- <nav class="quick-links" aria-labelledby="quick-links-title"> -->
-              <!--   <div class="quick-links-title" id="quick-links-title">Quick Links</div> -->
-              <!--   <div class="quick-links-list"> -->
-              <!--     @foreach($visibleQuickLinks as $quickLink) -->
-              <!--       <a class="quick-link" href="{{ $quickLink['url'] }}"> -->
-              <!--         <i class="bi {{ $quickLink['icon'] }}" aria-hidden="true"></i> -->
-              <!--         <span>{{ $quickLink['label'] }}</span> -->
-              <!--         <i class="bi bi-chevron-right quick-link-chevron" aria-hidden="true"></i> -->
-              <!--       </a> -->
-              <!--     @endforeach -->
-              <!---->
-              <!--     @if(count($collapsedQuickLinks) > 0) -->
-              <!--       <div class="collapse" id="quick-links-more"> -->
-              <!--         @foreach($collapsedQuickLinks as $quickLink) -->
-              <!--           <a class="quick-link" href="{{ $quickLink['url'] }}"> -->
-              <!--             <i class="bi {{ $quickLink['icon'] }}" aria-hidden="true"></i> -->
-              <!--             <span>{{ $quickLink['label'] }}</span> -->
-              <!--             <i class="bi bi-chevron-right quick-link-chevron" aria-hidden="true"></i> -->
-              <!--           </a> -->
-              <!--         @endforeach -->
-              <!--       </div> -->
-              <!--       <button -->
-              <!--         class="quick-links-toggle collapsed" -->
-              <!--         type="button" -->
-              <!--         data-toggle="collapse" -->
-              <!--         data-target="#quick-links-more" -->
-              <!--         aria-expanded="false" -->
-              <!--         aria-controls="quick-links-more" -->
-              <!--       > -->
-              <!--         <span class="quick-links-toggle-more">Show {{ count($collapsedQuickLinks) }} more links</span> -->
-              <!--         <span class="quick-links-toggle-less">Show fewer links</span> -->
-              <!--         <i class="bi bi-chevron-down" aria-hidden="true"></i> -->
-              <!--       </button> -->
-              <!--     @endif -->
-              <!--   </div> -->
-              <!-- </nav> -->
+              <nav class="quick-links" aria-labelledby="quick-links-title">
+                <div class="quick-links-title" id="quick-links-title">Quick Links</div>
+                <div class="quick-links-list">
+                  @foreach($visibleQuickLinks as $quickLink)
+                    <a class="quick-link" href="{{ $quickLink['url'] }}">
+                      <i class="bi {{ $quickLink['icon'] }}" aria-hidden="true"></i>
+                      <span>{{ $quickLink['label'] }}</span>
+                      <i class="bi bi-chevron-right quick-link-chevron" aria-hidden="true"></i>
+                    </a>
+                  @endforeach
+
+                  @if(count($collapsedQuickLinks) > 0)
+                    <div class="collapse" id="quick-links-more">
+                      @foreach($collapsedQuickLinks as $quickLink)
+                        <a class="quick-link" href="{{ $quickLink['url'] }}">
+                          <i class="bi {{ $quickLink['icon'] }}" aria-hidden="true"></i>
+                          <span>{{ $quickLink['label'] }}</span>
+                          <i class="bi bi-chevron-right quick-link-chevron" aria-hidden="true"></i>
+                        </a>
+                      @endforeach
+                    </div>
+                    <button
+                      class="quick-links-toggle collapsed"
+                      type="button"
+                      data-toggle="collapse"
+                      data-target="#quick-links-more"
+                      aria-expanded="false"
+                      aria-controls="quick-links-more"
+                    >
+                      <span class="quick-links-toggle-more">Show {{ count($collapsedQuickLinks) }} more links</span>
+                      <span class="quick-links-toggle-less">Show fewer links</span>
+                      <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </button>
+                  @endif
+                </div>
+              </nav>
 
               <!-- <span class="d-block text-left my-4 text-muted text-right"> or sign in with</span>
               

@@ -30,7 +30,7 @@
             <div class="modal-header">
                 <h5 class="modal-title" id="coeRequestModalLabel">
                     <strong>CERTIFICATE OF EMPLOYMENT REQUEST</strong><br />
-                    <p style="color: #e6e6e6;" class="code-no">HRD-LPD-FOR-00X-000</p>
+                    <p style="color: #e6e6e6;" class="code-no">HRD-LPD-FOR-001-001</p>
                 </h5>
                 <button type="button" class="btn-close btn-danger" data-dismiss="modal" aria-label="Close">&times;</button>
             </div>

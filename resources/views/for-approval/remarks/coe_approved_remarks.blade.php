@@ -10,7 +10,7 @@
                     <h5 class="modal-title" id="approvedCOEremarks-{{$coe->id}}">
                         {{ $isConfid ? 'Release certificate' : 'Send certificate' }}
                     </h5>
-                    <p style="color: #e6e6e6;">HRD-LPD-FOR-00X-000</p>
+                    <p style="color: #e6e6e6;">HRD-LPD-FOR-001-001</p>
                 </div>
                 <button type="button" class="btn-close btn-danger" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>

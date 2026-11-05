@@ -4,7 +4,7 @@
             <div class="modal-header align-items-start">
                 <div class="pr-3" style="min-width: 0;">
                     <h5 class="modal-title font-weight-bold mb-1 text-break">COE REQUEST DETAILS</h5>
-                    <p class="mb-0 text-break" style="color: #e6e6e6;">HRD-LPD-FOR-00X-000</p>
+                    <p class="mb-0 text-break" style="color: #e6e6e6;">HRD-LPD-FOR-001-001</p>
                 </div>
                 <button type="button" class="btn-close btn-danger flex-shrink-0" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>

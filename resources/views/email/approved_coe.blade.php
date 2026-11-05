@@ -90,13 +90,13 @@
                                 <tr>
                                     <td style="padding:14px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; line-height:1.6; color:#374151;">
                                         @if($coe->receive_method === 'Hard Copy')
-                                            Your Certificate of Employment request has been approved and is ready for pickup at the HR office.
+                                            Your Certificate of Employment request has been processed and approved and is ready for pickup at the HR office.
                                         @elseif($coe->receive_method === 'Viber')
                                             Your Certificate of Employment request has been approved. The certificate will be sent to your Viber account: <b>{{ $coe->viber_number }}</b>.
                                         @elseif($coe->attachment)
-                                            Your Certificate of Employment request has been approved. Please find the attached certificate file for your reference.
+                                            Your Certificate of Employment request has been processed and approved. Please find the attached certificate for you reference.
                                         @else
-                                            Your Certificate of Employment request has been approved.
+                                            Your Certificate of Employment request has been processed and approved. The certificate will be sent to your email shortly.
                                         @endif
                                     </td>
                                 </tr>

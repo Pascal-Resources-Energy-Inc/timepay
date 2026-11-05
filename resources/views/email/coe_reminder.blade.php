@@ -3,161 +3,154 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Certificate of Employment - Reminder</title>
 
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            color: #222;
-            margin: 0;
-            padding: 0;
-            background: #ffffff;
+            margin: 0 !important;
+            padding: 0 !important;
+            background-color: #f3f4f6 !important;
+        }
+
+        table {
+            border-collapse: collapse;
         }
 
         .container {
-            width: 100%;
+            width: 100% !important;
+            max-width: 680px !important;
             -webkit-text-size-adjust: 100%;
         }
 
         .card {
-            max-width: 680px;
-            margin: 0 auto;
+            background-color: #ffffff;
             border: 1px solid #e6e6e6;
-            border-radius: 6px;
-            padding: 20px;
+            border-radius: 8px;
         }
 
-        .header {
-            border-bottom: 1px solid #efefef;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
-        }
-
-        .brand {
-            font-size: 1.6rem;
-            font-weight: bold;
-            color: #111;
-        }
-
-        .subtitle {
-            font-size: 13px;
-            color: #666;
-            margin-top: 4px;
-        }
-
-        .section-title {
-            font-size: 14px;
-            font-weight: 600;
-            margin: 20px 0;
-            color: #111;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        tr {
-            display: flex;
-        }
-
-        td.label {
-            width: 36%;
-            padding: 8px 0;
-            color: #444;
-            font-weight: 600;
-            vertical-align: top;
-        }
-
-        td.value {
-            padding: 8px 0;
-            color: #333;
-        }
-
-        .footer {
-            font-size: 12px;
-            color: #888;
-            text-align: center;
-            padding-top: 16px;
-        }
-
-        @media (max-width:600px) {
+        @media only screen and (max-width: 480px) {
             .card {
-                padding: 16px;
+                border-radius: 0 !important;
+                border-left: none !important;
+                border-right: none !important;
             }
 
-            td.label {
-                display: block;
-                width: 100%;
-                font-size: 13px;
-            }
-
-            td.value {
-                display: block;
-                width: 100%;
-                margin-bottom: 8px;
+            .outer-pad {
+                padding: 8px 4px !important;
             }
         }
     </style>
 </head>
 
-<body>
-    <div class="container">
-        <div class="card">
-            <div class="header">
-                <div class="brand" style="font-family: Roboto, -apple-system, 'Segoe UI', Arial, sans-serif;">PASCAL RESOURCES ENERGY INC.</div>
-                <div class="color" aria-hidden="true">
-                    <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin:8px 0; border-collapse:collapse;">
-                        <tr style="display:table-row;">
-                            <td style="display:table-cell; width:50%; height:6px; line-height:6px; font-size:0; mso-line-height-rule:exactly;" bgcolor="#59c2e5" width="50%" height="6">&nbsp;</td>
-                            <td style="display:table-cell; width:50%; height:6px; line-height:6px; font-size:0; mso-line-height-rule:exactly;" bgcolor="#fe0001" width="50%" height="6">&nbsp;</td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="subtitle">Certificate of Employment Request</div>
-            </div>
+<body style="margin:0; padding:0; background-color:#f3f4f6;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f3f4f6" style="width:100%; background-color:#f3f4f6;">
+        <tr>
+            <td align="center" class="outer-pad" style="padding:16px 8px;">
+                <!--[if mso]>
+                <table role="presentation" width="680" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td>
+                <![endif]-->
 
-            <div style="text-align:center;margin: 10px 0 25px 0;font-size:10px;color:#555;">
-                Reference No: <strong style="color:#333;">{{ $coe_reference }}</strong>
-            </div>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" align="center" class="container" style="width:100%; max-width:680px;">
+                    <tr>
+                        <td class="card" style="background-color:#ffffff; border:1px solid #e6e6e6; border-radius:8px;">
 
-            <p style="margin:0 0 20px 0;color:#333;">Good day,</p>
+                            <!-- HEADER -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%; border-bottom:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:24px 24px 5px 24px; font-family:Roboto, -apple-system, 'Segoe UI', Arial, sans-serif; font-size:17px; font-weight:500; color:#111111;">PASCAL RESOURCES ENERGY INC.</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:0 24px;">
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+                                            <tr>
+                                                <td bgcolor="#59c2e5" width="50%" height="6" style="width:50%; height:6px; line-height:6px; font-size:0; mso-line-height-rule:exactly;">&nbsp;</td>
+                                                <td bgcolor="#fe0001" width="50%" height="6" style="width:50%; height:6px; line-height:6px; font-size:0; mso-line-height-rule:exactly;">&nbsp;</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:7px 24px 12px 24px; font-family:Helvetica, Arial, sans-serif; font-size:13px; color:#666666;">Certificate of Employment Request</td>
+                                </tr>
+                            </table>
 
-            <p style="margin:20px 0 20px 0;color:#333;">I hope you're doing well. I'd like to follow up on the <b>Certificate of Employment (COE)</b> request below, which has been pending for a few days. Could you kindly check on its status when you have a moment?</p>
+                            <!-- REFERENCE NO -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+                                <tr>
+                                    <td style="padding:10px 24px 0 24px; text-align:center; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#555555;">Reference No: <strong style="color:#333333;">{{ $coe_reference }}</strong></td>
+                                </tr>
+                            </table>
 
-            <div class="section-title">Request Summary</div>
+                            <!-- MESSAGE -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+                                <tr>
+                                    <td style="padding:22px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; line-height:1.6; color:#374151;">Good day,</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:14px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; line-height:1.6; color:#374151;">I hope you're doing well. I'd like to follow up on the <strong>Certificate of Employment (COE)</strong> request below, which has been pending for a few days. Could you kindly check on its status when you have a moment?</td>
+                                </tr>
+                            </table>
 
-            <table role="presentation">
-                <tr>
-                    <td class="label">Reference No:</td>
-                    <td class="value">{{ $coe_reference }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Name:</td>
-                    <td class="value">{{ $name }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Purpose:</td>
-                    <td class="value">{{ $purpose }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Request:</td>
-                    <td class="value">{{ $reason_for_request }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Date Filed:</td>
-                    <td class="value">{{ $created_at->format('M. d, Y') }}</td>
-                </tr>
-            </table>
+                            <!-- REQUEST SUMMARY -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+                                <tr>
+                                    <td style="padding:20px 24px 8px 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; font-weight:600; color:#111111;">Request Summary</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:0 24px;">
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%; border:1px solid #e5e7eb;">
+                                            <tr>
+                                                <td width="38%" bgcolor="#f8fafc" style="width:38%; padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; font-weight:600; color:#475569; vertical-align:top; border-right:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb;">Reference No.</td>
+                                                <td style="padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; line-height:1.55; color:#1f2937; vertical-align:top; border-bottom:1px solid #e5e7eb; word-break:break-word;">{{ $coe_reference }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td width="38%" bgcolor="#f8fafc" style="width:38%; padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; font-weight:600; color:#475569; vertical-align:top; border-right:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb;">Name</td>
+                                                <td style="padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; line-height:1.55; color:#1f2937; vertical-align:top; border-bottom:1px solid #e5e7eb; word-break:break-word;"><strong>{{ $name }}</strong></td>
+                                            </tr>
+                                            <tr>
+                                                <td width="38%" bgcolor="#f8fafc" style="width:38%; padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; font-weight:600; color:#475569; vertical-align:top; border-right:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb;">Purpose</td>
+                                                <td style="padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; line-height:1.55; color:#1f2937; vertical-align:top; border-bottom:1px solid #e5e7eb; word-break:break-word;">{{ $purpose }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td width="38%" bgcolor="#f8fafc" style="width:38%; padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; font-weight:600; color:#475569; vertical-align:top; border-right:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb;">Request</td>
+                                                <td style="padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; line-height:1.55; color:#1f2937; vertical-align:top; border-bottom:1px solid #e5e7eb; word-break:break-word;">{{ $reason_for_request }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td width="38%" bgcolor="#f8fafc" style="width:38%; padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; font-weight:600; color:#475569; vertical-align:top; border-right:1px solid #e5e7eb;">Date Filed</td>
+                                                <td style="padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; line-height:1.55; color:#1f2937; vertical-align:top; word-break:break-word;">{{ $created_at->format('M. d, Y') }}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
 
-            <p style="text-align:center; margin:20px 0 0 0;">
-                <a href="{{ url('/coe-approval') }}" style="display:inline-block;padding:10px 24px;background:#007bff;color:#fff;text-decoration:none;border-radius:4px;font-size:14px;">View in Approval</a>
-            </p>
+                            <!-- ACTION -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+                                <tr>
+                                    <td align="center" style="padding:22px 24px 26px 24px;">
+                                        <a href="{{ url('/coe-approval') }}" style="font-family:Helvetica, Arial, sans-serif; font-size:14px; color:#007bff; text-decoration:underline;">View in Approval</a>
+                                    </td>
+                                </tr>
+                            </table>
 
-            <div class="footer">This is an automated notification. Please do not reply to this email.</div>
-        </div>
-    </div>
+                            <!-- FOOTER -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%; border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:16px 24px 24px 24px; font-family:Helvetica, Arial, sans-serif; font-size:12px; color:#888888; text-align:center;">This is an automated notification. Please do not reply to this email.</td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+                </table>
+
+                <!--[if mso]>
+                </td></tr></table>
+                <![endif]-->
+            </td>
+        </tr>
+    </table>
 </body>
 
 </html>

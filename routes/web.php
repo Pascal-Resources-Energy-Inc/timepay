@@ -751,6 +751,18 @@
         Route::get('exit-interviews', 'ExitInterviewController@index')->name('Exit Interviews');
         Route::post('exit-interviews/send-link', 'ExitInterviewController@sendInvitation')
             ->name('exit-interview.invitation.send');
+        Route::post(
+            'exit-interviews/import/preview',
+            'LegacyExitInterviewImportController@preview'
+        )->name('exit-interviews.import.preview');
+        Route::post(
+            'exit-interviews/import/commit',
+            'LegacyExitInterviewImportController@commit'
+        )->name('exit-interviews.import.commit');
+        Route::post(
+            'exit-interviews/import/cancel',
+            'LegacyExitInterviewImportController@cancel'
+        )->name('exit-interviews.import.cancel');
         Route::get('exit-interviews/create', 'ExitInterviewController@create');
         Route::post('exit-interviews', 'ExitInterviewController@store');
         Route::patch(

@@ -224,7 +224,13 @@ class Employee extends Model implements Auditable
                     ->where('type_of_form', 'Travel Order');
     }
 
-    
+    public function user() {
+        return $this->user_info();
+    }
+
+    public function exitInterviews() {
+        return $this->hasMany(ExitInterview::class);
+    }
 
     protected $fillable = [
         'department_id', 

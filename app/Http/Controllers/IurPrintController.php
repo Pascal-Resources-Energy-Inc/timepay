@@ -155,4 +155,28 @@ class IurPrintController extends Controller {
             'selectedRefs' => collect(),
         ]);
     }
+
+    public function confid() {
+        $path = storage_path('app/private/images/signature_pres.png');
+
+        abort_unless(is_file($path), 404);
+
+        $hasPrivilege = ApproverSetting::where('type_of_form', 'uir')
+            ->where('status', 'Active')
+            ->where('user_id', auth()->id())
+            ->exists();
+
+        $isExplicitlyAllowed = (int) auth()->id() === 856;
+
+        abort_unless($hasPrivilege || $isExplicitlyAllowed, 403);
+
+        return response()->file($path, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+
+    }
 }

@@ -814,7 +814,13 @@
         Route::post('/employee/setup', 'EmployeeController@setup')->name('employee.setup');
         Route::post('account-setting-hr/updateConsent/{id}', 'EmployeeController@consentUpdate')->name('employee.consent.update');
 
+        // batch print for IUR ids
+        Route::get('/batch-print-ids', 'IurPrintController@batchPrintIds');
+        Route::get('/batch-print-form', 'IurPrintController@batchPrintForm');
+        Route::get('/confid-assets/signature', 'IurPrintController@confid')->name('confid');
     });
+
+// outside middleware
 Route::post('new-employee', 'EmployeeController@new');
 Route::post('upload-employee', 'EmployeeController@upload');
 Route::post('upload-employee-rate', 'EmployeeController@reverseRate');
@@ -858,10 +864,6 @@ Route::get('/external/marketing-material-release/{id}/edit', 'MarketingMaterialC
 Route::put('/external/marketing-material-release/{id}/edit', 'MarketingMaterialController@publicUpdate')
     ->name('marketing-material-releases.public.update')
     ->middleware(['signed', 'throttle:10,1']);
-
-// batch print for IUR ids
-Route::get('/batch-print-ids', 'IurPrintController@batchPrintIds');
-Route::get('/batch-print-form', 'IurPrintController@batchPrintForm');
 
 // public layout design request (DEPRECATED)
 // Route::get('/public/ldr-request/', 'LayoutDesignController@publicCreate')->name('ldr.public.create');

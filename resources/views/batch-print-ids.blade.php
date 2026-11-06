@@ -178,8 +178,8 @@
                     <p class="gray_text text-gray-500 text-[10px] text-center font-bold">In case of emergency please notify:</p>
 
                     <div>
-                        <p class="text-center font-semibold leading-tight text-[10px]">{{ $iur->user->contact_person->name ?? 'N/A' }}</p>
-                        <p class="text-center font-semibold leading-tight text-[10px]">{{ $iur->user->permanent_address ?? 'Sitio 18A Rainbow Avenue, Munting Bahayan, Pasig City' }}</p>
+                        <p class="text-center font-semibold leading-tight text-[10px]">{{ $iur->user->contact_person->name ?? '' }}</p>
+                        <p class="text-center font-semibold leading-tight text-[10px]">{{ $iur->user->permanent_address ?? '' }}</p>
                         <p class="text-center font-semibold leading-tight text-[10px]">{{ $iur->user->contact_person->contact_number ?? '' }}</p>
                     </div>
 
@@ -188,7 +188,7 @@
                     </div>
 
                     <div class="mt-auto mx-auto w-[100px] mb-5">
-                        <img src="/images/signature_pres.png" alt="signature_pres">
+                        <img src="{{ route('confid') }}" alt="Authorized signature">
                     </div>
                 </div>
             </div>

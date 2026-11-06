@@ -270,7 +270,7 @@ class IurController extends Controller {
                 $sendToHo = !($new_iur->work_location === 'Plant' && $new_iur->request_for === 'Uniform');
 
                 if ($sendToHo) {
-                    $approverLocations->push('HO');
+                    $approverLocations->push('Pasig - Head Office');
                 }
 
                 /*

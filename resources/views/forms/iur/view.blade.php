@@ -171,7 +171,8 @@
         <span class="ml-auto badge {{ $statusClass }}">{{ $iur->status }}</span>
       </div>
       <div class="card-body">
-        <table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">
+        <div class="iur-mobile-scroll">
+        <table class="table table-sm table-borderless mb-0 iur-info-table" style="font-size: 0.85rem;">
           <tbody>
             <tr>
               <td class="text-muted" style="width:35%;">Reference No.</td>
@@ -195,6 +196,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </div>
 
@@ -206,7 +208,8 @@
         <h6 class="mb-0 font-weight-bold d-inline">Uniform Details</h6>
       </div>
       <div class="card-body">
-        <table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">
+        <div class="iur-mobile-scroll">
+        <table class="table table-sm table-borderless mb-0 iur-info-table" style="font-size: 0.85rem;">
           <tbody>
             <tr>
               <td class="text-muted" style="width:35%;">Size</td>
@@ -258,6 +261,7 @@
             @endif
           </tbody>
         </table>
+        </div>
 
         <hr class="my-2">
         <small class="text-muted d-block mb-2 font-weight-bold">Requested Items:</small>
@@ -315,7 +319,8 @@
         <h6 class="mb-0 font-weight-bold d-inline">ID Details</h6>
       </div>
       <div class="card-body py-2">
-        <table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">
+        <div class="iur-mobile-scroll">
+        <table class="table table-sm table-borderless mb-0 iur-info-table" style="font-size: 0.85rem;">
           <tbody>
             <tr>
               <td class="text-muted" style="width:35%;">Reason</td>
@@ -362,6 +367,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </div>
     @endif
@@ -418,6 +424,20 @@
     </div>
   </div>
 </div>
+
+<style>
+@media (max-width: 767.98px) {
+  .iur-mobile-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .iur-mobile-scroll .iur-info-table {
+    min-width: 600px;
+    margin-bottom: 0;
+  }
+}
+</style>
 
 @include('for-approval.remarks.iur_signature_modal', ['form_approval' => $iur])
 @include('for-approval.print-accountability-iur', ['form_approval' => $iur])

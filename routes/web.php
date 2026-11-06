@@ -235,10 +235,10 @@
         Route::get('iur', 'IurController@index')->name('iur.index');
         Route::get('/iur/create', 'IurController@create')->name('iur.create');
         Route::post('/iur/store', 'IurController@store')->name('iur.store');
-        Route::get('/iur/{id}/edit', 'IURController@edit')->name('iur.edit');
-        Route::put('/iur/{id}', 'IURController@update')->name('iur.update');
-        Route::get('/iur/{id}', 'IURController@show')->name('iur.show');
-        Route::put('/iur/{id}/cancel', 'IURController@cancel')->name('iur.cancel');
+        Route::get('/iur/{id}/edit', 'IurController@edit')->name('iur.edit');
+        Route::put('/iur/{id}', 'IurController@update')->name('iur.update');
+        Route::get('/iur/{id}', 'IurController@show')->name('iur.show');
+        Route::put('/iur/{id}/cancel', 'IurController@cancel')->name('iur.cancel');
 
         Route::post('confirm-iur-id-print', 'FormApprovalController@confirmIurIdsPrinted')->name('iur.ids.confirm-printed');
 

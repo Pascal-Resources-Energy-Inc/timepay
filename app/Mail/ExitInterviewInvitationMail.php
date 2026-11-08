@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Mail;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailable;
+use Illuminate\Queue\SerializesModels;
+
+class ExitInterviewInvitationMail extends Mailable {
+    use Queueable, SerializesModels;
+
+    public $employee;
+    public $invitationUrl;
+    public $internalInvitationUrl;
+
+    public function __construct($recipient, $invitationUrl, $internalInvitationUrl = null) {
+        $this->employee = $recipient;
+        $this->invitationUrl = $invitationUrl;
+        $this->internalInvitationUrl = $internalInvitationUrl ?: url('/exit-interviews/create');
+    }
+
+    public function build() {
+        $subject = 'Exit Interview Link';
+
+        if (!empty($this->employee->employee_number)) {
+            $subject .= ' | ' . $this->employee->employee_number;
+        }
+
+        return $this
+            ->subject($subject)
+            ->view('email.exit_interview_invitation');
+    }
+}

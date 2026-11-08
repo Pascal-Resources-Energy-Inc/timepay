@@ -19,7 +19,7 @@
         <div class="w-full border-[3px] border-[#fe0001]"></div>
     </div>
     <h1 class="text-lg sm:text-2xl font-bold text-gray-900 mb-1">Certificate of Employment (COE) Request</h1>
-    <p class="text-sm text-gray-500 mb-6">Please provide the details below to request your Certificate of Employment.</p>
+    <p class="text-sm text-gray-500 mb-6">HRD-LPD-FOR-001-001</p>
 
     <form id="publicCoeRequestForm" method="POST" action="/external/coe-request">
         @csrf

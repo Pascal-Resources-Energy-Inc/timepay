@@ -235,10 +235,10 @@
         Route::get('iur', 'IurController@index')->name('iur.index');
         Route::get('/iur/create', 'IurController@create')->name('iur.create');
         Route::post('/iur/store', 'IurController@store')->name('iur.store');
-        Route::get('/iur/{id}/edit', 'IURController@edit')->name('iur.edit');
-        Route::put('/iur/{id}', 'IURController@update')->name('iur.update');
-        Route::get('/iur/{id}', 'IURController@show')->name('iur.show');
-        Route::put('/iur/{id}/cancel', 'IURController@cancel')->name('iur.cancel');
+        Route::get('/iur/{id}/edit', 'IurController@edit')->name('iur.edit');
+        Route::put('/iur/{id}', 'IurController@update')->name('iur.update');
+        Route::get('/iur/{id}', 'IurController@show')->name('iur.show');
+        Route::put('/iur/{id}/cancel', 'IurController@cancel')->name('iur.cancel');
 
         Route::post('confirm-iur-id-print', 'FormApprovalController@confirmIurIdsPrinted')->name('iur.ids.confirm-printed');
 
@@ -751,6 +751,18 @@
         Route::get('exit-interviews', 'ExitInterviewController@index')->name('Exit Interviews');
         Route::post('exit-interviews/send-link', 'ExitInterviewController@sendInvitation')
             ->name('exit-interview.invitation.send');
+        Route::post(
+            'exit-interviews/import/preview',
+            'LegacyExitInterviewImportController@preview'
+        )->name('exit-interviews.import.preview');
+        Route::post(
+            'exit-interviews/import/commit',
+            'LegacyExitInterviewImportController@commit'
+        )->name('exit-interviews.import.commit');
+        Route::post(
+            'exit-interviews/import/cancel',
+            'LegacyExitInterviewImportController@cancel'
+        )->name('exit-interviews.import.cancel');
         Route::get('exit-interviews/create', 'ExitInterviewController@create');
         Route::post('exit-interviews', 'ExitInterviewController@store');
         Route::patch(
@@ -814,7 +826,13 @@
         Route::post('/employee/setup', 'EmployeeController@setup')->name('employee.setup');
         Route::post('account-setting-hr/updateConsent/{id}', 'EmployeeController@consentUpdate')->name('employee.consent.update');
 
+        // batch print for IUR ids
+        Route::get('/batch-print-ids', 'IurPrintController@batchPrintIds');
+        Route::get('/batch-print-form', 'IurPrintController@batchPrintForm');
+        Route::get('/confid-assets/signature', 'IurPrintController@confid')->name('confid');
     });
+
+// outside middleware
 Route::post('new-employee', 'EmployeeController@new');
 Route::post('upload-employee', 'EmployeeController@upload');
 Route::post('upload-employee-rate', 'EmployeeController@reverseRate');
@@ -858,10 +876,6 @@ Route::get('/external/marketing-material-release/{id}/edit', 'MarketingMaterialC
 Route::put('/external/marketing-material-release/{id}/edit', 'MarketingMaterialController@publicUpdate')
     ->name('marketing-material-releases.public.update')
     ->middleware(['signed', 'throttle:10,1']);
-
-// batch print for IUR ids
-Route::get('/batch-print-ids', 'IurPrintController@batchPrintIds');
-Route::get('/batch-print-form', 'IurPrintController@batchPrintForm');
 
 // public layout design request (DEPRECATED)
 // Route::get('/public/ldr-request/', 'LayoutDesignController@publicCreate')->name('ldr.public.create');

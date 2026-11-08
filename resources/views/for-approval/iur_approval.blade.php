@@ -200,7 +200,7 @@
                     && in_array($iur->request_for, ['Uniform', 'Both'], true);
                 }
 
-                if ($currentApproverLocation === 'HO') {
+                if ($currentApproverLocation === 'Pasig - Head Office') {
                   return !(
                     $iur->work_location === 'Plant'
                     && $iur->request_for === 'Uniform'

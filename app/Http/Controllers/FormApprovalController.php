@@ -2398,9 +2398,9 @@ class FormApprovalController extends Controller
             }
 
             try {
-                /* Mail::to($requestorEmail)->send( */
-                /*     new \App\Mail\IurRequestMail($employee_iur, 'Processing') */
-                /* ); */
+                Mail::to($requestorEmail)->send(
+                    new \App\Mail\IurRequestMail($employee_iur, 'Processing')
+                );
             } catch (\Exception $e) {
                 \Log::warning('IUR processing email failed: ' . $e->getMessage());
                 Alert::warning('Request processed, but the email notification could not be sent.')->persistent('Dismiss');

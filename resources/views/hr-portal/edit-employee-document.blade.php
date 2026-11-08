@@ -1,12 +1,15 @@
 <div class="modal fade" id="empDocsModal">
   <div class="modal-dialog modal-lg">
-    <div class="modal-content">
+    <div class="modal-content border-0">
       <div class="modal-header">
         <h5 class="card-title">Edit Employee Document</h5>
+        <button type="button" class="btn-close btn-danger" data-dismiss="modal">
+            <span>&times;</span>
+        </button>
       </div>
       <form action="{{url('upload-employee-document')}}" method="post" enctype="multipart/form-data" onsubmit="show()">
         {{csrf_field()}}
-        <input type="hidden" name="user_id" value="{{$user->id}}">
+        <input type="hidden" name="employee_id" value="{{ $documentEmployeeId }}">
       
         <div class="modal-body">
           <div class="row">
@@ -29,7 +32,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" type="button" data-dismiss="modal">Close</button>
+          <button class="btn btn-light border" type="button" data-dismiss="modal">Close</button>
           <button class="btn btn-primary" type="submit">Submit</button>
         </div>
       </form>

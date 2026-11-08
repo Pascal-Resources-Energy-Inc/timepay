@@ -245,7 +245,7 @@
                 <td style="vertical-align: middle;">{{ $department }}</td>
                 @endif
                 <td>ID</td>
-                <td>PRE - {{ $employeeCode }}</td>
+                <td>PREI - {{ $employeeCode }}</td>
                 <td>{{ $reference }}</td>
             </tr>
             @endif

@@ -135,9 +135,15 @@ class ExitInterviewController extends Controller {
     }
 
     public function sendInvitation(Request $request) {
-        $sender = optional(auth()->user())->employee;
+        // $sender = optional(auth()->user())->employee;
 
-        if (!$sender || $sender->position !== 'HR Head') {
+        /* if (!$sender || $sender->position !== 'HR Head') { */
+        /*     abort(403); */
+        /* } */
+
+        $hasPrivilege = auth()->id() === 856;
+
+        if (!$hasPrivilege) {
             abort(403);
         }
 
@@ -146,43 +152,29 @@ class ExitInterviewController extends Controller {
         ]);
 
         $recipientEmail = strtolower(trim((string) $request->recipient_email));
-        $employees = Employee::with('user')
-            ->whereDoesntHave('exitInterviews')
-            ->whereNotNull('first_name')
-            ->whereNotNull('last_name')
-            ->where(function ($query) use ($recipientEmail) {
-                $query->whereRaw('LOWER(TRIM(personal_email)) = ?', [$recipientEmail])
-                    ->orWhereHas('user', function ($userQuery) use ($recipientEmail) {
-                        $userQuery->whereRaw('LOWER(TRIM(email)) = ?', [$recipientEmail]);
-                    });
-            })
-            ->get();
-
-        if ($employees->count() !== 1) {
-            Alert::error(
-                $employees->isEmpty()
-                    ? 'No eligible employee was found with that email address. Use the employee’s registered email.'
-                    : 'More than one employee matches that email address. Please contact support.'
-            )->persistent('Dismiss');
-
-            return redirect()->back()->withInput();
-        }
-
-        $employee = $employees->first();
 
         $invitation = ExitInterviewInvitation::create([
-            'employee_number' => trim((string) $employee->employee_number) ?: null,
-            'first_name' => trim((string) $employee->first_name),
-            'last_name' => trim((string) $employee->last_name),
             'recipient_email' => $recipientEmail,
             'sent_by' => auth()->id(),
         ]);
 
         try {
+            $hrHeadEmail = Employee::with('user')
+                ->where('position', 'HR Head')
+                ->where('status', 'Active')
+                ->whereHas('user', function ($query) {
+                    $query->whereNotNull('email');
+                })
+                ->firstOrFail()
+                ->user
+                ->email;
+
             Mail::to($invitation->recipient_email)->send(
                 new ExitInterviewInvitationMail(
                     $invitation,
-                    route('exit-interview.public.create')
+                    route('exit-interview.public.create'),
+                    null,
+                    $hrHeadEmail
                 )
             );
 
@@ -380,17 +372,17 @@ class ExitInterviewController extends Controller {
             ->all();
 
         if (!empty($hrHeadEmails)) {
-            /* try { */
-            /*     Mail::to($hrHeadEmails)->send( */
-            /*         new ExitInterviewSubmittedMail( */
-            /*             $exitInterview, */
-            /*             $employee, */
-            /*             url('exit-interviews/'.$exitInterview->id) */
-            /*         ) */
-            /*     ); */
-            /* } catch (\Throwable $exception) { */
-            /*     \Log::warning('Exit interview submitted but HR Head email notification failed: ' . $exception->getMessage()); */
-            /* } */
+            try {
+                Mail::to($hrHeadEmails)->send(
+                    new ExitInterviewSubmittedMail(
+                        $exitInterview,
+                        $employee,
+                        url('exit-interviews/'.$exitInterview->id)
+                    )
+                );
+            } catch (\Throwable $exception) {
+                \Log::warning('Exit interview submitted but HR Head email notification failed: ' . $exception->getMessage());
+            }
         } else {
             \Log::warning('Exit interview submitted but no active HR Head work email was found.');
         }
@@ -516,17 +508,17 @@ class ExitInterviewController extends Controller {
             ->all();
 
         if (!empty($hrHeadEmails)) {
-            /* try { */
-            /*     Mail::to($hrHeadEmails)->send( */
-            /*         new ExitInterviewSubmittedMail( */
-            /*             $exitInterview, */
-            /*             $employee, */
-            /*             url('exit-interviews/'.$exitInterview->id) */
-            /*         ) */
-            /*     ); */
-            /* } catch (\Throwable $exception) { */
-            /*     \Log::warning('Exit interview submitted but HR Head email notification failed: ' . $exception->getMessage()); */
-            /* } */
+            try {
+                Mail::to($hrHeadEmails)->send(
+                    new ExitInterviewSubmittedMail(
+                        $exitInterview,
+                        $employee,
+                        url('exit-interviews/'.$exitInterview->id)
+                    )
+                );
+            } catch (\Throwable $exception) {
+                \Log::warning('Exit interview submitted but HR Head email notification failed: ' . $exception->getMessage());
+            }
         } else {
             \Log::warning('Exit interview submitted but no active HR Head work email was found.');
         }
@@ -606,11 +598,19 @@ class ExitInterviewController extends Controller {
                 ->whereRaw('LOWER(TRIM(recipient_email)) = ?', [$submittedEmail]);
 
             if ($firstName !== '') {
-                $query->whereRaw('LOWER(TRIM(first_name)) = ?', [$firstName]);
+                $query->where(function ($nameQuery) use ($firstName) {
+                    $nameQuery->whereNull('first_name')
+                        ->orWhereRaw("TRIM(first_name) = ''")
+                        ->orWhereRaw('LOWER(TRIM(first_name)) = ?', [$firstName]);
+                });
             }
 
             if ($lastName !== '') {
-                $query->whereRaw('LOWER(TRIM(last_name)) = ?', [$lastName]);
+                $query->where(function ($nameQuery) use ($lastName) {
+                    $nameQuery->whereNull('last_name')
+                        ->orWhereRaw("TRIM(last_name) = ''")
+                        ->orWhereRaw('LOWER(TRIM(last_name)) = ?', [$lastName]);
+                });
             }
 
             $query->update([

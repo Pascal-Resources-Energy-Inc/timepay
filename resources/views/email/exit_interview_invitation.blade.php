@@ -128,8 +128,14 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="content-td" style="padding:12px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; line-height:1.6; color:#374151;">
-                                        Please take a few minutes to complete your exit interview. Your honest feedback will help us better understand your experience and identify opportunities for improvement. Your individual responses are treated as confidential, and will not become part of our personnel file.</td>
+                                    <td class="content-td" style="padding:12px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; line-height:21px; mso-line-height-rule:exactly; color:#374151;">
+                                        Please take a few minutes to complete your exit interview. Your honest feedback will help us better understand your experience and identify opportunities for improvement. Your individual responses are treated as confidential, and will not become part of our personnel file.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="content-td" style="padding:10px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; line-height:21px; mso-line-height-rule:exactly; color:#374151;">
+                                        Please note that completing the Exit Interview is required as part of the employee clearance process.
+                                    </td>
                                 </tr>
                             </table>
 
@@ -160,13 +166,21 @@
                                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb; background-color:#f0f7ff; border-left:4px solid #59c2e5;">
                                             <tr>
                                                 <td class="box-pad" style="padding:14px 16px; font-family:Helvetica, Arial, sans-serif; font-size:12px; line-height:1.6; color:#475569;">
-                                                    Use the Internal link if you can sign in to your HERA account. If you no longer have access to HERA, use the public link.
-                                                    <span style="display:block; margin-top:8px; color:#475569; word-break:break-all;">
-                                                        <strong>Internal (HERA) - </strong><a href="{{ $internalInvitationUrl }}" target="_blank" style="color:#0369a1;">{{ $internalInvitationUrl }}</a>
-                                                    </span>
-                                                    <span style="display:block; margin-top:8px; color:#475569; word-break:break-all;">
-                                                        <strong>Public link - </strong><a href="{{ $invitationUrl }}" target="_blank" style="color:#0369a1;">{{ $invitationUrl }}</a>
-                                                    </span>
+                                                    Use the Internal link for HERA access or the Public link if access is unavailable.
+                                                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:6px;">
+                                                        <tr>
+                                                            <td style="padding:0; font-family:Helvetica, Arial, sans-serif; font-size:12px; line-height:1.6; color:#475569;">
+                                                                <strong>Internal link (HERA):</strong>
+                                                                <a href="{{ $internalInvitationUrl }}" target="_blank" style="color:#0369a1; text-decoration:underline; word-break:break-all;">{{ $internalInvitationUrl }}</a>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding:3px 0 0 0; font-family:Helvetica, Arial, sans-serif; font-size:12px; line-height:1.6; color:#475569;">
+                                                                <strong>Public link:</strong>
+                                                                <a href="{{ $invitationUrl }}" target="_blank" style="color:#0369a1; text-decoration:underline; word-break:break-all;">{{ $invitationUrl }}</a>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
                                                 </td>
                                             </tr>
                                         </table>
@@ -174,11 +188,21 @@
                                 </tr>
                             </table>
 
+                            <!-- COE REQUEST -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td style="padding:14px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:13px; line-height:20px; mso-line-height-rule:exactly; color:#475569;">
+                                        To request a Certificate of Employment (COE), you can use this form
+                                        <a href="{{ url('/coe-request') }}" target="_blank" style="color:#0369a1; text-decoration:underline;">COE Request Form</a>.
+                                    </td>
+                                </tr>
+                            </table>
+
                             <!-- FOOTER -->
-                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px; border-top:1px solid #efefef;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #efefef;">
                                 <tr>
                                     <td class="foot-td" style="padding:16px 24px 24px 24px; font-family:Helvetica, Arial, sans-serif; font-size:12px; line-height:1.6; color:#888888; text-align:center;">
-                                        This is an automated notification from the HERA system. Please do not reply to this email. If you received it by mistake, contact Human Resources.
+                                        This is an automated notification email. For your questions or assistance, reply to this email.
                                     </td>
                                 </tr>
                             </table>

@@ -12,11 +12,13 @@ class ExitInterviewInvitationMail extends Mailable {
     public $employee;
     public $invitationUrl;
     public $internalInvitationUrl;
+    public $replyToEmail;
 
-    public function __construct($recipient, $invitationUrl, $internalInvitationUrl = null) {
+    public function __construct($recipient, $invitationUrl, $internalInvitationUrl = null, $replyToEmail = null) {
         $this->employee = $recipient;
         $this->invitationUrl = $invitationUrl;
         $this->internalInvitationUrl = $internalInvitationUrl ?: url('/exit-interviews/create');
+        $this->replyToEmail = $replyToEmail;
     }
 
     public function build() {
@@ -26,8 +28,14 @@ class ExitInterviewInvitationMail extends Mailable {
             $subject .= ' | ' . $this->employee->employee_number;
         }
 
-        return $this
+        $mail = $this
             ->subject($subject)
             ->view('email.exit_interview_invitation');
+
+        if (!empty($this->replyToEmail)) {
+            $mail->replyTo($this->replyToEmail, 'HR Head');
+        }
+
+        return $mail;
     }
 }

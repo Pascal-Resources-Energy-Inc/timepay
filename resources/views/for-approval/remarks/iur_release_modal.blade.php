@@ -12,7 +12,11 @@
             <form method="POST" action="release-iur/{{$form_approval->id}}" onsubmit="return validateRelease(this, 'btnRelease');">
                 @csrf
                 <div class="modal-body pt-3">
-                    @if(in_array($form_approval->request_for, ['Uniform', 'Both']))
+                    @if(
+                        in_array($form_approval->request_for, ['Uniform', 'Both'], true) 
+                        && !(optional(auth()->user()->employee)->location === 'Pasig - Head Office' 
+                        && $form_approval->work_location === 'Plant')
+                    )
                     <div class="card border shadow-xs mb-3">
                         <div class="card-header bg-light py-2 rounded-top">
                             <h6 class="mb-0 font-weight-bold">

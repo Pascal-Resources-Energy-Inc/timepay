@@ -72,12 +72,12 @@
                   [
                     'label' => 'COE Request',
                     'url' => url('/external/coe-request'),
-                    'icon' => 'bi-file-earmark-text',
+                    'icon' => 'ti-file',
                   ],
                   [
                   'label' => 'Marketing Material Release',
                   'url' => route('marketing-material-releases.public.create'),
-                  'icon' => 'bi-megaphone',
+                  'icon' => 'ti-announcement',
                   ],
                 ];
                 $visibleQuickLinks = array_slice($quickLinks, 0, 2);
@@ -89,9 +89,9 @@
                 <div class="quick-links-list">
                   @foreach($visibleQuickLinks as $quickLink)
                     <a class="quick-link" href="{{ $quickLink['url'] }}">
-                      <i class="bi {{ $quickLink['icon'] }}" aria-hidden="true"></i>
+                      <i class="{{ $quickLink['icon'] }} quick-link-icon" aria-hidden="true"></i>
                       <span>{{ $quickLink['label'] }}</span>
-                      <i class="bi bi-chevron-right quick-link-chevron" aria-hidden="true"></i>
+                      <i class="ti-angle-right quick-link-chevron" aria-hidden="true"></i>
                     </a>
                   @endforeach
 
@@ -99,9 +99,9 @@
                     <div class="collapse" id="quick-links-more">
                       @foreach($collapsedQuickLinks as $quickLink)
                         <a class="quick-link" href="{{ $quickLink['url'] }}">
-                          <i class="bi {{ $quickLink['icon'] }}" aria-hidden="true"></i>
+                          <i class="{{ $quickLink['icon'] }} quick-link-icon" aria-hidden="true"></i>
                           <span>{{ $quickLink['label'] }}</span>
-                          <i class="bi bi-chevron-right quick-link-chevron" aria-hidden="true"></i>
+                          <i class="ti-angle-right quick-link-chevron" aria-hidden="true"></i>
                         </a>
                       @endforeach
                     </div>
@@ -115,7 +115,7 @@
                     >
                       <span class="quick-links-toggle-more">Show {{ count($collapsedQuickLinks) }} more links</span>
                       <span class="quick-links-toggle-less">Show fewer links</span>
-                      <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                      <i class="ti-angle-down" aria-hidden="true"></i>
                     </button>
                   @endif
                 </div>
@@ -287,16 +287,16 @@
     color: #263746;
     font-size: 0.875rem;
     line-height: 1.3;
-    text-decoration: none;
+    text-decoration: none !important;
     transition: background-color 0.15s ease, color 0.15s ease;
   }
   .quick-link:hover,
   .quick-link:focus {
     background: #f5f8f6;
-    color: #111827;
+    color: #0099ff;
     text-decoration: none;
   }
-  .quick-link .bi {
+  .quick-link .quick-link-icon {
     flex: 0 0 auto;
     width: 1.25rem;
     color: #6f8b7f;
@@ -305,6 +305,7 @@
   }
   .quick-link span {
     flex: 1 1 auto;
+    text-decoration: underline;
   }
   .quick-link .quick-link-chevron {
     width: auto;
@@ -341,10 +342,10 @@
   .quick-links-toggle.collapsed .quick-links-toggle-less {
     display: none;
   }
-  .quick-links-toggle .bi {
+  .quick-links-toggle .ti-angle-down {
     transition: transform 0.15s ease;
   }
-  .quick-links-toggle:not(.collapsed) .bi {
+  .quick-links-toggle:not(.collapsed) .ti-angle-down {
     transform: rotate(180deg);
   }
 </style>

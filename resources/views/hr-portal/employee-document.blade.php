@@ -60,7 +60,7 @@
   </div>
 
   @foreach ($employee as $emp)
-    @include('hr-portal.edit-employee-document')
+    @include('hr-portal.edit-employee-document', ['documentEmployeeId' => $emp->id])
     @include('hr-portal.view-employee-document')
   @endforeach
 @endsection

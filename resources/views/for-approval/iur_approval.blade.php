@@ -161,7 +161,7 @@
             </form>
 
             {{-- Bulk Actions --}}
-            @if($approvers && (empty($status) || $status !== 'Pending') && optional(auth()->user()->employee)->location !== 'Lubao Office')
+            @if($approvers && optional(auth()->user()->employee)->location !== 'Lubao Office')
             <div class="mb-3">
             @php
                 $releasedNotPrintedCount = released_unprinted_iur_count(auth()->id());
@@ -169,7 +169,7 @@
                 $printedUnreleasedCount = printed_unreleased_iur_count(auth()->id());
             @endphp
               <label>
-                  <button class="btn btn-light border btn-sm" onclick="window.open('/batch-print-form', '_blank')">
+                  <button class="btn btn-info border btn-sm" onclick="window.open('/batch-print-form', '_blank')">
                       <i class="bi bi-person-badge"></i> Print ID
                     @if ($releasedNotPrintedCount > 0)
                         <span class="badge badge-warning ml-1">
@@ -177,7 +177,7 @@
                         </span>
                     @endif
                     @if ($printedUnreleasedCount > 0)
-                        <span class="badge badge-info ml-1">
+                        <span class="badge badge-danger ml-1">
                             {{ $printedUnreleasedCount }}
                         </span>
                     @endif

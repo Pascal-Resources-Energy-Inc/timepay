@@ -86,9 +86,9 @@
             }
             if (showID && (!useAcc || accData.id)) {
                 if (useAcc) {
-                    rows += '<tr>' + (uniformRowRendered ? '' : '<td style="vertical-align: middle;">' + department + '</td>') + '<td>ID</td><td>PRE - ' + employeeCode + '</td><td>' + accRef + '</td></tr>';
+                    rows += '<tr>' + (uniformRowRendered ? '' : '<td style="vertical-align: middle;">' + department + '</td>') + '<td>ID</td><td>PREI - ' + employeeCode + '</td><td>' + accRef + '</td></tr>';
                 } else {
-                    rows += '<tr>' + (uniformRowRendered ? '' : '<td style="vertical-align: middle;">' + department + '</td>') + '<td>ID</td><td>PRE - ' + employeeCode + '</td><td>' + accRef + '</td></tr>';
+                    rows += '<tr>' + (uniformRowRendered ? '' : '<td style="vertical-align: middle;">' + department + '</td>') + '<td>ID</td><td>PREI - ' + employeeCode + '</td><td>' + accRef + '</td></tr>';
                 }
             }
             return rows;

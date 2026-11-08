@@ -183,7 +183,12 @@
     <!--   </div> -->
     <!-- </div> -->
 
-    @if (optional(auth()->user()->employee)->position === 'HR Head')
+    @php
+      $isHrHead = optional(auth()->user()->employee)->position === 'HR Head';
+      $canImportLegacyExitInterviews = $isHrHead || auth()->id() === 856;
+    @endphp
+
+    @if ($isHrHead)
       <div class="modal fade" id="sendExitInterviewLinkModal" tabindex="-1" role="dialog" aria-labelledby="sendExitInterviewLinkModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
           <form method="post" action="{{ route('exit-interview.invitation.send') }}" onsubmit="show()">
@@ -239,7 +244,9 @@
           </form>
         </div>
       </div>
+    @endif
 
+    @if ($canImportLegacyExitInterviews)
       <div class="modal fade" id="importLegacyExitInterviewsModal" tabindex="-1" role="dialog" aria-labelledby="importLegacyExitInterviewsModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
           <form method="post" action="{{ route('exit-interviews.import.preview') }}" enctype="multipart/form-data" onsubmit="show()">
@@ -325,11 +332,13 @@
                         && is_null($document->retracted_at);
                     });
                 @endphp
-                @if (optional(auth()->user()->employee)->position === 'HR Head')
+                @if ($isHrHead)
                   <button type="button" class="btn btn-outline-info d-flex align-items-center btn-sm mr-2 mb-1" data-toggle="modal" data-target="#sendExitInterviewLinkModal">
                     <i class="ti-email mr-2"></i>
                     Send Form Link
                   </button>
+                @endif
+                @if ($canImportLegacyExitInterviews)
                   <button type="button" class="btn btn-outline-success d-flex align-items-center btn-sm mr-2 mb-1" data-toggle="modal" data-target="#importLegacyExitInterviewsModal">
                     <i class="ti-upload mr-2"></i>
                     Import Legacy Data

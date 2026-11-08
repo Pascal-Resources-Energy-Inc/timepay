@@ -1390,7 +1390,7 @@ class EmployeeController extends Controller
 
         $employee->status = $request->status;
 
-        $employee->date_resigned = $request->status == 'Inactive' ? $request->date_resigned : null;
+        $employee->date_resigned = $request->status == 'Resigned' ? $request->date_resigned : null;
 
         $employee->save();
 

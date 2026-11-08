@@ -1835,37 +1835,99 @@
                           </div>
                           @php
                             $documentTypes = documentTypes();
+                            $separationLetter = $employeeDocuments->first(function ($document) {
+                              return (string) $document->document_type === '17';
+                            });
                           @endphp
-                          @foreach ($documentTypes as $key=>$docs)
-                            <div class="row">
-                              <div class="col-md-4 border border-1 border-secondary border-top-bottom border-left-right" style="width: 100%;">
-                                {{$docs}}
-                              </div>
-                                <div class="col-md-4 border border-1 border-secondary border-top-bottom border-left-right" style="width: 100%;">
+                          <div class="table-responsive employee-documents-wrap">
+                            <table class="table employee-documents-table mb-0">
+                              <thead>
+                                <tr>
+                                  <th>Document</th>
+                                  <th>Status</th>
+                                  <th>File</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                @foreach ($documentTypes as $key=>$docs)
                                   @php
-                                    $empty = false;
+                                    $document = $employeeDocuments->first(function ($item) use ($key) {
+                                      return (string) $item->document_type === (string) $key;
+                                    });
+                                    $isRetracted = $document
+                                      && (string) $key === '17'
+                                      && $document->retracted_at;
+                                    $retractedByEmployee = $isRetracted
+                                      ? optional($document->retractedBy)->employee
+                                      : null;
+                                    $retractedByName = $isRetracted
+                                      ? trim(optional($retractedByEmployee)->first_name . ' ' . optional($retractedByEmployee)->last_name)
+                                      : '';
+
+                                    if ($isRetracted && $retractedByName === '') {
+                                      $retractedByName = optional($document->retractedBy)->name ?: 'Unknown user';
+                                    }
                                   @endphp
-                                  @foreach ($employeeDocuments as $item)
-                                    @if($key == $item->document_type)
-                                      Passed
-                                      @php
-                                        $empty = true;
-                                      @endphp
-                                    @endif
-                                  @endforeach
-                                  @if(!$empty)
-                                    Not Yet Submitted
-                                  @endif
-                                </div>
-                              <div class="col-md-4 border border-1 border-secondary border-top-bottom border-left-right" style="width: 100%;">
-                                @foreach ($employeeDocuments as $item)
-                                  @if($key == $item->document_type)
-                                    <a href="{{url($item->file_path)}}" target="_blank">{{$item->file_name}}</a>
-                                  @endif
+                                  <tr class="{{ $isRetracted ? 'is-retracted' : '' }}">
+                                    <td data-label="Document">
+                                      <span class="employee-document-name">{{ $docs }}</span>
+                                    </td>
+                                    <td data-label="Status">
+                                      @if (!$document)
+                                        <span class="employee-document-status is-pending">
+                                          <i class="fa fa-clock-o" aria-hidden="true"></i>
+                                          Not Yet Submitted
+                                        </span>
+                                      @elseif ($isRetracted)
+                                        <span class="employee-document-status is-retracted">
+                                          Retracted
+                                        </span>
+                                        <small class="employee-document-meta">
+                                          By {{ $retractedByName }} &middot; {{ $document->retracted_at->format('M d, Y g:i A') }}
+                                        </small>
+                                      @else
+                                        <span class="employee-document-status is-passed">
+                                          <i class="fa fa-check-circle" aria-hidden="true"></i>
+                                          Passed
+                                        </span>
+                                      @endif
+                                    </td>
+                                    <td data-label="File">
+                                      @if ($document)
+                                        <div class="employee-document-file-actions">
+                                          <a href="{{ url($document->file_path) }}"
+                                            target="_blank"
+                                            rel="noopener"
+                                            class="employee-document-file"
+                                            title="View {{ $document->file_name }}">
+                                            <i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+                                            <span>{{ $document->file_name }}</span>
+                                          </a>
+
+                                          <!-- show only if there's an attachment, isn't retracted, and it's not inactive yet -->
+                                          @if ((string) $key === '17' 
+                                               && !$isRetracted 
+                                               && optional($user->employee)->status === 'Resigned' 
+                                               && checkUserPrivilege('employees_edit', auth()->user()->id) === 'yes'
+                                               )
+                                            <button type="button"
+                                              class="btn btn-sm btn-outline-danger employee-document-retract"
+                                              data-toggle="modal"
+                                              data-target="#retractSeparationLetterModal">
+                                              <i class="fa fa-undo mr-1" aria-hidden="true"></i>
+                                              Retract
+                                            </button>
+                                          @endif
+                                        </div>
+                                      @else
+                                        <span class="text-muted">&mdash;</span>
+                                      @endif
+                                    </td>
+                                  </tr>
                                 @endforeach
-                              </div>
-                            </div>
-                          @endforeach
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1892,6 +1954,43 @@
         </div>
     </div>
 </div>
+
+@if ($separationLetter && !$separationLetter->retracted_at && checkUserPrivilege('employees_edit', auth()->user()->id) === 'yes')
+<div class="modal fade" id="retractSeparationLetterModal" tabindex="-1" role="dialog" aria-labelledby="retractSeparationLetterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 employee-document-confirmation">
+            <form method="POST" action="{{ route('employee-documents.retract', $separationLetter->id) }}" onsubmit="show()">
+                @csrf
+                <div class="modal-header border-0">
+                    <div class="d-flex align-items-center">
+                            <h5 class="modal-title mb-1" id="retractSeparationLetterModalLabel">Retract</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-danger" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pt-3">
+                    <p class="mb-3">
+                        The document will remain available, but
+                        <strong>{{ $user->employee->first_name }} {{ $user->employee->last_name }}</strong>
+                        will no longer be able to access or submit the Exit Interview form.
+                    </p>
+                    <div class="employee-document-confirmation-file">
+                        <i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+                        <span>{{ $separationLetter->file_name }}</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light border" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        Retract
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 
 @if ($idPictureIur)
 <div class="modal fade" id="editIdPicture" tabindex="-1" role="dialog" aria-labelledby="editIdPictureLabel" aria-hidden="true">
@@ -1959,6 +2058,151 @@
     }
     .tab-employee {
         padding: 10px;
+    }
+    .employee-documents-wrap {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+    }
+    .employee-documents-table thead th {
+        border-top: 0;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f8fafc;
+        color: #475569;
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+    .employee-documents-table td {
+        border-color: #edf2f7;
+        padding: .85rem 1rem;
+        vertical-align: middle;
+    }
+    .employee-documents-table tr.is-retracted {
+        background: #fffafa;
+    }
+    .employee-document-name {
+        color: #1f2937;
+        font-weight: 600;
+    }
+    .employee-document-status {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        font-size: .875rem;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+    .employee-document-status.is-passed {
+        color: #15803d;
+    }
+    .employee-document-status.is-pending {
+        color: #64748b;
+    }
+    .employee-document-status.is-retracted {
+        color: #b42318;
+    }
+    .employee-document-meta {
+        display: block;
+        margin-top: .25rem;
+        color: #64748b;
+        line-height: 1.45;
+    }
+    .employee-document-file-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        min-width: 0;
+    }
+    .employee-document-file {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        min-width: 0;
+    }
+    .employee-document-file span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .employee-document-retract {
+        flex-shrink: 0;
+    }
+    .employee-document-confirmation {
+        border-radius: 14px;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, .18);
+    }
+    .employee-document-confirmation-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        margin-right: .75rem;
+        border-radius: 50%;
+        background: #fff1f2;
+        color: #be123c;
+        flex-shrink: 0;
+    }
+    .employee-document-confirmation-file {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        padding: .75rem 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #f8fafc;
+        color: #475569;
+        overflow-wrap: anywhere;
+    }
+    @media (max-width: 767.98px) {
+        .employee-documents-table thead {
+            display: none;
+        }
+        .employee-documents-table,
+        .employee-documents-table tbody,
+        .employee-documents-table tr,
+        .employee-documents-table td {
+            display: block;
+            width: 100%;
+        }
+        .employee-documents-table tr {
+            padding: .75rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .employee-documents-table tr:last-child {
+            border-bottom: 0;
+        }
+        .employee-documents-table td {
+            padding: .35rem 0;
+            border: 0;
+        }
+        .employee-documents-table td::before {
+            content: attr(data-label);
+            display: block;
+            margin-bottom: .2rem;
+            color: #94a3b8;
+            font-size: .7rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+        .employee-document-file-actions {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+        .employee-document-retract {
+            width: 100%;
+        }
+        .employee-document-confirmation .modal-footer {
+            align-items: stretch;
+            flex-direction: column-reverse;
+        }
+        .employee-document-confirmation .modal-footer .btn {
+            width: 100%;
+            margin: .25rem 0;
+        }
     }
 </style>
 
@@ -2079,7 +2323,7 @@ $(document).on('submit', '.policy-form', function(e){
 @include('employee_benefits.add_employee_benefits')
 @include('hr-portal.new-training')
 @include('hr-portal.new-nte')
-@include('hr-portal.edit-employee-document')
+@include('hr-portal.edit-employee-document', ['documentEmployeeId' => $user->employee->id])
 @include('employees.edit_employee_no_modal')
 @include('employees.edit_bank_details')
 @endsection

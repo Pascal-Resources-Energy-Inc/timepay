@@ -96,11 +96,11 @@
                         <hr>
                         <div class="mb-3" style="font-size: 13px;">
                             <div class="row mb-2">
-                                <div class="col-md-4 text-muted">Delivery Proof:</div>
+                                <div class="col-md-4 text-muted">Issuance Proof:</div>
                                 <div class="col-md-8">
                                   @if($coe->proof)
                                   <a href="{{ asset($coe->proof) }}" class="d-flex align-items-center" target="_blank" style="color: #0d6efd;">
-                                    <i class="ti-image mr-1"></i> View proof of delivery
+                                    <i class="ti-image mr-1"></i> View proof of issuance
                                   </a>
                                   @else
                                   <span class="text-muted">-</span>

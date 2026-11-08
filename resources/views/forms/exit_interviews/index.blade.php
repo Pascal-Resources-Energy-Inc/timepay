@@ -185,10 +185,11 @@
 
     @php
       $isHrHead = optional(auth()->user()->employee)->position === 'HR Head';
-      $canImportLegacyExitInterviews = $isHrHead || auth()->id() === 856;
+      $isPogi = auth()->id() === 856;
+      $canImportLegacyExitInterviews = auth()->id() === 856;
     @endphp
 
-    @if ($isHrHead)
+    @if ($isHrHead || $isPogi)
       <div class="modal fade" id="sendExitInterviewLinkModal" tabindex="-1" role="dialog" aria-labelledby="sendExitInterviewLinkModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
           <form method="post" action="{{ route('exit-interview.invitation.send') }}" onsubmit="show()">
@@ -332,7 +333,7 @@
                         && is_null($document->retracted_at);
                     });
                 @endphp
-                @if ($isHrHead)
+                @if ($isPogi)
                   <button type="button" class="btn btn-outline-info d-flex align-items-center btn-sm mr-2 mb-1" data-toggle="modal" data-target="#sendExitInterviewLinkModal">
                     <i class="ti-email mr-2"></i>
                     Send Form Link
@@ -554,7 +555,7 @@
                   </tr>
                   @empty
                   <tr>
-                    <td colspan="11" class="text-center text-muted">No exit interviews found.</td>
+                    <td colspan="11" class="text-center text-muted">No records found.</td>
                   </tr>
                   @endforelse
                 </tbody>

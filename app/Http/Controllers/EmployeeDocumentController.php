@@ -64,7 +64,9 @@ class EmployeeDocumentController extends Controller {
 
     public function upload(Request $request) {
         $request->validate([
-            'file' => 'required|file|mimes:pdf|max:2048'
+            'file' => 'required|mimes:pdf|max:2048',
+            'employee_id' => 'bail|required|integer|exists:employees,id',
+            'document_type' => 'required',
         ]);
 
         $employeeDocument = EmployeeDocument::where('employee_id', $request->employee_id)

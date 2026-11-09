@@ -519,12 +519,33 @@
                             <span class="menu-title">Incident Report</span>
                         </a>
                     </li>
-                    <li class="nav-item @if (request()->is('compenben/requests*')) active @endif">
+                    <li class="nav-item @if (request()->is('compenben/requests*')) active @endif" title="Compensation and Benefits">
                         <a class="nav-link" href="{{ route('compenben.index') }}" onclick='show()'>
                             <i class="ti-clipboard menu-icon"></i>
                             <span class="menu-title">CompenBen Report</span>
                         </a>
                     </li>
+                    @php 
+                        $viewer = [
+                            'President',
+                            'Human Resource Assistant',
+                            'Recruitment Supervisor', 
+                            'HR Head',
+                            'Organizational Development - HR Assistant',
+                            'Audit Head / PQD Head',
+                            'VP - Marketing and Branding',
+                            'VP - Business Development',
+                            'IT Systems Developer (Junior)'
+                        ];
+                    @endphp
+                    @if (in_array(auth()->user()->employee->position, $viewer, true))
+                    <li class="nav-item "> 
+                        <a class="nav-link" href="/exit-interviews" title="Exit Interview Reports">
+                            <i class="ti-comments menu-icon"></i>
+                            <span class="menu-title">Exit Interview Report</span>
+                        </a>
+                    </li>
+                    @endif
 
                     @if(count(auth()->user()->employee->as_resign) > 0)
                     <li class="nav-item">

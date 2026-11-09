@@ -2707,18 +2707,13 @@ class FormApprovalController extends Controller
 
         if (!$result['valid']) {
             Alert::error(
-                'One or more ID requests could not be confirmed.'
+                'The selected ID requests could not be confirmed. Please refresh the page and try again.'
             )->persistent('Dismiss');
 
             return redirect('/batch-print-form');
         }
 
-        $message = $result['updated'] . ' ID(s) marked as printed.';
-
-        if ($result['skipped'] > 0) {
-            $message .= ' ' . $result['skipped']
-                . ' imported ID(s) were printed without updating print tracking.';
-        }
+        $message = 'Print completed successfully.';
 
         Alert::success($message)->persistent('Dismiss');
 

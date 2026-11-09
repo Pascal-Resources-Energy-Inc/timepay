@@ -370,13 +370,13 @@
 
                                                 <!-- released but not printed yet -->
                                                 @elseif ($isReleased && !$isPrinted)
-                                                    <span class="badge badge-warning">
+                                                    <span class="badge badge-danger">
                                                         Not Printed & Released
                                                     </span>
 
                                                 <!-- printed but not released yet -->
                                                 @elseif ($isPrinted && !$isReleased)
-                                                    <span class="badge badge-info">
+                                                    <span class="badge badge-warning">
                                                         Awaiting for Release - Printed
                                                     </span>
 

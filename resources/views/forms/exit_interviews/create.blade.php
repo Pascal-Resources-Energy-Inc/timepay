@@ -4,9 +4,6 @@
   <div class="content-wrapper">
     <div class="row mb-3 align-items-center">
       <div class="col-md-6">
-        <h4 class="pt-3 mb-0 font-weight-bold">
-          Exit Interview Form
-        </h4>
       </div>
       <div class="col-md-6 text-right">
         <a href="{{ url('exit-interviews') }}" class="btn btn-outline-secondary btn-sm">
@@ -31,6 +28,15 @@
               @if (session('error'))
               <div class="alert alert-danger">{{ session('error') }}</div>
               @endif
+
+              <div class="d-inline-block mb-1" style="width: fit-content;">
+                  <h4 class="card-title mb-1">Exit Interview</h4>
+                  <div class="d-flex">
+                      <div class="w-100" style="border-top: 3px solid #59c2e5;"></div>
+                      <div class="w-100" style="border-top: 3px solid #fe0001;"></div>
+                  </div>
+                  <p class="text-gray-500">HRD-TAD-FOR-010-001</p>
+              </div>
 
               <div class="alert alert-info">
                 <i class="ti-info-alt mr-1"></i>

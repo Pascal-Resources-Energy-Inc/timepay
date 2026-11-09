@@ -85,12 +85,13 @@
   }
 
   .exit-interviews-page .exit-interview-search {
-    margin-left: auto;
+    align-self: flex-start;
   }
 
   .exit-interviews-page .exit-interview-search .dataTables_filter {
+    float: none !important;
     margin: 0;
-    text-align: left;
+    text-align: left !important;
   }
 
   .exit-interviews-page .exit-interview-search .dataTables_filter label {
@@ -567,18 +568,14 @@
     </div>
   </div>
 </div>
-<script>
-  $('#exitInterviewTable').on('init.dt', function (event, settings) {
-    $(settings.nTableWrapper)
-      .find('.dataTables_filter')
-      .appendTo('#exitInterviewSearch');
-  });
-</script>
 @endsection
 
 @section('js')
 <script>
   $(function () {
+    $('#exitInterviewTable_wrapper .dataTables_filter')
+      .appendTo('#exitInterviewSearch');
+
     var modal = $('#sendExitInterviewLinkModal');
 
     @if ($errors->has('recipient_email'))

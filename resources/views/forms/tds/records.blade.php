@@ -229,7 +229,7 @@
                                     </div>
                                     <div class="tds-filter-actions">
                                         <button type="submit" class="btn btn-primary btn-sm">Apply filters</button>
-                                        <a href="{{ route('tds.records') }}" class="d-flex align-items-center justify-content-center btn btn-outline-info btn-sm">Reset</a>
+                                        <a href="{{ route('tds.records') }}" class="d-flex align-items-center justify-content-center btn btn-info btn-sm">Reset</a>
                                     </div>
                                 </div>
                             </form>
@@ -246,7 +246,7 @@
                                        form="filterForm"
                                        placeholder="Customer, business, or employee" />
                             </div>
-                            <button type="button" class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center" id="exportBtn">
+                            <button type="button" class="btn btn-success btn-sm d-flex align-items-center justify-content-center" id="exportBtn">
                                 <i class="ti-download mr-1"></i> Export CSV
                             </button>
                         </div>

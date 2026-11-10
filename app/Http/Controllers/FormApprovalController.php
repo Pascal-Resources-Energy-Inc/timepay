@@ -5274,18 +5274,18 @@ class FormApprovalController extends Controller
 
         $validated = $request->validate([
             'priority_level' => 'required|in:' . implode(',', LayoutDesign::PRIORITY_LEVELS),
-            'due_date' => 'required|date_format:Y-m-d\TH:i|after_or_equal:now',
+            'due_date' => 'required|date_format:Y-m-d|after_or_equal:today',
             'additional_notes' => 'nullable|string',
             'remarks' => 'nullable|string',
         ], [
             'priority_level.required' => 'Select a priority level before approving this request.',
             'priority_level.in' => 'Select a valid priority level.',
             'due_date.required' => 'Set a due date before approving this request.',
-            'due_date.after_or_equal' => 'The date must be today or a future date',
-            'due_date.date_format' => 'Enter a valid due date and time.',
+            'due_date.after_or_equal' => 'The date must be today or a future date.',
+            'due_date.date_format' => 'Enter a valid due date.',
         ]);
 
-        $dueDate = Carbon::createFromFormat('Y-m-d\TH:i', $validated['due_date']);
+        $dueDate = Carbon::createFromFormat('Y-m-d', $validated['due_date'])->startOfDay();
         $isRefurbishedStoreSignage = in_array(
             'Refurbished Store Signage (P5,000)',
             (array) $ldr->marketing_collateral_type,
@@ -5307,20 +5307,15 @@ class FormApprovalController extends Controller
             return $date;
         };
 
-        $minorStartDate = $workingDateFromToday(1)->startOfDay();
-        $minorEndDate = $workingDateFromToday(3)->endOfDay();
+        $minorDueDate = $workingDateFromToday(3);
 
         if (
             !$isRefurbishedStoreSignage
             && $validated['priority_level'] === 'Minor'
-            && (
-                $dueDate->lt($minorStartDate)
-                || $dueDate->gt($minorEndDate)
-                || $dueDate->isWeekend()
-            )
+            && !$dueDate->isSameDay($minorDueDate)
         ) {
             return back()->withErrors([
-                'due_date' => 'Minor requests must be due within 1 to 3 working days, excluding Saturday and Sunday.',
+                'due_date' => 'Minor requests must be due on the 3rd working day, excluding Saturday and Sunday.',
             ])->withInput();
         }
 

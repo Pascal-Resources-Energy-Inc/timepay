@@ -53,6 +53,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('sales:generate-monthly')->monthlyOn(1, '00:10'); // every 1st day of month 12:10AM
         /* $schedule->command('iur:remind-pending')->dailyAt('09:00'); */
         $schedule->command('coe:remind-pending')->dailyAt('09:00')->withoutOverlapping();
+        $schedule->command('ldr:send-deadline-reminders')
+            ->dailyAt('09:00')
+            ->withoutOverlapping();
         /* $schedule->command('bmc:send-return-due-reminders') */
         /*     ->dailyAt('08:00') */
         /*     ->withoutOverlapping(); */

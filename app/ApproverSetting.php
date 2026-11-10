@@ -41,6 +41,9 @@ class ApproverSetting extends Model implements Auditable
 
     public static function getFormTypes()
     {
+        // 'bmc' => 'Borrowing Marketing Collateral',
+        // 'pr' => 'Publication Request',
+        // 'ada' => 'Area Distributorship Application',
         return [
             'leave' => 'Leaves',
             'ot' => 'Overtime',
@@ -51,6 +54,7 @@ class ApproverSetting extends Model implements Auditable
             'coe' => 'COE Request',
             'uir' => 'Uniform and ID Request',
             'mta' => 'Monetized Transportation Allowance',
+            'ldr' => 'Layout Design Request',
         ];
     }
     

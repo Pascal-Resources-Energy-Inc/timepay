@@ -2666,7 +2666,7 @@ class FormApprovalController extends Controller
 
         $references = $validated['refs'];
 
-        $updatedCount = \DB::transaction(function () use ($references) {
+        $result = \DB::transaction(function () use ($references) {
             $iurs = IUR::whereIn('iur_reference', $references)
                 ->whereIn('request_for', ['ID', 'Both'])
                 ->lockForUpdate()
@@ -2674,31 +2674,48 @@ class FormApprovalController extends Controller
 
             // Prevent a partial update if an invalid request was included.
             if ($iurs->count() !== count($references)) {
-                return 0;
+                return [
+                    'valid' => false,
+                    'updated' => 0,
+                    'skipped' => 0,
+                ];
             }
 
+            $updatedCount = 0;
+            $skippedCount = 0;
+
             foreach ($iurs as $iur) {
+                if ($iur->status === 'From Import') {
+                    $skippedCount++;
+                    continue;
+                }
+
                 $iur->id_printed_at = now();
                 $iur->id_print_count =
                     ((int) $iur->id_print_count) + 1;
 
                 $iur->save();
+                $updatedCount++;
             }
 
-            return $iurs->count();
+            return [
+                'valid' => true,
+                'updated' => $updatedCount,
+                'skipped' => $skippedCount,
+            ];
         });
 
-        if ($updatedCount !== count($references)) {
+        if (!$result['valid']) {
             Alert::error(
-                'One or more ID requests could not be confirmed.'
+                'The selected ID requests could not be confirmed. Please refresh the page and try again.'
             )->persistent('Dismiss');
 
             return redirect('/batch-print-form');
         }
 
-        Alert::success(
-            $updatedCount . ' ID(s) marked as printed.'
-        )->persistent('Dismiss');
+        $message = 'Print completed successfully.';
+
+        Alert::success($message)->persistent('Dismiss');
 
         return redirect('/batch-print-form');
     }
@@ -5024,19 +5041,15 @@ class FormApprovalController extends Controller
             return back();
         }
 
-        $filter_status = LayoutDesign::normalizeStatus(
-            isset($request->status)
-                ? $request->status
-                : LayoutDesign::STATUS_PENDING
-        );
+        $filter_status = isset($request->status)
+            ? $request->status
+            : LayoutDesign::STATUS_PENDING;
         $search = $request->input('search');
         $from = $request->input('from');
         $to = $request->input('to');
 
-        $query = LayoutDesign::with('pegSamples')->whereIn(
-            'status',
-            LayoutDesign::statusesForFilter($filter_status)
-        );
+        $query = LayoutDesign::with('pegSamples')
+            ->where('status', $filter_status);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -5057,14 +5070,8 @@ class FormApprovalController extends Controller
         $requests = $query->orderBy('submitted_at', 'DESC')->paginate(15);
 
         $pending = LayoutDesign::where('status', LayoutDesign::STATUS_PENDING)->count();
-        $approved = LayoutDesign::whereIn(
-            'status',
-            LayoutDesign::statusesForFilter(LayoutDesign::STATUS_APPROVED)
-        )->count();
-        $processed = LayoutDesign::whereIn(
-            'status',
-            LayoutDesign::statusesForFilter(LayoutDesign::STATUS_PROCESSED)
-        )->count();
+        $approved = LayoutDesign::where('status', LayoutDesign::STATUS_APPROVED)->count();
+        $processed = LayoutDesign::where('status', LayoutDesign::STATUS_PROCESSED)->count();
         $declined = LayoutDesign::where('status', LayoutDesign::STATUS_DECLINED)->count();
         $cancelled = LayoutDesign::where('status', LayoutDesign::STATUS_CANCELLED)->count();
 
@@ -5267,19 +5274,65 @@ class FormApprovalController extends Controller
 
         $validated = $request->validate([
             'priority_level' => 'required|in:' . implode(',', LayoutDesign::PRIORITY_LEVELS),
-            'due_date' => 'required|date_format:Y-m-d\TH:i|after_or_equal:now',
+            'due_date' => 'required|date_format:Y-m-d|after_or_equal:today',
+            'additional_notes' => 'nullable|string',
             'remarks' => 'nullable|string',
         ], [
             'priority_level.required' => 'Select a priority level before approving this request.',
             'priority_level.in' => 'Select a valid priority level.',
             'due_date.required' => 'Set a due date before approving this request.',
-            'due_date.after_or_equal' => 'The date must be today or a future date',
-            'due_date.date_format' => 'Enter a valid due date and time.',
+            'due_date.after_or_equal' => 'The date must be today or a future date.',
+            'due_date.date_format' => 'Enter a valid due date.',
         ]);
+
+        $dueDate = Carbon::createFromFormat('Y-m-d', $validated['due_date'])->startOfDay();
+        $isRefurbishedStoreSignage = in_array(
+            'Refurbished Store Signage (P5,000)',
+            (array) $ldr->marketing_collateral_type,
+            true
+        );
+
+        $workingDateFromToday = function ($numberOfDays) {
+            $date = now();
+            $workingDays = 0;
+
+            while ($workingDays < $numberOfDays) {
+                $date->addDay();
+
+                if (!$date->isWeekend()) {
+                    $workingDays++;
+                }
+            }
+
+            return $date;
+        };
+
+        $minorDueDate = $workingDateFromToday(3);
+
+        if (
+            !$isRefurbishedStoreSignage
+            && $validated['priority_level'] === 'Minor'
+            && !$dueDate->isSameDay($minorDueDate)
+        ) {
+            return back()->withErrors([
+                'due_date' => 'Minor requests must be due on the 3rd working day, excluding Saturday and Sunday.',
+            ])->withInput();
+        }
+
+        if (!$isRefurbishedStoreSignage && $validated['priority_level'] === 'Major') {
+            $majorDueDate = $workingDateFromToday(7);
+
+            if (!$dueDate->isSameDay($majorDueDate)) {
+                return back()->withErrors([
+                    'due_date' => 'Major requests must be due on the 7th working day, excluding Saturday and Sunday.',
+                ])->withInput();
+            }
+        }
 
         $ldr->status = LayoutDesign::STATUS_APPROVED;
         $ldr->priority_level = $validated['priority_level'];
-        $ldr->due_date = Carbon::createFromFormat('Y-m-d\TH:i', $validated['due_date']);
+        $ldr->due_date = $dueDate;
+        $ldr->additional_notes = $validated['additional_notes'] ?? null;
         if (!empty($validated['remarks'])) {
             $ldr->remarks = $validated['remarks'];
         }

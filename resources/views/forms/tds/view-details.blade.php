@@ -1,11 +1,11 @@
 @foreach($tdsRecords as $record)
 <div class="modal fade" id="viewDetails{{ $record->id }}" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
+    <div class="modal-content border-0">
       
       <div class="modal-header text-black">
         <h5 class="modal-title">Dealer Details - {{ $record->customer_name }}</h5>
-        <button type="button" class="close text-white" data-dismiss="modal">
+        <button type="button" class="btn-close btn-danger text-white" data-dismiss="modal">
           <span>&times;</span>
         </button>
       </div>
@@ -315,9 +315,7 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">
-          <i class="ti-close"></i> Close
-        </button>
+        <button type="button" class="btn btn-outline border" data-dismiss="modal">Close</button>
       </div>
 
     </div>

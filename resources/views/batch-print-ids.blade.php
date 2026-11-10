@@ -26,8 +26,13 @@
     }
 
     .id-card {
-        width: 2.362in;
-        height: 3.6in;
+        width: 2.185in !important;
+        min-width: 2.185in !important;
+        max-width: 2.185in !important;
+        min-height: 3.36in;
+        max-height: 3.36in;
+
+        flex: 0 0 2.220in !important;
     }
 
     .blue {
@@ -40,11 +45,22 @@
         position: absolute;
         left: 35%;
         bottom: 0;
+        width: 3in;
         transform-origin: left center;
         transform: rotate(-90deg);
-        white-space: nowrap;
+
+        white-space: normal;
+        overflow-wrap: anywhere;
+        line-height: 1.1;
+        font-size: 12.5px;
+
         color: white !important;
         margin: 0;
+    }
+
+    .position-long {
+        line-height: 1.1;
+        margin-left: 5px;
     }
 
     .id-row {
@@ -65,8 +81,13 @@
         }
 
         .id-card {
-            width: 2.362in;
-            height: 3.6in;
+            width: 2.185in !important;
+            min-width: 2.185in !important;
+            max-width: 2.185in !important;
+            min-height: 3.36in;
+            max-height: 3.36in;
+
+            flex: 0 0 2.220in !important;
         }
 
         .position {
@@ -112,18 +133,24 @@
 
             <!-- front id -->
             <div class="id-card flex border border-gray-600 overflow-hidden">
+                @php
+                    $designation = $iur->user->position ?? 'Designation';
+                    $isLongDesignation = mb_strlen($designation) > 30;
+                @endphp
                 <div class="w-[0.35in] shrink-0 blue">
-                    <p class="position">{{ $iur->user->position ?? 'Position' }}</p>
+                    <p class="position {{ $isLongDesignation ? 'position-long' : '' }}">
+                        {{ $designation }}
+                    </p>
                     <img src="/images/blue.png" class="w-full h-full object-cover" alt="blue">
                 </div>
 
                 <div class="flex flex-col w-full">
-                    <div class="flex flex-col flex-1 mx-auto gap-1 w-full px-2">
-                        <div class="m-auto mt-6 mx-3">
+                    <div class="flex flex-col flex-1 mx-auto w-full px-2">
+                        <div class="m-auto mt-3 mx-3">
                             <img src="/images/PASCAL_RESOURCES_ENERGY_INC.png" class="object-cover" alt="pascal_resources_energy_inc">
                         </div>
 
-                        <div class="mt-1 m-auto border border-gray-900 w-[0.9in] h-[0.9in] flex items-center justify-center overflow-hidden">
+                        <div class="mt-[-4px] m-auto border border-gray-900 w-[0.78in] h-[0.78in] flex items-center justify-center overflow-hidden">
                             @if($iur->id_picture)
                                 <img src="{{ asset($iur->id_picture) }}" class="w-full h-full object-cover" alt="photo">
                             @else
@@ -131,28 +158,28 @@
                             @endif
                         </div>
 
-                        <div class="mt-[-2px]">
+                        <div class="mb-[1.5]">
                             <p class="text-[#5BC2E7] text-sm text-center">{{ $iur->user->nick_name ?? 'N/A' }}</p>
                         </div>
 
-                        <div class="mt-[-4px]">
+                        <div class="">
                             <p class="text-[#DA291C] text-center text-[12px] font-semibold leading-tight">{{ $iur->user->first_name }} {{ $iur->user->last_name }}</p>
                         </div>
 
-                        <div class="mt-[-2px]">
+                        <div class="mt-[1.5]">
                             <p class="text-gray-800 font-semibold text-center text-[12px]">PREI - {{ $iur->user->employee_code ?? '' }}</p>
                         </div>
 
-                        <div class="flex flex-col gap-2 mt-auto mx-auto mb-1.5">
-                            <div class="mt-2">
-                                <p class="text-gray-900 font-bold text-[8.5px] leading-tight">Principal Office :</p>
-                                <p class="text-gray-900 font-bold text-[8.5px] leading-tight">Barangay San Isidro, Lubao, Pampanga</p>
-                                <p class="text-gray-900 font-bold text-[8.5px] leading-tight">Corporate Office:</p>
-                                <p class="text-gray-900 font-bold text-[8.5px] leading-tight">93 West Capitol Drive Barangay</p>
-                                <p class="text-gray-900 font-bold text-[8.5px] leading-tight">Kapitolyo, Pasig City</p>
+                        <div class="flex flex-col gap-2 mt-auto mx-auto mb-2.5">
+                            <div class="">
+                                <p class="text-gray-900 font-bold text-[8.3px] leading-tight">Principal Office :</p>
+                                <p class="text-gray-900 font-bold text-[8.3px] leading-tight">Barangay San Isidro, Lubao, Pampanga</p>
+                                <p class="text-gray-900 font-bold text-[8.3px] leading-tight">Corporate Office:</p>
+                                <p class="text-gray-900 font-bold text-[8.3px] leading-tight">93 West Capitol Drive Barangay</p>
+                                <p class="text-gray-900 font-bold text-[8.3px] leading-tight">Kapitolyo, Pasig City</p>
                             </div>
                             <div class="mt-auto">
-                                <p class="text-gray-900 font-bold text-center text-[9px]">(632) 8244-1784</p>
+                                <p class="text-gray-900 font-bold text-center text-[8.3px]">(632) 8244-1784</p>
                             </div>
                         </div>
                     </div>
@@ -167,11 +194,11 @@
 
                 <div class="flex flex-col flex-1 gap-4 px-2 w-full mx-auto">
                     <div class="flex flex-col gap-2">
-                        <div class="mt-2 mx-auto">
-                            <p class="text-gray-900 text-[11px] leading-tight pr-5">SSS No: {{ $iur->user->sss_number ?? '-' }}</p>
-                            <p class="text-gray-900 text-[11px] leading-tight pr-5 mb-2">TIN: {{ $iur->user->tax_number ?? '-' }}</p>
-                            <p class="text-gray-900 text-[11px] leading-tight pr-5">Birthday: {{ $iur->user->birth_date ? date('F d, Y', strtotime($iur->user->birth_date)) : '-' }}</p>
-                            <p class="text-gray-900 text-[11px] leading-tight pr-5">Date Hired: {{ $iur->user->original_date_hired ? date('F d, Y', strtotime($iur->user->original_date_hired)) : '-' }}</p>
+                        <div class="mt-1 mx-auto">
+                            <p class="text-gray-900 text-[10px] leading-tight pr-5">SSS No: {{ $iur->user->sss_number ?? '-' }}</p>
+                            <p class="text-gray-900 text-[10px] leading-tight pr-5 mb-2">TIN: {{ $iur->user->tax_number ?? '-' }}</p>
+                            <p class="text-gray-900 text-[10px] leading-tight pr-5">Birthday: {{ $iur->user->birth_date ? date('F d, Y', strtotime($iur->user->birth_date)) : '-' }}</p>
+                            <p class="text-gray-900 text-[10px] leading-tight pr-5">Date Hired: {{ $iur->user->original_date_hired ? date('F d, Y', strtotime($iur->user->original_date_hired)) : '-' }}</p>
                         </div>
                     </div>
 
@@ -187,7 +214,7 @@
                         <p class="gray_text text-gray-500 text-center text-[8px] font-semibold leading-tight">This card is temporary and non-transferable. It must be surrendered upon termination of employment.</p>
                     </div>
 
-                    <div class="mt-auto mx-auto w-[100px] mb-5">
+                    <div class="mx-auto w-[74px]">
                         <img src="{{ route('confid') }}" alt="Authorized signature">
                     </div>
                 </div>

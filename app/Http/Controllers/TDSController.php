@@ -115,10 +115,20 @@ class TdsController extends Controller
         );
     }
 
-    public function show($id)
-    {
-        $tds = Tds::with(['user', 'region'])->findOrFail($id);
-        return view('forms.tds.view_details', compact('tds'));
+    public function show($id) {
+        if (
+            auth()->user()->role != 'Admin'
+            && checkUserPrivilege('tds_records', auth()->user()->id) != 'yes'
+        ) {
+            abort(403, 'Unauthorized access to TDS Submission.');
+        }
+
+        $tds = Tds::with([
+            'user:id,name',
+            'region:id,region,province,district',
+        ])->findOrFail($id);
+
+        return view('forms.tds.partials.record-details', compact('tds'));
     }
 
     public function dashboard(Request $request)
@@ -743,7 +753,7 @@ class TdsController extends Controller
             'mother_maiden_name' => 'required_if:customer_type,new|nullable|string|max:255',
             'location' => 'required|string|max:500',
             'business_image' => 'required|file|max:10240',
-            'business_name' => 'required|string|max:255',
+            'business_name' => 'required_unless:package_type,EU|nullable|string|max:255',
             'business_type' => 'required|string|max:255',
             'awarded_area' => 'nullable|string|max:255',
             'package_type' => 'required|in:EU,D,MD,AD',
@@ -1333,21 +1343,39 @@ class TdsController extends Controller
             abort(403, 'Unauthorized access to TDS Submissions.');
         }
 
-        $query = Tds::with(['user', 'region']);
-        // dd($query->get());
+        $query = Tds::query()
+            ->select([
+                'id',
+                'date_of_registration',
+                'created_at',
+                'user_id',
+                'area',
+                'customer_name',
+                'business_name',
+                'program_type',
+                'lead_generator',
+                'lead_reference',
+                'purchase_amount',
+                'status',
+            ])
+            ->with([
+                'user:id,name',
+                'region:id,region,province,district',
+            ]);
+
         if ($request->from && $request->to) {
             $query->whereBetween('date_of_registration', [$request->from, $request->to]);
         }
-
+        
         if ($request->search) {
-            $search = $request->search;
+            $search = trim($request->search);
 
             $query->where(function ($q) use ($search) {
                 $q->where('customer_name', 'LIKE', "%{$search}%")
-                ->orWhere('business_name', 'LIKE', "%{$search}%")
-                ->orWhereHas('user', function ($q2) use ($search) {
-                    $q2->where('name', 'LIKE', "%{$search}%");
-                });
+                  ->orWhere('business_name', 'LIKE', "%{$search}%")
+                  ->orWhereHas('user', function ($userQuery) use ($search) {
+                      $userQuery->where('name', 'LIKE', "%{$search}%");
+                  });
             });
         }
 
@@ -1359,18 +1387,19 @@ class TdsController extends Controller
             $query->whereIn('status', $request->status);
         }
 
-        $query->latest('created_at');
+        $query->orderByDesc('created_at')
+              ->orderByDesc('id');
 
-        $perPage = $request->input('per_page', 25);
-        
-        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 25;
+        $perPage = (int) $request->input('per_page', 25);
+        $perPage = in_array($perPage, [10, 25, 50, 100], true)
+            ? $perPage
+            : 25;
 
         $submissions = $query->paginate($perPage)->appends($request->query());
 
         return view('forms.tds.records', [
             'header' => 'allSubmissions',
             'submissions' => $submissions,
-            'tdsRecords' => $submissions
         ]);
     }
 

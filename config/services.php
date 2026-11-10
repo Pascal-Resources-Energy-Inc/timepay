@@ -40,4 +40,8 @@ return [
         ],
     ],
 
+    'ldr' => [
+        'api_key' => env('SECRET_API_KEY'),
+    ]
+
 ];

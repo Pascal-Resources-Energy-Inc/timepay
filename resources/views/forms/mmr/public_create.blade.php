@@ -99,7 +99,7 @@
         <h2 class="text-2xl font-bold text-gray-900 sm:text-3xl">
             {{ $isEditing ? 'Edit Marketing Material Release Form' : 'Marketing Material Release Form' }}
         </h2>
-        <p class="mt-2 text-sm text-gray-500">CEO-MBD-FOR-016-001.B</p>
+        <p class="mt-2 text-sm text-gray-500">CEO-MBD-FOR-016-001</p>
         @if ($isEditing)
             <p class="mt-2 text-sm font-bold text-red-500">
                 (This is one time edit only)

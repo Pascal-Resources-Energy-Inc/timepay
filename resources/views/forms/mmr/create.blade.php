@@ -25,7 +25,7 @@
                   <div class="w-100" style="border-top: 3px solid #fe0001;"></div>
                 </div>
               </div>
-              <small class="text-muted mb-4">CEO-MBD-FOR-016-001.A</small>
+              <small class="text-muted mb-4">CEO-MBD-FOR-016-001</small>
             </div>
 
             <style>

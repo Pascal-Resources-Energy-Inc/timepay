@@ -1543,7 +1543,7 @@ function pending_layout_design_count($approver_id) {
 
     if (!$is_approver) return 0;
 
-    return \App\LayoutDesign::where('status', 'For Approval')->count();
+    return \App\LayoutDesign::where('status', 'Pending')->count();
 }
 
 // publication request

@@ -95,7 +95,7 @@ class ApproverSettingController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'type_of_forms' => 'required|array|min:1',
-            'type_of_forms.*' => 'in:leave,ot,dtr,pd,ad,ne,coe,uir,mta',
+            'type_of_forms.*' => 'in:leave,ot,dtr,pd,ad,ne,coe,uir,mta,bmc,ldr,pr',
             'work_location' => 'nullable|array'
         ]);
 

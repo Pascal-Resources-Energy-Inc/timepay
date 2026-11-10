@@ -28,7 +28,7 @@ Route::middleware('auth:api')->group(function () {
 });
 
 // LDR (50 reqs per minute)
-Route::prefix('public')
+Route::prefix('external')
     ->middleware(['ldr.api.key', 'throttle:50,1'])
     ->group(function () {
         Route::get(

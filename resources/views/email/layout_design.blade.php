@@ -192,32 +192,12 @@
                             </table>
                             @endif
 
-                            @if(isset($type) && $type == 'processed' && !empty($outputLinks))
-                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                                <tr>
-                                    <td class="pad24" style="padding:18px 24px 0 24px;">
-                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #cfe0f1; background-color:#f8fafc;">
-                                            <tr>
-                                                <td style="padding:14px 16px; font-family:Helvetica, Arial, sans-serif; font-size:13px; line-height:1.6; color:#374151;">
-                                                    <strong>Shared output link{{ count($outputLinks) > 1 ? 's' : '' }}</strong>
-                                                    @foreach($outputLinks as $outputLink)
-                                                        <br>
-                                                        <a href="{{ $outputLink['url'] }}" target="_blank" rel="noopener noreferrer" style="color:#0369a1; font-weight:600; text-decoration:underline;">{{ $outputLink['name'] }}</a>
-                                                    @endforeach
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
-                            @endif
-
                             <!-- approver's comment -->
                             @if(isset($type) && $type == 'processed')
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                    <td class="pad24" style="padding:24px 24px 0px 24px;">
-                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                    <td class="pad24" style="padding:24px 24px 1px 24px;">
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e5e7eb;">
                                             <tr>
                                                 <td class="lbl" width="38%" bgcolor="#f8fafc" style="width:38%; padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; font-weight:600; color:#475569; vertical-align:top; border:1px solid #e5e7eb; border-right:none; white-space:nowrap;">Approver's comment</td>
                                                 <td class="val" style="padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; color:#1f2937; vertical-align:top; border:1px solid #e5e7eb; border-bottom:none; white-space:pre-line; word-break:break-word;">{{ $ldr->closing_remarks ?: '' }}</td>
@@ -264,7 +244,7 @@
                                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                                             <tr>
                                                 <td class="lbl" width="38%" bgcolor="#f8fafc" style="width:38%; padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; font-weight:600; color:#475569; vertical-align:top; border:1px solid #e5e7eb; border-right:none; white-space:nowrap;">Date Requested</td>
-                                                <td class="val" style="padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; color:#1f2937; vertical-align:top; border:1px solid #e5e7eb; border-bottom:none; word-break:break-word;">{{ $ldr->date_requested ? date('F j, Y h:i A', strtotime($ldr->date_requested)) : '—' }}</td>
+                                                <td class="val" style="padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; color:#1f2937; vertical-align:top; border:1px solid #e5e7eb; border-bottom:none; word-break:break-word;">{{ $ldr->date_requested ? date('F j, Y', strtotime($ldr->date_requested)) : '—' }}</td>
                                             </tr>
                                             <tr>
                                                 <td class="lbl" width="38%" bgcolor="#f8fafc" style="width:38%; padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; font-weight:600; color:#475569; vertical-align:top; border:1px solid #e5e7eb; border-right:none; white-space:nowrap;">Requestor's Name</td>
@@ -300,7 +280,7 @@
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;">
                                 <tr>
                                     <td class="pad24" style="padding:0 24px;">
-                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e5e7eb;">
                                             @php
                                                 $normalize = function ($value) {
                                                     if (is_array($value)) {
@@ -409,7 +389,7 @@
                                             @if ($ldr->due_date)
                                             <tr>
                                                 <td class="lbl" width="38%" bgcolor="#f8fafc" style="width:38%; padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; font-weight:600; color:#475569; vertical-align:top; border:1px solid #e5e7eb; border-right:none; white-space:nowrap;">Due Date</td>
-                                                <td class="val" style="padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; color:#1f2937; vertical-align:top; border:1px solid #e5e7eb; border-bottom:none; word-break:break-word;">{{ optional($ldr->due_date)->format('F j, Y h:i A') }}</td>
+                                                <td class="val" style="padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; color:#1f2937; vertical-align:top; border:1px solid #e5e7eb; border-bottom:none; word-break:break-word;">{{ optional($ldr->due_date)->format('F j, Y') }}</td>
                                             </tr>
                                             @endif
                                             @if ($ldr->pegSamples->isNotEmpty() || $ldr->peg_sample_path)
@@ -430,7 +410,7 @@
                             </table>
 
                             <!-- FOOTER -->
-                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #efefef;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #efefef; margin-top: 20px;">
                                 <tr>
                                     <td class="foot-td" style="padding:16px 24px 24px 24px; font-family:Helvetica, Arial, sans-serif; font-size:12px; color:#888888; text-align:center;">This is an automated notification from the HERA system. Please do not reply to this email.</td>
                                 </tr>

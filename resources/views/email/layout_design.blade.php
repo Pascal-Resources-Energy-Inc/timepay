@@ -1,8 +1,8 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Layout Design Request — {{ ucfirst($type ?? 'submitted') }}</title>
 
@@ -19,7 +19,6 @@
 
         .container {
             width: 100% !important;
-            max-width: 680px !important;
             -webkit-text-size-adjust: 100%;
         }
 
@@ -114,7 +113,7 @@
                 <table role="presentation" width="680" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td>
                 <![endif]-->
 
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" align="center" class="container" style="max-width:680px; width:100%;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" align="center" class="container" style=" width:100%;">
                     <tr>
                         <td class="card" style="background-color:#ffffff; border:1px solid #e6e6e6; border-radius:8px;">
 

@@ -271,7 +271,7 @@
               </div>
               <div class="d-flex justify-content-end border-top pt-3 mt-3">
                 <button type="button" class="btn btn-light border mr-2" data-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="submit" class="btn btn-primary" data-submit-button>Submit</button>
               </div>
             </form>
       </div>
@@ -500,6 +500,20 @@
   <script>
     $(document).ready(function() {
       const createIurModal = $('#createIurModal');
+      const dealerForm = document.getElementById('dealerForm');
+      const submitButton = dealerForm.querySelector('[data-submit-button]');
+
+      dealerForm.addEventListener('submit', function(event) {
+        if (dealerForm.dataset.submitting === 'true') {
+          event.preventDefault();
+          return;
+        }
+
+        dealerForm.dataset.submitting = 'true';
+        submitButton.disabled = true;
+        submitButton.setAttribute('aria-disabled', 'true');
+        submitButton.textContent = 'Submitting...';
+      });
 
       createIurModal.find('.select2').select2({
         dropdownParent: createIurModal

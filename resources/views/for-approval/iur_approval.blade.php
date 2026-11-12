@@ -169,15 +169,15 @@
                 $printedUnreleasedCount = printed_unreleased_iur_count(auth()->id());
             @endphp
               <label>
-                  <button class="btn btn-info border btn-sm" onclick="window.open('/batch-print-form', '_blank')">
+                  <button class="btn btn-primary border btn-sm" onclick="window.open('/batch-print-form', '_blank')">
                       <i class="bi bi-person-badge"></i> Print ID
-                    @if ($releasedNotPrintedCount > 0)
-                        <span class="badge badge-warning ml-1">
-                            {{ $releasedNotPrintedCount }}
-                        </span>
-                    @endif
+                    <!-- @if ($releasedNotPrintedCount > 0) -->
+                    <!--     <span class="badge badge-warning ml-1"> -->
+                    <!--         {{ $releasedNotPrintedCount }} -->
+                    <!--     </span> -->
+                    <!-- @endif -->
                     @if ($printedUnreleasedCount > 0)
-                        <span class="badge badge-danger ml-1">
+                        <span class="badge badge-warning ml-1">
                             {{ $printedUnreleasedCount }}
                         </span>
                     @endif

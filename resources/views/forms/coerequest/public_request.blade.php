@@ -276,6 +276,7 @@
         {{-- Footer Actions --}}
         <div class="flex justify-end">
             <button type="submit"
+                data-submit-button
                 class="w-full sm:w-auto px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition text-center">
                 Submit
             </button>
@@ -334,4 +335,19 @@
 
     purposeSelect.addEventListener('change', updatePurposeFields);
     updatePurposeFields();
+
+    var publicCoeRequestForm = document.getElementById('publicCoeRequestForm');
+    var publicCoeSubmitButton = publicCoeRequestForm.querySelector('[data-submit-button]');
+
+    publicCoeRequestForm.addEventListener('submit', function(event) {
+        if (publicCoeRequestForm.dataset.submitting === 'true') {
+            event.preventDefault();
+            return;
+        }
+
+        publicCoeRequestForm.dataset.submitting = 'true';
+        publicCoeSubmitButton.disabled = true;
+        publicCoeSubmitButton.setAttribute('aria-disabled', 'true');
+        publicCoeSubmitButton.textContent = 'Submitting...';
+    });
 </script>

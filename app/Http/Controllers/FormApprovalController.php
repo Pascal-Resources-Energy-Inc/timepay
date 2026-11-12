@@ -5339,9 +5339,9 @@ class FormApprovalController extends Controller
         $ldr->save();
 
         try {
-            /* if ($ldr->requestor_email) { */
-            /*     Mail::to($ldr->requestor_email)->send(new LayoutDesignMail($ldr, 'approved')); */
-            /* } */
+            if ($ldr->requestor_email) {
+                Mail::to($ldr->requestor_email)->send(new LayoutDesignMail($ldr, 'approved'));
+            }
         } catch (\Exception $e) {
             \Log::error('LDR approval email failed: ' . $e->getMessage());
         }
@@ -5431,9 +5431,9 @@ class FormApprovalController extends Controller
         }
 
         try {
-            /* if ($ldr->requestor_email) { */
-            /*     Mail::to($ldr->requestor_email)->send(new LayoutDesignMail($ldr, 'declined')); */
-            /* } */
+            if ($ldr->requestor_email) {
+                Mail::to($ldr->requestor_email)->send(new LayoutDesignMail($ldr, 'declined'));
+            }
         } catch (\Exception $e) {
             \Log::error('LDR decline email failed: ' . $e->getMessage());
         }

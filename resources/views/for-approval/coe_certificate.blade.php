@@ -237,7 +237,7 @@
         <div style="line-height: 1.2;">
             This certification is being issued upon the request of 
             <b>{{ $coe->salutation }} {{ $coe->last_name }}</b>
-            for the following purpose: <span class="bold">{{ $coe->purpose }}.</span>
+            for the following purpose: <span class="bold" contenteditable="true">{{ $coe->purpose }}.</span>
         </div>
     </div>
 

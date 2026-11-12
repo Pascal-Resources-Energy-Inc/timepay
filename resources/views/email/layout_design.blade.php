@@ -192,14 +192,14 @@
                             @endif
 
                             <!-- approver's comment -->
-                            @if(isset($type) && $type == 'processed')
+                            @if(isset($type) && in_array($type, ['processed', 'declined']))
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
                                     <td class="pad24" style="padding:24px 24px 1px 24px;">
                                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e5e7eb;">
                                             <tr>
-                                                <td class="lbl" width="38%" bgcolor="#f8fafc" style="width:38%; padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; font-weight:600; color:#475569; vertical-align:top; border:1px solid #e5e7eb; border-right:none; white-space:nowrap;">Approver's comment</td>
-                                                <td class="val" style="padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; color:#1f2937; vertical-align:top; border:1px solid #e5e7eb; border-bottom:none; white-space:pre-line; word-break:break-word;">{{ $ldr->closing_remarks ?: '' }}</td>
+                                                <td class="lbl" width="38%" bgcolor="#f8fafc" style="width:38%; padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; font-weight:600; color:#475569; vertical-align:top; border:1px solid #e5e7eb; border-right:none; white-space:nowrap;">{{ $type == 'declined' ? 'Reason for Decline' : "Approver's comment" }}</td>
+                                                <td class="val" style="padding:10px 14px; font-family:Helvetica, Arial, sans-serif; font-size:13px; color:#1f2937; vertical-align:top; border:1px solid #e5e7eb; border-bottom:none; white-space:pre-line; word-break:break-word;">{{ $type == 'declined' ? ($ldr->remarks ?: '-') : ($ldr->closing_remarks ?: '') }}</td>
                                             </tr>
                                         </table>
                                     </td>

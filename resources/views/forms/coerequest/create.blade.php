@@ -271,7 +271,7 @@
                 </div>
 
                 <div class="modal-footer d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center px-3">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" data-submit-button>
                         Submit
                     </button>
                     <button type="button" class="btn btn-light border" data-dismiss="modal">
@@ -297,5 +297,20 @@
         document.getElementById('email-wrapper').classList.toggle('d-none', val !== 'Email');
         document.getElementById('viber-wrapper').classList.toggle('d-none', val !== 'Viber');
         document.getElementById('hardcopy-wrapper').classList.toggle('d-none', val !== 'Hard Copy');
+    });
+
+    var coeRequestForm = document.querySelector('#coeRequestModal form');
+    var coeSubmitButton = coeRequestForm.querySelector('[data-submit-button]');
+
+    coeRequestForm.addEventListener('submit', function(event) {
+        if (coeRequestForm.dataset.submitting === 'true') {
+            event.preventDefault();
+            return;
+        }
+
+        coeRequestForm.dataset.submitting = 'true';
+        coeSubmitButton.disabled = true;
+        coeSubmitButton.setAttribute('aria-disabled', 'true');
+        coeSubmitButton.textContent = 'Submitting...';
     });
 </script>

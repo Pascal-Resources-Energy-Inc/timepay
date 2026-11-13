@@ -192,7 +192,7 @@
 
     <div class="certificate-body">
     <div class="certificate-paragraph">
-        This is to certify that <span class="bold">{{ $coe->salutation }}{{ $coe->first_name }} {{ $coe->last_name }}</span>
+        This is to certify that <span class="bold" contenteditable="true">{{ $coe->salutation }}{{ $coe->first_name }} {{ $coe->last_name }}</span>
         @if($coe->employment_status === 'Separated')
             was an employee of
         @else

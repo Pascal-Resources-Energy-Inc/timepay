@@ -17,9 +17,9 @@
                       </small>
 
                       @if($request->status === 'Processed')
-                          <small class="badge badge-success">Processed</small>
+                          <small class="badge badge-success">Completed</small>
                       @elseif($request->status === 'Approved')
-                          <small class="badge badge-info">Approved</small>
+                          <small class="badge badge-info">In Progress</small>
                       @elseif($request->status === 'Pending')
                           <small class="badge badge-warning">Pending</small>
                       @elseif($request->status === 'Declined')
@@ -238,7 +238,11 @@
               </div>
             </div>
 
-            @if($request->priority_level || $request->due_date || $request->remarks)
+            @php
+              $canEditDueDate = $request->status === \App\LayoutDesign::STATUS_APPROVED
+                && in_array('Refurbished Store Signage (P5,000)', (array) $request->marketing_collateral_type, true);
+            @endphp
+            @if($request->priority_level || $request->due_date || $request->remarks || $canEditDueDate)
             <div class="ldr-section">
               <div class="ldr-section-header">
                 <h5><i class="ti-check-box mr-2"></i>III. Approval Details</h5>
@@ -248,8 +252,35 @@
                   @if($request->priority_level)
                   <tr><td>Priority Level</td><td><span class="badge badge-{{ $request->priority_level === 'Major' ? 'danger' : 'secondary' }}">{{ $request->priority_level }}</span></td></tr>
                   @endif
-                  @if($request->due_date)
-                  <tr><td>Due Date</td><td>{{ optional($request->due_date)->format('F j, Y') }}</td></tr>
+                  @if($request->due_date || $canEditDueDate)
+                  <tr>
+                    <td>@if($canEditDueDate)<label for="ldr-due-date" class="mb-0">Due Date</label>@else Due Date @endif</td>
+                    <td>
+                      @if($canEditDueDate)
+                        <form method="post" action="{{ route('ldr.update-due-date', $request->id) }}">
+                          @csrf
+                          @method('PATCH')
+                          <div class="d-flex flex-wrap align-items-start">
+                            <div class="mr-3 mb-2">
+                              <input type="date" id="ldr-due-date" name="due_date"
+                                class="form-control form-control-sm @if($errors->has('due_date')) is-invalid @endif"
+                                min="{{ now('Asia/Singapore')->toDateString() }}"
+                                value="{{ old('due_date', optional($request->due_date)->format('Y-m-d')) }}"
+                                aria-describedby="ldr-due-date-help{{ $errors->has('due_date') ? ' ldr-due-date-error' : '' }}"
+                                @if($errors->has('due_date')) aria-invalid="true" @endif
+                                required>
+                              @if($errors->has('due_date'))
+                                <div id="ldr-due-date-error" class="invalid-feedback">{{ $errors->first('due_date') }}</div>
+                              @endif
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm mb-2">Update</button>
+                          </div>
+                        </form>
+                      @else
+                        {{ $request->due_date->format('F j, Y') }}
+                      @endif
+                    </td>
+                  </tr>
                   @endif
                   @if($request->remarks)
                   <tr><td>Remarks</td><td style="white-space: pre-line;">{{ $request->remarks }}</td></tr>

@@ -112,7 +112,7 @@
           <div class="card-body">
             <span class="ldr-summary-icon ldr-icon-approved"><i class="ti-check-box"></i></span>
             <div class="ldr-summary-content">
-              <div class="ldr-summary-label" title="Approved">Approved</div>
+              <div class="ldr-summary-label" title="In Progress">In Progress</div>
               <div class="ldr-summary-value">{{ $approved_count }}</div>
               <div class="ldr-summary-caption">Ready for processing</div>
             </div>
@@ -124,9 +124,9 @@
           <div class="card-body">
             <span class="ldr-summary-icon ldr-icon-processed"><i class="ti-check"></i></span>
             <div class="ldr-summary-content">
-              <div class="ldr-summary-label" title="Processed">Processed</div>
+              <div class="ldr-summary-label" title="Completed">Completed</div>
               <div class="ldr-summary-value">{{ $processed_count }}</div>
-              <div class="ldr-summary-caption">Processed requests</div>
+              <div class="ldr-summary-caption">Completed requests</div>
             </div>
           </div>
         </a>
@@ -185,8 +185,8 @@
                     <select name="status" class="form-control form-control-sm">
                       <option value="">All</option>
                       <option value="Pending" @if($status == 'Pending') selected @endif>Pending</option>
-                      <option value="Approved" @if($status == 'Approved') selected @endif>Approved</option>
-                      <option value="Processed" @if($status == 'Processed') selected @endif>Processed</option>
+                      <option value="Approved" @if($status == 'Approved') selected @endif>In Progress</option>
+                      <option value="Processed" @if($status == 'Processed') selected @endif>Completed</option>
                       <option value="Declined" @if($status == 'Declined') selected @endif>Declined</option>
                       <option value="Cancelled" @if($status == 'Cancelled') selected @endif>Cancelled</option>
                     </select>
@@ -284,9 +284,9 @@
                       </td>
                       <td>
                           @if($request->status == 'Processed')
-                          <span class="badge badge-success">Processed</span>
+                          <span class="badge badge-success">Completed</span>
                           @elseif($request->status == 'Approved')
-                          <span class="badge badge-info">Approved</span>
+                          <span class="badge badge-info">In Progress</span>
                           @elseif($request->status == 'Declined')
                           <span class="badge badge-danger">Declined</span>
                           @elseif($request->status == 'Cancelled')

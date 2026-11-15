@@ -835,7 +835,23 @@
             if (event.target.name) clearValidation(event.target.name.replace('[]', ''));
         });
 
+        var submitButton = document.getElementById('submitButton');
+        var submitButtonLabel = submitButton.innerHTML;
+
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                submitButton.disabled = false;
+                submitButton.innerHTML = submitButtonLabel;
+                submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
+        });
+
         form.addEventListener('submit', function(event) {
+            if (submitButton.disabled) {
+                event.preventDefault();
+                return;
+            }
+
             clearAllValidation();
 
             var firstInvalid = null;
@@ -871,7 +887,6 @@
                 return;
             }
 
-            var submitButton = document.getElementById('submitButton');
             submitButton.disabled = true;
             submitButton.textContent = 'Submitting...';
             submitButton.classList.add('opacity-70', 'cursor-not-allowed');

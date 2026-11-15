@@ -578,7 +578,22 @@
     toggleGoalsExplain();
     toggleCoreValuesExplain();
 
-    $('#exitInterviewForm').on('submit', function(e) {
+    const exitInterviewForm = $('#exitInterviewForm');
+    const submitButton = exitInterviewForm.find('button[type="submit"]');
+    const submitButtonLabel = submitButton.html();
+
+    $(window).on('pageshow', function(e) {
+      if (e.originalEvent.persisted) {
+        submitButton.prop('disabled', false).html(submitButtonLabel);
+      }
+    });
+
+    exitInterviewForm.on('submit', function(e) {
+      if (submitButton.prop('disabled')) {
+        e.preventDefault();
+        return;
+      }
+
       let isVoluntary = selectedRadioValue('is_separation_voluntary') === '1';
 
       if (isVoluntary && selectedRadioValue('is_leaving_for_new_job') === '1' && !$('input[name="new_job_offer_text"]').val().trim()) {
@@ -616,6 +631,8 @@
         alert('Please explain why you don\'t believe PREI lives up to its Core Values.');
         return;
       }
+
+      submitButton.prop('disabled', true).text('Saving…');
     });
 
     let fillStars = function(group, upto) {

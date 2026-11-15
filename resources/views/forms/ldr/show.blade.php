@@ -14,9 +14,9 @@
                       </small>
 
                       @if($request->status === 'Processed')
-                          <small class="badge badge-success mt-2">Processed</small>
+                          <small class="badge badge-success mt-2">Completed</small>
                       @elseif($request->status === 'Approved')
-                          <small class="badge badge-info mt-2">Approved</small>
+                          <small class="badge badge-info mt-2">In Progress</small>
                       @elseif($request->status === 'Pending')
                           <small class="badge badge-warning mt-2">Pending</small>
                       @elseif($request->status === 'Declined')

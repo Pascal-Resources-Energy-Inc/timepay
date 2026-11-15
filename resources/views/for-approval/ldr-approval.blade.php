@@ -313,7 +313,7 @@
           <div class="card-body">
             <span class="ldr-summary-icon ldr-icon-approved"><i class="ti-check-box"></i></span>
             <div class="ldr-summary-content">
-              <div class="ldr-summary-label" title="Approved">Approved</div>
+              <div class="ldr-summary-label" title="In Progress">In Progress</div>
               <div class="ldr-summary-value">{{$approved}}</div>
               <div class="ldr-summary-caption">Ready for processing</div>
             </div>
@@ -325,9 +325,9 @@
           <div class="card-body">
             <span class="ldr-summary-icon ldr-icon-processed"><i class="ti-check"></i></span>
             <div class="ldr-summary-content">
-              <div class="ldr-summary-label" title="Processed">Processed</div>
+              <div class="ldr-summary-label" title="Completed">Completed</div>
               <div class="ldr-summary-value">{{$processed}}</div>
-              <div class="ldr-summary-caption">Processed requests</div>
+              <div class="ldr-summary-caption">Completed and sent</div>
             </div>
           </div>
         </a>
@@ -339,7 +339,7 @@
             <div class="ldr-summary-content">
               <div class="ldr-summary-label" title="Declined">Declined</div>
               <div class="ldr-summary-value">{{$declined}}</div>
-              <div class="ldr-summary-caption">Not approved</div>
+              <div class="ldr-summary-caption">Declined requests</div>
             </div>
           </div>
         </a>
@@ -379,8 +379,8 @@
                    <label class="mb-1">Status</label>
                    <select name="status" class="form-control form-control-sm js-example-basic-single" style="width:100%;">
                      <option value="Pending" @if ($filter_status == 'Pending') selected @endif>Pending</option>
-                     <option value="Approved" @if ($filter_status == 'Approved') selected @endif>Approved</option>
-                     <option value="Processed" @if ($filter_status == 'Processed') selected @endif>Processed</option>
+                     <option value="Approved" @if ($filter_status == 'Approved') selected @endif>In Progress</option>
+                     <option value="Processed" @if ($filter_status == 'Processed') selected @endif>Completed</option>
                      <option value="Declined" @if ($filter_status == 'Declined') selected @endif>Declined</option>
                      <option value="Cancelled" @if ($filter_status == 'Cancelled') selected @endif>Cancelled</option>
                      <option value="From Import" @if ($filter_status == 'From Import') selected @endif>From Import</option>
@@ -435,7 +435,7 @@
                                 <button type="button" class="btn btn-danger btn-rounded btn-icon" data-toggle="modal" data-target="#declineLdr{{$r->id}}" title="Decline"><i class="ti-close"></i></button>
                                 @endif
                                 @if ($r->status === 'Approved')
-                                <button type="button" class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#closeLdr{{$r->id}}" title="Mark as Processed"><i class="ti-arrow-right"></i></button>
+                                <button type="button" class="btn btn-success btn-rounded btn-icon" data-toggle="modal" data-target="#closeLdr{{$r->id}}" title="Attach and Send"><i class="ti-arrow-right"></i></button>
                                 @endif
                                 <a href="{{ route('ldr-approval.view', $r->id) }}" class="d-flex align-items-center justify-content-center btn btn-info btn-rounded btn-icon" title="View Details"><i class="ti-eye"></i></a>
                             </div>
@@ -510,7 +510,7 @@
                         @endif
                       </td>
                       <td>
-                        <span class="badge badge-{{ $r->status == 'Processed' ? 'success' : ($r->status == 'Approved' ? 'info' : ($r->status == 'From Import' ? 'secondary' : (($r->status == 'Declined' || $r->status == 'Cancelled') ? 'danger' : 'warning'))) }}">{{$r->status}}</span>
+                        <span class="badge badge-{{ $r->status == 'Processed' ? 'success' : ($r->status == 'Approved' ? 'info' : ($r->status == 'From Import' ? 'secondary' : (($r->status == 'Declined' || $r->status == 'Cancelled') ? 'danger' : 'warning'))) }}">{{ ['Approved' => 'In Progress', 'Processed' => 'Completed'][$r->status] ?? $r->status }}</span>
                       </td>
                     </tr>
                   @endforeach
@@ -677,12 +677,12 @@
 
               <div class="modal fade" id="closeLdr{{$r->id}}" tabindex="-1" role="dialog" aria-hidden="true">
                       <div class="modal-dialog" role="document">
-                        <form method="post" action="{{ route('ldr.mark-processed', $r->id) }}" enctype="multipart/form-data" onsubmit="show();" class="ldr-complete-form">
+                        <form method="post" action="{{ route('ldr.mark-processed', $r->id) }}" enctype="multipart/form-data" class="ldr-complete-form">
                           {{csrf_field()}}
                           <input type="hidden" name="ldr_id" value="{{ $r->id }}">
                           <div class="modal-content border-0">
                             <div class="modal-header">
-                              <h5 class="modal-title">Mark Request as Processed</h5>
+                              <h5 class="modal-title">Complete Request</h5>
                               <button type="button" class="btn-close btn-danger" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                             </div>
                             <div class="modal-body">
@@ -793,8 +793,8 @@
 
                               <!-- remaks -->
                               <div class="form-group">
-                                <label for="closingRemarks{{$r->id}}">Remarks <span class="text-danger">*</span></label>
-                                <textarea id="closingRemarks{{$r->id}}" name="closing_remarks" class="form-control @if ((int) old('ldr_id') === (int) $r->id && $errors->has('closing_remarks')) is-invalid @endif" rows="3" placeholder="enter remarks" required>{{ (int) old('ldr_id') === (int) $r->id ? old('closing_remarks') : '' }}</textarea>
+                                <label for="closingRemarks{{$r->id}}">Remarks <span><small>(optional)</small></span></label>
+                                <textarea id="closingRemarks{{$r->id}}" name="closing_remarks" class="form-control @if ((int) old('ldr_id') === (int) $r->id && $errors->has('closing_remarks')) is-invalid @endif" rows="3" placeholder="enter remarks">{{ (int) old('ldr_id') === (int) $r->id ? old('closing_remarks') : '' }}</textarea>
                                 @if ((int) old('ldr_id') === (int) $r->id && $errors->has('closing_remarks'))
                                   <div class="invalid-feedback">{{ $errors->first('closing_remarks') }}</div>
                                 @endif
@@ -803,7 +803,7 @@
                             </div>
                             <div class="modal-footer ldr-close-footer">
                               <button type="button" class="btn btn-light border" data-dismiss="modal">Cancel</button>
-                              <button type="submit" class="btn btn-success">Mark as Processed</button>
+                              <button type="submit" class="btn btn-success">Send</button>
                             </div>
                           </div>
                         </form>
@@ -1155,6 +1155,7 @@
     }
 
     fileInput.setCustomValidity('');
+    show();
   });
 
   $(document).on('submit', '.decline-ldr-form', function(event) {

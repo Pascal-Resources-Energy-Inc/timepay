@@ -181,7 +181,6 @@ class LayoutDesignController extends Controller {
             $pegSampleFiles[] = $request->file('peg_sample');
         }
 
-        $nextId = (int) LayoutDesign::max('id') + 1;
         unset($validated['peg_sample']);
         unset($validated['peg_samples']);
         unset($validated['peg_sample_link']);
@@ -193,7 +192,7 @@ class LayoutDesignController extends Controller {
             'date_needed' => $request->filled('date_needed')
                 ? \Carbon\Carbon::createFromFormat('Y-m-d', $request->date_needed)
                 : null,
-            'reference_no' => 'LDR - ' . str_pad($nextId, 4, '0', STR_PAD_LEFT),
+            'reference_no' => LayoutDesign::nextReferenceNo(),
             'user_id' => null,
             'status' => LayoutDesign::STATUS_PENDING,
         ]));

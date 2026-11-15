@@ -123,4 +123,16 @@ class LayoutDesign extends Model {
                 ->orWhere('mime_type', LayoutDesignAttachment::PEG_SAMPLE_LINK_MIME_TYPE);
         });
     }
+
+    public static function nextReferenceNo(): string {
+        $count = 0;
+
+        foreach (static::query()->select('reference_no')->cursor() as $request) {
+            if (preg_match('/^LDR\s*-\s*(\d+)$/i', trim((string) $request->reference_no), $matches)) {
+                $count = max($count, (int) $matches[1]);
+            }
+        }
+
+        return 'LDR - ' . str_pad((string) ($count + 1), 4, '0', STR_PAD_LEFT);
+    }
 }

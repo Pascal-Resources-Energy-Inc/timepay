@@ -158,8 +158,6 @@ class LayoutDesignController extends Controller {
             array_unique($selectedCollateralTypes)
         );
 
-        $nextId = (int) LayoutDesign::max('id') + 1;
-
         unset($validated['peg_samples']);
         unset($validated['peg_sample_link']);
         unset($validated['store_signage_option']);
@@ -170,7 +168,7 @@ class LayoutDesignController extends Controller {
             'date_needed' => $request->filled('date_needed')
                 ? \Carbon\Carbon::createFromFormat('Y-m-d', $request->date_needed)->startOfDay()
                 : null,
-            'reference_no' => 'LDR - ' . str_pad($nextId, 4, '0', STR_PAD_LEFT),
+            'reference_no' => LayoutDesign::nextReferenceNo(),
             'user_id' => auth()->id(),
             'status' => LayoutDesign::STATUS_PENDING,
         ]));

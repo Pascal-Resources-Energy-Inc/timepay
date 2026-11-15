@@ -475,7 +475,7 @@
                                 <li class="nav-item "> <a class="nav-link" href="/iur" style="text-wrap: auto">Uniform/ID Request</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link" target='_blank' href="https://form.jotform.com/232360985204051" style="text-wrap: auto">Uniform/ID Request Form</a></li> -->
                                 <li class="nav-item "> <a class="nav-link" href="/marketing-material-releases" style="text-wrap: auto">Marketing Material Releases</a></li>
-                                <!-- <li class="nav-item "> <a class="nav-link" target='_blank' href="/layout-design-requests" style="text-wrap: auto">Layout Design Request</a></li> -->
+                                <li class="nav-item "> <a class="nav-link" target='_blank' href="/layout-design-requests" style="text-wrap: auto">Layout Design Request</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdARMLk0ncUlhtlV0DPHD9P6ZTkGx10LC72M-mTtxuTCWOnIQ/viewform?usp=send_form" style="text-wrap: auto">Mobile Device Employee Sale</a></li> -->
                                 {{-- <li class="nav-item">
                                     <a class="nav-link @if (request()->is('iur*')) active @endif" href="{{ url('/iur') }}">
@@ -601,6 +601,12 @@
                         ->exists();
                     @endphp
 
+                    @php $is_ot_approver = \App\ApproverSetting::where('user_id', auth()->user()->id)
+                        ->where('type_of_form', 'ot')
+                        ->where('status', 'Active')
+                        ->exists();
+                    @endphp
+
                     @if (auth()->user()->employee_under->count() 
                         || $isBmcApprover
                         || $isPublicationRequestApprover
@@ -608,7 +614,7 @@
                     )
                     <li class="nav-item">
                         <hr>
-                        <h5>Manager</h5>
+                        <h5>Request Approval</h5>
                     </li>
                     <li class="nav-item @if ($header == 'for-approval') active @endif">
                         <a class="nav-link" data-toggle="collapse" href="#for-approval" aria-expanded="false" aria-controls="ui-basic">
@@ -625,6 +631,10 @@
                                     + pending_bmc_count(auth()->user()->id) 
                                     + pending_publication_request(auth()->user()->id) 
                                     + pending_layout_design_count(auth()->user()->id) 
+                                    + pending_dtr_correction(auth()->user()->id) 
+                                    + pending_mta_correction(auth()->user()->id) 
+                                    + pending_coe_count(auth()->user()->id) 
+                                    + pending_uir_count(auth()->user()->id) 
                                 }}
                                 </span>
                             </span>
@@ -634,24 +644,40 @@
                             <ul class="nav flex-column sub-menu @if ($header == 'for-approval') show @endif">
                                 <li class="nav-item "><a class="nav-link active" href="{{ url('/for-leave') }}">Leave <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id) }}</span></a></li>
 
+                                <li class="nav-item "><a class="nav-link active" href="{{ url('/coe-approval') }}" >COE Request&nbsp;<span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) }}</span></a></li>
+
+                                <li class="nav-item "><a class="nav-link active" href="{{ url('/iur-approval') }}" >ID & Uniform Request&nbsp;<span class="badge badge-warning">{{ pending_uir_count(auth()->user()->id) }}</span></a></li>
+
+                                @if ($is_ot_approver)
+                                    <li class="nav-item "><a class="nav-link" href="{{ url('/for-overtime') }}">Overtime <span class="badge badge-warning">{{ pending_overtime_count(auth()->user()->id) }}</span></a></li>
+                                @endif
+
+                                @if ($isBmcApprover)
                                 <li class="nav-item">
                                     <a class="nav-link " href="{{ url('/bmc-approval') }}" style="text-wrap: auto;">
                                         Borrowing Marketing Collateral 
                                         <span class="badge badge-warning">{{ pending_bmc_count(auth()->user()->id) }}</span>
                                     </a>
                                 </li>
+                                @endif
+
+                                @if ($isPublicationRequestApprover)
                                 <li class="nav-item">
                                     <a class="nav-link " href="{{ url('/publication-approval') }}" style="text-wrap: auto;">
                                         Publication Request 
                                         <span class="badge badge-warning">{{ pending_publication_request(auth()->user()->id) }}</span>
                                     </a>
                                 </li>
+                                @endif 
+
+                                @if ($isLdrApprover)
                                 <li class="nav-item">
                                     <a class="nav-link " href="{{ url('/ldr-approval') }}" style="text-wrap: auto;">
                                         Layout Design Request 
                                         <span class="badge badge-warning">{{ pending_layout_design_count(auth()->user()->id) }}</span>
                                     </a>
                                 </li>
+                                @endif
 
                                 <!-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-overtime') }}">Overtime <span class="badge badge-warning">{{ pending_overtime_count(auth()->user()->id) }}</span></a></li> -->
                                 <li class="nav-item "><a class="nav-link " href="{{ url('/travel-orderManager') }}">Travel Order <span class="badge badge-warning">{{ pending_to_count(auth()->user()->id) }}</span></a></li>
@@ -696,41 +722,12 @@
                         </li>
                     @endif
                     @php
-                        $is_ot_approver = \App\ApproverSetting::where('user_id', auth()->user()->id)
-                                        ->where('type_of_form', 'ot')
-                                        ->where('status', 'Active')
-                                        ->exists();
-                    @endphp
-                    @php
                         $is_coe_approver = \App\ApproverSetting::where('user_id', auth()->user()->id)
                                         ->whereIn('type_of_form', ['coe', 'uir'])
                                         ->where('status', 'Active')
                                         ->exists();
                     @endphp
-                    @if ($is_coe_approver || $is_ot_approver)
-                    <li class="nav-item">
-                        <hr>
-                        <h5>Request Approval</h5>
-                    </li>
-                    <li class="nav-item @if ($header == 'for-approval_coe') active @endif">
-                        <a class="nav-link" data-toggle="collapse" href="#for-approval_coe" aria-expanded="@if ($header == 'for_approval_coe') true @else false @endif" aria-controls="ui-basic">
-                            <i class="icon-check menu-icon"></i>
-                            <span class="menu-title">For Approval <span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) + pending_uir_count(auth()->user()->id) + ($is_ot_approver ? pending_overtime_count(auth()->user()->id) : 0) }}</span></span>
-                            <i class="menu-arrow"></i>
-                        </a>
-                        <div class="collapse @if ($header == 'for-approval_coe') show @endif" id="for-approval_coe">
-                            <ul class="nav flex-column sub-menu">
-                                <li class="nav-item "><a class="nav-link active" href="{{ url('/coe-approval') }}" >COE Request&nbsp;<span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) }}</span></a></li>
-                                @if ($is_ot_approver)
-                                    <li class="nav-item "><a class="nav-link" href="{{ url('/for-overtime') }}">Overtime <span class="badge badge-warning">{{ pending_overtime_count(auth()->user()->id) }}</span></a></li>
-                                @endif
-                                <li class="nav-item "><a class="nav-link active" href="{{ url('/iur-approval') }}" >ID & Uniform Request&nbsp;<span class="badge badge-warning">{{ pending_uir_count(auth()->user()->id) }}</span></a></li>
-                                <!-- <li class="nav-item "><a class="nav-link active" href="{{ url('/ldr-approval') }}" >Layout Design Request&nbsp;<span class="badge badge-warning"></span></a></li> -->
-                                <!-- <li class="nav-item "><a class="nav-link active" href="{{ url('/marketing-material-releases') }}" >Marketing Material Releases</a></li> -->
-                            </ul>
-                        </div>
-                    </li>
-                    @endif
+
                     @php
                         $is_ne_approver = \App\ApproverSetting::where('user_id', auth()->user()->id)
                                         ->whereIn('type_of_form', ['ne'])
@@ -1173,7 +1170,6 @@
     <script src="{{ asset('/body_css/js/form-repeater.js') }}"></script>
     <script src="{{ asset('/body_css/vendors/sweetalert/sweetalert.min.js') }}"></script>
 
-    <script src="{{ asset('/body_css/vendors/inputmask/jquery.inputmask.bundle.js') }}"></script>
     <script src="{{ asset('/body_css/vendors/inputmask/jquery.inputmask.bundle.js') }}"></script>
     <script src="{{ asset('/body_css/js/inputmask.js') }}"></script>
     <script src="{{ asset('/vendor/sweetalert2/sweetalert2.min.js') }}"></script>

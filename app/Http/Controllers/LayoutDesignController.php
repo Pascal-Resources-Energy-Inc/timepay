@@ -170,7 +170,7 @@ class LayoutDesignController extends Controller {
             'date_needed' => $request->filled('date_needed')
                 ? \Carbon\Carbon::createFromFormat('Y-m-d', $request->date_needed)->startOfDay()
                 : null,
-            'reference_no' => 'LDR -' . str_pad($nextId, 6, '0', STR_PAD_LEFT),
+            'reference_no' => 'LDR - ' . str_pad($nextId, 4, '0', STR_PAD_LEFT),
             'user_id' => auth()->id(),
             'status' => LayoutDesign::STATUS_PENDING,
         ]));

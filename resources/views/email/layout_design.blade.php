@@ -148,9 +148,9 @@
                                     <tr>
                                         <td class="greet-msg" style="padding:10px 24px 0 24px; font-family:Helvetica, Arial, sans-serif; font-size:14px; line-height:1.6; color:#374151;">
                                             @if($type == 'approved')
-                                                Your layout design request has been approved.
+                                                Your layout design request has been approved and is now in progress.
                                             @elseif($type == 'processed')
-                                                Your layout design request has been processed.
+                                                Your layout design request is complete.
                                                 @if (!empty($hasEmailAttachments))
                                                     See the attached file{{ $emailAttachmentCount > 1 ? 's' : '' }}.
                                                 @endif

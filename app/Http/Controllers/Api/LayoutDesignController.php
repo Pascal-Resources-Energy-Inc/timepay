@@ -37,7 +37,12 @@ class LayoutDesignController extends Controller {
                 $query->where('reference_no', 'like', "%{$search}%")
                       ->orWhere('requestor_first_name', 'like', "%{$search}%")
                       ->orWhere('requestor_last_name', 'like', "%{$search}%")
-                      ->orWhere('marketing_collateral_type', 'like', "%{$search}%");
+                      ->orWhere('requestor_email', 'like', "%{$search}%")
+                      ->orWhere('marketing_collateral_type', 'like', "%{$search}%")
+                      ->orWhere('medium_type', 'like', "%{$search}%")
+                      ->orWhere('date_needed', 'like', "%{$search}%")
+                      ->orWhere('department', 'like', "%{$search}%")
+                      ->orWhere('status', 'like', "%{$search}%");
             });
         }
 

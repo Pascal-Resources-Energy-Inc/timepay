@@ -583,35 +583,44 @@
                         </li>
                     @endif
 
-                    @php $isBmcApprover = \App\ApproverSetting::where('user_id', auth()->user()->id)
-                        ->where('type_of_form', 'bmc')
-                        ->where('status', 'Active')
-                        ->exists();
+                    @php
+                        $approvalUser = auth()->user();
+                        $approvalUserId = $approvalUser->id;
+                        $activeApprovalTypes = \App\ApproverSetting::where('user_id', $approvalUserId)
+                            ->where('status', 'Active')
+                            ->whereIn('type_of_form', ['coe', 'uir', 'ot', 'bmc', 'pr', 'ldr', 'mta'])
+                            ->pluck('type_of_form');
+                        $hasEmployeeApprovalAssignments = \App\EmployeeApprover::where('approver_id', $approvalUserId)->exists();
+
+                        $canViewIur = $activeApprovalTypes->contains('uir')
+                            || optional($approvalUser->employee)->position === 'HR Head';
+
+                        $approvalModules = [
+                            ['Leave', '/for-leave', $hasEmployeeApprovalAssignments, 'pending_leave_count'],
+                            ['COE Request', '/coe-approval', $activeApprovalTypes->contains('coe'), 'pending_coe_count'],
+                            ['ID & Uniform Request', '/iur-approval', $canViewIur, 'pending_uir_count'],
+                            ['Overtime', '/for-overtime', $activeApprovalTypes->contains('ot'), 'pending_overtime_count'],
+                            ['Borrowing Marketing Collateral', '/bmc-approval', $activeApprovalTypes->contains('bmc'), 'pending_bmc_count'],
+                            ['Publication Request', '/publication-approval', $activeApprovalTypes->contains('pr'), 'pending_publication_request'],
+                            ['Layout Design Request', '/ldr-approval', $activeApprovalTypes->contains('ldr'), 'pending_layout_design_count'],
+                            ['Travel Order', '/travel-orderManager', $hasEmployeeApprovalAssignments, 'pending_to_count'],
+                            ['DTR Correction', '/for-dtr-correction', $hasEmployeeApprovalAssignments, 'pending_dtr_correction'],
+                            ['Monetized Transportation Allowance', '/for-mta', $activeApprovalTypes->contains('mta'), 'pending_mta_correction'],
+                        ];
+
+                        $approvalLinks = [];
+                        foreach ($approvalModules as [$label, $path, $canView, $countPending]) {
+                            if ($canView) {
+                                $approvalLinks[] = [
+                                    'label' => $label,
+                                    'path' => $path,
+                                    'pending' => $countPending($approvalUserId),
+                                ];
+                            }
+                        }
                     @endphp
 
-                    @php $isPublicationRequestApprover = \App\ApproverSetting::where('user_id', auth()->user()->id)
-                        ->where('type_of_form', 'pr')
-                        ->where('status', 'Active')
-                        ->exists();
-                    @endphp
-
-                    @php $isLdrApprover = \App\ApproverSetting::where('user_id', auth()->user()->id)
-                        ->where('type_of_form', 'ldr')
-                        ->where('status', 'Active')
-                        ->exists();
-                    @endphp
-
-                    @php $is_ot_approver = \App\ApproverSetting::where('user_id', auth()->user()->id)
-                        ->where('type_of_form', 'ot')
-                        ->where('status', 'Active')
-                        ->exists();
-                    @endphp
-
-                    @if (auth()->user()->employee_under->count() 
-                        || $isBmcApprover
-                        || $isPublicationRequestApprover
-                        || $isLdrApprover
-                    )
+                    @if ($approvalLinks)
                     <li class="nav-item">
                         <hr>
                         <h5>Request Approval</h5>
@@ -622,72 +631,27 @@
                             <span class="menu-title">
                                 For Approval 
                                 <span class="badge badge-warning">
-                                {{ 
-                                    pending_leave_count(auth()->user()->id) 
-                                    + pending_overtime_count(auth()->user()->id) 
-                                    + pending_to_count(auth()->user()->id) 
-                                    + pending_dtr_correction(auth()->user()->id) 
-                                    + pending_mta_correction(auth()->user()->id) 
-                                    + pending_bmc_count(auth()->user()->id) 
-                                    + pending_publication_request(auth()->user()->id) 
-                                    + pending_layout_design_count(auth()->user()->id) 
-                                    + pending_dtr_correction(auth()->user()->id) 
-                                    + pending_mta_correction(auth()->user()->id) 
-                                    + pending_coe_count(auth()->user()->id) 
-                                    + pending_uir_count(auth()->user()->id) 
-                                }}
+                                    {{ array_sum(array_column($approvalLinks, 'pending')) }}
                                 </span>
                             </span>
                             <i class="menu-arrow"></i>
                         </a>
                         <div class="collapse @if ($header == 'for-approval') show @endif" id="for-approval">
                             <ul class="nav flex-column sub-menu @if ($header == 'for-approval') show @endif">
-                                <li class="nav-item "><a class="nav-link active" href="{{ url('/for-leave') }}">Leave <span class="badge badge-warning">{{ pending_leave_count(auth()->user()->id) }}</span></a></li>
-
-                                <li class="nav-item "><a class="nav-link active" href="{{ url('/coe-approval') }}" >COE Request&nbsp;<span class="badge badge-warning">{{ pending_coe_count(auth()->user()->id) }}</span></a></li>
-
-                                <li class="nav-item "><a class="nav-link active" href="{{ url('/iur-approval') }}" >ID & Uniform Request&nbsp;<span class="badge badge-warning">{{ pending_uir_count(auth()->user()->id) }}</span></a></li>
-
-                                @if ($is_ot_approver)
-                                    <li class="nav-item "><a class="nav-link" href="{{ url('/for-overtime') }}">Overtime <span class="badge badge-warning">{{ pending_overtime_count(auth()->user()->id) }}</span></a></li>
-                                @endif
-
-                                @if ($isBmcApprover)
-                                <li class="nav-item">
-                                    <a class="nav-link " href="{{ url('/bmc-approval') }}" style="text-wrap: auto;">
-                                        Borrowing Marketing Collateral 
-                                        <span class="badge badge-warning">{{ pending_bmc_count(auth()->user()->id) }}</span>
-                                    </a>
-                                </li>
-                                @endif
-
-                                @if ($isPublicationRequestApprover)
-                                <li class="nav-item">
-                                    <a class="nav-link " href="{{ url('/publication-approval') }}" style="text-wrap: auto;">
-                                        Publication Request 
-                                        <span class="badge badge-warning">{{ pending_publication_request(auth()->user()->id) }}</span>
-                                    </a>
-                                </li>
-                                @endif 
-
-                                @if ($isLdrApprover)
-                                <li class="nav-item">
-                                    <a class="nav-link " href="{{ url('/ldr-approval') }}" style="text-wrap: auto;">
-                                        Layout Design Request 
-                                        <span class="badge badge-warning">{{ pending_layout_design_count(auth()->user()->id) }}</span>
-                                    </a>
-                                </li>
-                                @endif
-
-                                <!-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-overtime') }}">Overtime <span class="badge badge-warning">{{ pending_overtime_count(auth()->user()->id) }}</span></a></li> -->
-                                <li class="nav-item "><a class="nav-link " href="{{ url('/travel-orderManager') }}">Travel Order <span class="badge badge-warning">{{ pending_to_count(auth()->user()->id) }}</span></a></li>
-                                {{-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-work-from-home') }}">Work From Home <span class="badge badge-warning">{{ session('pending_wfh_count') }}</span></a></li> --}}
-                                <!-- <li class="nav-item "><a class="nav-link " href="{{ url('/for-official-business') }}">Official Business <span class="badge badge-warning">{{ pending_ob_count(auth()->user()->id) }}</span></a></li> -->
-                                <li class="nav-item "><a class="nav-link " href="{{ url('/for-dtr-correction') }}">DTR Correction <span class="badge badge-warning">{{ pending_dtr_correction(auth()->user()->id) }}</span></a></li>
-                                <li class="nav-item "><a class="nav-link " href="{{ url('/for-mta') }}" style="text-wrap:auto">Monetized Transportation Allowance <span class="badge badge-warning">{{ pending_mta_correction(auth()->user()->id) }}</span></a></li>
+                                @foreach ($approvalLinks as $approvalLink)
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ url($approvalLink['path']) }}" style="text-wrap: auto;">
+                                            {{ $approvalLink['label'] }}
+                                            <span class="badge badge-warning">{{ $approvalLink['pending'] }}</span>
+                                        </a>
+                                    </li>
+                                @endforeach
                             </ul>
                         </div>
                     </li>
+
+                    @endif
+                    @if ($hasEmployeeApprovalAssignments)
                     <li class="nav-item @if ($header == 'subordinates') active @endif">
                         <a class="nav-link" href="{{ url('/subordinates') }}" onclick='show()'>
                             <i class="icon-monitor menu-icon"></i>
@@ -695,6 +659,7 @@
                         </a>
                     </li>
                     @endif
+
                     @php
                         $is_pd_approver = \App\ApproverSetting::where('user_id', auth()->user()->id)
                                         ->whereIn('type_of_form', ['pd', 'ad'])

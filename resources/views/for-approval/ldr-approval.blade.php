@@ -415,7 +415,7 @@
                     <th>Action</th>
                     <th>Reference No</th>
                     <th>Requestor</th>
-                    <th>Department</th>
+                    <th>Department / Partner</th>
                     <th>Collateral Type</th>
                     <th>Medium</th>
                     <th>Preferred Date</th>

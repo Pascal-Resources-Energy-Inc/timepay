@@ -733,6 +733,7 @@
         Route::get('ldr-approval/{id}','FormApprovalController@viewLdrRequest')->name('ldr-approval.view');
         Route::post('ldr/{id}/approve','FormApprovalController@approveLdrRequest')->name('ldr.approve');
         Route::post('ldr/{id}/mark-processed','FormApprovalController@markLdrAsProcessed')->name('ldr.mark-processed');
+        Route::patch('ldr/{id}/due-date', 'FormApprovalController@updateLdrDueDate')->name('ldr.update-due-date');
         Route::post('ldr/{id}/decline','FormApprovalController@declineLdrRequest')->name('ldr.decline');
 
         // HR Side
@@ -886,6 +887,10 @@ Route::put('/external/marketing-material-release/{id}/edit', 'MarketingMaterialC
 // Route::post('/public/customer-feedback/', 'CustomerFeedbackController@store')->name('customer-feedback.store');
 
 // comment these lines in production !!!!!!!!!!!!!
+if (app()->environment('local')) {
+    Route::get('test', 'Test@viewTest');
+}
+
 // Route::get('test', 'Test@viewTest'); 
 // Route::get('test-pdf', 'Test@testPdf');
 // Route::get('testid/{id}', 'Test@viewTestId');

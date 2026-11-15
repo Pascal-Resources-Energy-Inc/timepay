@@ -37,7 +37,12 @@ class LayoutDesignController extends Controller {
                 $query->where('reference_no', 'like', "%{$search}%")
                       ->orWhere('requestor_first_name', 'like', "%{$search}%")
                       ->orWhere('requestor_last_name', 'like', "%{$search}%")
-                      ->orWhere('marketing_collateral_type', 'like', "%{$search}%");
+                      ->orWhere('requestor_email', 'like', "%{$search}%")
+                      ->orWhere('marketing_collateral_type', 'like', "%{$search}%")
+                      ->orWhere('medium_type', 'like', "%{$search}%")
+                      ->orWhere('date_needed', 'like', "%{$search}%")
+                      ->orWhere('department', 'like', "%{$search}%")
+                      ->orWhere('status', 'like', "%{$search}%");
             });
         }
 
@@ -188,7 +193,7 @@ class LayoutDesignController extends Controller {
             'date_needed' => $request->filled('date_needed')
                 ? \Carbon\Carbon::createFromFormat('Y-m-d', $request->date_needed)
                 : null,
-            'reference_no' => 'LDR -' . str_pad($nextId, 6, '0', STR_PAD_LEFT),
+            'reference_no' => 'LDR - ' . str_pad($nextId, 4, '0', STR_PAD_LEFT),
             'user_id' => null,
             'status' => LayoutDesign::STATUS_PENDING,
         ]));

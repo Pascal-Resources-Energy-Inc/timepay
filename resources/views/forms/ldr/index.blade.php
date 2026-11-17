@@ -26,10 +26,9 @@
 
   .ldr-summary-card .card-body {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
-    min-height: 108px;
-    padding: 6px;
+    min-height: 85px;
   }
 
   .ldr-summary-icon {
@@ -63,7 +62,7 @@
   .ldr-summary-value {
     margin-top: 5px;
     color: #0f172a;
-    font-size: 1.6rem;
+    font-size: 1.2rem;
     font-weight: 700;
     line-height: 1;
   }
@@ -102,7 +101,6 @@
             <div class="ldr-summary-content">
               <div class="ldr-summary-label" title="Pending">Pending</div>
               <div class="ldr-summary-value">{{ $pending_count }}</div>
-              <div class="ldr-summary-caption">Awaiting review</div>
             </div>
           </div>
         </a>
@@ -114,7 +112,6 @@
             <div class="ldr-summary-content">
               <div class="ldr-summary-label" title="In Progress">In Progress</div>
               <div class="ldr-summary-value">{{ $approved_count }}</div>
-              <div class="ldr-summary-caption">Ready for processing</div>
             </div>
           </div>
         </a>
@@ -126,7 +123,6 @@
             <div class="ldr-summary-content">
               <div class="ldr-summary-label" title="Completed">Completed</div>
               <div class="ldr-summary-value">{{ $processed_count }}</div>
-              <div class="ldr-summary-caption">Completed requests</div>
             </div>
           </div>
         </a>
@@ -138,7 +134,6 @@
             <div class="ldr-summary-content">
               <div class="ldr-summary-label" title="Declined">Declined</div>
               <div class="ldr-summary-value">{{ $declined_count }}</div>
-              <div class="ldr-summary-caption">Not approved</div>
             </div>
           </div>
         </a>
@@ -150,7 +145,6 @@
             <div class="ldr-summary-content">
               <div class="ldr-summary-label" title="Cancelled">Cancelled</div>
               <div class="ldr-summary-value">{{ $cancelled_count }}</div>
-              <div class="ldr-summary-caption">Cancelled requests</div>
             </div>
           </div>
         </a>

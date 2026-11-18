@@ -20,15 +20,13 @@ class AddMarketingCollateralBorrowings extends Migration
 
             // I. Borrower's Information
             $table->string('borrower_profile', 50); // Provincial Distributor | Area Distributor | PREI
-            $table->string('borrower_first_name', 255);
-            $table->string('borrower_last_name', 255);
-            $table->string('full_name', 255); // legacy data
+            $table->string('borrower_first_name', 255)->nullable();
+            $table->string('borrower_last_name', 255)->nullable();
+            $table->string('full_name', 255)->nullable(); // legacy data
             $table->string('department', 100)->nullable();
             $table->string('business_name', 255)->nullable();
             $table->string('designation', 100)->nullable();
             $table->string('email', 255);
-            // $table->string('hub_code', 50)->nullable();
-            // $table->string('hub_name', 255)->nullable();
             $table->string('phone_number', 30); 
             $table->string('location', 255)->nullable(); 
 

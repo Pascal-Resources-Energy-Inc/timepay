@@ -56,9 +56,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('ldr:send-deadline-reminders')
             ->dailyAt('09:00')
             ->withoutOverlapping();
-        /* $schedule->command('bmc:send-return-due-reminders') */
-        /*     ->dailyAt('08:00') */
-        /*     ->withoutOverlapping(); */
+        $schedule->command('bmc:send-return-due-reminders')
+            ->dailyAt('08:00')
+            ->withoutOverlapping();
         /* $schedule->command('ad-store-visits:auto-approve') */
         /*     ->everyMinute() */
         /*     ->withoutOverlapping(); */

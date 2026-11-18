@@ -58,13 +58,20 @@ Route::prefix('external')
     });
 
 // BMC api (50 reqs per minute too)
-Route::prefix('public')
+Route::prefix('external')
     ->middleware(['ldr.api.key', 'throttle:50,1'])
     ->group(function () {
-        Route::get('bmc', 'Api\MarketingCollateralBorrowingController@index');
-        Route::post('bmc', 'Api\MarketingCollateralBorrowingController@store');
-        Route::get('bmc/{id}', 'Api\MarketingCollateralBorrowingController@show');
-        Route::patch('bmc/{id}', 'Api\MarketingCollateralBorrowingController@update');
-        Route::patch('bmc/{id}/cancel', 'Api\MarketingCollateralBorrowingController@cancel');
-        Route::post('bmc/accountabilities/{id}/signature', 'Api\MarketingCollateralBorrowingController@saveSignature');
+        Route::get('bmc', 'Api\BmcController@index');
+        Route::post('bmc', 'Api\BmcController@store');
+        Route::get('bmc/{id}', 'Api\BmcController@show');
+        Route::patch('bmc/{id}', 'Api\BmcController@update');
+        Route::patch('bmc/{id}/cancel', 'Api\BmcController@cancel');
+        Route::post('bmc/{id}/payment', 'Api\BmcController@submitPayment');
+        Route::get('bmc/{id}/payment-proof', 'Api\BmcController@paymentProof');
+        Route::get('bmc/{id}/refund-proof', 'Api\BmcController@refundProof');
+        Route::get('bmc/accountabilities/{id}', 'Api\BmcController@showAccountability');
+        Route::get('bmc/accountabilities/{id}/payment-proof', 'Api\BmcController@accountabilityPaymentProof');
+        Route::post('bmc/accountabilities/{id}/signature', 'Api\BmcController@saveSignature');
+        Route::post('bmc/accountabilities/{id}/returns', 'Api\BmcController@requestReturn');
+        Route::post('bmc/accountabilities/{id}/extensions', 'Api\BmcController@requestExtension');
     });

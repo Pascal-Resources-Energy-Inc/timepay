@@ -683,16 +683,18 @@
         Route::post('/decline-publication-publishing/{id}', 'FormApprovalController@declinePublicationPublishing')->name('publication.publishing.decline');
 
         // marketing collateral borrowing [Request]
-        Route::get('/bmc', 'MarketingCollateralBorrowingController@index')->name('bmc.index');
-        Route::get('/bmc/create', 'MarketingCollateralBorrowingController@create')->name('bmc.create');
-        Route::post('/bmc', 'MarketingCollateralBorrowingController@store')->name('bmc.store');
-        Route::get('/bmc/{id}', 'MarketingCollateralBorrowingController@show')->name('bmc.show');
-        Route::get('/bmc/{id}/edit', 'MarketingCollateralBorrowingController@edit')->name('bmc.edit');
-        Route::put('/bmc/{id}', 'MarketingCollateralBorrowingController@update')->name('bmc.update');
-        Route::post('bmc-accountability-signature/{id}', 'MarketingCollateralBorrowingController@saveBorrowerSignature');
-        Route::post('bmc-accountability-return-request/{id}', 'MarketingCollateralBorrowingController@requestAccountabilityReturn')
+        Route::get('/bmc', 'BmcController@index')->name('bmc.index');
+        Route::get('/bmc/create', 'BmcController@create')->name('bmc.create');
+        Route::post('/bmc', 'BmcController@store')->name('bmc.store');
+        Route::get('/bmc/{id}', 'BmcController@show')->name('bmc.show');
+        Route::get('/bmc/{id}/edit', 'BmcController@edit')->name('bmc.edit');
+        Route::put('/bmc/{id}', 'BmcController@update')->name('bmc.update');
+        Route::post('bmc-accountability-signature/{id}', 'BmcController@saveBorrowerSignature');
+        Route::post('bmc-accountability-return-request/{id}', 'BmcController@requestAccountabilityReturn')
             ->name('bmc.return.request');
-        Route::get('bmc-accountability-preview/{id}', 'MarketingCollateralBorrowingController@previewAccountability')
+        Route::post('bmc-accountability/{id}/extension-requests', 'BmcController@requestAccountabilityExtension')
+            ->name('bmc.extensions.request');
+        Route::get('bmc-accountability-preview/{id}', 'BmcController@previewAccountability')
             ->name('bmc.accountability.preview');
 
         // marketing collateral borrowing [APPROVAL]
@@ -701,6 +703,11 @@
         Route::post('approve-bmc/{id}','FormApprovalController@approveBmcRequest');
         Route::post('decline-bmc/{id}','FormApprovalController@declineBmcRequest');
         Route::post('release-bmc/{id}', 'FormApprovalController@releaseBmcItems');
+        Route::post('prepare-bmc-release/{id}', 'FormApprovalController@prepareBmcRelease');
+        Route::get('bmc-payment-proof/{id}', 'FormApprovalController@viewBmcPaymentProof');
+        Route::post('bmc-refund/{id}', 'FormApprovalController@recordBmcRefund');
+        Route::get('bmc-refund-proof/{id}', 'FormApprovalController@viewBmcRefundProof');
+        Route::get('bmc-accountability-payment-proof/{id}', 'FormApprovalController@viewBmcAccountabilityPaymentProof');
         Route::post(
             'bmc-accountability/{id}/expected-return',
             'FormApprovalController@updateBmcExpectedReturn'
@@ -708,6 +715,8 @@
         Route::post('update-bmc-accountability-notes/{id}', 'FormApprovalController@updateBmcAccountabilityNote');
         Route::get('bmc-accountability-print/{id}', 'FormApprovalController@printBmcAccountability');
         Route::post('close-bmc-accountability/{id}', 'FormApprovalController@closeBmcAccountability');
+        Route::post('bmc-accountability-extensions/{id}/review', 'FormApprovalController@extendBorrowedItems')
+            ->name('bmc.extensions.review');
 
         // layout design request [Request]
         Route::get('/layout-design-requests', 'LayoutDesignController@index')->name('layout-design-requests.index');
@@ -891,6 +900,7 @@ if (app()->environment('local')) {
     Route::get('test', 'Test@viewTest');
 }
 
+// Route::get('test-print', 'Test@viewPrint');
 // Route::get('test', 'Test@viewTest'); 
 // Route::get('test-pdf', 'Test@testPdf');
 // Route::get('testid/{id}', 'Test@viewTestId');

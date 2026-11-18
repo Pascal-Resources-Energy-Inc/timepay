@@ -31,6 +31,7 @@ use App\Mail\MtaDeclinedNotification;
 use App\Mail\MtaApprovedNotification;
 use App\Mail\ApprovedCoeMail;
 use App\Mail\BmcMail;
+use App\Mail\BmcExtensionRequestMail;
 use App\IUR_Accountability;
 use App\MarketingCollateralBorrowing;
 use App\PublicationRequest;
@@ -38,6 +39,13 @@ use App\LayoutDesign;
 use App\LayoutDesignAttachment;
 use App\Mail\LayoutDesignMail;
 use App\Services\PublicationRequestWorkflowService;
+use App\BmcAccountability;
+use App\BmcAccountabilityExtension;
+use App\BmcAccountabilityReturn;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Mockery\CountValidator\AtLeast;
+use PhpOffice\PhpSpreadsheet\Chart\Layout;
 
 class FormApprovalController extends Controller
 {
@@ -1919,13 +1927,44 @@ class FormApprovalController extends Controller
             return back();
         }
 
-        if ($employee_coe->user_id !== null) {
-            Alert::error('Only public submissions can be edited here.')->persistent('Dismiss');
+        if (!in_array($employee_coe->status, ['Pending', 'Processing'])) {
+            Alert::error('Completed COE requests can no longer be edited.')->persistent('Dismiss');
             return back();
         }
 
-        if (!in_array($employee_coe->status, ['Pending', 'Processing'])) {
-            Alert::error('Completed COE requests can no longer be edited.')->persistent('Dismiss');
+        $updateScope = $request->input('update_scope');
+
+        if ($updateScope === 'purpose') {
+            if (!preg_match('/^Other(?:\s*-\s*|$)/i', trim($employee_coe->purpose ?? ''))) {
+                Alert::error('Only requests with an Other purpose can be edited here.')->persistent('Dismiss');
+                return back();
+            }
+
+            $request->validate([
+                'purpose_other' => 'required|string|max:500',
+            ]);
+
+            DB::transaction(function () use ($employee_coe, $request, $current_user) {
+                $employee_coe->purpose = 'Other - ' . trim($request->purpose_other);
+                $employee_coe->save();
+                $employee_coe->recordTrail(
+                    'request_details_updated',
+                    $current_user,
+                    'Purpose details updated.'
+                );
+            });
+
+            Alert::success('COE purpose updated successfully.')->persistent('Dismiss');
+            return back();
+        }
+
+        if ($updateScope !== 'employment') {
+            Alert::error('Invalid COE update request.')->persistent('Dismiss');
+            return back();
+        }
+
+        if ($employee_coe->user_id !== null) {
+            Alert::error('Only public submissions can have employment details edited here.')->persistent('Dismiss');
             return back();
         }
 
@@ -2092,10 +2131,10 @@ class FormApprovalController extends Controller
         $recipientEmail = $employee_coe->email ?? optional($employee_coe->user)->email;
 
         if ($recipientEmail) {
-            Mail::to($recipientEmail)->send(
-                (new \App\Mail\ProcessingCoeMail($employee_coe))
-                    ->from($current_user->email, $current_user->name)
-            );
+            /* Mail::to($recipientEmail)->send( */
+            /*     (new \App\Mail\ProcessingCoeMail($employee_coe)) */
+            /*         ->from($current_user->email, $current_user->name) */
+            /* ); */
         }
 
         Alert::success('COE Request is now being processed.')->persistent('Dismiss');
@@ -2398,9 +2437,9 @@ class FormApprovalController extends Controller
             }
 
             try {
-                Mail::to($requestorEmail)->send(
-                    new \App\Mail\IurRequestMail($employee_iur, 'Processing')
-                );
+                /* Mail::to($requestorEmail)->send( */
+                /*     new \App\Mail\IurRequestMail($employee_iur, 'Processing') */
+                /* ); */
             } catch (\Exception $e) {
                 \Log::warning('IUR processing email failed: ' . $e->getMessage());
                 Alert::warning('Request processed, but the email notification could not be sent.')->persistent('Dismiss');
@@ -3880,7 +3919,7 @@ class FormApprovalController extends Controller
         // another status selection when the form is submitted again.
         if ($filter_status === $partial_return_status) {
             $return_status = $partial_return_status;
-        } elseif ($return_status === $partial_return_status) {
+        } elseif ($filter_status !== '') {
             $return_status = '';
         }
 
@@ -3912,9 +3951,18 @@ class FormApprovalController extends Controller
 
             $query->where(function ($q) use ($search) {
                 $q->where('reference_no', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone_number', 'like', "%{$search}%")
+                  ->orWhere('borrower_first_name', 'like', "%{$search}%")
                   ->orWhere('borrower_last_name', 'like', "%{$search}%")
-                  ->orWhere('event_name', 'like', "%{$search}%")
-                  ->orWhere('hub_name', 'like', "%{$search}%");
+                  ->orWhere('full_name', 'like', "%{$search}%")
+                  ->orWhere('business_name', 'like', "%{$search}%")
+                  ->orWhere('department', 'like', "%{$search}%")
+                  ->orWhere('borrower_profile', 'like', "%{$search}%")
+                  ->orWhere('designation', 'like', "%{$search}%")
+                  ->orWhereRaw("CONCAT(COALESCE(borrower_first_name, ''), ' ', COALESCE(borrower_last_name, '')) LIKE ?", ["%{$search}%"])
+                  ->orWhere('request_details', 'like', "%{$search}%")
+                  ->orWhere('event_name', 'like', "%{$search}%");
             });
         }
 
@@ -3945,6 +3993,7 @@ class FormApprovalController extends Controller
                 'borrowings'    => $borrowings,
                 'filter_status' => $filter_status,
                 'return_status' => $return_status,
+                'search'        => $request->input('search', ''),
                 'from'          => $request->from,
                 'to'            => $request->to,
                 'for_approval'  => $for_approval,
@@ -3980,6 +4029,8 @@ class FormApprovalController extends Controller
             'accountabilities.returnHistory.receivedBy',
             'accountabilities.releasedBy',
             'accountabilities.closedBy',
+            'accountabilities.extensions.requestedBy',
+            'accountabilities.extensions.reviewedBy',
         ])->findOrFail($id);
 
         return view('for-approval.bmc-approval-show', array(
@@ -4137,7 +4188,7 @@ class FormApprovalController extends Controller
 
         try {
             if ($borrowing->email) {
-                /* Mail::to($borrowing->email)->send(new BmcMail($borrowing, 'approved')); */
+                Mail::to($borrowing->email)->send(new BmcMail($borrowing, 'approved'));
             }
         } catch (\Exception $e) {
             \Log::error('BMC approve email failed: ' . $e->getMessage());
@@ -4200,6 +4251,132 @@ class FormApprovalController extends Controller
         return $borrowing->depositRate($itemName) * (int) $quantity;
     }
 
+    public function viewBmcPaymentProof($id, $accountability = false) {
+        $isApprover = \App\ApproverSetting::where('user_id', auth()->id())
+            ->where('type_of_form', 'bmc')->where('status', 'Active')->exists();
+        abort_unless($isApprover, 403);
+
+        $record = $accountability
+            ? BmcAccountability::findOrFail($id)
+            : MarketingCollateralBorrowing::findOrFail($id);
+        $path = $record->proof_of_transfer;
+        abort_unless(is_string($path) && preg_match('#^bmc_payment_proofs/[A-Za-z0-9._-]+$#', $path), 404);
+        abort_unless(\Storage::disk('local')->exists($path), 404);
+
+        return \Storage::disk('local')->response($path);
+    }
+
+    public function viewBmcAccountabilityPaymentProof($id) {
+        return $this->viewBmcPaymentProof($id, true);
+    }
+
+    public function recordBmcRefund(Request $request, $id) {
+        $isApprover = \App\ApproverSetting::where('user_id', auth()->id())
+            ->where('type_of_form', 'bmc')->where('status', 'Active')->exists();
+        abort_unless($isApprover, 403);
+
+        $validated = $request->validate([
+            'refund_payment_method' => ['required', Rule::in(['Cash', 'GCash', 'Bank Transfer'])],
+            'proof_of_refund' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        $path = $request->file('proof_of_refund')->store('bmc_refund_proofs', 'local');
+        if (!$path) {
+            abort(500, 'The proof of refund could not be saved.');
+        }
+
+        try {
+            DB::transaction(function () use ($id, $validated, $path) {
+                $borrowing = MarketingCollateralBorrowing::lockForUpdate()->findOrFail($id);
+                if (!$borrowing->requiresDeposit() || $borrowing->status !== MarketingCollateralBorrowing::STATUS_CLOSED) {
+                    throw ValidationException::withMessages(['refund_payment_method' => 'The request must be closed before recording a refund.']);
+                }
+                if ($borrowing->proof_of_refund || $borrowing->refund_payment_method) {
+                    throw ValidationException::withMessages(['refund_payment_method' => 'A refund has already been recorded for this request.']);
+                }
+                $borrowing->refund_payment_method = trim($validated['refund_payment_method']);
+                $borrowing->proof_of_refund = $path;
+                $borrowing->save();
+            });
+        } catch (\Throwable $exception) {
+            \Storage::disk('local')->delete($path);
+            throw $exception;
+        }
+
+        Alert::success('Refund details recorded successfully.')->persistent('Dismiss');
+        return back();
+    }
+
+    public function viewBmcRefundProof($id) {
+        $isApprover = \App\ApproverSetting::where('user_id', auth()->id())
+            ->where('type_of_form', 'bmc')->where('status', 'Active')->exists();
+        abort_unless($isApprover, 403);
+        $path = MarketingCollateralBorrowing::findOrFail($id)->proof_of_refund;
+        abort_unless(is_string($path) && preg_match('#^bmc_refund_proofs/[A-Za-z0-9._-]+$#', $path), 404);
+        abort_unless(\Storage::disk('local')->exists($path), 404);
+        return \Storage::disk('local')->response($path);
+    }
+
+    public function prepareBmcRelease(Request $request, $id) {
+        $isApprover = \App\ApproverSetting::where('user_id', auth()->id())
+            ->where('type_of_form', 'bmc')
+            ->where('status', 'Active')
+            ->exists();
+        abort_unless($isApprover, 403);
+
+        $validated = $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.item_name' => 'required|string|distinct|max:255',
+            'items.*.released_quantity' => 'required|integer|min:0|max:99',
+        ]);
+
+        DB::transaction(function () use ($id, $validated) {
+            $borrowing = MarketingCollateralBorrowing::with(['borrowedItems', 'accountabilities.items'])
+                ->lockForUpdate()->findOrFail($id);
+
+            if (!$borrowing->requiresDeposit() || !in_array($borrowing->status, [
+                MarketingCollateralBorrowing::STATUS_APPROVED,
+                MarketingCollateralBorrowing::STATUS_PARTIALLY_RELEASED,
+            ], true)) {
+                throw ValidationException::withMessages(['items' => 'This request is not eligible for a deposit release.']);
+            }
+
+            if ($borrowing->payment_method) {
+                throw ValidationException::withMessages(['items' => 'Payment details have already been submitted for this release.']);
+            }
+
+            $approved = $borrowing->borrowedItems->keyBy('item_name');
+            $released = $borrowing->accountabilities->flatMap(function ($accountability) {
+                return $accountability->items;
+            })->groupBy('item_name')->map(function ($items) {
+                return $items->sum('released_quantity');
+            });
+
+            $items = [];
+            foreach ($validated['items'] as $item) {
+                $name = $item['item_name'];
+                $quantity = (int) $item['released_quantity'];
+                $approvedItem = $approved->get($name);
+                $remaining = $approvedItem ? (int) $approvedItem->approved_quantity - (int) $released->get($name, 0) : 0;
+                if (!$approvedItem || $quantity > $remaining) {
+                    throw ValidationException::withMessages(['items' => 'The selected quantities must not exceed the remaining approved items.']);
+                }
+                if ($quantity > 0) {
+                    $items[] = ['item_name' => $name, 'quantity' => $quantity];
+                }
+            }
+            if (!$items) {
+                throw ValidationException::withMessages(['items' => 'Select at least one item to release.']);
+            }
+
+            $borrowing->release_items = $items;
+            $borrowing->save();
+        });
+
+        Alert::success('The borrower can now submit security deposit.')->persistent('Dismiss');
+        return back();
+    }
+
     public function releaseBmcItems(Request $request, $id) {
         $currentUser = auth()->user();
 
@@ -4229,6 +4406,8 @@ class FormApprovalController extends Controller
             'items.*.released_quantity' => 'required|integer|min:0|max:99',
             'items.*.serial_numbers' => 'nullable|array',
             'items.*.serial_numbers.*' => 'required|string|max:150',
+            'items.*.mbd_remarks' => 'nullable|array',
+            'items.*.mbd_remarks.*' => 'nullable|string|max:2000',
         ]);
 
         $result = DB::transaction(function () use (
@@ -4399,8 +4578,7 @@ class FormApprovalController extends Controller
                     })
                     ->filter(function ($serialNumber) {
                         return $serialNumber !== '';
-                    })
-                    ->values();
+                    });
 
                 if ($serialNumbers->count() !== $releasedQuantity) {
                     return [
@@ -4413,6 +4591,7 @@ class FormApprovalController extends Controller
                     'item_name' => $itemName,
                     'released_quantity' => $releasedQuantity,
                     'serial_numbers' => $serialNumbers,
+                    'mbd_remarks' => $releasedItem['mbd_remarks'] ?? [],
                 ]);
             }
 
@@ -4423,12 +4602,34 @@ class FormApprovalController extends Controller
                 ];
             }
 
-            $releaseNumber = $borrowing->accountabilities->count() + 1;
-            $accountabilityReference = trim($borrowing->reference_no) .
-                '-' . str_pad($releaseNumber, 2, '0', STR_PAD_LEFT);
+            if ($borrowing->requiresDeposit()) {
+                $planned = collect($borrowing->release_items ?? [])->mapWithKeys(function ($item) {
+                    return [$item['item_name'] => (int) $item['quantity']];
+                })->sortKeys()->all();
+                $actual = $preparedItems->mapWithKeys(function ($item) {
+                    return [$item['item_name'] => (int) $item['released_quantity']];
+                })->sortKeys()->all();
+
+                $hasPaymentDetails = $borrowing->payment_method &&
+                    ($borrowing->payment_method === 'COD' || $borrowing->proof_of_transfer);
+                if (!$planned || $planned !== $actual || !$hasPaymentDetails) {
+                    return ['success' => false, 'message' => 'The release must match the prepared items and have payment details and proof.'];
+                }
+            }
+
+            // handling for multiple variances of accountability form
+            $isFullyReleased = $preparedItems->sum('released_quantity') === $remainingItems->sum();
+            $releaseCountNumber = $borrowing->accountabilities->count() + 1;
+
+            $accountabilityReference = trim($borrowing->reference_no);
+
+            if ($releaseCountNumber > 1 || !$isFullyReleased) {
+                $releaseNumber = $borrowing->accountabilities->count() + 1;
+                $accountabilityReference .= '-' . str_pad($releaseNumber, 2, '0', STR_PAD_LEFT);
+            }
 
             // Create the overall release record.
-            $accountability = \App\BmcAccountability::create([
+            $accountabilityData = [
                 'marketing_collateral_borrowing_id' => $borrowing->id,
                 'accountability_ref' => $accountabilityReference,
                 'released_by' => $currentUser->id,
@@ -4436,7 +4637,12 @@ class FormApprovalController extends Controller
                 'expected_return_at' => $expectedReturnAt,
                 'release_notes' => $validated['release_notes'] ?? null,
                 'status' => \App\BmcAccountability::STATUS_RELEASED,
-            ]);
+            ];
+            if ($borrowing->requiresDeposit()) {
+                $accountabilityData['payment_method'] = $borrowing->payment_method;
+                $accountabilityData['proof_of_transfer'] = $borrowing->proof_of_transfer;
+            }
+            $accountability = \App\BmcAccountability::create($accountabilityData);
 
             // Create the individual released item records.
             foreach ($preparedItems as $releasedItem) {
@@ -4457,12 +4663,25 @@ class FormApprovalController extends Controller
                     'returned_quantity' => 0,
                 ]);
 
-                foreach ($serialNumbers as $serialNumber) {
-                    $accountabilityItem->serials()->create([
+                foreach ($serialNumbers as $serialIndex => $serialNumber) {
+                    $serialAttributes = [
                         'serial_number' => $serialNumber,
                         'status' => \App\BmcItemSerial::STATUS_AVAILABLE,
-                    ]);
+                    ];
+                    $remark = trim($releasedItem['mbd_remarks'][$serialIndex] ?? '');
+                    if ($remark !== '') {
+                        $serialAttributes['mbd_remarks'] = $remark;
+                    }
+
+                    $accountabilityItem->serials()->create($serialAttributes);
                 }
+            }
+
+            if ($borrowing->requiresDeposit()) {
+                $borrowing->release_items = null;
+                $borrowing->payment_method = null;
+                $borrowing->proof_of_transfer = null;
+                $borrowing->save();
             }
 
             $borrowingStatus =
@@ -4486,8 +4705,8 @@ class FormApprovalController extends Controller
 
         Alert::success(
             ($result['partially_released']
-                ? 'Items partially released. Remaining items can be released later'
-                : 'All items have been released successfully')
+                ? 'Item(s) partially released.'
+                : 'Item(s) released successfully')
         )->persistent('Dismiss');
 
         return back();
@@ -4513,9 +4732,9 @@ class FormApprovalController extends Controller
         }
         
         $validated = $request->validate([
-            'mor' => 'required|string|max:2000',
-            'return_mode' => 'required|string|max:50',
-            'return_mode_details' => 'nullable|string|max:1900',
+            'approver_remarks' => 'nullable|string|max:2000',
+            'return_mode' => ['required', 'string', Rule::in(array_keys(BmcAccountabilityReturn::RETURN_MODES))],
+            'return_mode_details' => ['required', 'string', 'max:1900', 'not_regex:/[\r\n]/'],
             'returned_at' => 'required|date|before_or_equal:today',
         ]);
 
@@ -4765,10 +4984,10 @@ class FormApprovalController extends Controller
             ];
         }
 
+        $returnMode = $validated['return_mode'];
+        $returnDetails = trim($validated['return_mode_details'] ?? '');
         $historyRemarks = trim(implode("\n", array_filter([
-            !empty($validated['return_mode_details'])
-                ? 'Details: ' . trim($validated['return_mode_details'])
-                : null,
+            $returnDetails !== '' ? 'Details: ' . $returnDetails : null,
             !empty($accountability->closing_remarks)
                 ? 'Borrower remarks: ' .
                     trim($accountability->closing_remarks)
@@ -4786,9 +5005,10 @@ class FormApprovalController extends Controller
             $returnRequest->serial_numbers = $pendingReturn['serial_numbers'];
             $returnRequest->returned_at =
                 Carbon::parse($validated['returned_at'])->startOfDay();
-            $returnRequest->return_mode = trim($validated['return_mode']);
+            $returnRequest->return_mode = $returnMode;
             $returnRequest->received_by = $currentUser->id;
-            $returnRequest->remarks = $historyRemarks ?: null;
+            $returnRequest->borrower_remarks = $historyRemarks ?: null;
+            $returnRequest->approver_remarks = $validated['approver_remarks'] ?? null;
             $returnRequest->save();
 
             if ($pendingReturn['serial_ids']->isNotEmpty()) {
@@ -4815,7 +5035,8 @@ class FormApprovalController extends Controller
             $accountability->closed_at = now();
         }
 
-        $accountability->mor = $validated['mor'];
+        $modeLabel = BmcAccountabilityReturn::RETURN_MODES[$returnMode];
+        $accountability->mor = $returnDetails !== '' ? $modeLabel . ': ' . $returnDetails : $modeLabel;
 
         $accountability->save();
 
@@ -4866,12 +5087,19 @@ class FormApprovalController extends Controller
 
         $accountability = \App\BmcAccountability::with([
             'borrowing',
-            'items',
+            'items.serials',
             'releasedBy',
         ])->findOrFail($id);
 
-        return view('for-approval.print-accountability-bmc', [
+        $view = in_array(
+            $accountability->borrowing->borrower_profile,
+            MarketingCollateralBorrowing::NON_PREI_BORROWER_PROFILES,
+            true
+        ) ? 'for-approval.partner_accountability_bmc' : 'for-approval.prei_accountability_bmc';
+
+        return view($view, [
             'accountability' => $accountability,
+            'borrowing' => $accountability->borrowing
         ]);
     }
 
@@ -4958,6 +5186,104 @@ class FormApprovalController extends Controller
 
         Alert::success('Expected return date updated successfully.')
             ->persistent('Dismiss');
+
+        return back();
+    }
+
+    // for extending the return date
+    public function extendBorrowedItems(Request $request, $id) {
+        $approverId = auth()->id();
+
+        $isApprover = \App\ApproverSetting::where('user_id', $approverId)
+            ->where('type_of_form', 'bmc')
+            ->where('status', 'Active')
+            ->exists();
+
+        abort_unless($isApprover, 403);
+
+        $validated = $request->validate([
+            'decision' => 'required|string|in:approve,decline',
+            'remarks' => 'nullable|string',
+        ]);
+
+        $extension = BmcAccountabilityExtension::findOrFail($id);
+        $isApproval = $validated['decision'] === 'approve';
+
+        $reviewedExtension = DB::transaction(function () use ($extension, $approverId, $validated, $isApproval) {
+            $accountability = BmcAccountability::lockForUpdate()
+                ->findOrFail($extension->bmc_accountability_id);
+
+            $pendingExtension = $accountability->extensions()
+               ->lockForUpdate()
+               ->findOrFail($extension->id);
+
+            if ($pendingExtension->status !== BmcAccountabilityExtension::STATUS_PENDING) {
+                throw ValidationException::withMessages([
+                    'decision' => 'This extension request has already been reviewed.',
+                ]);
+            }
+
+            if ($isApproval) {
+                $hasOutstandingItems = $accountability->items()
+                      ->whereColumn('released_quantity', '>', 'returned_quantity')
+                      ->exists();
+
+                if (!$hasOutstandingItems || !in_array($accountability->status, [
+                    BmcAccountability::STATUS_RELEASED,
+                    BmcAccountability::STATUS_PARTIALLY_RETURNED,
+                ], true)) {
+                throw ValidationException::withMessages([
+                    'decision' => 'This request is no longer eligible for an extension.',
+                ]);
+                }
+
+                $requestedDate = $pendingExtension->requested_return_date;
+                $currentDate = $accountability->expected_return_at;
+                $maximumDate = optional($accountability->released_at)
+                    ->copy();
+
+                if ($maximumDate) {
+                    $maximumDate->startOfDay()->addDays(40);
+                }
+
+                if (!$currentDate || !$maximumDate ||
+                    $requestedDate->lte($currentDate) ||
+                    $requestedDate->lt(today()) ||
+                    $requestedDate->gt($maximumDate)) {
+                    throw ValidationException::withMessages([
+                        'decision' => 'The requested date must be later than the current due date, today or later, and within 40 days of release.',
+                    ]);
+                }
+
+                $accountability->expected_return_at = $requestedDate->toDateString();
+                $accountability->save();
+            }
+
+            $pendingExtension->status = $isApproval
+                ? BmcAccountabilityExtension::STATUS_APPROVED
+                : BmcAccountabilityExtension::STATUS_DECLINED;
+            $pendingExtension->action_by = $approverId;
+            $pendingExtension->remarks = $validated['remarks'] ?? null;
+            $pendingExtension->save();
+
+            return $pendingExtension->setRelation('accountability', $accountability);
+        });
+
+        try {
+            $borrowerEmail = optional($reviewedExtension->accountability->borrowing)->email;
+
+            if ($borrowerEmail) {
+                Mail::to($borrowerEmail)->send(new BmcExtensionRequestMail($reviewedExtension));
+            }
+        } catch (\Throwable $exception) {
+            Log::error('BMC extension decision email failed.', [
+                'extension_id' => $reviewedExtension->id,
+                'status' => $reviewedExtension->status,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+
+        Alert::success($isApproval ? 'Extension request approved' : 'Extension request declined')->persistent('Dismiss');
 
         return back();
     }
@@ -5056,6 +5382,11 @@ class FormApprovalController extends Controller
                 $q->where('reference_no', 'like', '%' . $search . '%')
                   ->orWhere('requestor_first_name', 'like', '%' . $search . '%')
                   ->orWhere('requestor_last_name', 'like', '%' . $search . '%')
+                  ->orWhere('full_name', 'like', '%' . $search . '%')
+                  ->orWhere('department', 'like', '%' . $search . '%')
+                  ->orWhere('medium_type', 'like', '%' . $search . '%')
+                  ->orWhere('marketing_collateral_type', 'like', '%' . $search . '%')
+                  ->orWhere('intended_use', 'like', '%' . $search . '%')
                   ->orWhere('requestor_email', 'like', '%' . $search . '%');
             });
         }
@@ -5120,7 +5451,7 @@ class FormApprovalController extends Controller
         }
         $validated = $request->validate([
             'closing_remarks' => [
-                'required',
+                'nullable',
                 'string',
             ],
             'output_attachments' => [
@@ -5140,9 +5471,6 @@ class FormApprovalController extends Controller
                 'regex:/^https?:\/\//i',
             ],
         ], [
-            'closing_remarks.required' =>
-                'Remarks are required when marking a request as processed.',
-
             'output_attachments.array' =>
                 'The output attachments must be valid files.',
 
@@ -5239,11 +5567,11 @@ class FormApprovalController extends Controller
         }
 
         if (!$emailSent) {
-            Alert::warning('Request was processed, but the email could not be sent.')->persistent('Dismiss');
+            Alert::warning('Request completed, but the email could not be sent.')->persistent('Dismiss');
             return back();
         }
 
-        Alert::success('Request has been processed and sent to the requestor.')->persistent('Dismiss');
+        Alert::success('Request completed successfully.')->persistent('Dismiss');
         return back();
     }
 
@@ -5347,6 +5675,55 @@ class FormApprovalController extends Controller
         }
 
         Alert::success('Request has been approved.')->persistent('Dismiss');
+        return back();
+    }
+
+    // edit due date for refurbished requests
+    public function updateLdrDueDate(Request $request, $id) {
+        $ldr = LayoutDesign::find($id);
+
+         if (!$ldr) {
+             Alert::error('Layout design request not found.')->persistent('Dismiss');
+             return back();
+         }
+
+        $current_user = auth()->user();
+
+        $is_approver = \App\ApproverSetting::where('user_id', $current_user->id)
+            ->where('type_of_form', 'ldr')
+            ->where('status', 'Active')
+            ->exists();
+
+        if (!$is_approver) {
+             Alert::error('You do not have persmission for this action')->persistent('Dismiss');
+             return back();
+        }
+
+        if ($ldr->status !== LayoutDesign::STATUS_APPROVED) {
+            Alert::error('Only approved requests can be updated its due date.')->persistent('Dismiss');
+            return back();
+        }
+
+        $hasRefurbishedRequest = in_array(
+            'Refurbished Store Signage (P5,000)',
+            (array) $ldr->marketing_collateral_type,
+            true
+        );
+
+        if (!$hasRefurbishedRequest) {
+            Alert::error('Due date adjustment are only allowed for refurbished store signage requests.')->persistent('Dismiss');
+            return back();
+        }
+
+        $validated = $request->validate([
+            'due_date' => ['required', 'date_format:Y-m-d'],
+        ]);
+
+        $ldr->due_date = $validated['due_date'];
+        $ldr->save();
+
+        Alert::success('Due date updated.')->persistent('Dismiss');
+
         return back();
     }
 

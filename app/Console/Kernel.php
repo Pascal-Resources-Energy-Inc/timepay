@@ -24,9 +24,9 @@ class Kernel extends ConsoleKernel
         Commands\EmailAttendance::class,
         Commands\ForfeitExpiredPurchases::class,
         Commands\NotifyCoeReminder::class,
-        /* Commands\SendBmcExpectedReturnReminders::class, */
-        /* Commands\AutoApproveAdStoreVisitReports::class, */
-        /* Commands\IurPendingReminder::class, */
+        Commands\SendBmcExpectedReturnReminders::class,
+        Commands\AutoApproveAdStoreVisitReports::class,
+        Commands\IurPendingReminder::class,
         /* Commands\ImportAdaApplications::class, */
         /* Commands\SyncAdaEmails::class */
     ];
@@ -51,7 +51,7 @@ class Kernel extends ConsoleKernel
         // $schedule->command('command:auto_earned_leave')->dailyAt('8:00');
         $schedule->command('purchases:forfeit-expired')->everyFifteenMinutes();
         $schedule->command('sales:generate-monthly')->monthlyOn(1, '00:10'); // every 1st day of month 12:10AM
-        /* $schedule->command('iur:remind-pending')->dailyAt('09:00'); */
+        $schedule->command('iur:remind-pending')->dailyAt('09:00');
         $schedule->command('coe:remind-pending')->dailyAt('09:00')->withoutOverlapping();
         $schedule->command('ldr:send-deadline-reminders')
             ->dailyAt('09:00')
@@ -59,9 +59,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('bmc:send-return-due-reminders')
             ->dailyAt('08:00')
             ->withoutOverlapping();
-        /* $schedule->command('ad-store-visits:auto-approve') */
-        /*     ->everyMinute() */
-        /*     ->withoutOverlapping(); */
+        $schedule->command('ad-store-visits:auto-approve')
+            ->everyMinute()
+            ->withoutOverlapping();
         $schedule->command('employees:notify-resignation-day-30')
             ->dailyAt('09:00')
             ->withoutOverlapping();

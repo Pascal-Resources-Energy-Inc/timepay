@@ -476,6 +476,7 @@
                                 <!-- <li class="nav-item "> <a class="nav-link" target='_blank' href="https://form.jotform.com/232360985204051" style="text-wrap: auto">Uniform/ID Request Form</a></li> -->
                                 <li class="nav-item "> <a class="nav-link" href="/marketing-material-releases" style="text-wrap: auto">Marketing Material Releases</a></li>
                                 <li class="nav-item "> <a class="nav-link" target='_blank' href="/layout-design-requests" style="text-wrap: auto">Layout Design Request</a></li>
+                                <li class="nav-item "> <a class="nav-link" target='_blank' href="/bmc" style="text-wrap: auto">Borrowning Material Collateral</a></li>
                                 <!-- <li class="nav-item "> <a class="nav-link" target='_blank' href="https://docs.google.com/forms/d/e/1FAIpQLSdARMLk0ncUlhtlV0DPHD9P6ZTkGx10LC72M-mTtxuTCWOnIQ/viewform?usp=send_form" style="text-wrap: auto">Mobile Device Employee Sale</a></li> -->
                                 {{-- <li class="nav-item">
                                     <a class="nav-link @if (request()->is('iur*')) active @endif" href="{{ url('/iur') }}">
@@ -739,13 +740,35 @@
                     </li>
                     @endif
 
-                    @if (auth()->user()->role == 'Admin' || checkUserPrivilege('tds', auth()->user()->id) == 'yes')
-                    <!-- <li class="nav-item @if ($header == 'adStoreVisit') active @endif "> -->
-                    <!--     <a class="nav-link" href="{{ route('ad-store-visit-reports.index') }}" onclick='show()'> -->
-                    <!--         <i class="ti-location-pin menu-icon"></i> -->
-                    <!--         <span class="menu-title">AD Store Visit</span> -->
-                    <!--     </a> -->
-                    <!-- </li> -->
+                    @php 
+                        $viewers = [
+                            'siuping.par@pascalresources.com.ph',
+                            'nelson.par@pascalresources.com.ph',
+                            'matthew.par@pascalresources.com.ph',
+                            'nathaniel.camat@pascalresources.com.ph',
+                            'elmer.binuya@pascalresources.com.ph',
+                            'dennis.villareal@pascalresources.com.ph',
+                            'rey.david@pascalresources.com.ph',
+                            'maricel.solis@pascalresources.com.ph',
+                            'sharon.santos@pascalresources.com.ph',
+
+                            'jhona.rosario@pascalresources.com.ph',
+
+                            'jadd.tampingco@pascalresources.com.ph',
+                            'alden.monilla@pascalresources.com.ph',
+                            'francis.ramos@pascalresources.com.ph'
+                        ];
+
+                        $hasViewPriv = in_array(strtolower(auth()->user()->email), $viewers, true);
+                    @endphp
+
+                    @if (auth()->user()->role == 'Admin' || checkUserPrivilege('tds', auth()->user()->id) == 'yes' || $hasViewPriv)
+                    <li class="nav-item @if ($header == 'adStoreVisit') active @endif ">
+                        <a class="nav-link" href="{{ route('ad-store-visit-reports.index') }}" onclick='show()'>
+                            <i class="ti-location-pin menu-icon"></i>
+                            <span class="menu-title">AD Store Visit</span>
+                        </a>
+                    </li>
                     @endif
 
                     @if (auth()->user()->role == 'Admin' || checkUserPrivilege('tds_records', auth()->user()->id) == 'yes')

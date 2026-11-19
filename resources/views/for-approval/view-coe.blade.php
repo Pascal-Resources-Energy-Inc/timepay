@@ -97,6 +97,7 @@
                     <div class="collapse mt-3" id="edit-public-coe-{{ $coe->id }}">
                         <form method="POST" action="{{ url('update-public-coe/'.$coe->id) }}">
                             @csrf
+                            <input type="hidden" name="update_scope" value="employment">
                             <div class="form-group">
                                 <label for="designation-{{ $coe->id }}">Designation <span class="text-danger">*</span></label>
                                 <input

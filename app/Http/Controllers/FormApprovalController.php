@@ -1985,7 +1985,7 @@ class FormApprovalController extends Controller
             );
         });
 
-        Alert::success('Public submission details updated successfully.')->persistent('Dismiss');
+        Alert::success('Details updated successfully.')->persistent('Dismiss');
         return back();
     }
 

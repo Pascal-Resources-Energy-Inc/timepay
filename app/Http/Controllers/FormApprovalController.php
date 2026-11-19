@@ -2131,10 +2131,10 @@ class FormApprovalController extends Controller
         $recipientEmail = $employee_coe->email ?? optional($employee_coe->user)->email;
 
         if ($recipientEmail) {
-            /* Mail::to($recipientEmail)->send( */
-            /*     (new \App\Mail\ProcessingCoeMail($employee_coe)) */
-            /*         ->from($current_user->email, $current_user->name) */
-            /* ); */
+            Mail::to($recipientEmail)->send(
+                (new \App\Mail\ProcessingCoeMail($employee_coe))
+                    ->from($current_user->email, $current_user->name)
+            );
         }
 
         Alert::success('COE Request is now being processed.')->persistent('Dismiss');
@@ -2437,9 +2437,9 @@ class FormApprovalController extends Controller
             }
 
             try {
-                /* Mail::to($requestorEmail)->send( */
-                /*     new \App\Mail\IurRequestMail($employee_iur, 'Processing') */
-                /* ); */
+                Mail::to($requestorEmail)->send(
+                    new \App\Mail\IurRequestMail($employee_iur, 'Processing')
+                );
             } catch (\Exception $e) {
                 \Log::warning('IUR processing email failed: ' . $e->getMessage());
                 Alert::warning('Request processed, but the email notification could not be sent.')->persistent('Dismiss');

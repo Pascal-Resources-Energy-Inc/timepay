@@ -40,7 +40,7 @@
 
         .company-logo {
             display: table-cell;
-            width: 200px;
+            width: 150px;
             vertical-align: top;
         }
 
@@ -49,7 +49,7 @@
             text-align: right;
             vertical-align: top;
             font-size: 11px;
-            line-height: 1.3;
+            line-height: 1.38;
             color: #333;
         }
 

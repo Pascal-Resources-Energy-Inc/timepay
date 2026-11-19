@@ -167,7 +167,7 @@
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div>
-                    <label class="mb-2 block text-xs font-semibold text-gray-500">Employee Number</label>
+                    <label class="mb-2 block text-xs font-semibold text-gray-500">Employee Number <span><small class="text-gray-500">(optional)</small></span></label>
                     <input type="text" name="employee_number" value="{{ old('employee_number') }}" placeholder="Enter your employee number" maxlength="50" autocomplete="off" class="field">
                 </div>
                 <div>
@@ -489,7 +489,7 @@
 
         <div class="flex justify-end">
             <button type="submit" id="submitButton" class="w-full rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 sm:w-auto">
-                Submit Exit Interview
+                Submit
             </button>
         </div>
     </form>

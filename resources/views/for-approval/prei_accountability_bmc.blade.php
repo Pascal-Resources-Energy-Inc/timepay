@@ -253,7 +253,7 @@
         <section>
             <h2>USER INFORMATION</h2>
             <div class="columns">
-                <div class="field">EE No.: <span class="parameter"></span></div>
+                <div class="field">EE No.: <span class="parameter">{{ $borrowing->employee_number ?? ''}}</span></div>
                 <div class="field">Email: <span class="parameter">{{ $borrowing->email }}</span></div>
                 <div class="field">
                     Name: 

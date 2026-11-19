@@ -53,6 +53,7 @@ class MarketingCollateralBorrowing extends Model {
 
     protected $fillable = [
         'reference_no',
+        'employee_number',
         'borrower_profile',
         'borrower_first_name',
         'borrower_last_name',

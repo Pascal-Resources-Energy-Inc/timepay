@@ -1934,6 +1934,35 @@ class FormApprovalController extends Controller
 
         $updateScope = $request->input('update_scope');
 
+        if ($updateScope === 'internal_purpose') {
+            if ($employee_coe->user_id === null) {
+                Alert::error('Only internal requests can be edited here.')->persistent('Dismiss');
+                return back();
+            }
+
+            $request->validate([
+                'purpose' => 'required|string|in:Visa Application,Bank,Other',
+                'purpose_visa' => 'nullable|string|max:255',
+                'purpose_bank' => 'nullable|string|max:255',
+                'purpose_other' => 'nullable|string|max:500',
+            ]);
+
+            DB::transaction(function () use ($employee_coe, $request, $current_user) {
+                $detailFields = [
+                    'Visa Application' => 'purpose_visa',
+                    'Bank' => 'purpose_bank',
+                    'Other' => 'purpose_other',
+                ];
+                $detail = trim((string) $request->input($detailFields[$request->purpose]));
+                $employee_coe->purpose = $detail ? $request->purpose . ' - ' . $detail : $request->purpose;
+                $employee_coe->save();
+                $employee_coe->recordTrail('request_details_updated', $current_user, 'Purpose details updated.');
+            });
+
+            Alert::success('COE purpose updated successfully.')->persistent('Dismiss');
+            return back();
+        }
+
         if ($updateScope === 'purpose') {
             if (!preg_match('/^Other(?:\s*-\s*|$)/i', trim($employee_coe->purpose ?? ''))) {
                 Alert::error('Only requests with an Other purpose can be edited here.')->persistent('Dismiss');
@@ -1969,12 +1998,21 @@ class FormApprovalController extends Controller
         }
 
         $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'purpose' => 'required|string|in:Employment,Other',
+            'purpose_other' => 'required_if:purpose,Other|nullable|string|max:500',
             'designation' => 'required|string|max:255',
             'hiring_date' => 'required|date|before_or_equal:today',
             'resign_date' => 'required|date|after_or_equal:hiring_date|before_or_equal:today',
         ]);
 
         DB::transaction(function () use ($employee_coe, $request, $current_user) {
+            $employee_coe->first_name = $request->first_name;
+            $employee_coe->last_name = $request->last_name;
+            $employee_coe->purpose = $request->purpose === 'Other'
+                ? 'Other - ' . trim($request->purpose_other)
+                : 'Employment';
             $employee_coe->designation = $request->designation;
             $employee_coe->hiring_date = $request->hiring_date;
             $employee_coe->resign_date = $request->resign_date;

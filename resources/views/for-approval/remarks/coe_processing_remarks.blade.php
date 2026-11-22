@@ -7,7 +7,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form method='POST' action='process-coe/{{$coe->id}}' onsubmit="btnProcess.disabled = true; return true;" enctype="multipart/form-data">
+            <form method='POST' action='process-coe/{{$coe->id}}' onsubmit="var button = this.elements.namedItem('btnProcess'); button.disabled = true; button.textContent = 'Processing...';" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body">
                     <div class="row">

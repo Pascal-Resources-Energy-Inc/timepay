@@ -16,7 +16,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form method='POST' action='approve-coe/{{$coe->id}}' onsubmit="btnApprove.disabled = true; return true;" enctype="multipart/form-data">
+            <form method='POST' action='approve-coe/{{$coe->id}}' onsubmit="const button = this.querySelector('[name=btnApprove]'); if (button.disabled) return false; button.disabled = true; button.textContent = '{{ $isConfid ? 'Releasing...' : 'Sending...' }}'; return true;" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body">
                     <div class="row">

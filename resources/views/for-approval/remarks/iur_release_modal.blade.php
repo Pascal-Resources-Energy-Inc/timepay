@@ -271,7 +271,7 @@ if (typeof window.validateRelease !== 'function') {
             Swal.fire('Nothing to release', 'Enter a quantity or check ID release before submitting.', 'warning');
             return false;
         }
-        document.getElementById(btnName).disabled = true;
+        $form.find('button[name="' + btnName + '"]').prop('disabled', true).text('Releasing...');
         return true;
     };
 }

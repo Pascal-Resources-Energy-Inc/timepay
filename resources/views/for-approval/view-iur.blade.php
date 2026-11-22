@@ -15,7 +15,7 @@
                     $viewEmployeePosition = optional($form_approval->user)->position ?: $form_approval->legacy_designation;
                     $viewDateHired = optional($form_approval->user)->obanana_date_hired ?: $form_approval->legacy_date_hired;
                 @endphp
-                <form method="POST" action="process-iur/{{ $form_approval->id }}" id="processIurForm-{{ $form_approval->id }}">
+                <form method="POST" action="process-iur/{{ $form_approval->id }}" id="processIurForm-{{ $form_approval->id }}" onsubmit="var button = this.elements.namedItem('btnApprove'); if (button) { button.disabled = true; button.textContent = 'Processing...'; }">
                     @csrf
                     <input type="hidden" name="status" value="Processing">
 

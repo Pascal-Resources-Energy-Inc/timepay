@@ -2632,8 +2632,6 @@ class FormApprovalController extends Controller
         // Create accountability record
         $acc = new \App\IUR_Accountability();
         $acc->iur_id = $employee_iur->id;
-        $batchNum = $employee_iur->accountabilities()->count() + 1;
-        $acc->accountability_ref = $employee_iur->iur_reference . '-' . $batchNum;
         $acc->released_prod_qty = $request->released_prod_qty ?? 0;
         $acc->released_white_qty = $request->released_white_qty ?? 0;
         $acc->released_black_qty = $request->released_black_qty ?? 0;
@@ -2648,6 +2646,25 @@ class FormApprovalController extends Controller
 
         $acc->issued_by = $current_user->id;
         $acc->issued_date = now();
+        // Check whether this release completes the request.
+        $allFulfilled = true;
+        if ($employee_iur->prod_qty && $employee_iur->received_prod_qty + $acc->released_prod_qty < $employee_iur->prod_qty) $allFulfilled = false;
+        if ($employee_iur->white_qty && $employee_iur->received_white_qty + $acc->released_white_qty < $employee_iur->white_qty) $allFulfilled = false;
+        if ($employee_iur->black_qty && $employee_iur->received_black_qty + $acc->released_black_qty < $employee_iur->black_qty) $allFulfilled = false;
+        if ($employee_iur->collar_qty && $employee_iur->received_collar_qty + $acc->released_collar_qty < $employee_iur->collar_qty) $allFulfilled = false;
+
+        if (in_array($employee_iur->request_for, ['ID', 'Both'], true)) {
+            $idReleased = $acc->released_id || $employee_iur->accountabilities()
+               ->where('released_id', 1)
+               ->exists();
+
+            if (!$idReleased) $allFulfilled = false;
+        }
+
+        $batchNum = $employee_iur->accountabilities()->count() + 1;
+        $acc->accountability_ref = $allFulfilled && $batchNum === 1
+            ? $employee_iur->iur_reference
+            : $employee_iur->iur_reference . '-' . $batchNum;
         $acc->save();
 
         // Update cumulative totals
@@ -2655,21 +2672,6 @@ class FormApprovalController extends Controller
         $employee_iur->increment('received_white_qty', $acc->released_white_qty);
         $employee_iur->increment('received_black_qty', $acc->released_black_qty);
         $employee_iur->increment('received_collar_qty', $acc->released_collar_qty);
-
-        // Check if all fulfilled
-        $allFulfilled = true;
-        if ($employee_iur->prod_qty && $employee_iur->received_prod_qty < $employee_iur->prod_qty) $allFulfilled = false;
-        if ($employee_iur->white_qty && $employee_iur->received_white_qty < $employee_iur->white_qty) $allFulfilled = false;
-        if ($employee_iur->black_qty && $employee_iur->received_black_qty < $employee_iur->black_qty) $allFulfilled = false;
-        if ($employee_iur->collar_qty && $employee_iur->received_collar_qty < $employee_iur->collar_qty) $allFulfilled = false;
-
-        if (in_array($employee_iur->request_for, ['ID', 'Both'], true)) {
-            $idReleased = $employee_iur->accountabilities()
-               ->where('released_id', 1)
-               ->exists();
-
-            if (!$idReleased) $allFulfilled = false;
-        }
 
         $employee_iur->status = $allFulfilled ? 'Released' : 'Partial';
         $employee_iur->approval_remarks = $request->approval_remarks;
@@ -2891,85 +2893,6 @@ class FormApprovalController extends Controller
 
         return response()->json(['success' => true]);
     }
-
-    // unused method
-    public function approveIurAll(Request $request)
-    {
-        $current_user = auth()->user();
-
-        $is_iur_approver = \App\ApproverSetting::where('user_id', $current_user->id)
-            ->where('type_of_form', 'uir')
-            ->where('status', 'Active')
-            ->exists();
-
-        if (!$is_iur_approver) {
-            return response()->json(['error' => 'You do not have permission to bulk-approve IURs.'], 403);
-        }
-
-        $ids = json_decode($request->ids, true);
-        $count = 0;
-        $approver_id = $current_user->id;
-
-        if (!empty($ids)) {
-            foreach ($ids as $id) {
-                $employee_iur = IUR::find($id);
-
-                if ($employee_iur) {
-                    $employee_iur->update([
-                        'approved_date' => now(),
-                        'status' => 'Processing',
-                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Processed',
-                        'approved_by' => $approver_id
-                    ]);
-                    $count++;
-                }
-            }
-
-            return $count;
-        }
-
-        return 'error';
-    }
-
-    public function disapproveIurAll(Request $request)
-    {
-        $current_user = auth()->user();
-
-
-        $is_iur_approver = \App\ApproverSetting::where('user_id', $current_user->id)
-            ->where('type_of_form', 'uir')
-            ->where('status', 'Active')
-            ->exists();
-
-        if (!$is_iur_approver) {
-            return response()->json(['error' => 'You do not have permission to bulk-decline IURs.'], 403);
-        }
-
-        $ids = json_decode($request->ids, true);
-        $count = 0;
-        $approver_id = $current_user->id;
-
-        if (!empty($ids)) {
-            foreach ($ids as $id) {
-                $employee_iur = IUR::find($id);
-
-                if ($employee_iur) {
-                    $employee_iur->update([
-                        'approved_date' => now(),
-                        'status' => 'Declined',
-                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Declined',
-                        'approved_by' => $approver_id
-                    ]);
-                    $count++;
-                }
-            }
-
-            return $count;
-        }
-
-        return 'error';
-    }
-
 
     public function form_ne_approval(Request $request) {
         $today = date('Y-m-d');
@@ -5899,7 +5822,18 @@ class FormApprovalController extends Controller
                 ? $approvedPublishedFilter
                 : ($actionableStatuses[0] ?? PublicationRequest::STATUS_FOR_REVIEW));
 
-        if ($filter_status === $approvedPublishedFilter) {
+        if ($filter_status === 'All') {
+            $query = PublicationRequest::query();
+            if ($isPublicationApprover) {
+                $query->where(function ($query) use ($approver) {
+                    $query->whereNotIn('status', [
+                        PublicationRequest::STATUS_APPROVED,
+                        PublicationRequest::STATUS_PUBLISHED,
+                        PublicationRequest::STATUS_DECLINED,
+                    ])->orWhere('approved_by', $approver);
+                });
+            }
+        } elseif ($filter_status === $approvedPublishedFilter) {
             $query = PublicationRequest::whereIn('status', [
                 PublicationRequest::STATUS_APPROVED,
                 PublicationRequest::STATUS_PUBLISHED,
@@ -5918,6 +5852,17 @@ class FormApprovalController extends Controller
             ], true)
         ) {
             $query->where('approved_by', $approver);
+        }
+
+        $search = trim((string) $request->input('search', ''));
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->where('reference_no', 'like', '%' . $search . '%')
+                    ->orWhere('requested_by', 'like', '%' . $search . '%')
+                    ->orWhere('requestor_email', 'like', '%' . $search . '%')
+                    ->orWhere('document_name', 'like', '%' . $search . '%')
+                    ->orWhere('control_number', 'like', '%' . $search . '%');
+            });
         }
 
         if ($request->filled('from')) {
@@ -5998,6 +5943,7 @@ class FormApprovalController extends Controller
                 'header'        => 'for-approval',
                 'requests'      => $requests,
                 'filter_status' => $filter_status,
+                'search'        => $search,
                 'from'          => $request->from,
                 'to'            => $request->to,
                 'for_review'      => $for_review,

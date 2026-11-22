@@ -649,7 +649,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form method="POST" action="{{ url('upload-coe-attachment/'.$coe->id) }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ url('upload-coe-attachment/'.$coe->id) }}" enctype="multipart/form-data" onsubmit="var button = this.querySelector('button[type=submit]'); button.disabled = true; button.textContent = 'Uploading...';">
                 @csrf
                 <div class="modal-body">
                     @if($coe->attachment)

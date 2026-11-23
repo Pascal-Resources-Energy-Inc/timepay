@@ -50,10 +50,10 @@ class DailyScheduleController extends Controller
         ini_set('memory_limit', '-1');
 
         $request->validate([
-            'file' => 'max:1024'
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240'
         ]);
 
-        Excel::import(new DailyScheduleImport, $request->file);
+        Excel::import(new DailyScheduleImport, $request->file('file'));
 
         return back();
     }

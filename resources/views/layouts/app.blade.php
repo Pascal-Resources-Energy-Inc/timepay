@@ -21,12 +21,14 @@
 	<link rel="stylesheet" href="{{ asset('/body_css/vendors/ti-icons/css/themify-icons.css') }}">
 	<link rel="stylesheet" href="{{ asset('/body_css/vendors/css/vendor.bundle.base.css') }}">
 
+    @unless (request()->is('login') && request()->isMethod('get'))
     <link rel="stylesheet" href="{{ asset('/body_css/vendors/datatables.net-bs4/dataTables.bootstrap4.css') }}">
 	<link rel="stylesheet" href="{{ asset('/body_css/vendors/ti-icons/css/themify-icons.css') }}">
 	<link rel="stylesheet" type="text/css" href="{{ asset('/body_css/js/select.dataTables.min.css') }}">
 	<!-- Plugin css for this page -->
 	<link rel="stylesheet" href="{{ asset('/body_css/vendors/select2/select2.min.css') }}">
 	<link rel="stylesheet" href="{{ asset('/body_css/vendors/select2-bootstrap-theme/select2-bootstrap.min.css') }}">
+    @endunless
 	<link rel="stylesheet" href="{{ asset('/body_css/css/vertical-layout-light/style.css') }}">
 
     <!-- Fonts -->
@@ -275,6 +277,8 @@
 
     <!-- Styles -->
     {{-- <link href="{{ asset('css/app.css') }}" rel="stylesheet"> --}}
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 <body>
     {{-- <div id = "loader" style="display:none;" class="loader">
@@ -297,6 +301,7 @@
     <script src="{{asset('login_css/js/main.js')}}"></script> --}}
 
     <script src="{{ asset('/body_css/vendors/js/vendor.bundle.base.js') }}"></script>
+    @unless (request()->is('login') && request()->isMethod('get'))
 	<!-- endinject -->
 	<!-- Plugin js for this page -->
 	<script src="{{ asset('/body_css/vendors/chart.js/Chart.min.js') }}"></script>
@@ -321,11 +326,13 @@
 
 	<script src="{{ asset('/body_css/js/tabs.js') }}"></script>
 	<script src="{{ asset('/body_css/js/form-repeater.js') }}"></script>
+    @endunless
 	<script src="{{ asset('/body_css/vendors/sweetalert/sweetalert.min.js') }}"></script>
-    
+    @unless (request()->is('login') && request()->isMethod('get'))
     <script src="{{ asset('/body_css/vendors/inputmask/jquery.inputmask.bundle.js') }}"></script>
     <script src="{{ asset('/body_css/vendors/inputmask/jquery.inputmask.bundle.js') }}"></script>
     <script src="{{ asset('/body_css/js/inputmask.js') }}"></script>
+    @endunless
     @include('sweetalert::alert')
     <script type='text/javascript'>
         // function show() {
@@ -334,9 +341,22 @@
 		function show() {
             document.getElementById("preloaderHera").style.display = "block";
         }
-		window.addEventListener('load', function() {
-            document.getElementById('preloaderHera').style.display = 'none';
-        });
+        function hidePreloader() {
+            var preloader = document.getElementById('preloaderHera');
+
+            if (preloader) {
+                preloader.style.display = 'none';
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', hidePreloader);
+        } else {
+            hidePreloader();
+        }
+
+        // Failsafe in case another script delays or breaks page initialization.
+        setTimeout(hidePreloader, 3000);
     </script>
     <script>
 		$(document).ready(function() {

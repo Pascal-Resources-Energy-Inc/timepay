@@ -395,7 +395,7 @@
 
 @include('forms/tds/sales-target')
 @include('forms/tds/new')
-@include('forms/tds/view-details')
+@include('forms/tds/view-details', ['deferDetailsImages' => true])
 
 @endsection
 
@@ -420,6 +420,15 @@
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+  $(document).on('show.bs.modal', '.tds-details-modal', function () {
+    $(this).find('img[data-src]').each(function () {
+      this.src = this.getAttribute('data-src');
+      this.removeAttribute('data-src');
+    });
+  });
+</script>
 
 {{-- <script>
 $(document).on('click', '.view-image', function(e) {

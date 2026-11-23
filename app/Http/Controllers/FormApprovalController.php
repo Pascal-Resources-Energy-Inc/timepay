@@ -1934,6 +1934,35 @@ class FormApprovalController extends Controller
 
         $updateScope = $request->input('update_scope');
 
+        if ($updateScope === 'internal_purpose') {
+            if ($employee_coe->user_id === null) {
+                Alert::error('Only internal requests can be edited here.')->persistent('Dismiss');
+                return back();
+            }
+
+            $request->validate([
+                'purpose' => 'required|string|in:Visa Application,Bank,Other',
+                'purpose_visa' => 'nullable|string|max:255',
+                'purpose_bank' => 'nullable|string|max:255',
+                'purpose_other' => 'nullable|string|max:500',
+            ]);
+
+            DB::transaction(function () use ($employee_coe, $request, $current_user) {
+                $detailFields = [
+                    'Visa Application' => 'purpose_visa',
+                    'Bank' => 'purpose_bank',
+                    'Other' => 'purpose_other',
+                ];
+                $detail = trim((string) $request->input($detailFields[$request->purpose]));
+                $employee_coe->purpose = $detail ? $request->purpose . ' - ' . $detail : $request->purpose;
+                $employee_coe->save();
+                $employee_coe->recordTrail('request_details_updated', $current_user, 'Purpose details updated.');
+            });
+
+            Alert::success('COE purpose updated successfully.')->persistent('Dismiss');
+            return back();
+        }
+
         if ($updateScope === 'purpose') {
             if (!preg_match('/^Other(?:\s*-\s*|$)/i', trim($employee_coe->purpose ?? ''))) {
                 Alert::error('Only requests with an Other purpose can be edited here.')->persistent('Dismiss');
@@ -1969,12 +1998,21 @@ class FormApprovalController extends Controller
         }
 
         $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'purpose' => 'required|string|in:Employment,Other',
+            'purpose_other' => 'required_if:purpose,Other|nullable|string|max:500',
             'designation' => 'required|string|max:255',
             'hiring_date' => 'required|date|before_or_equal:today',
             'resign_date' => 'required|date|after_or_equal:hiring_date|before_or_equal:today',
         ]);
 
         DB::transaction(function () use ($employee_coe, $request, $current_user) {
+            $employee_coe->first_name = $request->first_name;
+            $employee_coe->last_name = $request->last_name;
+            $employee_coe->purpose = $request->purpose === 'Other'
+                ? 'Other - ' . trim($request->purpose_other)
+                : 'Employment';
             $employee_coe->designation = $request->designation;
             $employee_coe->hiring_date = $request->hiring_date;
             $employee_coe->resign_date = $request->resign_date;
@@ -1985,7 +2023,7 @@ class FormApprovalController extends Controller
             );
         });
 
-        Alert::success('Public submission details updated successfully.')->persistent('Dismiss');
+        Alert::success('Details updated successfully.')->persistent('Dismiss');
         return back();
     }
 
@@ -2131,10 +2169,10 @@ class FormApprovalController extends Controller
         $recipientEmail = $employee_coe->email ?? optional($employee_coe->user)->email;
 
         if ($recipientEmail) {
-            /* Mail::to($recipientEmail)->send( */
-            /*     (new \App\Mail\ProcessingCoeMail($employee_coe)) */
-            /*         ->from($current_user->email, $current_user->name) */
-            /* ); */
+            Mail::to($recipientEmail)->send(
+                (new \App\Mail\ProcessingCoeMail($employee_coe))
+                    ->from($current_user->email, $current_user->name)
+            );
         }
 
         Alert::success('COE Request is now being processed.')->persistent('Dismiss');
@@ -2437,9 +2475,9 @@ class FormApprovalController extends Controller
             }
 
             try {
-                /* Mail::to($requestorEmail)->send( */
-                /*     new \App\Mail\IurRequestMail($employee_iur, 'Processing') */
-                /* ); */
+                Mail::to($requestorEmail)->send(
+                    new \App\Mail\IurRequestMail($employee_iur, 'Processing')
+                );
             } catch (\Exception $e) {
                 \Log::warning('IUR processing email failed: ' . $e->getMessage());
                 Alert::warning('Request processed, but the email notification could not be sent.')->persistent('Dismiss');
@@ -2632,8 +2670,6 @@ class FormApprovalController extends Controller
         // Create accountability record
         $acc = new \App\IUR_Accountability();
         $acc->iur_id = $employee_iur->id;
-        $batchNum = $employee_iur->accountabilities()->count() + 1;
-        $acc->accountability_ref = $employee_iur->iur_reference . '-' . $batchNum;
         $acc->released_prod_qty = $request->released_prod_qty ?? 0;
         $acc->released_white_qty = $request->released_white_qty ?? 0;
         $acc->released_black_qty = $request->released_black_qty ?? 0;
@@ -2648,6 +2684,25 @@ class FormApprovalController extends Controller
 
         $acc->issued_by = $current_user->id;
         $acc->issued_date = now();
+        // Check whether this release completes the request.
+        $allFulfilled = true;
+        if ($employee_iur->prod_qty && $employee_iur->received_prod_qty + $acc->released_prod_qty < $employee_iur->prod_qty) $allFulfilled = false;
+        if ($employee_iur->white_qty && $employee_iur->received_white_qty + $acc->released_white_qty < $employee_iur->white_qty) $allFulfilled = false;
+        if ($employee_iur->black_qty && $employee_iur->received_black_qty + $acc->released_black_qty < $employee_iur->black_qty) $allFulfilled = false;
+        if ($employee_iur->collar_qty && $employee_iur->received_collar_qty + $acc->released_collar_qty < $employee_iur->collar_qty) $allFulfilled = false;
+
+        if (in_array($employee_iur->request_for, ['ID', 'Both'], true)) {
+            $idReleased = $acc->released_id || $employee_iur->accountabilities()
+               ->where('released_id', 1)
+               ->exists();
+
+            if (!$idReleased) $allFulfilled = false;
+        }
+
+        $batchNum = $employee_iur->accountabilities()->count() + 1;
+        $acc->accountability_ref = $allFulfilled && $batchNum === 1
+            ? $employee_iur->iur_reference
+            : $employee_iur->iur_reference . '-' . $batchNum;
         $acc->save();
 
         // Update cumulative totals
@@ -2655,21 +2710,6 @@ class FormApprovalController extends Controller
         $employee_iur->increment('received_white_qty', $acc->released_white_qty);
         $employee_iur->increment('received_black_qty', $acc->released_black_qty);
         $employee_iur->increment('received_collar_qty', $acc->released_collar_qty);
-
-        // Check if all fulfilled
-        $allFulfilled = true;
-        if ($employee_iur->prod_qty && $employee_iur->received_prod_qty < $employee_iur->prod_qty) $allFulfilled = false;
-        if ($employee_iur->white_qty && $employee_iur->received_white_qty < $employee_iur->white_qty) $allFulfilled = false;
-        if ($employee_iur->black_qty && $employee_iur->received_black_qty < $employee_iur->black_qty) $allFulfilled = false;
-        if ($employee_iur->collar_qty && $employee_iur->received_collar_qty < $employee_iur->collar_qty) $allFulfilled = false;
-
-        if (in_array($employee_iur->request_for, ['ID', 'Both'], true)) {
-            $idReleased = $employee_iur->accountabilities()
-               ->where('released_id', 1)
-               ->exists();
-
-            if (!$idReleased) $allFulfilled = false;
-        }
 
         $employee_iur->status = $allFulfilled ? 'Released' : 'Partial';
         $employee_iur->approval_remarks = $request->approval_remarks;
@@ -2891,85 +2931,6 @@ class FormApprovalController extends Controller
 
         return response()->json(['success' => true]);
     }
-
-    // unused method
-    public function approveIurAll(Request $request)
-    {
-        $current_user = auth()->user();
-
-        $is_iur_approver = \App\ApproverSetting::where('user_id', $current_user->id)
-            ->where('type_of_form', 'uir')
-            ->where('status', 'Active')
-            ->exists();
-
-        if (!$is_iur_approver) {
-            return response()->json(['error' => 'You do not have permission to bulk-approve IURs.'], 403);
-        }
-
-        $ids = json_decode($request->ids, true);
-        $count = 0;
-        $approver_id = $current_user->id;
-
-        if (!empty($ids)) {
-            foreach ($ids as $id) {
-                $employee_iur = IUR::find($id);
-
-                if ($employee_iur) {
-                    $employee_iur->update([
-                        'approved_date' => now(),
-                        'status' => 'Processing',
-                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Processed',
-                        'approved_by' => $approver_id
-                    ]);
-                    $count++;
-                }
-            }
-
-            return $count;
-        }
-
-        return 'error';
-    }
-
-    public function disapproveIurAll(Request $request)
-    {
-        $current_user = auth()->user();
-
-
-        $is_iur_approver = \App\ApproverSetting::where('user_id', $current_user->id)
-            ->where('type_of_form', 'uir')
-            ->where('status', 'Active')
-            ->exists();
-
-        if (!$is_iur_approver) {
-            return response()->json(['error' => 'You do not have permission to bulk-decline IURs.'], 403);
-        }
-
-        $ids = json_decode($request->ids, true);
-        $count = 0;
-        $approver_id = $current_user->id;
-
-        if (!empty($ids)) {
-            foreach ($ids as $id) {
-                $employee_iur = IUR::find($id);
-
-                if ($employee_iur) {
-                    $employee_iur->update([
-                        'approved_date' => now(),
-                        'status' => 'Declined',
-                        'approval_remarks' => $request->approval_remarks ?? 'Bulk Declined',
-                        'approved_by' => $approver_id
-                    ]);
-                    $count++;
-                }
-            }
-
-            return $count;
-        }
-
-        return 'error';
-    }
-
 
     public function form_ne_approval(Request $request) {
         $today = date('Y-m-d');
@@ -5899,7 +5860,18 @@ class FormApprovalController extends Controller
                 ? $approvedPublishedFilter
                 : ($actionableStatuses[0] ?? PublicationRequest::STATUS_FOR_REVIEW));
 
-        if ($filter_status === $approvedPublishedFilter) {
+        if ($filter_status === 'All') {
+            $query = PublicationRequest::query();
+            if ($isPublicationApprover) {
+                $query->where(function ($query) use ($approver) {
+                    $query->whereNotIn('status', [
+                        PublicationRequest::STATUS_APPROVED,
+                        PublicationRequest::STATUS_PUBLISHED,
+                        PublicationRequest::STATUS_DECLINED,
+                    ])->orWhere('approved_by', $approver);
+                });
+            }
+        } elseif ($filter_status === $approvedPublishedFilter) {
             $query = PublicationRequest::whereIn('status', [
                 PublicationRequest::STATUS_APPROVED,
                 PublicationRequest::STATUS_PUBLISHED,
@@ -5918,6 +5890,17 @@ class FormApprovalController extends Controller
             ], true)
         ) {
             $query->where('approved_by', $approver);
+        }
+
+        $search = trim((string) $request->input('search', ''));
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->where('reference_no', 'like', '%' . $search . '%')
+                    ->orWhere('requested_by', 'like', '%' . $search . '%')
+                    ->orWhere('requestor_email', 'like', '%' . $search . '%')
+                    ->orWhere('document_name', 'like', '%' . $search . '%')
+                    ->orWhere('control_number', 'like', '%' . $search . '%');
+            });
         }
 
         if ($request->filled('from')) {
@@ -5998,6 +5981,7 @@ class FormApprovalController extends Controller
                 'header'        => 'for-approval',
                 'requests'      => $requests,
                 'filter_status' => $filter_status,
+                'search'        => $search,
                 'from'          => $request->from,
                 'to'            => $request->to,
                 'for_review'      => $for_review,

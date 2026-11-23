@@ -80,7 +80,7 @@
                 <div class="border rounded bg-light p-3 mt-3">
                     <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
                         <div class="pr-sm-3">
-                            <small class="text-muted">Correct employment information before completing this request.</small>
+                            <small class="text-muted">Correct request and employment information before completing this request.</small>
                         </div>
                         <button
                             type="button"
@@ -97,6 +97,34 @@
                     <div class="collapse mt-3" id="edit-public-coe-{{ $coe->id }}">
                         <form method="POST" action="{{ url('update-public-coe/'.$coe->id) }}">
                             @csrf
+                            <input type="hidden" name="update_scope" value="employment">
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="first-name-{{ $coe->id }}">First name <span class="text-danger">*</span></label>
+                                    <input type="text" id="first-name-{{ $coe->id }}" name="first_name" class="form-control" value="{{ $coe->first_name }}" maxlength="255" required>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="last-name-{{ $coe->id }}">Last name <span class="text-danger">*</span></label>
+                                    <input type="text" id="last-name-{{ $coe->id }}" name="last_name" class="form-control" value="{{ $coe->last_name }}" maxlength="255" required>
+                                </div>
+                            </div>
+                            @php
+                                $publicPurpose = trim($coe->purpose ?? '');
+                                $publicPurposeIsEmployment = strcasecmp($publicPurpose, 'Employment') === 0;
+                                $publicPurposeOther = preg_replace('/^Other\s*-\s*/i', '', $publicPurpose);
+                                if (strcasecmp($publicPurposeOther, 'Other') === 0) $publicPurposeOther = '';
+                            @endphp
+                            <div class="form-group">
+                                <label for="purpose-{{ $coe->id }}">Purpose of request <span class="text-danger">*</span></label>
+                                <select id="purpose-{{ $coe->id }}" name="purpose" class="form-control" required onchange="var other = this.form.querySelector('[data-public-purpose-other]'); other.hidden = this.value !== 'Other'; other.querySelector('input').required = this.value === 'Other';">
+                                    <option value="Employment" {{ $publicPurposeIsEmployment ? 'selected' : '' }}>Employment</option>
+                                    <option value="Other" {{ !$publicPurposeIsEmployment ? 'selected' : '' }}>Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group" data-public-purpose-other {{ $publicPurposeIsEmployment ? 'hidden' : '' }}>
+                                <label for="purpose-other-{{ $coe->id }}">Please specify purpose <span class="text-danger">*</span></label>
+                                <input type="text" id="purpose-other-{{ $coe->id }}" name="purpose_other" class="form-control" value="{{ $publicPurposeIsEmployment ? '' : $publicPurposeOther }}" maxlength="500" {{ !$publicPurposeIsEmployment ? 'required' : '' }}>
+                            </div>
                             <div class="form-group">
                                 <label for="designation-{{ $coe->id }}">Designation <span class="text-danger">*</span></label>
                                 <input
@@ -156,6 +184,45 @@
                     <div class="col-sm-4 text-muted mb-1 mb-sm-0">Purpose:</div>
                     <div class="col-sm-8 text-break">{{ $coe->purpose ?? 'N/A' }}</div>
                 </div>
+                @if($coe->user_id !== null && $user_role === 'coe_approver' && in_array($coe->status, ['Pending', 'Processing']))
+                @php
+                    $internalPurposeParts = explode(' - ', $coe->purpose ?? '', 2);
+                    $internalPurpose = $internalPurposeParts[0];
+                    $internalPurposeDetail = $internalPurposeParts[1] ?? '';
+                @endphp
+                <div class="border rounded bg-light p-3 mb-3">
+                    <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
+                        <small class="text-muted">Correct the purpose before completing this request.</small>
+                        <button type="button" class="btn btn-outline-primary btn-sm mt-2 mt-sm-0" data-toggle="collapse" data-target="#edit-internal-coe-purpose-{{ $coe->id }}" aria-expanded="false" aria-controls="edit-internal-coe-purpose-{{ $coe->id }}">
+                            <i class="ti-pencil mr-1"></i> Edit purpose
+                        </button>
+                    </div>
+                    <div class="collapse mt-3" id="edit-internal-coe-purpose-{{ $coe->id }}">
+                        <form method="POST" action="{{ url('update-public-coe/'.$coe->id) }}">
+                            @csrf
+                            <input type="hidden" name="update_scope" value="internal_purpose">
+                            <div class="form-group">
+                                <label for="internal-purpose-{{ $coe->id }}">Purpose <span class="text-danger">*</span></label>
+                                <select id="internal-purpose-{{ $coe->id }}" name="purpose" class="form-control" required onchange="var selected = this.value; this.form.querySelectorAll('[data-internal-purpose-detail]').forEach(function (field) { field.hidden = field.getAttribute('data-internal-purpose-detail') !== selected; });">
+                                    <option value="">Select purpose</option>
+                                    <option value="Visa Application" {{ $internalPurpose === 'Visa Application' ? 'selected' : '' }}>Visa Application</option>
+                                    <option value="Bank" {{ $internalPurpose === 'Bank' ? 'selected' : '' }}>Bank Loan</option>
+                                    <option value="Other" {{ $internalPurpose === 'Other' ? 'selected' : '' }}>Other</option>
+                                </select>
+                            </div>
+                            @foreach(['Visa Application' => ['purpose_visa', 'Country of destination', 255], 'Bank' => ['purpose_bank', 'Loan type', 255], 'Other' => ['purpose_other', 'Please specify purpose', 500]] as $purposeType => $purposeField)
+                            <div class="form-group" data-internal-purpose-detail="{{ $purposeType }}" {{ $internalPurpose !== $purposeType ? 'hidden' : '' }}>
+                                <label for="{{ $purposeField[0] }}-{{ $coe->id }}">{{ $purposeField[1] }}</label>
+                                <input type="text" id="{{ $purposeField[0] }}-{{ $coe->id }}" name="{{ $purposeField[0] }}" class="form-control" maxlength="{{ $purposeField[2] }}" value="{{ $internalPurpose === $purposeType ? $internalPurposeDetail : '' }}">
+                            </div>
+                            @endforeach
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary btn-sm">Save changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                @endif
                 <div class="row mb-2">
                     <div class="col-sm-4 text-muted mb-1 mb-sm-0">Request:</div>
                     <div class="col-sm-8 text-break" style="{{ $coe->reason_for_request === 'With Salary' ? 'color: red;' : '' }}">{{ $coe->reason_for_request }}</div>

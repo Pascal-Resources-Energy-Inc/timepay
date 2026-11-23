@@ -140,7 +140,7 @@ class HomeController extends Controller
             }
         );
         
-        $emp = Employee::where('user_id', Auth::id())->first();
+        $emp = $currentEmployee;
 
         $classifications = Cache::remember(
             'dashboard.classifications',
@@ -181,9 +181,24 @@ class HomeController extends Controller
             $schedule_ko = employeeSchedule($schedules,date('Y-m-d'),$scheduleId,auth()->user()->employee->employee_number);
             
             if ($schedule_ko) {
-                $lateRecords = $this->calculateLateRecords($currentEmployee->employee_number, $schedule_ko->time_in_from);
-                $absentDates = $this->calculateAbsentDates($currentEmployee->employee_number, $currentUser->id);
-                $latePerDay = $this->calculateLatePerDay($currentEmployee->employee_number, $schedule_ko->time_in_from, $currentUser->id);
+                $lateRecords = $this->calculateLateRecords(
+                    $currentEmployee->employee_number,
+                    $schedule_ko->time_in_from,
+                    $currentEmployee->company_id
+                );
+
+                $absentDates = $this->calculateAbsentDates(
+                    $currentEmployee->employee_number,
+                    $currentUser->id,
+                    $currentEmployee->company_id
+                );
+
+                $latePerDay = $this->calculateLatePerDay(
+                    $currentEmployee->employee_number,
+                    $schedule_ko->time_in_from,
+                    $currentUser->id,
+                    $currentEmployee->company_id
+                );
             }
         }
         
@@ -644,6 +659,7 @@ class HomeController extends Controller
     {
         $location = $request->input('location');
         $today = Carbon::today()->toDateString();
+        $tomorrow = Carbon::parse($today)->addDay()->toDateString();
         
         $stats = DB::select("
             SELECT 
@@ -660,15 +676,15 @@ class HomeController extends Controller
             LEFT JOIN (
                 SELECT DISTINCT employee_code 
                 FROM attendances 
-                WHERE DATE(time_in) = ?
+                WHERE time_in >= ? AND time_in < ?
             ) a ON e.employee_number = a.employee_code
             LEFT JOIN (
                 SELECT DISTINCT u.id as user_id
                 FROM employee_leaves el
                 JOIN users u ON el.user_id = u.id
                 WHERE el.status = 'Approved'
-                    AND DATE(el.date_from) <= ?
-                    AND DATE(el.date_to) >= ?
+                    AND el.date_from < ?
+                    AND el.date_to >= ?
             ) el ON e.user_id = el.user_id
             LEFT JOIN (
                 SELECT DISTINCT e2.employee_number as employee_code
@@ -677,7 +693,7 @@ class HomeController extends Controller
                 JOIN attendances a2 ON e2.employee_number = a2.employee_code
                 WHERE e2.status IN ('Active', 'HBU')
                     AND e2.company_id != 2
-                    AND DATE(a2.time_in) = ?
+                    AND a2.time_in >= ? AND a2.time_in < ?
                     AND TIME(a2.time_in) > TIME(
                         CASE 
                             WHEN LENGTH(TRIM(sd.time_in_from)) = 5 
@@ -688,7 +704,7 @@ class HomeController extends Controller
             ) la ON e.employee_number = la.employee_code
             WHERE e.status IN ('Active', 'HBU')" . 
             ($location ? " AND e.location = ?" : ""),
-            array_filter([$today, $today, $today, $today, $location, $location])
+            array_filter([$today, $tomorrow, $tomorrow, $today, $today, $tomorrow, $location, $location])
         );
 
         $result = $stats[0];
@@ -701,12 +717,8 @@ class HomeController extends Controller
         ]);
     }
     
-   private function calculateLateRecords($employeeNumber, $expectedTimeIn)
+   private function calculateLateRecords($employeeNumber, $expectedTimeIn, $companyId)
     {
-        $companyId = DB::table('employees')
-            ->where('employee_number', $employeeNumber)
-            ->value('company_id');
-
         if ($companyId == 2) {
             return [];
         }
@@ -721,8 +733,8 @@ class HomeController extends Controller
             FROM attendances 
             WHERE employee_code = ?
                 AND time_in IS NOT NULL
-                AND MONTH(time_in) = MONTH(CURDATE())
-                AND YEAR(time_in) = YEAR(CURDATE())
+                AND time_in >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                AND time_in < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
             GROUP BY DATE(time_in)
             HAVING TIME(MIN(time_in)) > ADDTIME(?, '00:01:00')
                 AND late_minutes > 0
@@ -731,12 +743,8 @@ class HomeController extends Controller
     }
 
     
-    private function calculateAbsentDates($employeeNumber, $userId)
+    private function calculateAbsentDates($employeeNumber, $userId, $companyId)
     {
-        $companyId = DB::table('employees')
-            ->where('employee_number', $employeeNumber)
-            ->value('company_id');
-
         if ($companyId == 2) {
             return [];
         }
@@ -796,12 +804,8 @@ class HomeController extends Controller
             ->toArray();
     }
 
-    private function calculateLatePerDay($employeeNumber, $expectedTimeString, $userId)
+    private function calculateLatePerDay($employeeNumber, $expectedTimeString, $userId, $companyId)
     {
-        $companyId = DB::table('employees')
-            ->where('employee_number', $employeeNumber)
-            ->value('company_id');
-
         if ($companyId == 2) {
             return [];
         }
@@ -826,7 +830,8 @@ class HomeController extends Controller
         $attendanceData = DB::table('attendances')
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('MIN(time_in) as time_in'))
             ->where('employee_code', $employeeNumber)
-            ->whereBetween(DB::raw('DATE(created_at)'), [$startDate->toDateString(), $endDate->toDateString()])
+            ->where('created_at', '>=', $startDate->toDateString())
+            ->where('created_at', '<', $endDate->copy()->addDay()->toDateString())
             ->groupBy(DB::raw('DATE(created_at)'))
             ->pluck('time_in', 'date');
 

@@ -244,6 +244,7 @@ class BmcController extends Controller {
             $borrowing = MarketingCollateralBorrowing::create(
                 array_merge($validated, $borrowerData, [
                     'borrower_profile' => 'PREI Support Group',
+                    'employee_number' => auth()->user()->employee->employee_number,
                     'location' => auth()->user()->employee->location,
                     'reference_no' => 'BMC - ' .
                     str_pad($nextId, 6, '0', STR_PAD_LEFT),

@@ -62,17 +62,17 @@
               <!-- 'icon' => 'bi-shop', -->
               <!-- ], -->
 
-              {{--[--}}
-              {{--'label' => 'Exit Interview',--}}
-              {{--'url' => route('exit-interview.public.create'),--}}
-              {{--'icon' => 'bi-box-arrow-right',--}}
-              {{--],--}}
               @php
                 $quickLinks = [
                   [
                     'label' => 'COE Request',
                     'url' => url('/external/coe-request'),
                     'icon' => 'ti-file',
+                  ],
+                  [
+                    'label' => 'Exit Interview Form',
+                    'url' => route('exit-interview.public.create'),
+                    'icon' => 'bi-box-arrow-right'
                   ],
                   [
                   'label' => 'Marketing Material Release',

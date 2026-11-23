@@ -96,14 +96,10 @@ class ApproverSettingController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'type_of_forms' => 'required|array|min:1',
-            'type_of_forms.*' => 'in:leave,ot,dtr,pd,ad,ne,coe,uir,mta,bmc,ldr,pr',
+            'type_of_forms.*' => 'in:leave,ot,dtr,pd,ad,ne,coe,uir,mta,bmc,ldr,pr,ada',
             'work_location' => 'nullable|array',
             'access_type' => 'required|in:approver,viewer'
         ]);
-
-        if ($request->access_type === 'viewer' && array_diff($request->type_of_forms, ['coe'])) {
-            return back()->withErrors(['access_type' => 'Viewer access is currently available only for COE requests.'])->withInput();
-        }
 
         $saved_count = 0;
 
@@ -138,7 +134,7 @@ class ApproverSettingController extends Controller
                         ApproverSetting::create([
                             'user_id' => $request->user_id,
                             'type_of_form' => 'mta',
-                            'access_type' => 'approver',
+                            'access_type' => $request->access_type,
                             'work_location' => $location,
                             'status' => 'Active'
                         ]);

@@ -40,7 +40,7 @@ class HomeController extends Controller
     /**
      * Show the application dashboard.
      */
-    public function prepareDashboardData()
+    public function prepareDashboardData($includeCompanyStatistics = true)
     {
         // Cache current user data to avoid repeated database calls
         $currentUser = auth()->user();
@@ -243,9 +243,12 @@ class HomeController extends Controller
                 ->get();
         }
         
-        $request = new Request(['location' => null]);
-        $statsResponse = $this->filterByLocation($request);
-        $adminStats = json_decode($statsResponse->getContent(), true);
+        $adminStats = [];
+        if ($includeCompanyStatistics) {
+            $request = new Request(['location' => null]);
+            $statsResponse = $this->filterByLocation($request);
+            $adminStats = json_decode($statsResponse->getContent(), true);
+        }
         
         $locations = Cache::remember(
             'dashboard.locations',
@@ -346,7 +349,7 @@ class HomeController extends Controller
 
      public function index()
     {
-        $data = $this->prepareDashboardData();
+        $data = $this->prepareDashboardData(false);
         return view('dashboards.home', $data);
     }
 

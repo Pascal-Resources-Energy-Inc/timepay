@@ -52,6 +52,7 @@ class EmployeeCoeController extends Controller {
         $coe_approvers = ApproverSetting::with('user.employee')
             ->where('type_of_form', 'coe')
             ->where('status', 'Active')
+            ->approvers()
             ->get();
 
         $getApproverForEmployee = function ($employee) use ($coe_approvers) {
@@ -84,6 +85,7 @@ class EmployeeCoeController extends Controller {
         $coe_approvers = ApproverSetting::with('user')
             ->where('type_of_form', 'coe')
             ->where('status', 'Active')
+            ->approvers()
             ->get();
 
         foreach ($pendingCoes as $coe) {
@@ -247,6 +249,7 @@ class EmployeeCoeController extends Controller {
             $coe_approvers = ApproverSetting::with('user.employee')
                 ->where('type_of_form', 'coe')
                 ->where('status', 'Active')
+                ->approvers()
                 ->get();
 
             if ($isConfid) {
@@ -374,6 +377,7 @@ class EmployeeCoeController extends Controller {
         $coe_approvers = \App\ApproverSetting::with('user')
             ->where('type_of_form', 'coe')
             ->where('status', 'Active')
+            ->approvers()
             ->get();
 
         if ($coe->user_id) {
@@ -409,6 +413,7 @@ class EmployeeCoeController extends Controller {
         $coe_approvers = \App\ApproverSetting::with('user')
             ->where('type_of_form', 'coe')
             ->where('status', 'Active')
+            ->approvers()
             ->get();
 
         $coordinatorIds = $coe_approvers->pluck('user_id')->toArray();

@@ -1283,6 +1283,7 @@ function pending_coe_count($approver_id){
     $is_coe_approver = \App\ApproverSetting::where('user_id', $approver_id)
         ->where('type_of_form', 'coe')
         ->where('status', 'Active')
+        ->approvers()
         ->exists();
 
     if (!$is_coe_approver) return 0;

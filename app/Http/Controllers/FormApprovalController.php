@@ -1707,12 +1707,17 @@ class FormApprovalController extends Controller
         $is_coe_approver = \App\ApproverSetting::where('user_id', $approver_id)
             ->where('type_of_form', 'coe')
             ->where('status', 'Active')
+            ->approvers()
             ->exists();
 
         $isHrHeadApprover = $is_coe_approver
             && optional($user->employee)->position === 'HR Head';
 
-        $canView = $is_coe_approver;
+        $canView = \App\ApproverSetting::where('user_id', $approver_id)
+            ->where('type_of_form', 'coe')
+            ->where('status', 'Active')
+            ->whereIn('access_type', ['approver', 'viewer'])
+            ->exists() || $is_coe_approver;
 
         if ($canView) {
             $coes_all = EmployeeCoe::when($from_date, function ($query, $from_date) {
@@ -1774,6 +1779,7 @@ class FormApprovalController extends Controller
         $coe_approvers = \App\ApproverSetting::with('user.employee.department')
             ->where('type_of_form', 'coe')
             ->where('status', 'Active')
+            ->approvers()
             ->get();
 
         $pendingCount = $coes_all->where('status', 'Pending')->count();
@@ -1834,6 +1840,7 @@ class FormApprovalController extends Controller
         $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
             ->where('type_of_form', 'coe')
             ->where('status', 'Active')
+            ->approvers()
             ->exists();
 
         if (!$is_coe_approver) {
@@ -1880,6 +1887,7 @@ class FormApprovalController extends Controller
         $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
             ->where('type_of_form', 'coe')
             ->where('status', 'Active')
+            ->approvers()
             ->exists();
 
         if (!$is_coe_approver) {
@@ -1920,6 +1928,7 @@ class FormApprovalController extends Controller
         $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
             ->where('type_of_form', 'coe')
             ->where('status', 'Active')
+            ->approvers()
             ->exists();
 
         if (!$is_coe_approver) {
@@ -2041,6 +2050,7 @@ class FormApprovalController extends Controller
         $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
             ->where('type_of_form', 'coe')
             ->where('status', 'Active')
+            ->approvers()
             ->exists();
 
         if ($this->cannotHandleConfidCoe($employee_coe, $current_user)) {
@@ -2136,6 +2146,7 @@ class FormApprovalController extends Controller
         $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
             ->where('type_of_form', 'coe')
             ->where('status', 'Active')
+            ->approvers()
             ->exists();
 
         if (!$is_coe_approver) {
@@ -2187,6 +2198,7 @@ class FormApprovalController extends Controller
         $isActiveCoeApprover = \App\ApproverSetting::where('user_id', $user->id)
             ->where('type_of_form', 'coe')
             ->where('status', 'Active')
+            ->approvers()
             ->exists();
 
         return $isActiveCoeApprover
@@ -2237,6 +2249,7 @@ class FormApprovalController extends Controller
         $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
             ->where('type_of_form', 'coe')
             ->where('status', 'Active')
+            ->approvers()
             ->exists();
 
         if (!$is_coe_approver) {
@@ -2302,6 +2315,7 @@ class FormApprovalController extends Controller
         $is_coe_approver = \App\ApproverSetting::where('user_id', $current_user->id)
             ->where('type_of_form', 'coe')
             ->where('status', 'Active')
+            ->approvers()
             ->exists();
 
         if (!$is_coe_approver) {

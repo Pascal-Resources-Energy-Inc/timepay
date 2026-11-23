@@ -36,7 +36,11 @@
                                 <option value="approver" {{ old('access_type', 'approver') == 'approver' ? 'selected' : '' }}>Approver</option>
                                 <option value="viewer" {{ old('access_type') == 'viewer' ? 'selected' : '' }}>Viewer</option>
                             </select>
-                            <small class="text-muted">Approvers can view and approve. Viewers can only view requests. This applies to every selected form.</small>
+                            <small class="text-muted d-block mt-2">Approvers can view and approve requests. Viewers have read-only access. The selected access type applies to all selected forms.</small>
+
+                            <small class="text-danger d-block mt-3">
+                                "Viewer" access type is currently being tested. Please do not use it at this time. 
+                            </small>
                             @if($errors->has('access_type')) <div class="text-danger">{{ $errors->first('access_type') }}</div> @endif
                         </div>
                         <div class="col-md-12 form-group" id="work_location_container" style="display: none;">

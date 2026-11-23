@@ -1916,15 +1916,14 @@
                                     @foreach($employees_new_hire as $employee)
                                         <div class="hire-card">
                                             <div class="image-wrapper">
-                                                <img src="{{ URL::asset($employee->avatar) }}"
-                                                    onerror="this.src='{{ URL::asset('/images/no_image.png') }}';">
+                                                <img src="{{ URL::asset($employee->avatar) }}" onerror="this.src='{{ URL::asset('/images/no_image.png') }}';" loading="lazy">
 
                                                 <div class="overlay"></div>
                                                 @if(auth()->user()->role == 'Admin')
-                                                <button class="edit-btn"
-                                                    onclick="openImageModal({{ $employee->id }})">
-                                                    <i class="fas fa-pen"></i>
-                                                </button>
+                                                <!-- <button class="edit-btn" -->
+                                                <!--     onclick="openImageModal({{ $employee->id }})"> -->
+                                                <!--     <i class="fas fa-pen"></i> -->
+                                                <!-- </button> -->
                                                 @endif
                                             </div>
                                             <div class="content">
@@ -2195,7 +2194,7 @@ function loadExistingFiles(planningId) {
                     html += `
                         <div class="mb-2">
                             <strong>Image:</strong><br>
-                            <img src="${response.image}" alt="Planning Image" style="max-width: 150px; max-height: 150px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+                            <img src="${response.image}" loading="lazy" alt="Planning Image" style="max-width: 150px; max-height: 150px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
                         </div>
                     `;
                 }
@@ -2307,7 +2306,7 @@ function openBirthdayModal(day, month) {
                 <div style="display: flex; align-items: center; padding: 12px; margin-bottom: 10px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea; transition: all 0.2s;" 
                      onmouseover="this.style.background='#e9ecef'; this.style.transform='translateX(5px)'" 
                      onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateX(0)'">
-                    <img src="${celebrant.avatar}" 
+                    <img src="${celebrant.avatar}" loading="lazy"
                          onerror="this.src='/images/no_image.png';" 
                          alt="user" 
                          style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea; margin-right: 15px;">
@@ -3194,7 +3193,7 @@ async function showLocationSweetAlert(userLocation, proximityResult) {
             
             <div style="display: flex; flex-wrap: wrap; gap: 20px;">
             <div style="display: flex; align-items: center;">
-                <img src="{{ asset('images/location.png') }}" style="width: 24px; height: 24px; margin-right: 8px;" alt="Hub Location">
+                <img src="{{ asset('images/location.png') }}" loading="lazy" style="width: 24px; height: 24px; margin-right: 8px;" alt="Hub Location">
                 <span><strong>Hub Location</strong> - Your assigned work hub</span>
             </div>
             <div style="display: flex; align-items: center;">

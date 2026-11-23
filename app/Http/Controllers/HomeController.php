@@ -42,18 +42,6 @@ class HomeController extends Controller
      */
     public function prepareDashboardData()
     {
-        // Temporary diagnostics: enabled only when dashboard_timing=1 is in the URL.
-        $timingEnabled = request()->query('dashboard_timing') === '1';
-        $timingStart = microtime(true);
-        $timingLast = $timingStart;
-        $dashboardTimings = [];
-        $recordTiming = function ($section) use ($timingEnabled, &$timingLast, &$dashboardTimings) {
-            if (!$timingEnabled) return;
-            $now = microtime(true);
-            $dashboardTimings[$section] = round(($now - $timingLast) * 1000, 2);
-            $timingLast = $now;
-        };
-
         // Cache current user data to avoid repeated database calls
         $currentUser = auth()->user();
         $currentEmployee = $currentUser->employee;
@@ -89,7 +77,6 @@ class HomeController extends Controller
                     ->get();
             }
         );
-        $recordTiming('employee_reference_data_ms');
         $sevendays = date('Y-m-d',strtotime("-7 days"));
         if(auth()->user()->employee){
             if(auth()->user()->employee->employee_number){
@@ -111,7 +98,6 @@ class HomeController extends Controller
         $employees_under = auth()->user()->subbordinates;
         $attendance_employees = $attendance_controller->get_attendances_employees(date('Y-m-d'),date('Y-m-d'),$employees_under->pluck('employee_number')->toArray());
         $attendance_employees->load('employee.approved_leaves_with_pay');
-        $recordTiming('attendance_and_schedules_ms');
         // $announcements = Announcement::with('user')->where('expired',null)
         // ->orWhere('expired',">=",date('Y-m-d'))->get();
         
@@ -170,7 +156,6 @@ class HomeController extends Controller
                 return Leave::all();
             }
         );
-        $recordTiming('holiday_and_reference_data_ms');
         
         // User-specific data (only if user has employee record)
         $totalUsedLeaveDays = 0;
@@ -218,7 +203,6 @@ class HomeController extends Controller
         }
         
         // Leave plan data (only if user has employee record)
-        $recordTiming('personal_attendance_and_leave_ms');
         $leave_plans_per_month = collect();
         $leave_plan_array = [];
         
@@ -259,11 +243,9 @@ class HomeController extends Controller
                 ->get();
         }
         
-        $recordTiming('leave_plans_ms');
         $request = new Request(['location' => null]);
         $statsResponse = $this->filterByLocation($request);
         $adminStats = json_decode($statsResponse->getContent(), true);
-        $recordTiming('company_statistics_ms');
         
         $locations = Cache::remember(
             'dashboard.locations',
@@ -298,7 +280,6 @@ class HomeController extends Controller
         } else {
             $hubLocations = collect();
         }
-        $recordTiming('locations_and_hubs_ms');
 
         $vl_balance = 0;
         $sl_balance = 0;
@@ -329,11 +310,6 @@ class HomeController extends Controller
             ->orderBy('date', 'desc');
 
         $plannings = $planningQuery->paginate(7);
-        $recordTiming('leave_balances_and_planning_ms');
-        if ($timingEnabled) {
-            $dashboardTimings['total_dashboard_data_ms'] = round((microtime(true) - $timingStart) * 1000, 2);
-            \Log::info('Temporary dashboard timings', $dashboardTimings);
-        }
         
         return  array_merge([
             'header' => '',
@@ -683,6 +659,7 @@ class HomeController extends Controller
     {
         $location = $request->input('location');
         $today = Carbon::today()->toDateString();
+        $tomorrow = Carbon::parse($today)->addDay()->toDateString();
         
         $stats = DB::select("
             SELECT 
@@ -699,15 +676,15 @@ class HomeController extends Controller
             LEFT JOIN (
                 SELECT DISTINCT employee_code 
                 FROM attendances 
-                WHERE DATE(time_in) = ?
+                WHERE time_in >= ? AND time_in < ?
             ) a ON e.employee_number = a.employee_code
             LEFT JOIN (
                 SELECT DISTINCT u.id as user_id
                 FROM employee_leaves el
                 JOIN users u ON el.user_id = u.id
                 WHERE el.status = 'Approved'
-                    AND DATE(el.date_from) <= ?
-                    AND DATE(el.date_to) >= ?
+                    AND el.date_from < ?
+                    AND el.date_to >= ?
             ) el ON e.user_id = el.user_id
             LEFT JOIN (
                 SELECT DISTINCT e2.employee_number as employee_code
@@ -716,7 +693,7 @@ class HomeController extends Controller
                 JOIN attendances a2 ON e2.employee_number = a2.employee_code
                 WHERE e2.status IN ('Active', 'HBU')
                     AND e2.company_id != 2
-                    AND DATE(a2.time_in) = ?
+                    AND a2.time_in >= ? AND a2.time_in < ?
                     AND TIME(a2.time_in) > TIME(
                         CASE 
                             WHEN LENGTH(TRIM(sd.time_in_from)) = 5 
@@ -727,7 +704,7 @@ class HomeController extends Controller
             ) la ON e.employee_number = la.employee_code
             WHERE e.status IN ('Active', 'HBU')" . 
             ($location ? " AND e.location = ?" : ""),
-            array_filter([$today, $today, $today, $today, $location, $location])
+            array_filter([$today, $tomorrow, $tomorrow, $today, $today, $tomorrow, $location, $location])
         );
 
         $result = $stats[0];
@@ -756,8 +733,8 @@ class HomeController extends Controller
             FROM attendances 
             WHERE employee_code = ?
                 AND time_in IS NOT NULL
-                AND MONTH(time_in) = MONTH(CURDATE())
-                AND YEAR(time_in) = YEAR(CURDATE())
+                AND time_in >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                AND time_in < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
             GROUP BY DATE(time_in)
             HAVING TIME(MIN(time_in)) > ADDTIME(?, '00:01:00')
                 AND late_minutes > 0
@@ -853,7 +830,8 @@ class HomeController extends Controller
         $attendanceData = DB::table('attendances')
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('MIN(time_in) as time_in'))
             ->where('employee_code', $employeeNumber)
-            ->whereBetween(DB::raw('DATE(created_at)'), [$startDate->toDateString(), $endDate->toDateString()])
+            ->where('created_at', '>=', $startDate->toDateString())
+            ->where('created_at', '<', $endDate->copy()->addDay()->toDateString())
             ->groupBy(DB::raw('DATE(created_at)'))
             ->pluck('time_in', 'date');
 

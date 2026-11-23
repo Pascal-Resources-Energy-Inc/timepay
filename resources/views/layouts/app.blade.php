@@ -8,8 +8,12 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
+    @if (request()->is('login') && request()->isMethod('get'))
+    <link rel="icon" href="{{ asset('login_css/images/mini_icon_optimized.png') }}" type="image/png">
+    @else
     <link rel="shortcut icon" href="{{url('images/mini-icon.png')}}">
     <link rel="icon" href="{{url('images/mini-icon.png')}}">
+    @endif
     <!-- Scripts -->
     {{-- <script src="{{ asset('js/app.js') }}" defer></script> --}}
     {{-- <link rel="stylesheet" href="{{asset('login_css/fonts/icomoon/style.css')}}">

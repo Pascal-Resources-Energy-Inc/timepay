@@ -1,5 +1,5 @@
 @foreach($tdsRecords as $record)
-<div class="modal fade" id="viewDetails{{ $record->id }}" tabindex="-1" role="dialog">
+<div class="modal fade tds-details-modal" id="viewDetails{{ $record->id }}" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content border-0">
       
@@ -109,8 +109,9 @@
           <div class="col-md-12">
             <h5 class="text-primary mb-3"><i class="ti-image"></i> Business Image</h5>
             <div class="text-center">
-              <img src="{{ asset('uploads/tds_images/' . $record->business_image) }}" 
+              <img {{ !empty($deferDetailsImages) ? 'data-src' : 'src' }}="{{ asset('uploads/tds_images/' . $record->business_image) }}" 
                   alt="Business Image for {{ $record->business_name }}" 
+                  loading="lazy"
                   class="img-fluid img-thumbnail"
                   style="max-height: 400px; cursor: pointer; border: 2px solid #ddd; border-radius: 8px;"
                   onclick="window.open(this.src, '_blank')"
@@ -220,8 +221,9 @@
                   
                   @if($isImage)
                     <div class="mt-2">
-                      <img src="{{ asset('uploads/tds_payments/' . $record->proof_of_payment) }}" 
+                      <img {{ !empty($deferDetailsImages) ? 'data-src' : 'src' }}="{{ asset('uploads/tds_payments/' . $record->proof_of_payment) }}" 
                            alt="Proof of Payment" 
+                           loading="lazy"
                            class="img-fluid img-thumbnail"
                            style="max-height: 100px; cursor: pointer; border: 2px solid #28a745; border-radius: 8px;"
                            onclick="window.open(this.src, '_blank')"
@@ -259,8 +261,9 @@
                   
                   @if($isImage)
                     <div class="mt-2">
-                      <img src="{{ asset('uploads/tds_payments/' . $record->upload_docs) }}" 
+                      <img {{ !empty($deferDetailsImages) ? 'data-src' : 'src' }}="{{ asset('uploads/tds_payments/' . $record->upload_docs) }}" 
                            alt="Proof of Payment" 
+                           loading="lazy"
                            class="img-fluid img-thumbnail"
                            style="max-height: 100px; cursor: pointer; border: 2px solid #28a745; border-radius: 8px;"
                            onclick="window.open(this.src, '_blank')"

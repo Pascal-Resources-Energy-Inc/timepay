@@ -42,6 +42,18 @@ class HomeController extends Controller
      */
     public function prepareDashboardData()
     {
+        // Temporary diagnostics: enabled only when dashboard_timing=1 is in the URL.
+        $timingEnabled = request()->query('dashboard_timing') === '1';
+        $timingStart = microtime(true);
+        $timingLast = $timingStart;
+        $dashboardTimings = [];
+        $recordTiming = function ($section) use ($timingEnabled, &$timingLast, &$dashboardTimings) {
+            if (!$timingEnabled) return;
+            $now = microtime(true);
+            $dashboardTimings[$section] = round(($now - $timingLast) * 1000, 2);
+            $timingLast = $now;
+        };
+
         // Cache current user data to avoid repeated database calls
         $currentUser = auth()->user();
         $currentEmployee = $currentUser->employee;
@@ -77,6 +89,7 @@ class HomeController extends Controller
                     ->get();
             }
         );
+        $recordTiming('employee_reference_data_ms');
         $sevendays = date('Y-m-d',strtotime("-7 days"));
         if(auth()->user()->employee){
             if(auth()->user()->employee->employee_number){
@@ -98,6 +111,7 @@ class HomeController extends Controller
         $employees_under = auth()->user()->subbordinates;
         $attendance_employees = $attendance_controller->get_attendances_employees(date('Y-m-d'),date('Y-m-d'),$employees_under->pluck('employee_number')->toArray());
         $attendance_employees->load('employee.approved_leaves_with_pay');
+        $recordTiming('attendance_and_schedules_ms');
         // $announcements = Announcement::with('user')->where('expired',null)
         // ->orWhere('expired',">=",date('Y-m-d'))->get();
         
@@ -140,7 +154,7 @@ class HomeController extends Controller
             }
         );
         
-        $emp = Employee::where('user_id', Auth::id())->first();
+        $emp = $currentEmployee;
 
         $classifications = Cache::remember(
             'dashboard.classifications',
@@ -156,6 +170,7 @@ class HomeController extends Controller
                 return Leave::all();
             }
         );
+        $recordTiming('holiday_and_reference_data_ms');
         
         // User-specific data (only if user has employee record)
         $totalUsedLeaveDays = 0;
@@ -181,13 +196,29 @@ class HomeController extends Controller
             $schedule_ko = employeeSchedule($schedules,date('Y-m-d'),$scheduleId,auth()->user()->employee->employee_number);
             
             if ($schedule_ko) {
-                $lateRecords = $this->calculateLateRecords($currentEmployee->employee_number, $schedule_ko->time_in_from);
-                $absentDates = $this->calculateAbsentDates($currentEmployee->employee_number, $currentUser->id);
-                $latePerDay = $this->calculateLatePerDay($currentEmployee->employee_number, $schedule_ko->time_in_from, $currentUser->id);
+                $lateRecords = $this->calculateLateRecords(
+                    $currentEmployee->employee_number,
+                    $schedule_ko->time_in_from,
+                    $currentEmployee->company_id
+                );
+
+                $absentDates = $this->calculateAbsentDates(
+                    $currentEmployee->employee_number,
+                    $currentUser->id,
+                    $currentEmployee->company_id
+                );
+
+                $latePerDay = $this->calculateLatePerDay(
+                    $currentEmployee->employee_number,
+                    $schedule_ko->time_in_from,
+                    $currentUser->id,
+                    $currentEmployee->company_id
+                );
             }
         }
         
         // Leave plan data (only if user has employee record)
+        $recordTiming('personal_attendance_and_leave_ms');
         $leave_plans_per_month = collect();
         $leave_plan_array = [];
         
@@ -228,9 +259,11 @@ class HomeController extends Controller
                 ->get();
         }
         
+        $recordTiming('leave_plans_ms');
         $request = new Request(['location' => null]);
         $statsResponse = $this->filterByLocation($request);
         $adminStats = json_decode($statsResponse->getContent(), true);
+        $recordTiming('company_statistics_ms');
         
         $locations = Cache::remember(
             'dashboard.locations',
@@ -265,6 +298,7 @@ class HomeController extends Controller
         } else {
             $hubLocations = collect();
         }
+        $recordTiming('locations_and_hubs_ms');
 
         $vl_balance = 0;
         $sl_balance = 0;
@@ -295,6 +329,11 @@ class HomeController extends Controller
             ->orderBy('date', 'desc');
 
         $plannings = $planningQuery->paginate(7);
+        $recordTiming('leave_balances_and_planning_ms');
+        if ($timingEnabled) {
+            $dashboardTimings['total_dashboard_data_ms'] = round((microtime(true) - $timingStart) * 1000, 2);
+            \Log::info('Temporary dashboard timings', $dashboardTimings);
+        }
         
         return  array_merge([
             'header' => '',
@@ -701,12 +740,8 @@ class HomeController extends Controller
         ]);
     }
     
-   private function calculateLateRecords($employeeNumber, $expectedTimeIn)
+   private function calculateLateRecords($employeeNumber, $expectedTimeIn, $companyId)
     {
-        $companyId = DB::table('employees')
-            ->where('employee_number', $employeeNumber)
-            ->value('company_id');
-
         if ($companyId == 2) {
             return [];
         }
@@ -731,12 +766,8 @@ class HomeController extends Controller
     }
 
     
-    private function calculateAbsentDates($employeeNumber, $userId)
+    private function calculateAbsentDates($employeeNumber, $userId, $companyId)
     {
-        $companyId = DB::table('employees')
-            ->where('employee_number', $employeeNumber)
-            ->value('company_id');
-
         if ($companyId == 2) {
             return [];
         }
@@ -796,12 +827,8 @@ class HomeController extends Controller
             ->toArray();
     }
 
-    private function calculateLatePerDay($employeeNumber, $expectedTimeString, $userId)
+    private function calculateLatePerDay($employeeNumber, $expectedTimeString, $userId, $companyId)
     {
-        $companyId = DB::table('employees')
-            ->where('employee_number', $employeeNumber)
-            ->value('company_id');
-
         if ($companyId == 2) {
             return [];
         }

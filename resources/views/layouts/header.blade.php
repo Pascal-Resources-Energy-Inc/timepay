@@ -1222,9 +1222,15 @@
             document.getElementById('logout-form').submit();
         }
 
+        @if (request()->is('/', 'home', 'dashboard'))
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('preloaderHera').style.display = 'none';
+        });
+        @else
         window.addEventListener('load', function() {
             document.getElementById('preloaderHera').style.display = 'none';
         });
+        @endif
 
         $(document).ready(function() {
 

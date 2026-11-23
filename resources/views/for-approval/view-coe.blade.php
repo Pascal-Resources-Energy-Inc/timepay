@@ -296,7 +296,7 @@
                 @endif
                 @endif
 
-                @if($coe->receive_method === 'Email' && str_contains($coe->purpose, 'Employment') && $coe->status === 'Approved')
+                @if($user_role === 'coe_approver' && $coe->receive_method === 'Email' && str_contains($coe->purpose, 'Employment') && $coe->status === 'Approved')
                 <hr class="mt-3 mb-3">
                 <div class="row mb-2">
                     <div class="col-sm-4 text-muted">Resend to:</div>

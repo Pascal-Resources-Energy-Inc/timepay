@@ -1,10 +1,10 @@
 <!-- Modal -->
 <div class="modal fade" id="new_approver" tabindex="-1" role="dialog" aria-labelledby="approverdata" aria-hidden="true">
     <div class="modal-dialog modal-md" role="document">
-        <div class="modal-content">
+        <div class="modal-content border-0">
             <div class="modal-header">
-                <h5 class="modal-title" id="approverdata">New Approver</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <h5 class="modal-title" id="approverdata">Add Form Access</h5>
+                <button type="button" class="btn-close btn-danger" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -29,6 +29,15 @@
                                     <option value="{{$key}}">{{$value}}</option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label for="access_type">Access Type</label>
+                            <select name="access_type" id="access_type" class="form-control form-control-sm" required>
+                                <option value="approver" {{ old('access_type', 'approver') == 'approver' ? 'selected' : '' }}>Approver</option>
+                                <option value="viewer" {{ old('access_type') == 'viewer' ? 'selected' : '' }}>Viewer</option>
+                            </select>
+                            <small class="text-muted">Approvers can view and approve. Viewers can only view requests. This applies to every selected form.</small>
+                            @if($errors->has('access_type')) <div class="text-danger">{{ $errors->first('access_type') }}</div> @endif
                         </div>
                         <div class="col-md-12 form-group" id="work_location_container" style="display: none;">
                             <label>Work Location Area</label>
@@ -55,7 +64,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline border" data-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary">Save</button>
                 </div>
             </form>      

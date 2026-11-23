@@ -26,6 +26,7 @@ class ApproverSettingController extends Controller
                                                'work_location' => $first_item->work_location,
                                                'form_type_name' => $first_item->form_type_name,
                                                'type_of_form' => $first_item->type_of_form,
+                                               'access_type' => $first_item->access_type ?? 'approver',
                                                'group_ids' => $group->pluck('id')->toArray()
                                            ];
                                        })
@@ -96,8 +97,13 @@ class ApproverSettingController extends Controller
             'user_id' => 'required|exists:users,id',
             'type_of_forms' => 'required|array|min:1',
             'type_of_forms.*' => 'in:leave,ot,dtr,pd,ad,ne,coe,uir,mta,bmc,ldr,pr',
-            'work_location' => 'nullable|array'
+            'work_location' => 'nullable|array',
+            'access_type' => 'required|in:approver,viewer'
         ]);
+
+        if ($request->access_type === 'viewer' && array_diff($request->type_of_forms, ['coe'])) {
+            return back()->withErrors(['access_type' => 'Viewer access is currently available only for COE requests.'])->withInput();
+        }
 
         $saved_count = 0;
 
@@ -132,6 +138,7 @@ class ApproverSettingController extends Controller
                         ApproverSetting::create([
                             'user_id' => $request->user_id,
                             'type_of_form' => 'mta',
+                            'access_type' => 'approver',
                             'work_location' => $location,
                             'status' => 'Active'
                         ]);
@@ -145,6 +152,7 @@ class ApproverSettingController extends Controller
                 ApproverSetting::create([
                     'user_id' => $request->user_id,
                     'type_of_form' => $form_type,
+                    'access_type' => $request->access_type,
                     'work_location' => null,
                     'status' => 'Active'
                 ]);

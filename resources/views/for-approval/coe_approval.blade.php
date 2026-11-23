@@ -386,7 +386,7 @@
                     <td>
                     @if (in_array($form_approval->status, ['Processing', 'Approved', 'Declined', 'Cancelled']))
                             @if($form_approval->attachment)
-                                @if($form_approval->status === 'Processing')
+                                @if($form_approval->status === 'Processing' && $user_role === 'coe_approver')
                                     <a href="#" data-toggle="modal" data-target="#coe-upload-{{ $form_approval->id }}" style="font-size: 12px; display: flex; justify-content: center; align-items: center;" title="Change attachment">
                                       <i class="ti-image btn-icon-prepend mr-1"></i> View attachment
                                     </a>
@@ -632,13 +632,16 @@
 </script>
 
 @foreach ($coes as $coe)
+@if($user_role === 'coe_approver')
 @if ((int) data_get($coe, 'user.employee.company_id') !== 2)
 @include('for-approval.remarks.coe_processing_remarks')
 @endif
 @include('for-approval.remarks.coe_approved_remarks')
 @include('for-approval.remarks.coe_declined_remarks')
+@endif
 @include('for-approval.view-coe')
 
+@if($user_role === 'coe_approver')
 {{-- Inline COE attachment upload modal --}}
 <div class="modal fade" id="coe-upload-{{$coe->id}}" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -709,6 +712,7 @@
         </div>
     </div>
 </div>
+@endif
 @endforeach
 
 @foreach ($coes as $coe)
@@ -756,7 +760,7 @@
                             @endif
                         </div>
                     </div>
-                    @else
+                    @elseif($user_role === 'coe_approver')
                     <div class="row">
                         <div class="col-12">
                             <div class="border rounded bg-light p-3">
@@ -796,7 +800,7 @@
                 </div>
                 <div class="modal-footer d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-sm-end px-3">
                     <button type="button" class="btn btn-light border" data-dismiss="modal">Close</button>
-                    @if(empty($coe->proof))
+                    @if(empty($coe->proof) && $user_role === 'coe_approver')
                     <button type="submit" class="btn btn-primary mt-2 mt-sm-0 ml-sm-2">Upload</button>
                     @endif
                 </div>

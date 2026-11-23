@@ -16,6 +16,7 @@ class ApproverSetting extends Model implements Auditable
     protected $fillable = [
         'user_id',
         'type_of_form',
+        'access_type',
         'work_location',
         'status'
     ];
@@ -37,6 +38,13 @@ class ApproverSetting extends Model implements Auditable
     public function scopeActive($query)
     {
         return $query->where('status', 'Active');
+    }
+
+    public function scopeApprovers($query)
+    {
+        return $query->where(function ($query) {
+            $query->where('access_type', 'approver')->orWhereNull('access_type');
+        });
     }
 
     public static function getFormTypes()

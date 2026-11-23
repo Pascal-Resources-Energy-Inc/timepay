@@ -5,7 +5,7 @@
     <div class="container d-flex align-items-center justify-content-center">
       <div class="row">
         <div class="col-md-6 img-front">
-          <img src="{{asset('login_css/images/hera_front.png')}}" alt="Image" class="img-fluid">
+          <img src="{{asset('login_css/images/hera_front_optimized.png')}}" alt="Image" class="img-fluid">
         </div>
         <div class="col-md-6 ">
           <div class="row justify-content-center">

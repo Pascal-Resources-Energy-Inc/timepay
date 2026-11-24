@@ -370,8 +370,11 @@
                             </p>
                           </td>
                           <td id="tdStatus{{ $form_approval->id }}">
+                            @php $finalApprover = $form_approval->approver->firstWhere('as_final', 'on'); @endphp
                             @foreach($form_approval->approver as $approver)
-                              @if($form_approval->level >= $approver->level)
+                              @if($form_approval->status == 'Approved' && (($finalApprover && $approver->level <= $finalApprover->level) || $form_approval->approver->count() == 1))
+                                {{$approver->approver_info->name}} - <label class="badge badge-success mt-1">Approved</label>
+                              @elseif($form_approval->level >= $approver->level)
                                   @if ($form_approval->status == 'Declined')
                                   {{$approver->approver_info->name}} -  <label class="badge badge-danger mt-1">Declined</label>
                                   @elseif(($form_approval->level == $approver->level) && ($form_approval->status == 'Pending'))
@@ -408,7 +411,7 @@
                           </td>
                           <td align="center" id="tdActionId{{ $form_approval->id }}" data-id="{{ $form_approval->id }}">
                             @foreach($form_approval->approver as $k => $approver)
-                              @if($approver->approver_id == $approver_id && $form_approval->level == $k && $form_approval->status == 'Pending')
+                              @if($approver->approver_id == $approver_id && ($form_approval->level == $approver->level || ($form_approval->level == 0 && $approver->level == 1)) && $form_approval->status == 'Pending')
                                 <button type="button" class="btn btn-success btn-sm" id="{{ $form_approval->id }}" data-target="#dtr-approved-remarks-{{ $form_approval->id }}" data-toggle="modal" title="Approve">
                                   <i class="ti-check btn-icon-prepend"></i>                                                    
                                 </button>

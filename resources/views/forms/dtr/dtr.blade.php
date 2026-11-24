@@ -228,8 +228,11 @@
                         </td>
                         <td id="tdStatus{{ $dtr->id }}">
                           @if(count($dtr->approver) > 0)
+                            @php $finalApprover = $dtr->approver->firstWhere('as_final', 'on'); @endphp
                             @foreach($dtr->approver as $approver)
-                              @if($dtr->level >= $approver->level)
+                              @if($dtr->status == 'Approved' && (($finalApprover && $approver->level <= $finalApprover->level) || $dtr->approver->count() == 1))
+                                {{$approver->approver_info->name}} - <label class="badge badge-success mt-1">Approved</label>
+                              @elseif($dtr->level >= $approver->level)
                                 @if ($dtr->level == 0 && $dtr->status == 'Declined')
                                 {{$approver->approver_info->name}} -  <label class="badge badge-danger mt-1">Declined</label>
                                 @else
